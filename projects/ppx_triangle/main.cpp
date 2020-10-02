@@ -32,25 +32,21 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 void ProjApp::Setup()
 {
     {
-        PerFrame frame = {};
+        Result   ppxres = ppx::SUCCESS;
+        PerFrame frame  = {};
 
-        Result ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd);
-        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "create command buffer failed");
+        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
 
         grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        ppxres                                   = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore);
-        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "create semaphore failed");
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
 
         grfx::FenceCreateInfo fenceCreateInfo = {};
-        ppxres                                = GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence);
-        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "create fence failed");
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
 
-        ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore);
-        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "create semaphore failed");
-      
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
+
         fenceCreateInfo = {true}; // Create signaled
-        ppxres          = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence);
-        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "create fence failed");
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         mPerFrame.push_back(frame);
     }
@@ -58,29 +54,24 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    Result    ppxres = ppx::SUCCESS;
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
     uint32_t imageIndex = UINT32_MAX;
-    Result   ppxres     = swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex);
-    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "acquire next image failed");
+    PPX_CHECKED_CALL(ppxres = swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
 
-    // Wait for image acquired fence
-    ppxres = frame.imageAcquiredFence->Wait(UINT64_MAX);
-    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "image acquired fence wait failed");
-    ppxres = frame.imageAcquiredFence->Reset();
-    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "image acquired fence reset failed");
+    // Wait for and reset image acquired fence
+    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->Wait(UINT64_MAX));
+    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->Reset());
 
-    // Wait for render complete fence
-    ppxres = frame.renderCompleteFence->Wait(UINT64_MAX);
-    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "render complete fence wait failed");
-    ppxres = frame.renderCompleteFence->Reset();
-    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "render complete fence reset failed");
+    // Wait for and reset render complete fence
+    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->Wait(UINT64_MAX));
+    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->Reset());
 
     // Build command buffer
-    ppxres = frame.cmd->Begin();
-    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "cmd begin failed");
+    PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
@@ -96,8 +87,7 @@ void ProjApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), 0, 1, 0, 1, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }
-    ppxres = frame.cmd->End();
-    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "cmd end failed");
+    PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
     grfx::SubmitInfo submitInfo     = {};
     submitInfo.commandBufferCount   = 1;
@@ -108,10 +98,9 @@ void ProjApp::Render()
     submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
     submitInfo.pFence               = frame.renderCompleteFence;
 
-    ppxres = GetGraphicsQueue()->Submit(&submitInfo);
+    PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
 
-    ppxres = GetGraphicsQueue()->Present(swapchain, imageIndex, 1, &frame.renderCompleteSemaphore);
-    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "present failed");
+    PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Present(swapchain, imageIndex, 1, &frame.renderCompleteSemaphore));
 }
 
 int main(int argc, char** argv)

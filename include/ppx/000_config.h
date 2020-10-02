@@ -30,6 +30,7 @@
 #define PPX_LINE                PPX_STRINGIFY(__LINE__)
 #define PPX_SOURCE_LOCATION     __FUNCTION__ ## " @ " ## __FILE__ ## ":" ## PPX_LINE
 #define PPX_VAR_VALUE(var)      #var << ":"  << var
+#define PPX_ENDL                std::endl
 // clang-format on
 
 #define PPX_ASSERT_MSG(COND, MSG)                                \
@@ -46,6 +47,22 @@
                       << "(" << PPX_SOURCE_LOCATION << ")"); \
         assert(false);                                       \
     }
+
+// clang-format off
+#define PPX_CHECKED_CALL(EXPR)                                                         \
+    {                                                                                  \
+        ppx::Result ppx_checked_result_0xdeadbeef = EXPR;                              \
+        if (ppx_checked_result_0xdeadbeef != ppx::SUCCESS) {                           \
+            PPX_LOG_RAW(PPX_ENDL                                                       \
+                << "*** PPX Call Failed ***" << PPX_ENDL                               \
+                << "Return     : " << ppx_checked_result_0xdeadbeef << " " << PPX_ENDL \
+                << "Expression : " << #EXPR << " " << PPX_ENDL                         \
+                << "Function   : " << __FUNCTION__ << PPX_ENDL                         \
+                << "Location   : " << __FILE__ << " : " << PPX_LINE << PPX_ENDL);      \
+            assert(false);                                                             \
+        }                                                                              \
+    }
+// clang-format on
 
 namespace ppx {
 

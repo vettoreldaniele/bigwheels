@@ -73,11 +73,18 @@ namespace internal {
 
 struct RenderPassCreateInfo
 {
-    bool     createImages      = false;
-    bool     createViews       = false;
-    uint32_t width             = 0;
-    uint32_t height            = 0;
-    uint32_t renderTargetCount = 0;
+    enum CreateInfoVersion
+    {
+        CREATE_INFO_VERSION_UNDEFINED = 0,
+        CREATE_INFO_VERSION_1         = 1,
+        CREATE_INFO_VERSION_2         = 2,
+        CREATE_INFO_VERSION_3         = 3,
+    };
+
+    CreateInfoVersion version           = CREATE_INFO_VERSION_UNDEFINED;
+    uint32_t          width             = 0;
+    uint32_t          height            = 0;
+    uint32_t          renderTargetCount = 0;
 
     // Data unique to grfx::RenderPassCreateInfo
     struct
@@ -89,12 +96,11 @@ struct RenderPassCreateInfo
     // Data unique to grfx::RenderPassCreateInfo2
     struct
     {
+        grfx::SampleCount     sampleCount                                    = grfx::SAMPLE_COUNT_1;
         grfx::Format          renderTargetFormats[PPX_MAX_RENDER_TARGETS]    = {};
         grfx::Format          depthStencilFormat                             = grfx::FORMAT_UNDEFINED;
-        uint32_t              usageFlagsCount                                = 0;
         grfx::ImageUsageFlags renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS] = {};
         grfx::ImageUsageFlags depthStencilUsageFlags                         = {};
-        grfx::SampleCount     sampleCount                                    = grfx::SAMPLE_COUNT_1;
     } V2;
 
     // Data unique to grfx::RenderPassCreateInfo3
@@ -167,6 +173,11 @@ protected:
     virtual void   Destroy() override;
     friend class grfx::Device;
 
+private:
+    Result CreateImagesAndViewsV1(const grfx::internal::RenderPassCreateInfo* pCreateInfo);
+    Result CreateImagesAndViewsV2(const grfx::internal::RenderPassCreateInfo* pCreateInfo);
+    Result CreateImagesAndViewsV3(const grfx::internal::RenderPassCreateInfo* pCreateInfo);
+
 protected:
     template <typename ObjectPtrT>
     struct ExtObjPtr
@@ -176,10 +187,10 @@ protected:
     };
 
     grfx::Rect                                        mRenderArea = {};
-    std::vector<ExtObjPtr<grfx::RenderTargetViewPtr>> mRTVs;
-    ExtObjPtr<grfx::DepthStencilViewPtr>              mDSV;
-    std::vector<ExtObjPtr<grfx::ImagePtr>>            mRTVImages;
-    ExtObjPtr<grfx::ImagePtr>                         mDSVImage;
+    std::vector<ExtObjPtr<grfx::RenderTargetViewPtr>> mRenderTargetViews;
+    ExtObjPtr<grfx::DepthStencilViewPtr>              mDepthStencilView;
+    std::vector<ExtObjPtr<grfx::ImagePtr>>            mRenderTargetImages;
+    ExtObjPtr<grfx::ImagePtr>                         mDepthStencilImage;
 };
 
 } // namespace grfx
