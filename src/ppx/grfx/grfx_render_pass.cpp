@@ -5,6 +5,71 @@
 namespace ppx {
 namespace grfx {
 
+// -------------------------------------------------------------------------------------------------
+// RenderPassCreateInfo
+// -------------------------------------------------------------------------------------------------
+void RenderPassCreateInfo::SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value)
+{
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->renderTargetClearValues[i] = value;
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+// RenderPassCreateInfo2
+// -------------------------------------------------------------------------------------------------
+void RenderPassCreateInfo2::SetAllRenderTargetUsageFlags(const grfx::ImageUsageFlags& flags)
+{
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->renderTargetUsageFlags[i] = flags;
+    }
+}
+
+void RenderPassCreateInfo2::SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value)
+{
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->renderTargetClearValues[i] = value;
+    }
+}
+
+void RenderPassCreateInfo2::SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op)
+{
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->renderTargetLoadOps[i] = op;
+    }
+}
+
+void RenderPassCreateInfo2::SetAllRenderTargetToClear()
+{
+    SetAllRenderTargetLoadOp(grfx::ATTACHMENT_LOAD_OP_CLEAR);
+}
+
+// -------------------------------------------------------------------------------------------------
+// RenderPassCreateInfo3
+// -------------------------------------------------------------------------------------------------
+void RenderPassCreateInfo3::SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value)
+{
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->renderTargetClearValues[i] = value;
+    }
+}
+
+void RenderPassCreateInfo3::SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op)
+{
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->renderTargetLoadOps[i] = op;
+    }
+}
+
+void RenderPassCreateInfo3::SetAllRenderTargetToClear()
+{
+    SetAllRenderTargetLoadOp(grfx::ATTACHMENT_LOAD_OP_CLEAR);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+// internal
+// -------------------------------------------------------------------------------------------------
 namespace internal {
 
 RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo& obj)

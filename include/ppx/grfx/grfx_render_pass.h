@@ -19,6 +19,8 @@ struct RenderPassCreateInfo
     grfx::DepthStencilView*      pDepthStencilView                               = nullptr;
     grfx::RenderTargetClearValue renderTargetClearValues[PPX_MAX_RENDER_TARGETS] = {};
     grfx::DepthStencilClearValue depthStencilClearValue                          = {};
+
+    void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
 };
 
 //! @struct RenderPassCreateInfo2
@@ -46,6 +48,11 @@ struct RenderPassCreateInfo2
     grfx::AttachmentStoreOp      depthStoreOp                                    = grfx::ATTACHMENT_STORE_OP_STORE;
     grfx::AttachmentLoadOp       stencilLoadOp                                   = grfx::ATTACHMENT_LOAD_OP_LOAD;
     grfx::AttachmentStoreOp      stencilStoreOp                                  = grfx::ATTACHMENT_STORE_OP_STORE;
+
+    void SetAllRenderTargetUsageFlags(const grfx::ImageUsageFlags& flags);
+    void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
+    void SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op);
+    void SetAllRenderTargetToClear();
 };
 
 //! @struct RenderPassCreateInfo3
@@ -67,6 +74,10 @@ struct RenderPassCreateInfo3
     grfx::AttachmentStoreOp      depthStoreOp                                    = grfx::ATTACHMENT_STORE_OP_STORE;
     grfx::AttachmentLoadOp       stencilLoadOp                                   = grfx::ATTACHMENT_LOAD_OP_LOAD;
     grfx::AttachmentStoreOp      stencilStoreOp                                  = grfx::ATTACHMENT_STORE_OP_STORE;
+
+    void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
+    void SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op);
+    void SetAllRenderTargetToClear();
 };
 
 namespace internal {

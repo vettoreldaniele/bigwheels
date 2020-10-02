@@ -113,8 +113,8 @@ using VkSemaphorePtr           = VkHandlePtr<VkSemaphore>;
 using VkSurfacePtr             = VkHandlePtr<VkSurfaceKHR>;
 using VkSwapchainPtr           = VkHandlePtr<VkSwapchainKHR>;
 
-using VmaAllocationPtr         = VkHandlePtr<VmaAllocation>;
-using VmaAllocatorPtr          = VkHandlePtr<VmaAllocator>;
+using VmaAllocationPtr = VkHandlePtr<VmaAllocation>;
+using VmaAllocatorPtr  = VkHandlePtr<VmaAllocator>;
 
 // -------------------------------------------------------------------------------------------------
 
