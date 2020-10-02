@@ -1,0 +1,407 @@
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
+project(ppx)
+
+# ------------------------------------------------------------------------------
+# Vulkan header and libraries
+# ------------------------------------------------------------------------------
+
+# Detect Vulkan directories
+if (PPX_VULKAN)
+    # Determine Vulkan's include directory
+    if (NOT VULKAN_INCLUDE_DIR)
+        if (LINUX)
+            if (GGP)
+                set(VULKAN_INCLUDE_DIR "${GGP_SYSROOT_PATH}/usr/local/include")
+            else()
+                if (DEFINED ENV{VULKAN_SDK})
+                    set(VULKAN_INCLUDE_DIR "$ENV{VULKAN_SDK}/x86_64/include")
+                endif()
+            endif()
+        elseif (APPLE OR WIN32)
+            if (DEFINED ENV{VULKAN_SDK})
+                set(VULKAN_INCLUDE_DIR "$ENV{VULKAN_SDK}/Include")
+            endif()
+        endif()
+    endif()
+
+    # Determine Vulkan's library directory
+    if (NOT VULKAN_LIBRARY_DIR)
+        if (LINUX)
+            if (GGP)
+                set(VULKAN_LIBRARY_DIR "${GGP_SYSROOT_PATH}/usr/local/lib")
+            else()
+                if (DEFINED ENV{VULKAN_SDK})
+                    set(VULKAN_LIBRARY_DIR "$ENV{VULKAN_SDK}/x86_64/lib")
+                endif()
+            endif()
+        elseif (APPLE OR WIN32)
+            if (DEFINED ENV{VULKAN_SDK})
+                set(VULKAN_LIBRARY_DIR "$ENV{VULKAN_SDK}/Lib")
+            endif()
+        endif()
+    endif()
+
+    # Bail if Vulkan's include directory is not set
+    if (NOT VULKAN_INCLUDE_DIR)
+        message(FATAL_ERROR "VULKAN_INCLUDE_DIR not specified and could not be determined using environment variable VULKAN_SDK")
+    endif()
+
+    # Bail if Vulkan's library directory is not set
+    if (NOT VULKAN_LIBRARY_DIR)
+        message(FATAL_ERROR "VULKAN_LIBRARY_DIR not specified and could not be determined using environment variable VULKAN_SDK")
+    endif()
+
+    message("Found Vulkan: ${VULKAN_DIR}")
+    message("  Vulkan include directory: ${VULKAN_INCLUDE_DIR}")
+    message("  Vulkan library directory: ${VULKAN_LIBRARY_DIR}")
+endif()
+
+# ------------------------------------------------------------------------------
+# Add header and source files
+# ------------------------------------------------------------------------------
+
+set(INC_DIR ${PPX_DIR}/include)
+set(SRC_DIR ${PPX_DIR}/src)
+
+list(
+    APPEND PPX_HEADER_FILES
+    ${INC_DIR}/ppx/000_config.h
+    ${INC_DIR}/ppx/application.h
+    ${INC_DIR}/ppx/base_application.h
+    ${INC_DIR}/ppx/fs.h
+    ${INC_DIR}/ppx/headless_application.h
+    ${INC_DIR}/ppx/log.h
+    ${INC_DIR}/ppx/obj_ptr.h
+    ${INC_DIR}/ppx/platform.h
+    ${INC_DIR}/ppx/ppx.h
+    ${INC_DIR}/ppx/util.h
+)
+
+list(
+    APPEND PPX_SOURCE_FILES
+    ${SRC_DIR}/ppx/application.cpp
+    ${SRC_DIR}/ppx/base_application.cpp
+    ${SRC_DIR}/ppx/headless_application.cpp
+    ${SRC_DIR}/ppx/log.cpp
+    ${SRC_DIR}/ppx/platform.cpp
+)
+
+list(
+    APPEND PPX_GRFX_HEADER_FILES
+    ${INC_DIR}/ppx/grfx/000_grfx_config.h
+    ${INC_DIR}/ppx/grfx/grfx_buffer.h
+    ${INC_DIR}/ppx/grfx/grfx_command.h
+    ${INC_DIR}/ppx/grfx/grfx_descriptor.h
+    ${INC_DIR}/ppx/grfx/grfx_device.h
+    ${INC_DIR}/ppx/grfx/grfx_gpu.h
+    ${INC_DIR}/ppx/grfx/grfx_helper.h
+    ${INC_DIR}/ppx/grfx/grfx_image.h
+    ${INC_DIR}/ppx/grfx/grfx_instance.h
+    ${INC_DIR}/ppx/grfx/grfx_pipeline.h
+    ${INC_DIR}/ppx/grfx/grfx_queue.h
+    ${INC_DIR}/ppx/grfx/grfx_render_pass.h
+    ${INC_DIR}/ppx/grfx/grfx_shader.h
+    ${INC_DIR}/ppx/grfx/grfx_swapchain.h
+    ${INC_DIR}/ppx/grfx/grfx_sync.h
+    ${INC_DIR}/ppx/grfx/grfx_texture.h
+)
+
+list(
+    APPEND PPX_GRFX_SOURCE_FILES
+    ${SRC_DIR}/ppx/grfx/grfx_buffer.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_command.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_descriptor.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_device.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_gpu.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_image.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_instance.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_pipeline.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_queue.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_render_pass.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_shader.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_swapchain.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_sync.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_texture.cpp
+)
+
+list(
+    APPEND PPX_GRFX_DX_HEADER_FILES
+    ${INC_DIR}/ppx/grfx/dx/000_dx_config.h
+    ${INC_DIR}/ppx/grfx/dx/dx_buffer.h
+    ${INC_DIR}/ppx/grfx/dx/dx_command.h
+    ${INC_DIR}/ppx/grfx/dx/dx_descriptor.h
+    ${INC_DIR}/ppx/grfx/dx/dx_device.h
+    ${INC_DIR}/ppx/grfx/dx/dx_gpu.h
+    ${INC_DIR}/ppx/grfx/dx/dx_image.h
+    ${INC_DIR}/ppx/grfx/dx/dx_instance.h
+    ${INC_DIR}/ppx/grfx/dx/dx_pipeline.h
+    ${INC_DIR}/ppx/grfx/dx/dx_queue.h
+    ${INC_DIR}/ppx/grfx/dx/dx_render_pass.h
+    ${INC_DIR}/ppx/grfx/dx/dx_shader.h
+    ${INC_DIR}/ppx/grfx/dx/dx_swapchain.h
+    ${INC_DIR}/ppx/grfx/dx/dx_sync.h
+)
+
+list(
+    APPEND PPX_GRFX_DX_SOURCE_FILES
+    ${SRC_DIR}/ppx/grfx/dx/dx_buffer.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_command.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_descriptor.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_device.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_gpu.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_image.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_instance.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_pipeline.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_queue.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_render_pass.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_shader.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_swapchain.cpp
+    ${SRC_DIR}/ppx/grfx/dx/dx_sync.cpp
+)
+
+list(
+    APPEND PPX_GRFX_VK_HEADER_FILES
+    ${INC_DIR}/ppx/grfx/vk/000_vk_config.h
+    ${INC_DIR}/ppx/grfx/vk/000_vk_config_platform.h
+    ${INC_DIR}/ppx/grfx/vk/vk_buffer.h
+    ${INC_DIR}/ppx/grfx/vk/vk_command.h
+    ${INC_DIR}/ppx/grfx/vk/vk_descriptor.h
+    ${INC_DIR}/ppx/grfx/vk/vk_device.h
+    ${INC_DIR}/ppx/grfx/vk/vk_gpu.h
+    ${INC_DIR}/ppx/grfx/vk/vk_image.h
+    ${INC_DIR}/ppx/grfx/vk/vk_instance.h
+    ${INC_DIR}/ppx/grfx/vk/vk_pipeline.h
+    ${INC_DIR}/ppx/grfx/vk/vk_queue.h
+    ${INC_DIR}/ppx/grfx/vk/vk_render_pass.h
+    ${INC_DIR}/ppx/grfx/vk/vk_shader.h
+    ${INC_DIR}/ppx/grfx/vk/vk_swapchain.h
+    ${INC_DIR}/ppx/grfx/vk/vk_sync.h
+    ${INC_DIR}/ppx/grfx/vk/vk_util.h
+)
+
+list(
+    APPEND PPX_GRFX_VK_SOURCE_FILES
+    ${SRC_DIR}/ppx/grfx/vk/vk_buffer.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_command.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_descriptor.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_device.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_gpu.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_image.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_instance.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_pipeline.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_queue.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_render_pass.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_shader.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_swapchain.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_sync.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_util.cpp
+)
+
+
+#list(
+#    APPEND PPX_RENDER_HEADER_FILES
+#    ${INC_DIR}/ppx/render/base_buffer.h
+#    ${INC_DIR}/ppx/render/base_pass.h
+#    ${INC_DIR}/ppx/render/color_pass.h
+#    ${INC_DIR}/ppx/render/depth_pass.h
+#    ${INC_DIR}/ppx/render/index_buffer.h
+#    ${INC_DIR}/ppx/render/renderer.h
+#    ${INC_DIR}/ppx/render/storage_buffer.h
+#    ${INC_DIR}/ppx/render/texture.h
+#    ${INC_DIR}/ppx/render/vertex_buffer.h
+#)
+#
+#list(
+#    APPEND PPX_RENDER_SOURCE_FILES
+#    ${SRC_DIR}/ppx/render/color_pass.cpp
+#    ${SRC_DIR}/ppx/render/depth_pass.cpp
+#    ${SRC_DIR}/ppx/render/index_buffer.cpp
+#    ${SRC_DIR}/ppx/render/renderer.cpp
+#    ${SRC_DIR}/ppx/render/storage_buffer.cpp
+#    ${SRC_DIR}/ppx/render/texture.cpp
+#    ${SRC_DIR}/ppx/render/vertex_buffer.cpp
+#)
+
+# ------------------------------------------------------------------------------
+# Source group
+# ------------------------------------------------------------------------------
+
+source_group("Header Files\\ppx"            FILES ${PPX_HEADER_FILES})
+source_group("Source Files\\ppx"            FILES ${PPX_SOURCE_FILES})
+source_group("Header Files\\ppx\\grfx"      FILES ${PPX_GRFX_HEADER_FILES})
+source_group("Source Files\\ppx\\grfx"      FILES ${PPX_GRFX_SOURCE_FILES})
+source_group("Header Files\\ppx\\grfx\\dx"  FILES ${PPX_GRFX_DX_HEADER_FILES})
+source_group("Source Files\\ppx\\grfx\\dx"  FILES ${PPX_GRFX_DX_SOURCE_FILES})
+source_group("Header Files\\ppx\\grfx\\vk"  FILES ${PPX_GRFX_VK_HEADER_FILES})
+source_group("Source Files\\ppx\\grfx\\vk"  FILES ${PPX_GRFX_VK_SOURCE_FILES})
+
+# ------------------------------------------------------------------------------
+# Add library
+# ------------------------------------------------------------------------------
+
+add_library(
+    ${PROJECT_NAME} STATIC
+    ${PPX_HEADER_FILES}
+    ${PPX_SOURCE_FILES}
+    ${PPX_GRFX_HEADER_FILES}
+    ${PPX_GRFX_SOURCE_FILES}
+    ${PPX_GRFX_DX_HEADER_FILES}
+    ${PPX_GRFX_DX_SOURCE_FILES}
+    ${PPX_GRFX_VK_HEADER_FILES}
+    ${PPX_GRFX_VK_SOURCE_FILES}
+)
+
+if (${PPX_LINUX} OR ${PPX_GGP})
+    set_target_properties(
+        ${PROJECT_NAME} PROPERTIES PREFIX "lib"
+    )
+endif()
+    
+# ------------------------------------------------------------------------------
+# Include directories
+# ------------------------------------------------------------------------------
+
+target_include_directories(
+    ${PROJECT_NAME}
+    PRIVATE ${SRC_DIR} 
+            ${PPX_THIRD_PARTY_DIR}/glfw/include
+    PUBLIC  ${INC_DIR}
+)
+
+# Include D3D12 directories if D3D12 is enabled
+if (PPX_D3D12)
+    target_include_directories(
+        ${PROJECT_NAME}
+        PRIVATE ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src
+    )
+endif()
+
+# Include Vulkan directories if Vulkan is enabled
+if (PPX_VULKAN)
+    target_include_directories(
+        ${PROJECT_NAME}
+        PRIVATE ${VULKAN_INCLUDE_DIR}
+                ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src
+    )
+endif()
+
+set_target_properties(
+    ${PROJECT_NAME}
+    PROPERTIES FOLDER "ppx"
+)
+
+# ------------------------------------------------------------------------------
+# Compile definitions
+# ------------------------------------------------------------------------------
+
+if (PPX_GGP)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PPX_GGP
+    )
+elseif (PPX_LINUX)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PPX_LINUX
+    )
+elseif (PPX_MSW)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PPX_MSW
+    )
+endif()
+
+
+# ------------------------------------------------------------------------------
+# Graphics API Compile definitions
+# ------------------------------------------------------------------------------
+
+if (PPX_D3D12)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PPX_D3D12
+    )
+endif()
+
+if (PPX_VULKAN)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PPX_VULKAN
+    )
+    # Platform specific Vulkan defintions
+    if (PPX_GGP)
+        target_compile_definitions(
+            ${PROJECT_NAME}
+            PRIVATE VK_USE_PLATFORM_GGP
+        )
+    elseif (PPX_LINUX)
+        target_compile_definitions(
+            ${PROJECT_NAME}
+            PRIVATE VK_USE_PLATFORM_XCB_KHR
+        )
+    elseif (PPX_MSW)
+        target_compile_definitions(
+            ${PROJECT_NAME}
+            PRIVATE VK_USE_PLATFORM_WIN32_KHR
+        )
+    endif()
+endif()
+
+
+# ------------------------------------------------------------------------------
+# Graphics API Link Libraries
+# ------------------------------------------------------------------------------
+
+if (PPX_D3D12)
+    # Link in d3d12.lib and dxgi.lib
+    if (PPX_D3D12)
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC d3d12.lib dxgi.lib dxguid.lib
+        )
+    endif()
+endif()
+
+if (PPX_OPENGL)
+    if (PPX_LINUX)
+        # @TODO: Add Linux OpenGL libraries
+    elseif (PPX_MSW)
+        # Link in opengl32.lib
+        if (PPX_OPENGL)
+            target_link_libraries(${PROJECT_NAME} 
+                PUBLIC opengl32.lib
+            )
+        endif()
+    endif()
+endif()
+
+if (PPX_VULKAN)
+    # GGP
+    if (PPX_GGP)
+    #Linux
+    elseif (PPX_LINUX)
+        # Link directories
+        target_link_directories(${PROJECT_NAME} 
+            PUBLIC ${VULKAN_LIBRARY_DIR}
+        )
+        # Link libraries
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC vulkan
+        )  
+    
+        # Link properties
+        set_target_properties(${PROJECT_NAME}
+            PROPERTIES OUTPUT_NAME PPX
+                        LINKER_LANGUAGE CXX
+        )
+        # Link libraries
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC xcb X11-xcb
+        )
+    # Windows
+    elseif (PPX_MSW)
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC "${VULKAN_LIBRARY_DIR}/vulkan-1.lib"
+        )
+    endif()
+endif()
