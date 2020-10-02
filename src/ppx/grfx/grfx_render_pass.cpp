@@ -9,10 +9,9 @@ namespace internal {
 
 RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo& obj)
 {
-    this->createImages = false;
-    this->createViews  = false;
-    this->width        = obj.width;
-    this->height       = obj.height;
+    this->version = CREATE_INFO_VERSION_1;
+    this->width   = obj.width;
+    this->height  = obj.height;
 
     // Views
     this->renderTargetCount = this->renderTargetCount;
@@ -30,8 +29,7 @@ RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo& obj
 
 RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo2& obj)
 {
-    this->createImages      = true;
-    this->createViews       = true;
+    this->version           = CREATE_INFO_VERSION_2;
     this->width             = obj.width;
     this->height            = obj.height;
     this->renderTargetCount = obj.renderTargetCount;
@@ -70,8 +68,7 @@ RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo2& ob
 
 RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo3& obj)
 {
-    this->createImages      = false;
-    this->createViews       = true;
+    this->version           = CREATE_INFO_VERSION_3;
     this->width             = obj.width;
     this->height            = obj.height;
     this->renderTargetCount = obj.renderTargetCount;
@@ -104,226 +101,252 @@ RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo3& ob
 // -------------------------------------------------------------------------------------------------
 // RenderPass
 // -------------------------------------------------------------------------------------------------
-Result RenderPass::Create(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
+Result RenderPass::CreateImagesAndViewsV1(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
 {
-    mRenderArea = {0, 0, pCreateInfo->width, pCreateInfo->height};
-
-    if (pCreateInfo->createImages && pCreateInfo->createViews) {
-        // Create images
-        {
-            bool singleUsageFlags = ((pCreateInfo->renderTargetCount > 0) && (pCreateInfo->V2.usageFlagsCount == 1));
-            if (!singleUsageFlags && (pCreateInfo->renderTargetCount != pCreateInfo->V2.usageFlagsCount)) {
-                PPX_ASSERT_MSG(false, "Cannot determine how RTV usage flags");
-                return ppx::ERROR_INVALID_CREATE_ARGUMENT;
-            }
-
-            // RTV images
-            for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-                const grfx::ImageUsageFlags& usageFlags = singleUsageFlags
-                                                              ? pCreateInfo->V2.renderTargetUsageFlags[0]
-                                                              : pCreateInfo->V2.renderTargetUsageFlags[i];
-
-                grfx::ImageCreateInfo imageCreateInfo = {};
-                imageCreateInfo.type                  = grfx::IMAGE_TYPE_2D;
-                imageCreateInfo.width                 = pCreateInfo->width;
-                imageCreateInfo.height                = pCreateInfo->height;
-                imageCreateInfo.depth                 = 1;
-                imageCreateInfo.format                = pCreateInfo->V2.renderTargetFormats[i];
-                imageCreateInfo.sampleCount           = pCreateInfo->V2.sampleCount;
-                imageCreateInfo.mipLevelCount         = 1;
-                imageCreateInfo.arrayLayerCount       = 1;
-                imageCreateInfo.usageFlags            = usageFlags;
-
-                grfx::ImagePtr image;
-                Result         ppxres = GetDevice()->CreateImage(&imageCreateInfo, &image);
-                if (Failed(ppxres)) {
-                    PPX_ASSERT_MSG(false, "RTV image create failed");
-                    return ppxres;
-                }
-
-                mRenderTargetImages.push_back({false, image});
-            }
-
-            // DSV image
-            if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
-                grfx::ImageCreateInfo imageCreateInfo = {};
-                imageCreateInfo.type                  = grfx::IMAGE_TYPE_2D;
-                imageCreateInfo.width                 = pCreateInfo->width;
-                imageCreateInfo.height                = pCreateInfo->height;
-                imageCreateInfo.depth                 = 1;
-                imageCreateInfo.format                = pCreateInfo->V2.depthStencilFormat;
-                imageCreateInfo.sampleCount           = pCreateInfo->V2.sampleCount;
-                imageCreateInfo.mipLevelCount         = 1;
-                imageCreateInfo.arrayLayerCount       = 1;
-                imageCreateInfo.usageFlags            = pCreateInfo->V2.depthStencilUsageFlags;
-
-                grfx::ImagePtr image;
-                Result         ppxres = GetDevice()->CreateImage(&imageCreateInfo, &image);
-                if (Failed(ppxres)) {
-                    PPX_ASSERT_MSG(false, "DSV image create failed");
-                    return ppxres;
-                }
-
-                mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{false, image};
-            }
+    // Copy RTV and images
+    for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
+        grfx::RenderTargetViewPtr rtv = pCreateInfo->V1.pRenderTargetViews[i];
+        if (!rtv) {
+            PPX_ASSERT_MSG(false, "RTV << " << i << " is null");
+            return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+        }
+        if (!rtv->GetImage()) {
+            PPX_ASSERT_MSG(false, "image << " << i << " is null");
+            return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
         }
 
-        // Create views
-        {
-            // RTVs
-            for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-                grfx::ImagePtr image = mRenderTargetImages[i].object;
-
-                grfx::RenderTargetViewCreateInfo rtvCreateInfo = {};
-                rtvCreateInfo.pImage                           = image;
-                rtvCreateInfo.imageViewType                    = grfx::IMAGE_VIEW_TYPE_2D;
-                rtvCreateInfo.format                           = pCreateInfo->V2.renderTargetFormats[i];
-                rtvCreateInfo.sampleCount                      = image->GetSampleCount();
-                rtvCreateInfo.mipLevel                         = 0;
-                rtvCreateInfo.mipLevelCount                    = 1;
-                rtvCreateInfo.arrayLayer                       = 0;
-                rtvCreateInfo.arrayLayerCount                  = 1;
-                rtvCreateInfo.loadOp                           = ATTACHMENT_LOAD_OP_LOAD;
-                rtvCreateInfo.storeOp                          = ATTACHMENT_STORE_OP_STORE;
-
-                grfx::RenderTargetViewPtr rtv;
-                Result                    ppxres = GetDevice()->CreateRenderTargetView(&rtvCreateInfo, &rtv);
-                if (Failed(ppxres)) {
-                    PPX_ASSERT_MSG(false, "RTV create failed");
-                    return ppxres;
-                }
-
-                mRenderTargetViews.push_back({false, rtv});
-            }
-
-            // DSV
-            if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
-                grfx::ImagePtr image = mDepthStencilImage.object;
-
-                grfx::DepthStencilViewCreateInfo dsvCreateInfo = {};
-                dsvCreateInfo.pImage                           = image;
-                dsvCreateInfo.type                             = grfx::IMAGE_VIEW_TYPE_2D;
-                dsvCreateInfo.format                           = pCreateInfo->V2.depthStencilFormat;
-                dsvCreateInfo.mipLevel                         = 0;
-                dsvCreateInfo.mipLevelCount                    = 1;
-                dsvCreateInfo.arrayLayer                       = 0;
-                dsvCreateInfo.arrayLayerCount                  = 1;
-                dsvCreateInfo.depthLoadOp                      = ATTACHMENT_LOAD_OP_LOAD;
-                dsvCreateInfo.depthStoreOp                     = ATTACHMENT_STORE_OP_STORE;
-                dsvCreateInfo.stencilLoadOp                    = ATTACHMENT_LOAD_OP_LOAD;
-                dsvCreateInfo.stencilStoreOp                   = ATTACHMENT_STORE_OP_STORE;
-
-                grfx::DepthStencilViewPtr dsv;
-                Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);
-                if (Failed(ppxres)) {
-                    PPX_ASSERT_MSG(false, "RTV create failed");
-                    return ppxres;
-                }
-
-                mDepthStencilView = ExtObjPtr<grfx::DepthStencilViewPtr>{false, dsv};
-            }
-        }
+        mRenderTargetViews.push_back({true, rtv});
+        mRenderTargetImages.push_back({true, rtv->GetImage()});
     }
-    else if (!pCreateInfo->createImages && pCreateInfo->createViews) {
-        // Copy images
-        {
-            // Copy RTV images
-            for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-                grfx::ImagePtr image = pCreateInfo->V3.pRenderTargetImages[i];
-                if (!image) {
-                    PPX_ASSERT_MSG(false, "image << " << i << " is null");
-                    return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
-                }
+    // Copy DSV and image
+    if (!IsNull(pCreateInfo->V1.pDepthStencilView)) {
+        grfx::DepthStencilViewPtr dsv = pCreateInfo->V1.pDepthStencilView;
 
-                mRenderTargetImages.push_back({true, image});
-            }
-            // Copy DSV image
-            if (!IsNull(pCreateInfo->V1.pDepthStencilView)) {
-                grfx::ImagePtr image = pCreateInfo->V3.pDepthStencilImage;
-
-                mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, image};
-            }
-        }
-
-        // Create views
-        {
-            // RTVs
-            for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-                grfx::ImagePtr image = mRenderTargetImages[i].object;
-
-                grfx::RenderTargetViewCreateInfo rtvCreateInfo = {};
-                rtvCreateInfo.pImage                           = image;
-                rtvCreateInfo.imageViewType                    = image->GuessImageViewType();
-                rtvCreateInfo.format                           = image->GetFormat();
-                rtvCreateInfo.sampleCount                      = image->GetSampleCount();
-                rtvCreateInfo.mipLevel                         = 0;
-                rtvCreateInfo.mipLevelCount                    = image->GetMipLevelCount();
-                rtvCreateInfo.arrayLayer                       = 0;
-                rtvCreateInfo.arrayLayerCount                  = image->GetArrayLayerCount();
-                rtvCreateInfo.loadOp                           = pCreateInfo->renderTargetLoadOps[i];
-                rtvCreateInfo.storeOp                          = pCreateInfo->renderTargetStoreOps[i];
-
-                grfx::RenderTargetViewPtr rtv;
-                Result                    ppxres = GetDevice()->CreateRenderTargetView(&rtvCreateInfo, &rtv);
-                if (Failed(ppxres)) {
-                    PPX_ASSERT_MSG(false, "RTV create failed");
-                    return ppxres;
-                }
-
-                mRenderTargetViews.push_back({false, rtv});
-            }
-
-            // DSV
-            if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
-                grfx::ImagePtr image = mDepthStencilImage.object;
-
-                grfx::DepthStencilViewCreateInfo dsvCreateInfo = {};
-                dsvCreateInfo.pImage                           = image;
-                dsvCreateInfo.type                             = image->GuessImageViewType();
-                dsvCreateInfo.format                           = image->GetFormat();
-                dsvCreateInfo.mipLevel                         = 0;
-                dsvCreateInfo.mipLevelCount                    = image->GetMipLevelCount();
-                dsvCreateInfo.arrayLayer                       = 0;
-                dsvCreateInfo.arrayLayerCount                  = image->GetArrayLayerCount();
-                dsvCreateInfo.depthLoadOp                      = ATTACHMENT_LOAD_OP_LOAD;
-                dsvCreateInfo.depthStoreOp                     = ATTACHMENT_STORE_OP_STORE;
-                dsvCreateInfo.stencilLoadOp                    = ATTACHMENT_LOAD_OP_LOAD;
-                dsvCreateInfo.stencilStoreOp                   = ATTACHMENT_STORE_OP_STORE;
-
-                grfx::DepthStencilViewPtr dsv;
-                Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);
-                if (Failed(ppxres)) {
-                    PPX_ASSERT_MSG(false, "RTV create failed");
-                    return ppxres;
-                }
-
-                mDepthStencilView = ExtObjPtr<grfx::DepthStencilViewPtr>{false, dsv};
-            }
-        }
+        mDepthStencilView  = ExtObjPtr<grfx::DepthStencilViewPtr>{true, dsv};
+        mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, dsv->GetImage()};
     }
-    else {
-        // Copy RTV and images
+
+    return ppx::SUCCESS;
+}
+
+Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
+{
+    // Create images
+    {
+        // RTV images
         for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-            grfx::RenderTargetViewPtr rtv = pCreateInfo->V1.pRenderTargetViews[i];
-            if (!rtv) {
-                PPX_ASSERT_MSG(false, "RTV << " << i << " is null");
-                return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+            grfx::ImageCreateInfo imageCreateInfo = {};
+            imageCreateInfo.type                  = grfx::IMAGE_TYPE_2D;
+            imageCreateInfo.width                 = pCreateInfo->width;
+            imageCreateInfo.height                = pCreateInfo->height;
+            imageCreateInfo.depth                 = 1;
+            imageCreateInfo.format                = pCreateInfo->V2.renderTargetFormats[i];
+            imageCreateInfo.sampleCount           = pCreateInfo->V2.sampleCount;
+            imageCreateInfo.mipLevelCount         = 1;
+            imageCreateInfo.arrayLayerCount       = 1;
+            imageCreateInfo.usageFlags            = pCreateInfo->V2.renderTargetUsageFlags[i];
+
+            grfx::ImagePtr image;
+            Result         ppxres = GetDevice()->CreateImage(&imageCreateInfo, &image);
+            if (Failed(ppxres)) {
+                PPX_ASSERT_MSG(false, "RTV image create failed");
+                return ppxres;
             }
-            if (!rtv->GetImage()) {
+
+            mRenderTargetImages.push_back({false, image});
+        }
+
+        // DSV image
+        if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
+            grfx::ImageCreateInfo imageCreateInfo = {};
+            imageCreateInfo.type                  = grfx::IMAGE_TYPE_2D;
+            imageCreateInfo.width                 = pCreateInfo->width;
+            imageCreateInfo.height                = pCreateInfo->height;
+            imageCreateInfo.depth                 = 1;
+            imageCreateInfo.format                = pCreateInfo->V2.depthStencilFormat;
+            imageCreateInfo.sampleCount           = pCreateInfo->V2.sampleCount;
+            imageCreateInfo.mipLevelCount         = 1;
+            imageCreateInfo.arrayLayerCount       = 1;
+            imageCreateInfo.usageFlags            = pCreateInfo->V2.depthStencilUsageFlags;
+
+            grfx::ImagePtr image;
+            Result         ppxres = GetDevice()->CreateImage(&imageCreateInfo, &image);
+            if (Failed(ppxres)) {
+                PPX_ASSERT_MSG(false, "DSV image create failed");
+                return ppxres;
+            }
+
+            mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{false, image};
+        }
+    }
+
+    // Create views
+    {
+        // RTVs
+        for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
+            grfx::ImagePtr image = mRenderTargetImages[i].object;
+
+            grfx::RenderTargetViewCreateInfo rtvCreateInfo = {};
+            rtvCreateInfo.pImage                           = image;
+            rtvCreateInfo.imageViewType                    = grfx::IMAGE_VIEW_TYPE_2D;
+            rtvCreateInfo.format                           = pCreateInfo->V2.renderTargetFormats[i];
+            rtvCreateInfo.sampleCount                      = image->GetSampleCount();
+            rtvCreateInfo.mipLevel                         = 0;
+            rtvCreateInfo.mipLevelCount                    = 1;
+            rtvCreateInfo.arrayLayer                       = 0;
+            rtvCreateInfo.arrayLayerCount                  = 1;
+            rtvCreateInfo.loadOp                           = ATTACHMENT_LOAD_OP_LOAD;
+            rtvCreateInfo.storeOp                          = ATTACHMENT_STORE_OP_STORE;
+
+            grfx::RenderTargetViewPtr rtv;
+            Result                    ppxres = GetDevice()->CreateRenderTargetView(&rtvCreateInfo, &rtv);
+            if (Failed(ppxres)) {
+                PPX_ASSERT_MSG(false, "RTV create failed");
+                return ppxres;
+            }
+
+            mRenderTargetViews.push_back({false, rtv});
+        }
+
+        // DSV
+        if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
+            grfx::ImagePtr image = mDepthStencilImage.object;
+
+            grfx::DepthStencilViewCreateInfo dsvCreateInfo = {};
+            dsvCreateInfo.pImage                           = image;
+            dsvCreateInfo.type                             = grfx::IMAGE_VIEW_TYPE_2D;
+            dsvCreateInfo.format                           = pCreateInfo->V2.depthStencilFormat;
+            dsvCreateInfo.mipLevel                         = 0;
+            dsvCreateInfo.mipLevelCount                    = 1;
+            dsvCreateInfo.arrayLayer                       = 0;
+            dsvCreateInfo.arrayLayerCount                  = 1;
+            dsvCreateInfo.depthLoadOp                      = ATTACHMENT_LOAD_OP_LOAD;
+            dsvCreateInfo.depthStoreOp                     = ATTACHMENT_STORE_OP_STORE;
+            dsvCreateInfo.stencilLoadOp                    = ATTACHMENT_LOAD_OP_LOAD;
+            dsvCreateInfo.stencilStoreOp                   = ATTACHMENT_STORE_OP_STORE;
+
+            grfx::DepthStencilViewPtr dsv;
+            Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);
+            if (Failed(ppxres)) {
+                PPX_ASSERT_MSG(false, "RTV create failed");
+                return ppxres;
+            }
+
+            mDepthStencilView = ExtObjPtr<grfx::DepthStencilViewPtr>{false, dsv};
+        }
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
+{
+    // Copy images
+    {
+        // Copy RTV images
+        for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
+            grfx::ImagePtr image = pCreateInfo->V3.pRenderTargetImages[i];
+            if (!image) {
                 PPX_ASSERT_MSG(false, "image << " << i << " is null");
                 return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
             }
 
-            mRenderTargetViews.push_back({true, rtv});
-            mRenderTargetImages.push_back({true, rtv->GetImage()});
+            mRenderTargetImages.push_back({true, image});
         }
-        // Copy DSV and image
+        // Copy DSV image
         if (!IsNull(pCreateInfo->V1.pDepthStencilView)) {
-            grfx::DepthStencilViewPtr dsv = pCreateInfo->V1.pDepthStencilView;
+            grfx::ImagePtr image = pCreateInfo->V3.pDepthStencilImage;
 
-            mDepthStencilView  = ExtObjPtr<grfx::DepthStencilViewPtr>{true, dsv};
-            mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, dsv->GetImage()};
+            mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, image};
         }
+    }
+
+    // Create views
+    {
+        // RTVs
+        for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
+            grfx::ImagePtr image = mRenderTargetImages[i].object;
+
+            grfx::RenderTargetViewCreateInfo rtvCreateInfo = {};
+            rtvCreateInfo.pImage                           = image;
+            rtvCreateInfo.imageViewType                    = image->GuessImageViewType();
+            rtvCreateInfo.format                           = image->GetFormat();
+            rtvCreateInfo.sampleCount                      = image->GetSampleCount();
+            rtvCreateInfo.mipLevel                         = 0;
+            rtvCreateInfo.mipLevelCount                    = image->GetMipLevelCount();
+            rtvCreateInfo.arrayLayer                       = 0;
+            rtvCreateInfo.arrayLayerCount                  = image->GetArrayLayerCount();
+            rtvCreateInfo.loadOp                           = pCreateInfo->renderTargetLoadOps[i];
+            rtvCreateInfo.storeOp                          = pCreateInfo->renderTargetStoreOps[i];
+
+            grfx::RenderTargetViewPtr rtv;
+            Result                    ppxres = GetDevice()->CreateRenderTargetView(&rtvCreateInfo, &rtv);
+            if (Failed(ppxres)) {
+                PPX_ASSERT_MSG(false, "RTV create failed");
+                return ppxres;
+            }
+
+            mRenderTargetViews.push_back({false, rtv});
+        }
+
+        // DSV
+        if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
+            grfx::ImagePtr image = mDepthStencilImage.object;
+
+            grfx::DepthStencilViewCreateInfo dsvCreateInfo = {};
+            dsvCreateInfo.pImage                           = image;
+            dsvCreateInfo.type                             = image->GuessImageViewType();
+            dsvCreateInfo.format                           = image->GetFormat();
+            dsvCreateInfo.mipLevel                         = 0;
+            dsvCreateInfo.mipLevelCount                    = image->GetMipLevelCount();
+            dsvCreateInfo.arrayLayer                       = 0;
+            dsvCreateInfo.arrayLayerCount                  = image->GetArrayLayerCount();
+            dsvCreateInfo.depthLoadOp                      = ATTACHMENT_LOAD_OP_LOAD;
+            dsvCreateInfo.depthStoreOp                     = ATTACHMENT_STORE_OP_STORE;
+            dsvCreateInfo.stencilLoadOp                    = ATTACHMENT_LOAD_OP_LOAD;
+            dsvCreateInfo.stencilStoreOp                   = ATTACHMENT_STORE_OP_STORE;
+
+            grfx::DepthStencilViewPtr dsv;
+            Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);
+            if (Failed(ppxres)) {
+                PPX_ASSERT_MSG(false, "RTV create failed");
+                return ppxres;
+            }
+
+            mDepthStencilView = ExtObjPtr<grfx::DepthStencilViewPtr>{false, dsv};
+        }
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result RenderPass::Create(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
+{
+    mRenderArea = {0, 0, pCreateInfo->width, pCreateInfo->height};
+
+    switch (pCreateInfo->version) {
+        default: return ppx::ERROR_INVALID_CREATE_ARGUMENT; break;
+
+        case grfx::internal::RenderPassCreateInfo::CREATE_INFO_VERSION_1: {
+            Result ppxres = CreateImagesAndViewsV1(pCreateInfo);
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+        } break;
+
+        case grfx::internal::RenderPassCreateInfo::CREATE_INFO_VERSION_2: {
+            Result ppxres = CreateImagesAndViewsV2(pCreateInfo);
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+        } break;
+
+        case grfx::internal::RenderPassCreateInfo::CREATE_INFO_VERSION_3: {
+            Result ppxres = CreateImagesAndViewsV3(pCreateInfo);
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+        } break;
     }
 
     Result ppxres = grfx::DeviceObject<grfx::internal::RenderPassCreateInfo>::Create(pCreateInfo);
@@ -448,7 +471,7 @@ Result RenderPass::DisownDepthStencilView(grfx::DepthStencilView** ppView)
     if (!IsNull(ppView)) {
         *ppView = mDepthStencilView.object;
     }
-    return ppx::SUCCESS
+    return ppx::SUCCESS;
 }
 
 Result RenderPass::DisownRenderTargetImage(uint32_t index, grfx::Image** ppImage)
@@ -472,7 +495,7 @@ Result RenderPass::DisownDepthStencilImage(grfx::Image** ppImage)
     if (!IsNull(ppImage)) {
         *ppImage = mDepthStencilImage.object;
     }
-    return ppx::SUCCESS
+    return ppx::SUCCESS;
 }
 
 } // namespace grfx
