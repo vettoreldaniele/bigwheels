@@ -63,12 +63,10 @@ void ProjApp::Render()
     PPX_CHECKED_CALL(ppxres = swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
 
     // Wait for and reset image acquired fence
-    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->Wait(UINT64_MAX));
-    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->Reset());
+    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->Wait(UINT64_MAX));
-    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->Reset());
+    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
 
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
@@ -82,10 +80,10 @@ void ProjApp::Render()
         beginInfo.RTVClearCount             = 1;
         beginInfo.RTVClearValues[0]         = {{1, 0, 0, 1}};
 
-        frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), 0, 1, 0, 1, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
+        frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);
         frame.cmd->EndRenderPass();
-        frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), 0, 1, 0, 1, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
+        frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 

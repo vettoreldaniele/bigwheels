@@ -15,7 +15,8 @@ public:
     Device() {}
     virtual ~Device() {}
 
-    VkDevicePtr GetVkDevice() const { return mDevice; }
+    VkDevicePtr     GetVkDevice() const { return mDevice; }
+    VmaAllocatorPtr GetVmaAllocator() const { return mVmaAllocator; }
 
     virtual Result WaitIdle();
 
@@ -53,6 +54,7 @@ private:
     std::vector<std::string> mFoundExtensions;
     std::vector<std::string> mExtensions;
     VkDevicePtr              mDevice;
+    VmaAllocatorPtr          mVmaAllocator;
 };
 
 } // namespace vk

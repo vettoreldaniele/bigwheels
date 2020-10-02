@@ -4,7 +4,12 @@
 #include "ppx/000_config.h"
 #include "ppx/grfx/grfx_helper.h"
 
+// clang-format off
 #define PPX_MAX_RENDER_TARGETS 8
+#define PPX_ALL_MIP_LEVELS     UINT32_MAX
+#define PPX_ALL_ARRAY_LAYERS   UINT32_MAX
+#define PPX_ALL_SUBRESOURCES   0, PPX_ALL_MIP_LEVELS, 0, PPX_ALL_ARRAY_LAYERS
+// clang-format on
 
 namespace ppx {
 namespace grfx {

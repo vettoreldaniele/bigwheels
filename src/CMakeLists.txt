@@ -125,40 +125,44 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_texture.cpp
 )
 
-list(
-    APPEND PPX_GRFX_DX_HEADER_FILES
-    ${INC_DIR}/ppx/grfx/dx/000_dx_config.h
-    ${INC_DIR}/ppx/grfx/dx/dx_buffer.h
-    ${INC_DIR}/ppx/grfx/dx/dx_command.h
-    ${INC_DIR}/ppx/grfx/dx/dx_descriptor.h
-    ${INC_DIR}/ppx/grfx/dx/dx_device.h
-    ${INC_DIR}/ppx/grfx/dx/dx_gpu.h
-    ${INC_DIR}/ppx/grfx/dx/dx_image.h
-    ${INC_DIR}/ppx/grfx/dx/dx_instance.h
-    ${INC_DIR}/ppx/grfx/dx/dx_pipeline.h
-    ${INC_DIR}/ppx/grfx/dx/dx_queue.h
-    ${INC_DIR}/ppx/grfx/dx/dx_render_pass.h
-    ${INC_DIR}/ppx/grfx/dx/dx_shader.h
-    ${INC_DIR}/ppx/grfx/dx/dx_swapchain.h
-    ${INC_DIR}/ppx/grfx/dx/dx_sync.h
-)
+if (PPX_D3D12)
+    list(
+        APPEND PPX_GRFX_DX_HEADER_FILES
+        ${INC_DIR}/ppx/grfx/dx/000_dx_config.h
+        ${INC_DIR}/ppx/grfx/dx/dx_buffer.h
+        ${INC_DIR}/ppx/grfx/dx/dx_command.h
+        ${INC_DIR}/ppx/grfx/dx/dx_descriptor.h
+        ${INC_DIR}/ppx/grfx/dx/dx_device.h
+        ${INC_DIR}/ppx/grfx/dx/dx_gpu.h
+        ${INC_DIR}/ppx/grfx/dx/dx_image.h
+        ${INC_DIR}/ppx/grfx/dx/dx_instance.h
+        ${INC_DIR}/ppx/grfx/dx/dx_pipeline.h
+        ${INC_DIR}/ppx/grfx/dx/dx_queue.h
+        ${INC_DIR}/ppx/grfx/dx/dx_render_pass.h
+        ${INC_DIR}/ppx/grfx/dx/dx_shader.h
+        ${INC_DIR}/ppx/grfx/dx/dx_swapchain.h
+        ${INC_DIR}/ppx/grfx/dx/dx_sync.h
+    )
 
-list(
-    APPEND PPX_GRFX_DX_SOURCE_FILES
-    ${SRC_DIR}/ppx/grfx/dx/dx_buffer.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_command.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_descriptor.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_device.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_gpu.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_image.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_instance.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_pipeline.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_queue.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_render_pass.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_shader.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_swapchain.cpp
-    ${SRC_DIR}/ppx/grfx/dx/dx_sync.cpp
-)
+    list(
+        APPEND PPX_GRFX_DX_SOURCE_FILES
+        ${SRC_DIR}/ppx/grfx/dx/dx_buffer.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_command.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_descriptor.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_device.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_gpu.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_image.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_instance.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_pipeline.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_queue.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_render_pass.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_shader.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_swapchain.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_sync.cpp
+        ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src/D3D12MemAlloc.h
+        ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src/D3D12MemAlloc.cpp
+    )
+endif()
 
 list(
     APPEND PPX_GRFX_VK_HEADER_FILES
@@ -196,32 +200,8 @@ list(
     ${SRC_DIR}/ppx/grfx/vk/vk_swapchain.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_sync.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_util.cpp
+    ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src/vk_mem_alloc.h
 )
-
-
-#list(
-#    APPEND PPX_RENDER_HEADER_FILES
-#    ${INC_DIR}/ppx/render/base_buffer.h
-#    ${INC_DIR}/ppx/render/base_pass.h
-#    ${INC_DIR}/ppx/render/color_pass.h
-#    ${INC_DIR}/ppx/render/depth_pass.h
-#    ${INC_DIR}/ppx/render/index_buffer.h
-#    ${INC_DIR}/ppx/render/renderer.h
-#    ${INC_DIR}/ppx/render/storage_buffer.h
-#    ${INC_DIR}/ppx/render/texture.h
-#    ${INC_DIR}/ppx/render/vertex_buffer.h
-#)
-#
-#list(
-#    APPEND PPX_RENDER_SOURCE_FILES
-#    ${SRC_DIR}/ppx/render/color_pass.cpp
-#    ${SRC_DIR}/ppx/render/depth_pass.cpp
-#    ${SRC_DIR}/ppx/render/index_buffer.cpp
-#    ${SRC_DIR}/ppx/render/renderer.cpp
-#    ${SRC_DIR}/ppx/render/storage_buffer.cpp
-#    ${SRC_DIR}/ppx/render/texture.cpp
-#    ${SRC_DIR}/ppx/render/vertex_buffer.cpp
-#)
 
 # ------------------------------------------------------------------------------
 # Source group
@@ -359,19 +339,6 @@ if (PPX_D3D12)
         target_link_libraries(${PROJECT_NAME} 
             PUBLIC d3d12.lib dxgi.lib dxguid.lib
         )
-    endif()
-endif()
-
-if (PPX_OPENGL)
-    if (PPX_LINUX)
-        # @TODO: Add Linux OpenGL libraries
-    elseif (PPX_MSW)
-        # Link in opengl32.lib
-        if (PPX_OPENGL)
-            target_link_libraries(${PROJECT_NAME} 
-                PUBLIC opengl32.lib
-            )
-        endif()
     endif()
 endif()
 

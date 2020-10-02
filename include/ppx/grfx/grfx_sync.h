@@ -27,6 +27,8 @@ public:
     virtual Result Wait(uint64_t timeout = UINT64_MAX) = 0;
     virtual Result Reset()                             = 0;
 
+    Result WaitAndReset(uint64_t timeout = UINT64_MAX);
+
 protected:
     virtual Result CreateApiObjects(const grfx::FenceCreateInfo* pCreateInfo) = 0;
     virtual void   DestroyApiObjects()                                        = 0;

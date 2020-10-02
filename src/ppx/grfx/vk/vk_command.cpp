@@ -113,6 +113,14 @@ void CommandBuffer::TransitionImageLayout(
 {
     PPX_ASSERT_NULL_ARG(pImage);
 
+    if (mipLevelCount == PPX_ALL_MIP_LEVELS) {
+        mipLevelCount = pImage->GetMipLevelCount();
+    }
+
+    if (arrayLayerCount == PPX_ALL_ARRAY_LAYERS) {
+        arrayLayerCount = pImage->GetArrayLayerCount();
+    }
+
     const vk::Image* pApiImage = ToApi(pImage);
 
     VkPipelineStageFlags srcStageMask    = InvalidValue<VkPipelineStageFlags>();

@@ -27,6 +27,7 @@
 #endif
 // clang-format on
 #include <vulkan/vulkan.h>
+#include "vk_mem_alloc.h"
 
 #define VK_LAYER_KHRONOS_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
 

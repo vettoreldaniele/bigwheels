@@ -8,6 +8,9 @@
 #include "ppx/grfx/vk/vk_swapchain.h"
 #include "ppx/grfx/vk/vk_sync.h"
 
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 namespace ppx {
 namespace grfx {
 namespace vk {

@@ -19,7 +19,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # ------------------------------------------------------------------------------
 
 if (NOT (PPX_GPP OR PPX_LINUX OR PPX_MSW))
-    message("No GX target plaform specified - configuring based on current host")
+    message("No PPX target plaform specified - configuring based on current host")
     if (GGP)
         set(PPX_GGP TRUE)
         message("Target platform     : GGP")
@@ -37,7 +37,7 @@ endif()
 # ------------------------------------------------------------------------------
 
 if (NOT (PPX_D3D12 OR PPX_OPENGL OR PPX_VULKAN))
-    message("No GX graphics API(s) specified - configuring based on current host")
+    message("No PPX graphics API(s) specified - configuring based on current host")
     if (GGP)
         set(PPX_VULKAN TRUE)
     elseif (LINUX)
@@ -49,7 +49,6 @@ if (NOT (PPX_D3D12 OR PPX_OPENGL OR PPX_VULKAN))
 endif()
 
 set(PPX_D3D12_MSG  FALSE)
-set(PPX_OPENGL_MSG FALSE)
 set(PPX_VULKAN_MSG FALSE)
 
 # D3D12
@@ -78,7 +77,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 
 # ------------------------------------------------------------------------------
-# Configure GX directories
+# Configure PPX directories
 # ------------------------------------------------------------------------------
 
 set(PPX_DIR             ${CMAKE_CURRENT_SOURCE_DIR})
@@ -104,7 +103,7 @@ set(GLFW_VULKAN_STATIC  FALSE CACHE BOOL "" FORCE)
 add_subdirectory(${PPX_THIRD_PARTY_DIR}/glfw)
 
 # ------------------------------------------------------------------------------
-# Add GX library
+# Add PPX library
 # ------------------------------------------------------------------------------
 
 add_subdirectory(src)
