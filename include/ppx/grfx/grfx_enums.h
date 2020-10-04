@@ -7,7 +7,8 @@ namespace grfx {
 enum Api
 {
     API_UNDEFINED = 0,
-    API_VK,
+    API_VK_1_1,
+    API_VK_1_2,
     API_DX,
 };
 
@@ -172,6 +173,23 @@ enum CullMode
     CULL_MODE_NONE  = 0,
     CULL_MODE_FRONT = 1,
     CULL_MODE_BACK  = 2,
+};
+
+enum DescriptorType
+{
+    // NOTE: These *DO NOT* match the enums in Vulkan
+    //
+    DESCRIPTOR_TYPE_UNDEFINED              = 0,
+    DESCRIPTOR_TYPE_SAMPLER                = 1,
+    DESCRIPTOR_TYPE_SAMPLED_IMAGE          = 2,
+    DESCRIPTOR_TYPE_STORAGE_IMAGE          = 3,
+    DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER   = 4,
+    DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER   = 5,
+    DESCRIPTOR_TYPE_UNIFORM_BUFFER         = 6,
+    DESCRIPTOR_TYPE_STORAGE_BUFFER         = 7,
+    DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,
+    DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,
+    DESCRIPTOR_TYPE_INPUT_ATTACHMENT       = 10,
 };
 
 enum FrontFace

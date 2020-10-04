@@ -1,5 +1,6 @@
 #include "ppx/grfx/grfx_device.h"
 #include "ppx/grfx/grfx_gpu.h"
+#include "ppx/grfx/grfx_instance.h"
 
 namespace ppx {
 namespace grfx {
@@ -34,6 +35,11 @@ void Device::Destroy()
 
     grfx::InstanceObject<grfx::DeviceCreateInfo>::Destroy();
     PPX_LOG_INFO("Destroyed device: " << mCreateInfo.pGpu->GetDeviceName());
+}
+
+grfx::Api Device::GetApi() const
+{
+    return GetInstance()->GetApi();
 }
 
 const char* Device::GetDeviceName() const

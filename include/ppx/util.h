@@ -68,6 +68,14 @@ bool IsIndexInRange(uint32_t index, const std::vector<T>& container)
 }
 
 template <typename T>
+bool ElementExists(const T& elem, const std::vector<T>& container)
+{
+    auto it = std::find(std::begin(container), std::end(container), elem);
+    bool exists = (it != std::end(container));
+    return exists;
+}
+
+template <typename T>
 bool GetElement(uint32_t index, const std::vector<T>& container, T* pElem)
 {
     if (!IsIndexInRange(index, container)) {

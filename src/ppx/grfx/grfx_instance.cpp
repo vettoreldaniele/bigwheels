@@ -213,7 +213,7 @@ Result CreateInstance(const grfx::InstanceCreateInfo* pCreateInfo, grfx::Instanc
             return ppx::ERROR_ALLOCATION_FAILED;
         }
     }
-    else if (pCreateInfo->api == grfx::API_VK) {
+    else if ((pCreateInfo->api == grfx::API_VK_1_1) || (pCreateInfo->api == grfx::API_VK_1_2)) {
         pObject = new vk::Instance();
         if (IsNull(pObject)) {
             return ppx::ERROR_ALLOCATION_FAILED;

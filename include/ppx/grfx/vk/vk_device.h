@@ -18,6 +18,8 @@ public:
     VkDevicePtr     GetVkDevice() const { return mDevice; }
     VmaAllocatorPtr GetVmaAllocator() const { return mVmaAllocator; }
 
+    bool IsTimelineSemaphoreAvailable() const { return mTimelineSemaphoreAvailable; }
+
     virtual Result WaitIdle();
 
 protected:
@@ -55,6 +57,7 @@ private:
     std::vector<std::string> mExtensions;
     VkDevicePtr              mDevice;
     VmaAllocatorPtr          mVmaAllocator;
+    bool                     mTimelineSemaphoreAvailable = false;
 };
 
 } // namespace vk

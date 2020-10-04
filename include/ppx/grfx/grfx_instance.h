@@ -28,6 +28,8 @@ public:
 
     bool IsSwapchainEnabled() const { return mCreateInfo.enableSwapchain; }
 
+    grfx::Api GetApi() const { return mCreateInfo.api; }
+
     uint32_t GetGpuCount() const { return CountU32(mGpus); }
     Result   GetGpu(uint32_t index, grfx::Gpu** ppGpu) const;
 

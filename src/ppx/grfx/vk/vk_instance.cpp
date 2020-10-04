@@ -253,6 +253,39 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
         return ppxres;
     }
 
+    uint32_t foundVkVersion = 0;
+    VkResult vkres          = vkEnumerateInstanceVersion(&foundVkVersion);
+    if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkEnumerateInstanceVersion failed: " << ToString(vkres));
+        return ppx::ERROR_API_FAILURE;
+    }
+
+    // Version
+    uint32_t vkVersion = ppx::InvalidValue<uint32_t>();
+    switch (pCreateInfo->api) {
+        default: break;
+
+        case grfx::API_VK_1_1: {
+            vkVersion = VK_MAKE_VERSION(1, 1, 0);
+            PPX_LOG_INFO("Using Vulkan 1.1");
+        } break;
+
+        case grfx::API_VK_1_2: {
+            vkVersion = VK_MAKE_VERSION(1, 2, 0);
+            PPX_LOG_INFO("Using Vulkan 1.2");
+        } break;
+    }
+    if ((vkVersion == ppx::InvalidValue<uint32_t>()) || (vkVersion > foundVkVersion)) {
+        std::stringstream ss;
+        ss << "Unsupported Vulkan version";
+        if (vkVersion != ppx::InvalidValue<uint32_t>()) {
+            ss << "(wanted Vulkan " << VK_VERSION_MAJOR(vkVersion) << "." << VK_VERSION_MINOR(vkVersion);
+            ss << " but got " << VK_VERSION_MAJOR(foundVkVersion) << "." << VK_VERSION_MINOR(foundVkVersion) << ")";
+        }
+        PPX_ASSERT_MSG(false, ss.str());
+        return ppx::ERROR_UNSUPPORTED_API;
+    }
+
     // Get C strings
     std::vector<const char*> layers     = GetCStrings(mLayers);
     std::vector<const char*> extensions = GetCStrings(mExtensions);
@@ -262,7 +295,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     applicationInfo.applicationVersion = 0;
     applicationInfo.pEngineName        = pCreateInfo->engineName.empty() ? "PPX Engine" : pCreateInfo->engineName.c_str();
     applicationInfo.engineVersion      = 0;
-    applicationInfo.apiVersion         = VK_MAKE_VERSION(1, 1, 0);
+    applicationInfo.apiVersion         = vkVersion;
 
     VkInstanceCreateInfo vkci    = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     vkci.flags                   = 0;
@@ -285,7 +318,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
         }
     }
 
-    VkResult vkres = vkCreateInstance(&vkci, nullptr, &mInstance);
+    vkres = vkCreateInstance(&vkci, nullptr, &mInstance);
     if (vkres != VK_SUCCESS) {
         // clang-format off
     std::stringstream ss;

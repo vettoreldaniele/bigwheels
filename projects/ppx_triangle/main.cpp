@@ -32,7 +32,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "PPX Triangle";
-    settings.grfx.api         = ppx::grfx::API_VK;
+    settings.grfx.api         = ppx::grfx::API_VK_1_1;
     settings.grfx.enableDebug = true;
 }
 
@@ -146,7 +146,7 @@ void ProjApp::Render()
         beginInfo.pRenderPass               = renderPass;
         beginInfo.renderArea                = renderPass->GetRenderArea();
         beginInfo.RTVClearCount             = 1;
-        beginInfo.RTVClearValues[0]         = {{1, 0, 0, 1}};
+        beginInfo.RTVClearValues[0]         = {{0, 0, 0, 0}};
 
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);

@@ -6,11 +6,35 @@
 namespace ppx {
 namespace grfx {
 
+//! @struct DescriptorBinding
+//!
+//! *** WARNING ***
+//! 'DescriptorBinding::count' is *NOT* the same as 'VkDescriptorSetLayoutBinding::descriptorCount'.
+//!
+//!
+struct DescriptorBinding
+{
+    grfx::DescriptorType type  = grfx::DESCRIPTOR_TYPE_UNDEFINED;
+    uint32_t             count = 0; // WARNING: Not the same as VkDescriptorSetLayoutBinding::descriptorCount
+};
+
+// -------------------------------------------------------------------------------------------------
+
 //! @struct DescriptorPoolCreateInfo
 //!
 //!
 struct DescriptorPoolCreateInfo
 {
+    uint32_t sampler              = 0;
+    uint32_t sampledImage         = 0;
+    uint32_t storageImage         = 0;
+    uint32_t uniformTexelBuffer   = 0;
+    uint32_t storageTexelBuffer   = 0;
+    uint32_t uniformBuffer        = 0;
+    uint32_t storageBuffer        = 0;
+    uint32_t uniformBufferDynamic = 0;
+    uint32_t storageBufferDynamic = 0;
+    uint32_t inputAttachment      = 0;
 };
 
 //! @class DescriptorPool
@@ -33,7 +57,7 @@ namespace internal {
 //!
 struct DescriptorSetCreateInfo
 {
-}; 
+};
 
 } // namespace internal
 
@@ -55,6 +79,7 @@ public:
 //!
 struct DescriptorSetLayoutCreateInfo
 {
+    std::vector<grfx::DescriptorBinding> bindings;
 };
 
 //! @class DescriptorSetLayout

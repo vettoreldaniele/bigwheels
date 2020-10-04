@@ -39,6 +39,8 @@ public:
     Device() {}
     virtual ~Device() {}
 
+    grfx::Api GetApi() const;
+
     grfx::GpuPtr GetGpu() const { return mCreateInfo.pGpu; }
 
     const char*    GetDeviceName() const;

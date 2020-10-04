@@ -97,6 +97,20 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         mExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
+    // Add Vulkan 1.1 extensions:
+    //   - VK_EXT_descriptor_indexing (promoted to core in 1.2)
+    //   - VK_KHR_timeline_semaphore (promoted to core in 1.2)
+    //
+    if (GetInstance()->GetApi() == grfx::API_VK_1_1) {
+        // Descriptor indexing
+        mExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+
+        // Timeline semaphore - if present
+        if (ElementExists(std::string(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME), mFoundExtensions)) {
+            mExtensions.push_back(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
+        }
+    }
+
     // Add additional extensions and uniquify
     AppendElements(pCreateInfo->vulkanExtensions, mExtensions);
     Unique(mExtensions);
@@ -230,6 +244,20 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, ss.str());
         return ppx::ERROR_API_FAILURE;
     }
+
+    //
+    // Timeline semaphore is in core start in Vulkan 1.2
+    //
+    // If this is a Vulkan 1.1 device:
+    //   - Enable timeline semaphore if extension was loaded
+    //
+    if (GetInstance()->GetApi() == grfx::API_VK_1_1) {
+        mTimelineSemaphoreAvailable = ElementExists(std::string(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME), mExtensions);
+    }
+    else {
+        mTimelineSemaphoreAvailable = true;
+    }
+    PPX_LOG_INFO("Vulkan timeline semaphore is present: " << mTimelineSemaphoreAvailable);
 
     // VMA
     {

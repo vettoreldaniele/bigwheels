@@ -11,8 +11,11 @@
 #define PPX_ALL_SUBRESOURCES        0, PPX_ALL_MIP_LEVELS, 0, PPX_ALL_ARRAY_LAYERS
 
 #define PPX_MAX_VERTEX_ATTRIBUTES   16
-#define PPX_MAX_VIEWPORTS           16
 #define PPX_APPEND_OFFSET_ALIGNED   UINT32_MAX
+
+#define PPX_MAX_VIEWPORTS           16
+
+#define PPX_MAX_SETS_PER_POOL       1024
 // clang-format on
 
 namespace ppx {
