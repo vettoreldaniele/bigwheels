@@ -11,12 +11,18 @@ namespace grfx {
 //!
 struct TextureCreateInfo
 {
-    bool usageDepthStencil = false;
-    bool usageRenderTarget = false;
-    bool usageSampeldImage = false;
-    bool usageStorageImage = false;
-    bool usageCopySrc      = false;
-    bool usageCopyDst      = false;
+    grfx::ImageType       type               = grfx::IMAGE_TYPE_2D;
+    uint32_t              width              = 0;
+    uint32_t              height             = 0;
+    uint32_t              depth              = 0;
+    grfx::Format          imageFormat        = grfx::FORMAT_UNDEFINED;
+    grfx::Format          renderTargetFormat = grfx::FORMAT_UNDEFINED;
+    grfx::Format          depthStencilFormat = grfx::FORMAT_UNDEFINED;
+    grfx::SampleCount     sampleCount        = grfx::SAMPLE_COUNT_1;
+    uint32_t              mipLevelCount      = 1;
+    uint32_t              arrayLayerCount    = 1;
+    grfx::ImageUsageFlags usageFlags         = grfx::ImageUsageFlags::SampledImage();
+    void*                 pApiObject         = nullptr; // [OPTIONAL] For external images such as swapchain images
 };
 
 //! @class Texture

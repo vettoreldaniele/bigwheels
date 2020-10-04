@@ -16,7 +16,7 @@ public:
     virtual ~Image() {}
 
     VkImagePtr         GetVkImage() const { return mImage; }
-    VkFormat           GetVkFormat() const { return mFormat; }
+    VkFormat           GetVkFormat() const { return mVkFormat; }
     VkImageAspectFlags GetVkImageAspectFlags() const { return mImageAspect; }
 
 protected:
@@ -25,8 +25,10 @@ protected:
 
 private:
     VkImagePtr         mImage;
-    VkFormat           mFormat      = VK_FORMAT_UNDEFINED;
-    VkImageAspectFlags mImageAspect = InvalidValue<VkImageAspectFlags>();
+    VmaAllocationPtr   mAllocation;
+    VmaAllocationInfo  mAllocationInfo = {};
+    VkFormat           mVkFormat         = VK_FORMAT_UNDEFINED;
+    VkImageAspectFlags mImageAspect    = ppx::InvalidValue<VkImageAspectFlags>();
 };
 
 // -------------------------------------------------------------------------------------------------

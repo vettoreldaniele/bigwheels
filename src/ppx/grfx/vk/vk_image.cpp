@@ -11,14 +11,90 @@ namespace vk {
 Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
 {
     if (IsNull(pCreateInfo->pApiObject)) {
-        return ppx::ERROR_FAILED;
+        // Create image
+        {
+            VkExtent3D extent = {};
+            extent.width      = pCreateInfo->width;
+            extent.height     = pCreateInfo->height;
+            extent.depth      = pCreateInfo->depth;
+
+            VkImageCreateInfo vkci     = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+            vkci.flags                 = 0;
+            vkci.imageType             = ToVkImageType(pCreateInfo->type);
+            vkci.format                = ToVkFormat(pCreateInfo->format);
+            vkci.extent                = extent;
+            vkci.mipLevels             = pCreateInfo->mipLevelCount;
+            vkci.arrayLayers           = pCreateInfo->arrayLayerCount;
+            vkci.samples               = ToVkSampleCount(pCreateInfo->sampleCount);
+            vkci.tiling                = VK_IMAGE_TILING_OPTIMAL;
+            vkci.usage                 = ToVkImageUsageFlags(pCreateInfo->usageFlags);
+            vkci.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+            vkci.queueFamilyIndexCount = 0;
+            vkci.pQueueFamilyIndices   = nullptr;
+            vkci.initialLayout         = VK_IMAGE_LAYOUT_UNDEFINED;
+
+            VkAllocationCallbacks* pAllocator = nullptr;
+
+            VkResult vkres = vkCreateImage(ToApi(GetDevice())->GetVkDevice(), &vkci, pAllocator, &mImage);
+            if (vkres != VK_SUCCESS) {
+                PPX_ASSERT_MSG(false, "vkCreateImage failed: " << ToString(vkres));
+                return ppx::ERROR_API_FAILURE;
+            }
+        }
+
+        // Allocate memory
+        {
+            VmaMemoryUsage memoryUsage = ToVmaMemoryUsage(pCreateInfo->memoryUsage);
+            if (memoryUsage == VMA_MEMORY_USAGE_UNKNOWN) {
+                PPX_ASSERT_MSG(false, "unknown memory usage");
+                return ppx::ERROR_API_FAILURE;
+            }
+
+            VmaAllocationCreateFlags createFlags = 0;
+
+            if ((memoryUsage == VMA_MEMORY_USAGE_CPU_ONLY) || (memoryUsage == VMA_MEMORY_USAGE_CPU_ONLY)) {
+                createFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+            }
+
+            VmaAllocationCreateInfo vma_alloc_ci = {};
+            vma_alloc_ci.flags                   = createFlags;
+            vma_alloc_ci.usage                   = memoryUsage;
+            vma_alloc_ci.requiredFlags           = 0;
+            vma_alloc_ci.preferredFlags          = 0;
+            vma_alloc_ci.memoryTypeBits          = 0;
+            vma_alloc_ci.pool                    = VK_NULL_HANDLE;
+            vma_alloc_ci.pUserData               = nullptr;
+
+            VkResult vkres = vmaAllocateMemoryForImage(
+                ToApi(GetDevice())->GetVmaAllocator(),
+                mImage,
+                &vma_alloc_ci,
+                &mAllocation,
+                &mAllocationInfo);
+            if (vkres != VK_SUCCESS) {
+                PPX_ASSERT_MSG(false, "vmaAllocateMemoryForImage failed: " << ToString(vkres));
+                return ppx::ERROR_API_FAILURE;
+            }
+        }
+
+        // Bind memory
+        {
+            VkResult vkres = vmaBindImageMemory(
+                ToApi(GetDevice())->GetVmaAllocator(),
+                mAllocation,
+                mImage);
+            if (vkres != VK_SUCCESS) {
+                PPX_ASSERT_MSG(false, "vmaBindImageMemory failed: " << ToString(vkres));
+                return ppx::ERROR_API_FAILURE;
+            }
+        }
     }
     else {
         mImage = static_cast<VkImage>(pCreateInfo->pApiObject);
     }
 
-    mFormat = ToVkFormat(pCreateInfo->format);
-    mImageAspect = DetermineAspectMask(mFormat);
+    mVkFormat    = ToVkFormat(pCreateInfo->format);
+    mImageAspect = DetermineAspectMask(mVkFormat);
 
     return ppx::SUCCESS;
 }
@@ -28,6 +104,18 @@ void Image::DestroyApiObjects()
     // Don't destroy image unless we created it
     if (!IsNull(mCreateInfo.pApiObject)) {
         return;
+    }
+
+    if (mAllocation) {
+        vmaFreeMemory(ToApi(GetDevice())->GetVmaAllocator(), mAllocation);
+        mAllocation.Reset();
+
+        mAllocationInfo = {};
+    }
+
+    if (mImage) {
+        vkDestroyImage(ToApi(GetDevice())->GetVkDevice(), mImage, nullptr);
+        mImage.Reset();
     }
 }
 

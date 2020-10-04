@@ -10,21 +10,39 @@ namespace vk {
 
 const char* ToString(VkResult value);
 
-VkAttachmentLoadOp       ToVkAttachmentLoadOp(grfx::AttachmentLoadOp value);
-VkAttachmentStoreOp      ToVkAttachmentStoreOp(grfx::AttachmentStoreOp value);
-VkClearColorValue        ToVkClearColorValue(const grfx::RenderTargetClearValue& value);
-VkClearDepthStencilValue ToVkClearDepthStencilValue(const grfx::DepthStencilClearValue& value);
-VkComponentSwizzle       ToVkComponentSwizzle(grfx::ComponentSwizzle value);
-VkComponentMapping       ToVkComponentMapping(const grfx::ComponentMapping& value);
-VkFormat                 ToVkFormat(grfx::Format value);
-VkImageType              ToVkImageType(grfx::ImageType value);
-VkImageViewType          ToVkImageViewType(grfx::ImageViewType value);
-VkPresentModeKHR         ToVkPresentMode(grfx::PresentMode value);
-VkSampleCountFlagBits    ToVkSampleCount(grfx::SampleCount value);
-Result                   ToVkBarrierSrc(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout);
-Result                   ToVkBarrierDst(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout);
+VkAttachmentLoadOp         ToVkAttachmentLoadOp(grfx::AttachmentLoadOp value);
+VkAttachmentStoreOp        ToVkAttachmentStoreOp(grfx::AttachmentStoreOp value);
+VkBlendFactor              ToVkBlendFactor(grfx::BlendFactor value);
+VkBlendOp                  ToVkBlendOp(grfx::BlendOp value);
+VkBufferUsageFlags         ToVkBufferUsageFlags(const grfx::BufferUsageFlags& value);
+VkClearColorValue          ToVkClearColorValue(const grfx::RenderTargetClearValue& value);
+VkClearDepthStencilValue   ToVkClearDepthStencilValue(const grfx::DepthStencilClearValue& value);
+VkColorComponentFlags      ToVkColorComponentFlags(const grfx::ColorComponentFlags& value);
+VkCompareOp                ToVkCompareOp(grfx::CompareOp value);
+VkComponentSwizzle         ToVkComponentSwizzle(grfx::ComponentSwizzle value);
+VkComponentMapping         ToVkComponentMapping(const grfx::ComponentMapping& value);
+VkCullModeFlagBits         ToVkCullMode(grfx::CullMode value);
+VkFormat                   ToVkFormat(grfx::Format value);
+VkFrontFace                ToVkFrontFace(grfx::FrontFace value);
+VkImageType                ToVkImageType(grfx::ImageType value);
+VkImageUsageFlags          ToVkImageUsageFlags(const grfx::ImageUsageFlags& value);
+VkImageViewType            ToVkImageViewType(grfx::ImageViewType value);
+VkIndexType                ToVkIndexType(grfx::IndexType value);
+VkLogicOp                  ToVkLogicOp(grfx::LogicOp value);
+VkPolygonMode              ToVkPolygonMode(grfx::PolygonMode value);
+VkPresentModeKHR           ToVkPresentMode(grfx::PresentMode value);
+VkPrimitiveTopology        ToVkPrimitiveTopology(grfx::PrimitiveTopology value);
+VkStencilOp                ToVkStencilOp(grfx::StencilOp value);
+VkSampleCountFlagBits      ToVkSampleCount(grfx::SampleCount value);
+VkTessellationDomainOrigin ToVkTessellationDomainOrigin(grfx::TessellationDomainOrigin value);
+VkVertexInputRate          ToVkVertexInputRate(grfx::VertexInputRate value);
+
+Result ToVkBarrierSrc(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout);
+Result ToVkBarrierDst(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout);
 
 VkImageAspectFlags DetermineAspectMask(VkFormat format);
+
+VmaMemoryUsage ToVmaMemoryUsage(grfx::MemoryUsage value);
 
 } // namespace vk
 } // namespace grfx

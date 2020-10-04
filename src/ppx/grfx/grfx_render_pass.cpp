@@ -39,6 +39,13 @@ void RenderPassCreateInfo2::SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op)
     }
 }
 
+void RenderPassCreateInfo2::SetAllRenderTargetStoreOp(grfx::AttachmentStoreOp op)
+{
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->renderTargetStoreOps[i] = op;
+    }
+}
+
 void RenderPassCreateInfo2::SetAllRenderTargetToClear()
 {
     SetAllRenderTargetLoadOp(grfx::ATTACHMENT_LOAD_OP_CLEAR);
@@ -61,11 +68,17 @@ void RenderPassCreateInfo3::SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op)
     }
 }
 
+void RenderPassCreateInfo3::SetAllRenderTargetStoreOp(grfx::AttachmentStoreOp op)
+{
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->renderTargetStoreOps[i] = op;
+    }
+}
+
 void RenderPassCreateInfo3::SetAllRenderTargetToClear()
 {
     SetAllRenderTargetLoadOp(grfx::ATTACHMENT_LOAD_OP_CLEAR);
 }
-
 
 // -------------------------------------------------------------------------------------------------
 // internal

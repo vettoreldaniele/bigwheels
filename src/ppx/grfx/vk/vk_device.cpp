@@ -1,10 +1,13 @@
 #include "ppx/grfx/vk/vk_device.h"
+#include "ppx/grfx/vk/vk_buffer.h"
 #include "ppx/grfx/vk/vk_command.h"
 #include "ppx/grfx/vk/vk_gpu.h"
 #include "ppx/grfx/vk/vk_image.h"
 #include "ppx/grfx/vk/vk_instance.h"
+#include "ppx/grfx/vk/vk_pipeline.h"
 #include "ppx/grfx/vk/vk_queue.h"
 #include "ppx/grfx/vk/vk_render_pass.h"
+#include "ppx/grfx/vk/vk_shader.h"
 #include "ppx/grfx/vk/vk_swapchain.h"
 #include "ppx/grfx/vk/vk_sync.h"
 
@@ -228,6 +231,20 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         return ppx::ERROR_API_FAILURE;
     }
 
+    // VMA
+    {
+        VmaAllocatorCreateInfo vmaCreateInfo = {};
+        vmaCreateInfo.physicalDevice         = ToApi(pCreateInfo->pGpu)->GetVkGpu();
+        vmaCreateInfo.device                 = mDevice;
+        vmaCreateInfo.instance               = ToApi(GetInstance())->GetVkInstance();
+
+        vkres = vmaCreateAllocator(&vmaCreateInfo, &mVmaAllocator);
+        if (vkres != VK_SUCCESS) {
+            PPX_ASSERT_MSG(false, "vmaCreateAllocator failed: " << ToString(vkres));
+            return ppx::ERROR_API_FAILURE;
+        }
+    }
+
     ppxres = CreateQueues(pCreateInfo);
     if (Failed(ppxres)) {
         return ppxres;
@@ -238,6 +255,11 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
 void Device::DestroyApiObjects()
 {
+    if (mVmaAllocator) {
+        vmaDestroyAllocator(mVmaAllocator);
+        mVmaAllocator.Reset();
+    }
+
     if (mDevice) {
         vkDestroyDevice(mDevice, nullptr);
         mDevice.Reset();
@@ -246,7 +268,12 @@ void Device::DestroyApiObjects()
 
 Result Device::AllocateObject(grfx::Buffer** ppObject)
 {
-    return ppx::ERROR_ALLOCATION_FAILED;
+    vk::Buffer* pObject = new vk::Buffer();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::CommandBuffer** ppObject)
@@ -306,7 +333,12 @@ Result Device::AllocateObject(grfx::Fence** ppObject)
 
 Result Device::AllocateObject(grfx::GraphicsPipeline** ppObject)
 {
-    return ppx::ERROR_ALLOCATION_FAILED;
+    vk::GraphicsPipeline* pObject = new vk::GraphicsPipeline();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Image** ppObject)
@@ -319,9 +351,14 @@ Result Device::AllocateObject(grfx::Image** ppObject)
     return ppx::SUCCESS;
 }
 
-Result Device::AllocateObject(grfx::PipelineLayout** ppObject)
+Result Device::AllocateObject(grfx::PipelineInterface** ppObject)
 {
-    return ppx::ERROR_ALLOCATION_FAILED;
+    vk::PipelineInterface* pObject = new vk::PipelineInterface();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Queue** ppObject)
@@ -366,7 +403,12 @@ Result Device::AllocateObject(grfx::Semaphore** ppObject)
 
 Result Device::AllocateObject(grfx::ShaderModule** ppObject)
 {
-    return ppx::ERROR_ALLOCATION_FAILED;
+    vk::ShaderModule* pObject = new vk::ShaderModule();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::ShaderProgram** ppObject)

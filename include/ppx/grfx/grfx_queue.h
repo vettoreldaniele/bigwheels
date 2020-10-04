@@ -24,8 +24,8 @@ namespace internal {
 //!
 struct QueueCreateInfo
 {
-    uint32_t queueFamilyIndex = kInvalidQueueFamilyIndex; // Vulkan
-    uint32_t queueIndex       = kInvalidQueueIndex;       // Vulkan
+    uint32_t queueFamilyIndex = PPX_VALUE_IGNORED; // Vulkan
+    uint32_t queueIndex       = PPX_VALUE_IGNORED; // Vulkan
 };
 
 } // namespace internal

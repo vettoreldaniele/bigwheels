@@ -82,7 +82,9 @@ public:
     Swapchain() {}
     virtual ~Swapchain() {}
 
-    uint32_t GetImageCount() const { return mCreateInfo.imageCount; }
+    uint32_t     GetImageCount() const { return mCreateInfo.imageCount; }
+    grfx::Format GetColorFormat() const { return mCreateInfo.colorFormat; }
+    grfx::Format GetDepthFormat() const { return mCreateInfo.depthFormat; }
 
     Result GetImage(uint32_t imageIndex, grfx::Image** ppImage) const;
     Result GetRenderPass(uint32_t imageIndex, grfx::RenderPass** ppRenderPass) const;

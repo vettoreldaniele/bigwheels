@@ -45,7 +45,7 @@ uint32_t Gpu::GetQueueFamilyCount() const
 
 uint32_t Gpu::GetGraphicsQueueFamilyIndex() const
 {
-    uint32_t queueFamilyIndex = grfx::kInvalidQueueFamilyIndex;
+    uint32_t queueFamilyIndex = PPX_VALUE_IGNORED;
     uint32_t count            = CountU32(mQueueFamilies);
     for (uint32_t i = 0; i < count; ++i) {
         if ((mQueueFamilies[i].queueFlags & kAllQueueMask) == kGraphicsQueueMask) {
@@ -58,7 +58,7 @@ uint32_t Gpu::GetGraphicsQueueFamilyIndex() const
 
 uint32_t Gpu::GetComputeQueueFamilyIndex() const
 {
-    uint32_t queueFamilyIndex = grfx::kInvalidQueueFamilyIndex;
+    uint32_t queueFamilyIndex = PPX_VALUE_IGNORED;
     uint32_t count            = CountU32(mQueueFamilies);
     for (uint32_t i = 0; i < count; ++i) {
         if ((mQueueFamilies[i].queueFlags & kAllQueueMask) == kComputeQueueMask) {
@@ -71,7 +71,7 @@ uint32_t Gpu::GetComputeQueueFamilyIndex() const
 
 uint32_t Gpu::GetTransferQueueFamilyIndex() const
 {
-    uint32_t queueFamilyIndex = grfx::kInvalidQueueFamilyIndex;
+    uint32_t queueFamilyIndex = PPX_VALUE_IGNORED;
     uint32_t count            = CountU32(mQueueFamilies);
     for (uint32_t i = 0; i < count; ++i) {
         if ((mQueueFamilies[i].queueFlags & kAllQueueMask) == kTransferQueueMask) {
@@ -86,7 +86,7 @@ uint32_t Gpu::GetGraphicsQueueCount() const
 {
     uint32_t count = 0;
     uint32_t index = GetGraphicsQueueFamilyIndex();
-    if (index != kInvalidQueueFamilyIndex) {
+    if (index != PPX_VALUE_IGNORED) {
         count = mQueueFamilies[index].queueCount;
     }
     return count;
@@ -96,7 +96,7 @@ uint32_t Gpu::GetComputeQueueCount() const
 {
     uint32_t count = 0;
     uint32_t index = GetComputeQueueFamilyIndex();
-    if (index != kInvalidQueueFamilyIndex) {
+    if (index != PPX_VALUE_IGNORED) {
         count = mQueueFamilies[index].queueCount;
     }
     return count;
@@ -106,7 +106,7 @@ uint32_t Gpu::GetTransferQueueCount() const
 {
     uint32_t count = 0;
     uint32_t index = GetTransferQueueFamilyIndex();
-    if (index != kInvalidQueueFamilyIndex) {
+    if (index != PPX_VALUE_IGNORED) {
         count = mQueueFamilies[index].queueCount;
     }
     return count;

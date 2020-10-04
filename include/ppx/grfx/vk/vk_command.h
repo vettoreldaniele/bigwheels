@@ -32,6 +32,16 @@ public:
         grfx::ResourceState beforeState,
         grfx::ResourceState afterState) override;
 
+    virtual void SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports) override;
+    virtual void SetScissors(uint32_t scissorCount, const grfx::Rect* pScissors) override;
+
+    virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline) override;
+
+    virtual void BindIndexBuffer(const grfx::IndexBufferView* pView) override;
+    virtual void BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews) override;
+
+    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;

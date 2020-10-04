@@ -1,7 +1,9 @@
 #include "ppx/grfx/vk/vk_command.h"
+#include "ppx/grfx/vk/vk_buffer.h"
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_image.h"
 #include "ppx/grfx/vk/vk_queue.h"
+#include "ppx/grfx/vk/vk_pipeline.h"
 #include "ppx/grfx/vk/vk_render_pass.h"
 
 namespace ppx {
@@ -162,6 +164,78 @@ void CommandBuffer::TransitionImageLayout(
         nullptr,        // pBufferMemoryBarriers
         1,              // imageMemoryBarrierCount
         &barrier);      // pImageMemoryBarriers);
+}
+
+void CommandBuffer::SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports)
+{
+    VkViewport viewports[PPX_MAX_VIEWPORTS] = {};
+    for (uint32_t i = 0; i < viewportCount; ++i) {
+        // clang-format off
+        viewports[i].x        =  pViewports[i].x;
+        viewports[i].y        =  pViewports[i].height;
+        viewports[i].width    =  pViewports[i].width;
+        viewports[i].height   = -pViewports[i].height;
+        viewports[i].minDepth =  pViewports[i].minDepth;
+        viewports[i].maxDepth =  pViewports[i].maxDepth;
+        // clang-format on
+    }
+
+    vkCmdSetViewport(
+        mCommandBuffer,
+        0,
+        viewportCount,
+        viewports);
+}
+
+void CommandBuffer::SetScissors(uint32_t scissorCount, const grfx::Rect* pScissors)
+{
+    vkCmdSetScissor(
+        mCommandBuffer,
+        0,
+        scissorCount,
+        reinterpret_cast<const VkRect2D*>(pScissors));
+}
+
+void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)
+{
+    vkCmdBindPipeline(
+        mCommandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        ToApi(pPipeline)->GetVkPipeline());
+}
+
+void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
+{
+    vkCmdBindIndexBuffer(
+        mCommandBuffer,
+        ToApi(pView->pBuffer)->GetVkBuffer(),
+        static_cast<VkDeviceSize>(pView->offset),
+        ToVkIndexType(pView->indexType));
+}
+
+void CommandBuffer::BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews)
+{
+    PPX_ASSERT_MSG(viewCount < PPX_MAX_VERTEX_ATTRIBUTES, "viewCount exceeds PPX_MAX_VERTEX_ATTRIBUTES");
+
+    VkBuffer     buffers[PPX_MAX_RENDER_TARGETS] = {VK_NULL_HANDLE};
+    VkDeviceSize offsets[PPX_MAX_RENDER_TARGETS] = {0};
+
+    for (uint32_t i = 0; i < viewCount; ++i) {
+        buffers[i] = ToApi(pViews[i].pBuffer)->GetVkBuffer();
+        offsets[i] = static_cast<VkDeviceSize>(pViews[i].offset);
+    }
+
+    vkCmdBindVertexBuffers(
+        mCommandBuffer,
+        0,
+        viewCount,
+        buffers,
+        offsets);
+}
+
+void CommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
+{
+    vkCmdDraw(mCommandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 // -------------------------------------------------------------------------------------------------

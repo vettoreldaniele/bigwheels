@@ -63,13 +63,14 @@ public:
     void   DestroyFence(const grfx::Fence* pFence);
 
     Result CreateGraphicsPipeline(const grfx::GraphicsPipelineCreateInfo* pCreateInfo, grfx::GraphicsPipeline** ppGraphicsPipeline);
+    Result CreateGraphicsPipeline(const grfx::GraphicsPipelineCreateInfo2* pCreateInfo, grfx::GraphicsPipeline** ppGraphicsPipeline);
     void   DestroyGraphicsPipeline(const grfx::GraphicsPipeline* pGraphicsPipeline);
 
     Result CreateImage(const grfx::ImageCreateInfo* pCreateInfo, grfx::Image** ppImage);
     void   DestroyImage(const grfx::Image* pImage);
 
-    Result CreatePipelineLayout(const grfx::PipelineLayoutCreateInfo* pCreateInfo, grfx::PipelineLayout** ppPipelineLayout);
-    void   DestroyPipelineLayout(const grfx::PipelineLayout* pPipelineLayout);
+    Result CreatePipelineInterface(const grfx::PipelineInterfaceCreateInfo* pCreateInfo, grfx::PipelineInterface** ppPipelineInterface);
+    void   DestroyPipelineInterface(const grfx::PipelineInterface* pPipelineInterface);
 
     Result CreateRenderPass(const grfx::RenderPassCreateInfo* pCreateInfo, grfx::RenderPass** ppRenderPass);
     Result CreateRenderPass(const grfx::RenderPassCreateInfo2* pCreateInfo, grfx::RenderPass** ppRenderPass);
@@ -84,9 +85,6 @@ public:
 
     Result CreateShaderModule(const grfx::ShaderModuleCreateInfo* pCreateInfo, grfx::ShaderModule** ppShaderModule);
     void   DestroyShaderModule(const grfx::ShaderModule* pShaderModule);
-
-    Result CreateShaderProgram(const grfx::ShaderProgramCreateInfo* pCreateInfo, grfx::ShaderProgram** ppShaderProgram);
-    void   DestroyShaderProgram(const grfx::ShaderProgram* pShaderProgram);
 
     Result CreateSwapchain(const grfx::SwapchainCreateInfo* pCreateInfo, grfx::Swapchain** ppSwapchain);
     void   DestroySwapchain(const grfx::Swapchain* pSwapchain);
@@ -118,24 +116,24 @@ protected:
     virtual void   Destroy() override;
     friend class grfx::Instance;
 
-    virtual Result AllocateObject(grfx::Buffer** ppObject)           = 0;
-    virtual Result AllocateObject(grfx::CommandBuffer** ppObject)    = 0;
-    virtual Result AllocateObject(grfx::CommandPool** ppObject)      = 0;
-    virtual Result AllocateObject(grfx::ComputePipeline** ppObject)  = 0;
-    virtual Result AllocateObject(grfx::DepthStencilView** ppObject) = 0;
-    virtual Result AllocateObject(grfx::DescriptorPool** ppObject)   = 0;
-    virtual Result AllocateObject(grfx::DescriptorSet** ppObject)    = 0;
-    virtual Result AllocateObject(grfx::Fence** ppObject)            = 0;
-    virtual Result AllocateObject(grfx::GraphicsPipeline** ppObject) = 0;
-    virtual Result AllocateObject(grfx::Image** ppObject)            = 0;
-    virtual Result AllocateObject(grfx::PipelineLayout** ppObject)   = 0;
-    virtual Result AllocateObject(grfx::Queue** ppObject)            = 0;
-    virtual Result AllocateObject(grfx::RenderPass** ppObject)       = 0;
-    virtual Result AllocateObject(grfx::RenderTargetView** ppObject) = 0;
-    virtual Result AllocateObject(grfx::Semaphore** ppObject)        = 0;
-    virtual Result AllocateObject(grfx::ShaderModule** ppObject)     = 0;
-    virtual Result AllocateObject(grfx::ShaderProgram** ppObject)    = 0;
-    virtual Result AllocateObject(grfx::Swapchain** ppObject)        = 0;
+    virtual Result AllocateObject(grfx::Buffer** ppObject)            = 0;
+    virtual Result AllocateObject(grfx::CommandBuffer** ppObject)     = 0;
+    virtual Result AllocateObject(grfx::CommandPool** ppObject)       = 0;
+    virtual Result AllocateObject(grfx::ComputePipeline** ppObject)   = 0;
+    virtual Result AllocateObject(grfx::DepthStencilView** ppObject)  = 0;
+    virtual Result AllocateObject(grfx::DescriptorPool** ppObject)    = 0;
+    virtual Result AllocateObject(grfx::DescriptorSet** ppObject)     = 0;
+    virtual Result AllocateObject(grfx::Fence** ppObject)             = 0;
+    virtual Result AllocateObject(grfx::GraphicsPipeline** ppObject)  = 0;
+    virtual Result AllocateObject(grfx::Image** ppObject)             = 0;
+    virtual Result AllocateObject(grfx::PipelineInterface** ppObject) = 0;
+    virtual Result AllocateObject(grfx::Queue** ppObject)             = 0;
+    virtual Result AllocateObject(grfx::RenderPass** ppObject)        = 0;
+    virtual Result AllocateObject(grfx::RenderTargetView** ppObject)  = 0;
+    virtual Result AllocateObject(grfx::Semaphore** ppObject)         = 0;
+    virtual Result AllocateObject(grfx::ShaderModule** ppObject)      = 0;
+    virtual Result AllocateObject(grfx::ShaderProgram** ppObject)     = 0;
+    virtual Result AllocateObject(grfx::Swapchain** ppObject)         = 0;
 
     template <
         typename ObjectT,
@@ -168,7 +166,7 @@ protected:
     std::vector<grfx::FencePtr>               mFences;
     std::vector<grfx::GraphicsPipelinePtr>    mGraphicsPipelines;
     std::vector<grfx::ImagePtr>               mImages;
-    std::vector<grfx::PipelineLayoutPtr>      mPipelineLayouts;
+    std::vector<grfx::PipelineInterfacePtr>   mPipelineInterfaces;
     std::vector<grfx::RenderPassPtr>          mRenderPasses;
     std::vector<grfx::RenderTargetViewPtr>    mRenderTargetViews;
     std::vector<grfx::SemaphorePtr>           mSemaphores;

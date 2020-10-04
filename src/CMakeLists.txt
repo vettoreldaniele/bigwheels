@@ -75,6 +75,7 @@ list(
     ${INC_DIR}/ppx/obj_ptr.h
     ${INC_DIR}/ppx/platform.h
     ${INC_DIR}/ppx/ppx.h
+    ${INC_DIR}/ppx/timer.h
     ${INC_DIR}/ppx/util.h
 )
 
@@ -85,6 +86,7 @@ list(
     ${SRC_DIR}/ppx/headless_application.cpp
     ${SRC_DIR}/ppx/log.cpp
     ${SRC_DIR}/ppx/platform.cpp
+    ${SRC_DIR}/ppx/timer.cpp
 )
 
 list(
@@ -92,8 +94,11 @@ list(
     ${INC_DIR}/ppx/grfx/000_grfx_config.h
     ${INC_DIR}/ppx/grfx/grfx_buffer.h
     ${INC_DIR}/ppx/grfx/grfx_command.h
+    ${INC_DIR}/ppx/grfx/grfx_constants.h
     ${INC_DIR}/ppx/grfx/grfx_descriptor.h
     ${INC_DIR}/ppx/grfx/grfx_device.h
+    ${INC_DIR}/ppx/grfx/grfx_enums.h
+    ${INC_DIR}/ppx/grfx/grfx_format.h
     ${INC_DIR}/ppx/grfx/grfx_gpu.h
     ${INC_DIR}/ppx/grfx/grfx_helper.h
     ${INC_DIR}/ppx/grfx/grfx_image.h
@@ -113,7 +118,9 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_command.cpp
     ${SRC_DIR}/ppx/grfx/grfx_descriptor.cpp
     ${SRC_DIR}/ppx/grfx/grfx_device.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_format.cpp
     ${SRC_DIR}/ppx/grfx/grfx_gpu.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_helper.cpp
     ${SRC_DIR}/ppx/grfx/grfx_image.cpp
     ${SRC_DIR}/ppx/grfx/grfx_instance.cpp
     ${SRC_DIR}/ppx/grfx/grfx_pipeline.cpp
@@ -123,6 +130,21 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_swapchain.cpp
     ${SRC_DIR}/ppx/grfx/grfx_sync.cpp
     ${SRC_DIR}/ppx/grfx/grfx_texture.cpp
+)
+
+list(
+    APPEND PPX_IO_HEADER_FILES
+    ${INC_DIR}/ppx/io/000_io_config.h
+    ${INC_DIR}/ppx/io/file.h
+    ${INC_DIR}/ppx/io/image_loader.h
+    ${INC_DIR}/ppx/io/obj_loader.h
+)
+
+list(
+    APPEND PPX_IO_SOURCE_FILES
+    ${SRC_DIR}/ppx/io/file.cpp
+    ${SRC_DIR}/ppx/io/image_loader.cpp
+    ${SRC_DIR}/ppx/io/obj_loader.cpp
 )
 
 if (PPX_D3D12)
@@ -215,6 +237,8 @@ source_group("Header Files\\ppx\\grfx\\dx"  FILES ${PPX_GRFX_DX_HEADER_FILES})
 source_group("Source Files\\ppx\\grfx\\dx"  FILES ${PPX_GRFX_DX_SOURCE_FILES})
 source_group("Header Files\\ppx\\grfx\\vk"  FILES ${PPX_GRFX_VK_HEADER_FILES})
 source_group("Source Files\\ppx\\grfx\\vk"  FILES ${PPX_GRFX_VK_SOURCE_FILES})
+source_group("Header Files\\ppx\\io"        FILES ${PPX_IO_HEADER_FILES})
+source_group("Source Files\\ppx\\io"        FILES ${PPX_IO_SOURCE_FILES})
 
 # ------------------------------------------------------------------------------
 # Add library
@@ -230,6 +254,8 @@ add_library(
     ${PPX_GRFX_DX_SOURCE_FILES}
     ${PPX_GRFX_VK_HEADER_FILES}
     ${PPX_GRFX_VK_SOURCE_FILES}
+    ${PPX_IO_HEADER_FILES}
+    ${PPX_IO_SOURCE_FILES}
 )
 
 if (${PPX_LINUX} OR ${PPX_GGP})
@@ -244,9 +270,9 @@ endif()
 
 target_include_directories(
     ${PROJECT_NAME}
-    PRIVATE ${SRC_DIR} 
-            ${PPX_THIRD_PARTY_DIR}/glfw/include
+    PRIVATE ${SRC_DIR}
     PUBLIC  ${INC_DIR}
+            ${PPX_THIRD_PARTY_DIR}/glfw/include
 )
 
 # Include D3D12 directories if D3D12 is enabled

@@ -31,6 +31,16 @@ private:
     VkFramebufferPtr mFramebuffer;
 };
 
+// -------------------------------------------------------------------------------------------------
+
+VkResult CreateTransientRenderPass(
+    VkDevice              device,
+    uint32_t              renderTargetCount,
+    const VkFormat*       pRenderTargetFormats,
+    VkFormat              depthStencilFormat,
+    VkSampleCountFlagBits sampleCount,
+    VkRenderPass*         pRenderPass);
+
 } // namespace vk
 } // namespace grfx
 } // namespace ppx

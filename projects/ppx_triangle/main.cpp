@@ -19,7 +19,14 @@ private:
         ppx::grfx::FencePtr         renderCompleteFence;
     };
 
-    std::vector<PerFrame> mPerFrame;
+    std::vector<PerFrame>           mPerFrame;
+    ppx::grfx::ShaderModulePtr      mVS;
+    ppx::grfx::ShaderModulePtr      mPS;
+    ppx::grfx::PipelineInterfacePtr mPipelineInterface;
+    ppx::grfx::GraphicsPipelinePtr  mPipeline;
+    ppx::grfx::BufferPtr            mVertexBuffer;
+    grfx::Viewport                  mViewport;
+    grfx::Rect                      mScissorRect;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -31,9 +38,43 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 
 void ProjApp::Setup()
 {
+    Result ppxres = ppx::SUCCESS;
+
+    // Pipeline
     {
-        Result   ppxres = ppx::SUCCESS;
-        PerFrame frame  = {};
+        std::vector<char> bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\VertexColor.vs.spv");
+        PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
+        grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
+
+        bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\VertexColor.PS.spv");
+        PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
+        shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
+
+        grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
+
+        grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
+        gpCreateInfo.VS                                 = {mVS.Get(), "VSMain"};
+        gpCreateInfo.PS                                 = {mPS.Get(), "PSMain"};
+        gpCreateInfo.vertexInputState.attributeCount    = 2;
+        gpCreateInfo.vertexInputState.attributes[0]     = {0, grfx::FORMAT_R32G32B32A32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
+        gpCreateInfo.vertexInputState.attributes[1]     = {1, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
+        gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
+        gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
+        gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
+        gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
+        gpCreateInfo.outputState.renderTargetCount      = 1;
+        gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
+        gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPipeline));
+    }
+
+    // Per frame data
+    {
+        PerFrame frame = {};
 
         PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
 
@@ -50,6 +91,33 @@ void ProjApp::Setup()
 
         mPerFrame.push_back(frame);
     }
+
+    // Buffer and geometry data
+    {
+        // clang-format off
+        std::vector<float> vertexData = {
+             0.0f,  0.5f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+             0.5f, -0.5f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f,
+        };
+        // clang-format on
+        uint32_t dataSize = ppx::SizeInBytesU32(vertexData);
+
+        grfx::BufferCreateInfo bufferCreateInfo       = {};
+        bufferCreateInfo.size                         = dataSize;
+        bufferCreateInfo.usageFlags.bits.vertexBuffer = true;
+        bufferCreateInfo.memoryUsage                  = grfx::MEMORY_USAGE_CPU_TO_GPU;
+
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mVertexBuffer));
+
+        void* pAddr = nullptr;
+        PPX_CHECKED_CALL(ppxres = ppxres = mVertexBuffer->MapMemory(0, &pAddr));
+        memcpy(pAddr, vertexData.data(), dataSize);
+        mVertexBuffer->UnmapMemory();
+    }
+
+    mViewport    = {0, 0, 640, 480, 0, 1};
+    mScissorRect = {0, 0, 640, 480};
 }
 
 void ProjApp::Render()
@@ -82,6 +150,13 @@ void ProjApp::Render()
 
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);
+        {
+            frame.cmd->SetScissors(1, &mScissorRect);
+            frame.cmd->SetViewports(1, &mViewport);
+            frame.cmd->BindVertexBuffers(1, &mVertexBuffer);
+            frame.cmd->BindGraphicsPipeline(mPipeline);
+            frame.cmd->Draw(3, 1, 0, 0);
+        }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }

@@ -50,6 +50,20 @@ public:
         uint32_t            arrayLayerCount,
         grfx::ResourceState beforeState,
         grfx::ResourceState afterState) = 0;
+
+    virtual void SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports) = 0;
+    virtual void SetScissors(uint32_t scissorCount, const grfx::Rect* pScissors)      = 0;
+
+    virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline) = 0;
+
+    virtual void BindIndexBuffer(const grfx::IndexBufferView* pView)                         = 0;
+    virtual void BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews) = 0;
+
+    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) = 0;
+
+    // Convenience functions
+    void BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType indexType, uint64_t offset = 0);
+    void BindVertexBuffers(uint32_t bufferCount, const grfx::Buffer* const* ppBuffers, const uint64_t* pOffsets = nullptr);
 };
 
 // -------------------------------------------------------------------------------------------------

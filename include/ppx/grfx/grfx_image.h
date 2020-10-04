@@ -11,16 +11,19 @@ namespace grfx {
 //!
 struct ImageCreateInfo
 {
-    grfx::ImageType       type            = grfx::IMAGE_TYPE_UNDEFINED;
+    grfx::ImageType       type            = grfx::IMAGE_TYPE_2D;
     uint32_t              width           = 0;
     uint32_t              height          = 0;
     uint32_t              depth           = 0;
     grfx::Format          format          = grfx::FORMAT_UNDEFINED;
-    grfx::SampleCount     sampleCount     = grfx::SAMPLE_COUNT_UNDEFINED;
-    uint32_t              mipLevelCount   = 0;
-    uint32_t              arrayLayerCount = 0;
-    grfx::ImageUsageFlags usageFlags      = {};
+    grfx::SampleCount     sampleCount     = grfx::SAMPLE_COUNT_1;
+    uint32_t              mipLevelCount   = 1;
+    uint32_t              arrayLayerCount = 1;
+    grfx::ImageUsageFlags usageFlags      = grfx::ImageUsageFlags::SampledImage();
+    grfx::MemoryUsage     memoryUsage     = grfx::MEMORY_USAGE_GPU_ONLY;
     void*                 pApiObject      = nullptr; // [OPTIONAL] For external images such as swapchain images
+
+    static ImageCreateInfo Image2D(uint32_t width, uint32_t height, grfx::Format, grfx::MemoryUsage = grfx::MEMORY_USAGE_GPU_ONLY);
 };
 
 //! @class Image
@@ -33,6 +36,7 @@ public:
     Image() {}
     virtual ~Image() {}
 
+    grfx::ImageType              GetType() const { return mCreateInfo.type; }
     uint32_t                     GetWidth() const { return mCreateInfo.width; }
     uint32_t                     GetHeight() const { return mCreateInfo.height; }
     uint32_t                     GetDepth() const { return mCreateInfo.depth; }
@@ -41,6 +45,7 @@ public:
     uint32_t                     GetMipLevelCount() const { return mCreateInfo.mipLevelCount; }
     uint32_t                     GetArrayLayerCount() const { return mCreateInfo.arrayLayerCount; }
     const grfx::ImageUsageFlags& GetUsageFlags() const { return mCreateInfo.usageFlags; }
+    grfx::MemoryUsage            GetMemoryUsage() const { return mCreateInfo.memoryUsage; }
 
     // Convenience functions
     grfx::ImageViewType GuessImageViewType(bool isCube = false) const;
@@ -94,7 +99,7 @@ struct RenderTargetViewCreateInfo
     grfx::Image*            pImage          = nullptr;
     grfx::ImageViewType     imageViewType   = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
     grfx::Format            format          = grfx::FORMAT_UNDEFINED;
-    grfx::SampleCount       sampleCount     = grfx::SAMPLE_COUNT_UNDEFINED;
+    grfx::SampleCount       sampleCount     = grfx::SAMPLE_COUNT_1;
     uint32_t                mipLevel        = 0;
     uint32_t                mipLevelCount   = 0;
     uint32_t                arrayLayer      = 0;

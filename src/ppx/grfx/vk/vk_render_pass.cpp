@@ -101,6 +101,7 @@ Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* 
         nullptr,
         &mRenderPass);
     if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkCreateRenderPass failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
     }
 
@@ -138,6 +139,7 @@ Result RenderPass::CreateFramebuffer(const grfx::internal::RenderPassCreateInfo*
         nullptr,
         &mFramebuffer);
     if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkCreateFramebuffer failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
     }
 
@@ -176,6 +178,100 @@ void RenderPass::DestroyApiObjects()
             nullptr);
         mRenderPass.Reset();
     }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+VkResult CreateTransientRenderPass(
+    VkDevice              device,
+    uint32_t              renderTargetCount,
+    const VkFormat*       pRenderTargetFormats,
+    VkFormat              depthStencilFormat,
+    VkSampleCountFlagBits sampleCount,
+    VkRenderPass*         pRenderPass)
+{
+    bool hasDepthSencil = (depthStencilFormat != VK_FORMAT_UNDEFINED);
+
+    std::vector<VkAttachmentDescription> attachmentDescs;
+    {
+        for (uint32_t i = 0; i < renderTargetCount; ++i) {
+            VkAttachmentDescription desc = {};
+            desc.flags                   = 0;
+            desc.format                  = pRenderTargetFormats[i];
+            desc.samples                 = sampleCount;
+            desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            desc.finalLayout             = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            attachmentDescs.push_back(desc);
+        }
+
+        if (hasDepthSencil) {
+            VkAttachmentDescription desc = {};
+            desc.flags                   = 0;
+            desc.format                  = depthStencilFormat;
+            desc.samples                 = VK_SAMPLE_COUNT_1_BIT;
+            desc.loadOp                  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            desc.stencilLoadOp           = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            desc.finalLayout             = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            attachmentDescs.push_back(desc);
+        }
+    }
+
+    std::vector<VkAttachmentReference> colorRefs;
+    {
+        for (uint32_t i = 0; i < renderTargetCount; ++i) {
+            VkAttachmentReference ref = {};
+            ref.attachment            = i;
+            ref.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            colorRefs.push_back(ref);
+        }
+    }
+
+    VkAttachmentReference depthStencilRef = {};
+    if (hasDepthSencil) {
+        depthStencilRef.attachment = static_cast<uint32_t>(attachmentDescs.size() - 1);
+        depthStencilRef.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    }
+
+    VkSubpassDescription subpassDescription    = {};
+    subpassDescription.flags                   = 0;
+    subpassDescription.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassDescription.inputAttachmentCount    = 0;
+    subpassDescription.pInputAttachments       = nullptr;
+    subpassDescription.colorAttachmentCount    = CountU32(colorRefs);
+    subpassDescription.pColorAttachments       = DataPtr(colorRefs);
+    subpassDescription.pResolveAttachments     = nullptr;
+    subpassDescription.pDepthStencilAttachment = hasDepthSencil ? &depthStencilRef : nullptr;
+    subpassDescription.preserveAttachmentCount = 0;
+    subpassDescription.pPreserveAttachments    = nullptr;
+
+    VkSubpassDependency subpassDependencies = {};
+    subpassDependencies.srcSubpass          = VK_SUBPASS_EXTERNAL;
+    subpassDependencies.dstSubpass          = 0;
+    subpassDependencies.srcStageMask        = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    subpassDependencies.dstStageMask        = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependencies.srcAccessMask       = 0;
+    subpassDependencies.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    subpassDependencies.dependencyFlags     = 0;
+
+    VkRenderPassCreateInfo vkci = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
+    vkci.flags                  = 0;
+    vkci.attachmentCount        = CountU32(attachmentDescs);
+    vkci.pAttachments           = DataPtr(attachmentDescs);
+    vkci.subpassCount           = 1;
+    vkci.pSubpasses             = &subpassDescription;
+    vkci.dependencyCount        = 1;
+    vkci.pDependencies          = &subpassDependencies;
+
+    VkResult vkres = vkCreateRenderPass(
+        device,
+        &vkci,
+        nullptr,
+        pRenderPass);
+    if (vkres != VK_SUCCESS) {
+        return vkres;
+    }
+
+    return VK_SUCCESS;
 }
 
 } // namespace vk

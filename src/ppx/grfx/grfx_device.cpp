@@ -17,12 +17,16 @@ Result Device::Create(const grfx::DeviceCreateInfo* pCreateInfo)
 
 void Device::Destroy()
 {
+    DestroyAllObjects(mBuffers);
     DestroyAllObjects(mCommandBuffers);
     DestroyAllObjects(mCommandPools);
     DestroyAllObjects(mFences);
+    DestroyAllObjects(mGraphicsPipelines);
+    DestroyAllObjects(mPipelineInterfaces);
     DestroyAllObjects(mRenderPasses);
     DestroyAllObjects(mRenderTargetViews);
     DestroyAllObjects(mSemaphores);
+    DestroyAllObjects(mShaderModules);
 
     DestroyAllObjects(mGraphicsQueues);
     DestroyAllObjects(mComputeQueues);
@@ -222,6 +226,21 @@ Result Device::CreateGraphicsPipeline(const grfx::GraphicsPipelineCreateInfo* pC
     return ppx::SUCCESS;
 }
 
+Result Device::CreateGraphicsPipeline(const grfx::GraphicsPipelineCreateInfo2* pCreateInfo, grfx::GraphicsPipeline** ppGraphicsPipeline)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppGraphicsPipeline);
+
+    grfx::GraphicsPipelineCreateInfo createInfo = {};
+    grfx::internal::FillOutGraphicsPipelineCreateInfo(pCreateInfo, &createInfo);
+
+    Result gxres = CreateObject(&createInfo, mGraphicsPipelines, ppGraphicsPipeline);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
 void Device::DestroyGraphicsPipeline(const grfx::GraphicsPipeline* pGraphicsPipeline)
 {
     PPX_ASSERT_NULL_ARG(pGraphicsPipeline);
@@ -245,21 +264,21 @@ void Device::DestroyImage(const grfx::Image* pImage)
     DestroyObject(mImages, pImage);
 }
 
-Result Device::CreatePipelineLayout(const grfx::PipelineLayoutCreateInfo* pCreateInfo, grfx::PipelineLayout** ppPipelineLayout)
+Result Device::CreatePipelineInterface(const grfx::PipelineInterfaceCreateInfo* pCreateInfo, grfx::PipelineInterface** ppPipelineInterface)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
-    PPX_ASSERT_NULL_ARG(ppPipelineLayout);
-    Result gxres = CreateObject(pCreateInfo, mPipelineLayouts, ppPipelineLayout);
+    PPX_ASSERT_NULL_ARG(ppPipelineInterface);
+    Result gxres = CreateObject(pCreateInfo, mPipelineInterfaces, ppPipelineInterface);
     if (Failed(gxres)) {
         return gxres;
     }
     return ppx::SUCCESS;
 }
 
-void Device::DestroyPipelineLayout(const grfx::PipelineLayout* pPipelineLayout)
+void Device::DestroyPipelineInterface(const grfx::PipelineInterface* pPipelineInterface)
 {
-    PPX_ASSERT_NULL_ARG(pPipelineLayout);
-    DestroyObject(mPipelineLayouts, pPipelineLayout);
+    PPX_ASSERT_NULL_ARG(pPipelineInterface);
+    DestroyObject(mPipelineInterfaces, pPipelineInterface);
 }
 
 Result Device::CreateRenderPass(const grfx::RenderPassCreateInfo* pCreateInfo, grfx::RenderPass** ppRenderPass)
@@ -359,23 +378,6 @@ void Device::DestroyShaderModule(const grfx::ShaderModule* pShaderModule)
 {
     PPX_ASSERT_NULL_ARG(pShaderModule);
     DestroyObject(mShaderModules, pShaderModule);
-}
-
-Result Device::CreateShaderProgram(const grfx::ShaderProgramCreateInfo* pCreateInfo, grfx::ShaderProgram** ppShaderProgram)
-{
-    PPX_ASSERT_NULL_ARG(pCreateInfo);
-    PPX_ASSERT_NULL_ARG(ppShaderProgram);
-    Result gxres = CreateObject(pCreateInfo, mShaderPrograms, ppShaderProgram);
-    if (Failed(gxres)) {
-        return gxres;
-    }
-    return ppx::SUCCESS;
-}
-
-void Device::DestroyShaderProgram(const grfx::ShaderProgram* pShaderProgram)
-{
-    PPX_ASSERT_NULL_ARG(pShaderProgram);
-    DestroyObject(mShaderPrograms, pShaderProgram);
 }
 
 Result Device::CreateSwapchain(const grfx::SwapchainCreateInfo* pCreateInfo, grfx::Swapchain** ppSwapchain)

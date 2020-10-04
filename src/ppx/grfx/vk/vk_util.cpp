@@ -78,6 +78,122 @@ VkAttachmentStoreOp ToVkAttachmentStoreOp(grfx::AttachmentStoreOp value)
     return ppx::InvalidValue<VkAttachmentStoreOp>();
 }
 
+VkBlendFactor ToVkBlendFactor(grfx::BlendFactor value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::BLEND_FACTOR_ZERO                     : return VK_BLEND_FACTOR_ZERO                    ; break;
+        case grfx::BLEND_FACTOR_ONE                      : return VK_BLEND_FACTOR_ONE                     ; break;
+        case grfx::BLEND_FACTOR_SRC_COLOR                : return VK_BLEND_FACTOR_SRC_COLOR               ; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_SRC_COLOR      : return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR     ; break;
+        case grfx::BLEND_FACTOR_DST_COLOR                : return VK_BLEND_FACTOR_DST_COLOR               ; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_DST_COLOR      : return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR     ; break;
+        case grfx::BLEND_FACTOR_SRC_ALPHA                : return VK_BLEND_FACTOR_SRC_ALPHA               ; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA      : return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA     ; break;
+        case grfx::BLEND_FACTOR_DST_ALPHA                : return VK_BLEND_FACTOR_DST_ALPHA               ; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_DST_ALPHA      : return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA     ; break;
+        case grfx::BLEND_FACTOR_CONSTANT_COLOR           : return VK_BLEND_FACTOR_CONSTANT_COLOR          ; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR : return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR; break;
+        case grfx::BLEND_FACTOR_CONSTANT_ALPHA           : return VK_BLEND_FACTOR_CONSTANT_ALPHA          ; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA : return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA; break;
+        case grfx::BLEND_FACTOR_SRC_ALPHA_SATURATE       : return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE      ; break;
+        case grfx::BLEND_FACTOR_SRC1_COLOR               : return VK_BLEND_FACTOR_SRC1_COLOR              ; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_SRC1_COLOR     : return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR    ; break;
+        case grfx::BLEND_FACTOR_SRC1_ALPHA               : return VK_BLEND_FACTOR_SRC1_ALPHA              ; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA     : return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA    ; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkBlendFactor>();
+}
+
+VkBlendOp ToVkBlendOp(grfx::BlendOp value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::BLEND_OP_ADD              : return VK_BLEND_OP_ADD             ; break;
+        case grfx::BLEND_OP_SUBTRACT         : return VK_BLEND_OP_SUBTRACT        ; break;
+        case grfx::BLEND_OP_REVERSE_SUBTRACT : return VK_BLEND_OP_REVERSE_SUBTRACT; break;
+        case grfx::BLEND_OP_MIN              : return VK_BLEND_OP_MIN             ; break;
+        case grfx::BLEND_OP_MAX              : return VK_BLEND_OP_MAX             ; break;
+
+#if defined(PPX_VK_BLEND_OPERATION_ADVANCED)
+        // Provdied by VK_blend_operation_advanced
+        case grfx::BLEND_OP_ZERO               : return  VK_BLEND_OP_ZERO_EXT; break;
+        case grfx::BLEND_OP_SRC                : return  VK_BLEND_OP_SRC_EXT; break;
+        case grfx::BLEND_OP_DST                : return  VK_BLEND_OP_DST_EXT; break;
+        case grfx::BLEND_OP_SRC_OVER           : return  VK_BLEND_OP_SRC_OVER_EXT; break;
+        case grfx::BLEND_OP_DST_OVER           : return  VK_BLEND_OP_DST_OVER_EXT; break;
+        case grfx::BLEND_OP_SRC_IN             : return  VK_BLEND_OP_SRC_IN_EXT; break;
+        case grfx::BLEND_OP_DST_IN             : return  VK_BLEND_OP_DST_IN_EXT; break;
+        case grfx::BLEND_OP_SRC_OUT            : return  VK_BLEND_OP_SRC_OUT_EXT; break;
+        case grfx::BLEND_OP_DST_OUT            : return  VK_BLEND_OP_DST_OUT_EXT; break;
+        case grfx::BLEND_OP_SRC_ATOP           : return  VK_BLEND_OP_SRC_ATOP_EXT; break;
+        case grfx::BLEND_OP_DST_ATOP           : return  VK_BLEND_OP_DST_ATOP_EXT; break;
+        case grfx::BLEND_OP_XOR                : return  VK_BLEND_OP_XOR_EXT; break;
+        case grfx::BLEND_OP_MULTIPLY           : return  VK_BLEND_OP_MULTIPLY_EXT; break;
+        case grfx::BLEND_OP_SCREEN             : return  VK_BLEND_OP_SCREEN_EXT; break;
+        case grfx::BLEND_OP_OVERLAY            : return  VK_BLEND_OP_OVERLAY_EXT; break;
+        case grfx::BLEND_OP_DARKEN             : return  VK_BLEND_OP_DARKEN_EXT; break;
+        case grfx::BLEND_OP_LIGHTEN            : return  VK_BLEND_OP_LIGHTEN_EXT; break;
+        case grfx::BLEND_OP_COLORDODGE         : return  VK_BLEND_OP_COLORDODGE_EXT; break;
+        case grfx::BLEND_OP_COLORBURN          : return  VK_BLEND_OP_COLORBURN_EXT; break;
+        case grfx::BLEND_OP_HARDLIGHT          : return  VK_BLEND_OP_HARDLIGHT_EXT; break;
+        case grfx::BLEND_OP_SOFTLIGHT          : return  VK_BLEND_OP_SOFTLIGHT_EXT; break;
+        case grfx::BLEND_OP_DIFFERENCE         : return  VK_BLEND_OP_DIFFERENCE_EXT; break;
+        case grfx::BLEND_OP_EXCLUSION          : return  VK_BLEND_OP_EXCLUSION_EXT; break;
+        case grfx::BLEND_OP_INVERT             : return  VK_BLEND_OP_INVERT_EXT; break;
+        case grfx::BLEND_OP_INVERT_RGB         : return  VK_BLEND_OP_INVERT_RGB_EXT; break;
+        case grfx::BLEND_OP_LINEARDODGE        : return  VK_BLEND_OP_LINEARDODGE_EXT; break;
+        case grfx::BLEND_OP_LINEARBURN         : return  VK_BLEND_OP_LINEARBURN_EXT; break;
+        case grfx::BLEND_OP_VIVIDLIGHT         : return  VK_BLEND_OP_VIVIDLIGHT_EXT; break;
+        case grfx::BLEND_OP_LINEARLIGHT        : return  VK_BLEND_OP_LINEARLIGHT_EXT; break;
+        case grfx::BLEND_OP_PINLIGHT           : return  VK_BLEND_OP_PINLIGHT_EXT; break;
+        case grfx::BLEND_OP_HARDMIX            : return  VK_BLEND_OP_HARDMIX_EXT; break;
+        case grfx::BLEND_OP_HSL_HUE            : return  VK_BLEND_OP_HSL_HUE_EXT; break;
+        case grfx::BLEND_OP_HSL_SATURATION     : return  VK_BLEND_OP_HSL_SATURATION_EXT; break;
+        case grfx::BLEND_OP_HSL_COLOR          : return  VK_BLEND_OP_HSL_COLOR_EXT; break;
+        case grfx::BLEND_OP_HSL_LUMINOSITY     : return  VK_BLEND_OP_HSL_LUMINOSITY_EXT; break;
+        case grfx::BLEND_OP_PLUS               : return  VK_BLEND_OP_PLUS_EXT; break;
+        case grfx::BLEND_OP_PLUS_CLAMPED       : return  VK_BLEND_OP_PLUS_CLAMPED_EXT; break;
+        case grfx::BLEND_OP_PLUS_CLAMPED_ALPHA : return  VK_BLEND_OP_PLUS_CLAMPED_ALPHA_EXT; break;
+        case grfx::BLEND_OP_PLUS_DARKER        : return  VK_BLEND_OP_PLUS_DARKER_EXT; break;
+        case grfx::BLEND_OP_MINUS              : return  VK_BLEND_OP_MINUS_EXT; break;
+        case grfx::BLEND_OP_MINUS_CLAMPED      : return  VK_BLEND_OP_MINUS_CLAMPED_EXT; break;
+        case grfx::BLEND_OP_CONTRAST           : return  VK_BLEND_OP_CONTRAST_EXT; break;
+        case grfx::BLEND_OP_INVERT_OVG         : return  VK_BLEND_OP_INVERT_OVG_EXT; break;
+        case grfx::BLEND_OP_RED                : return  VK_BLEND_OP_RED_EXT; break;
+        case grfx::BLEND_OP_GREEN              : return  VK_BLEND_OP_GREEN_EXT; break;
+        case grfx::BLEND_OP_BLUE               : return  VK_BLEND_OP_BLUE_EXT; break;
+#endif // defined(PPX_VK_BLEND_OPERATION_ADVANCED)
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkBlendOp>();
+}
+
+VkBufferUsageFlags ToVkBufferUsageFlags(const grfx::BufferUsageFlags& value)
+{
+    VkBufferUsageFlags flags = 0;
+    // clang-format off
+    if (value.bits.transferSrc                   ) flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    if (value.bits.transferDst                   ) flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    if (value.bits.uniformTexelBuffer            ) flags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+    if (value.bits.storageTexelBuffer            ) flags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+    if (value.bits.uniformBuffer                 ) flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    if (value.bits.storageBuffer                 ) flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    if (value.bits.indexBuffer                   ) flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    if (value.bits.vertexBuffer                  ) flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    if (value.bits.indirectBuffer                ) flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+    if (value.bits.conditionalRendering          ) flags |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+    if (value.bits.rayTracing                    ) flags |= VK_BUFFER_USAGE_RAY_TRACING_BIT_KHR;
+    if (value.bits.transformFeedbackBuffer       ) flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
+    if (value.bits.transformFeedbackCounterBuffer) flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
+    if (value.bits.shaderDeviceAddress           ) flags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR;
+    // clang-format on
+    return flags;
+}
+
 VkClearColorValue ToVkClearColorValue(const grfx::RenderTargetClearValue& value)
 {
     VkClearColorValue res = {};
@@ -94,6 +210,36 @@ VkClearDepthStencilValue ToVkClearDepthStencilValue(const grfx::DepthStencilClea
     res.depth                    = value.depth;
     res.stencil                  = value.stencil;
     return res;
+}
+
+VkColorComponentFlags ToVkColorComponentFlags(const grfx::ColorComponentFlags& value)
+{
+    VkColorComponentFlags flags = 0;
+    // clang-format off
+    if (value.bits.r) flags |= VK_COLOR_COMPONENT_R_BIT;
+    if (value.bits.g) flags |= VK_COLOR_COMPONENT_G_BIT;
+    if (value.bits.b) flags |= VK_COLOR_COMPONENT_B_BIT;
+    if (value.bits.a) flags |= VK_COLOR_COMPONENT_A_BIT;
+    // clang-format on;
+    return flags;
+}
+
+VkCompareOp ToVkCompareOp(grfx::CompareOp value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::COMPARE_OP_NEVER            : return VK_COMPARE_OP_NEVER           ; break;
+        case grfx::COMPARE_OP_LESS             : return VK_COMPARE_OP_LESS            ; break;
+        case grfx::COMPARE_OP_EQUAL            : return VK_COMPARE_OP_EQUAL           ; break;
+        case grfx::COMPARE_OP_LESS_OR_EQUAL    : return VK_COMPARE_OP_LESS_OR_EQUAL   ; break;
+        case grfx::COMPARE_OP_GREATER          : return VK_COMPARE_OP_GREATER         ; break;
+        case grfx::COMPARE_OP_NOT_EQUAL        : return VK_COMPARE_OP_NOT_EQUAL       ; break;
+        case grfx::COMPARE_OP_GREATER_OR_EQUAL : return VK_COMPARE_OP_GREATER_OR_EQUAL; break;
+        case grfx::COMPARE_OP_ALWAYS           : return VK_COMPARE_OP_ALWAYS          ; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkCompareOp>();
 }
 
 VkComponentSwizzle ToVkComponentSwizzle(grfx::ComponentSwizzle value)
@@ -121,6 +267,19 @@ VkComponentMapping ToVkComponentMapping(const grfx::ComponentMapping& value)
     res.b                  = ToVkComponentSwizzle(value.b);
     res.a                  = ToVkComponentSwizzle(value.a);
     return res;
+}
+
+VkCullModeFlagBits ToVkCullMode(grfx::CullMode value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::CULL_MODE_NONE  : return VK_CULL_MODE_NONE; break;
+        case grfx::CULL_MODE_FRONT : return VK_CULL_MODE_FRONT_BIT; break;
+        case grfx::CULL_MODE_BACK  : return VK_CULL_MODE_BACK_BIT; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkCullModeFlagBits>();
 }
 
 VkFormat ToVkFormat(grfx::Format value)
@@ -238,6 +397,18 @@ VkFormat ToVkFormat(grfx::Format value)
     return result;
 }
 
+VkFrontFace ToVkFrontFace(grfx::FrontFace value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::FRONT_FACE_CCW : return VK_FRONT_FACE_COUNTER_CLOCKWISE; break;
+        case grfx::FRONT_FACE_CW  : return VK_FRONT_FACE_CLOCKWISE; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkFrontFace>();
+}
+
 VkImageType ToVkImageType(grfx::ImageType value)
 {
     // clang-format off
@@ -251,21 +422,90 @@ VkImageType ToVkImageType(grfx::ImageType value)
     return ppx::InvalidValue<VkImageType>();
 }
 
+VkImageUsageFlags ToVkImageUsageFlags(const grfx::ImageUsageFlags& value)
+{
+    VkImageUsageFlags flags = 0;
+    // clang-format off
+    if (value.bits.transferSrc           ) flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    if (value.bits.transferDst           ) flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    if (value.bits.sampled               ) flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (value.bits.storage               ) flags |= VK_IMAGE_USAGE_STORAGE_BIT;
+    if (value.bits.colorAttachment       ) flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    if (value.bits.depthStencilAttachment) flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    if (value.bits.transientAattachment  ) flags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+    if (value.bits.inputAttachment       ) flags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+    if (value.bits.shadingRateImageNv    ) flags |= VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV;
+    if (value.bits.fragmentDensityMap    ) flags |= VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT;
+    // clang-format on
+    return flags;
+}
+
 VkImageViewType ToVkImageViewType(grfx::ImageViewType value)
 {
     // clang-format off
     switch (value) {
         default: break;
-        case grfx::IMAGE_VIEW_TYPE_1D         : return VK_IMAGE_VIEW_TYPE_1D        ; break;
-        case grfx::IMAGE_VIEW_TYPE_2D         : return VK_IMAGE_VIEW_TYPE_2D        ; break;
-        case grfx::IMAGE_VIEW_TYPE_3D         : return VK_IMAGE_VIEW_TYPE_3D        ; break;
-        case grfx::IMAGE_VIEW_TYPE_CUBE       : return VK_IMAGE_VIEW_TYPE_CUBE      ; break;
-        case grfx::IMAGE_VIEW_TYPE_1D_ARRAY   : return VK_IMAGE_VIEW_TYPE_1D_ARRAY  ; break;
-        case grfx::IMAGE_VIEW_TYPE_2D_ARRAY   : return VK_IMAGE_VIEW_TYPE_2D_ARRAY  ; break;
+        case grfx::IMAGE_VIEW_TYPE_1D         : return VK_IMAGE_VIEW_TYPE_1D; break;
+        case grfx::IMAGE_VIEW_TYPE_2D         : return VK_IMAGE_VIEW_TYPE_2D; break;
+        case grfx::IMAGE_VIEW_TYPE_3D         : return VK_IMAGE_VIEW_TYPE_3D; break;
+        case grfx::IMAGE_VIEW_TYPE_CUBE       : return VK_IMAGE_VIEW_TYPE_CUBE; break;
+        case grfx::IMAGE_VIEW_TYPE_1D_ARRAY   : return VK_IMAGE_VIEW_TYPE_1D_ARRAY; break;
+        case grfx::IMAGE_VIEW_TYPE_2D_ARRAY   : return VK_IMAGE_VIEW_TYPE_2D_ARRAY; break;
         case grfx::IMAGE_VIEW_TYPE_CUBE_ARRAY : return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY; break;
     }
     // clang-format on
     return ppx::InvalidValue<VkImageViewType>();
+}
+
+VkIndexType ToVkIndexType(grfx::IndexType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::INDEX_TYPE_UINT16 : return VK_INDEX_TYPE_UINT16; break;
+        case grfx::INDEX_TYPE_UINT32 : return VK_INDEX_TYPE_UINT32; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkIndexType>();
+}
+
+VkLogicOp ToVkLogicOp(grfx::LogicOp value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::LOGIC_OP_CLEAR         : return VK_LOGIC_OP_CLEAR; break;
+        case grfx::LOGIC_OP_AND           : return VK_LOGIC_OP_AND; break;
+        case grfx::LOGIC_OP_AND_REVERSE   : return VK_LOGIC_OP_AND_REVERSE; break;
+        case grfx::LOGIC_OP_COPY          : return VK_LOGIC_OP_COPY; break;
+        case grfx::LOGIC_OP_AND_INVERTED  : return VK_LOGIC_OP_AND_INVERTED; break;
+        case grfx::LOGIC_OP_NO_OP         : return VK_LOGIC_OP_NO_OP; break;
+        case grfx::LOGIC_OP_XOR           : return VK_LOGIC_OP_XOR; break;
+        case grfx::LOGIC_OP_OR            : return VK_LOGIC_OP_OR; break;
+        case grfx::LOGIC_OP_NOR           : return VK_LOGIC_OP_NOR; break;
+        case grfx::LOGIC_OP_EQUIVALENT    : return VK_LOGIC_OP_EQUIVALENT; break;
+        case grfx::LOGIC_OP_INVERT        : return VK_LOGIC_OP_INVERT; break;
+        case grfx::LOGIC_OP_OR_REVERSE    : return VK_LOGIC_OP_OR_REVERSE; break;
+        case grfx::LOGIC_OP_COPY_INVERTED : return VK_LOGIC_OP_COPY_INVERTED; break;
+        case grfx::LOGIC_OP_OR_INVERTED   : return VK_LOGIC_OP_OR_INVERTED; break;
+        case grfx::LOGIC_OP_NAND          : return VK_LOGIC_OP_NAND; break;
+        case grfx::LOGIC_OP_SET           : return VK_LOGIC_OP_SET; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkLogicOp>();
+}
+
+VkPolygonMode ToVkPolygonMode(grfx::PolygonMode value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::POLYGON_MODE_FILL  : return VK_POLYGON_MODE_FILL; break;
+        case grfx::POLYGON_MODE_LINE  : return VK_POLYGON_MODE_LINE; break;
+        case grfx::POLYGON_MODE_POINT : return VK_POLYGON_MODE_POINT; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkPolygonMode>();
 }
 
 VkPresentModeKHR ToVkPresentMode(grfx::PresentMode value)
@@ -279,6 +519,22 @@ VkPresentModeKHR ToVkPresentMode(grfx::PresentMode value)
     }
     // clang-format on
     return ppx::InvalidValue<VkPresentModeKHR>();
+}
+
+VkPrimitiveTopology ToVkPrimitiveTopology(grfx::PrimitiveTopology value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST  : return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; break;
+        case grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP : return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP; break;
+        case grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_FAN   : return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN; break;
+        case grfx::PRIMITIVE_TOPOLOGY_POINT_LIST     : return VK_PRIMITIVE_TOPOLOGY_POINT_LIST; break;
+        case grfx::PRIMITIVE_TOPOLOGY_LINE_LIST      : return VK_PRIMITIVE_TOPOLOGY_LINE_LIST; break;
+        case grfx::PRIMITIVE_TOPOLOGY_LINE_STRIP     : return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkPrimitiveTopology>();
 }
 
 VkSampleCountFlagBits ToVkSampleCount(grfx::SampleCount value)
@@ -296,6 +552,48 @@ VkSampleCountFlagBits ToVkSampleCount(grfx::SampleCount value)
     }
     // clang-format on
     return ppx::InvalidValue<VkSampleCountFlagBits>();
+}
+
+VkStencilOp ToVkStencilOp(grfx::StencilOp value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::STENCIL_OP_KEEP                : return VK_STENCIL_OP_KEEP               ; break;
+        case grfx::STENCIL_OP_ZERO                : return VK_STENCIL_OP_ZERO               ; break;
+        case grfx::STENCIL_OP_REPLACE             : return VK_STENCIL_OP_REPLACE            ; break;
+        case grfx::STENCIL_OP_INCREMENT_AND_CLAMP : return VK_STENCIL_OP_INCREMENT_AND_CLAMP; break;
+        case grfx::STENCIL_OP_DECREMENT_AND_CLAMP : return VK_STENCIL_OP_DECREMENT_AND_CLAMP; break;
+        case grfx::STENCIL_OP_INVERT              : return VK_STENCIL_OP_INVERT             ; break;
+        case grfx::STENCIL_OP_INCREMENT_AND_WRAP  : return VK_STENCIL_OP_INCREMENT_AND_WRAP ; break;
+        case grfx::STENCIL_OP_DECREMENT_AND_WRAP  : return VK_STENCIL_OP_DECREMENT_AND_WRAP ; break; 
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkStencilOp>();
+}
+
+VkTessellationDomainOrigin ToVkTessellationDomainOrigin(grfx::TessellationDomainOrigin value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::TESSELLATION_DOMAIN_ORIGIN_UPPER_LEFT : return VK_TESSELLATION_DOMAIN_ORIGIN_UPPER_LEFT; break;
+        case grfx::TESSELLATION_DOMAIN_ORIGIN_LOWER_LEFT : return VK_TESSELLATION_DOMAIN_ORIGIN_LOWER_LEFT; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkTessellationDomainOrigin>();
+}
+
+VkVertexInputRate ToVkVertexInputRate(grfx::VertexInputRate value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::VERTEX_INPUT_RATE_VERTEX   : return VK_VERTEX_INPUT_RATE_VERTEX; break;
+        case grfx::VERETX_INPUT_RATE_INSTANCE : return VK_VERTEX_INPUT_RATE_INSTANCE; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkVertexInputRate>();
 }
 
 static Result ToVkBarrier(ResourceState state, bool isSource, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout)
@@ -481,6 +779,20 @@ VkImageAspectFlags DetermineAspectMask(VkFormat format)
     }
     // clang-format on
     return VK_IMAGE_ASPECT_COLOR_BIT;
+}
+
+VmaMemoryUsage ToVmaMemoryUsage(grfx::MemoryUsage value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::MEMORY_USAGE_GPU_ONLY   : return VMA_MEMORY_USAGE_GPU_ONLY  ; break;
+        case grfx::MEMORY_USAGE_CPU_ONLY   : return VMA_MEMORY_USAGE_CPU_ONLY  ; break;
+        case grfx::MEMORY_USAGE_CPU_TO_GPU : return VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+        case grfx::MEMORY_USAGE_GPU_TO_CPU : return VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+    }
+    // clang-forat on
+    return VMA_MEMORY_USAGE_UNKNOWN;
 }
 
 } // namespace vk

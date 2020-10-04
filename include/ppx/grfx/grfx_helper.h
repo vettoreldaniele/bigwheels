@@ -1,28 +1,14 @@
 #ifndef ppx_grfx_helper_h
 #define ppx_grfx_helper_h
 
+#include "ppx/grfx/grfx_constants.h"
+#include "ppx/grfx/grfx_enums.h"
+#include "ppx/grfx/grfx_format.h"
+
 #include <cstdint>
 
 namespace ppx {
 namespace grfx {
-
-enum BufferUsageFlagBits
-{
-    BUFFER_USAGE_TRANSFER_SRC                      = 0x00000001,
-    BUFFER_USAGE_TRANSFER_DST                      = 0x00000002,
-    BUFFER_USAGE_UNIFORM_TEXEL_BUFFER              = 0x00000004,
-    BUFFER_USAGE_STORAGE_TEXEL_BUFFER              = 0x00000008,
-    BUFFER_USAGE_UNIFORM_BUFFER                    = 0x00000010,
-    BUFFER_USAGE_STORAGE_BUFFER                    = 0x00000020,
-    BUFFER_USAGE_INDEX_BUFFER                      = 0x00000040,
-    BUFFER_USAGE_VERTEX_BUFFER                     = 0x00000080,
-    BUFFER_USAGE_INDIRECT_BUFFER                   = 0x00000100,
-    BUFFER_USAGE_CONDITIONAL_RENDERING             = 0x00000200,
-    BUFFER_USAGE_RAY_TRACING                       = 0x00000400,
-    BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER         = 0x00000800,
-    BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER = 0x00001000,
-    BUFFER_USAGE_SHADER_DEVICE_ADDRESS             = 0x00002000,
-};
 
 struct BufferUsageFlags
 {
@@ -69,19 +55,42 @@ struct BufferUsageFlags
 
 // -------------------------------------------------------------------------------------------------
 
-enum ImageUsageFlagBits
+struct ColorComponentFlags
 {
-    IMAGE_USAGE_TRANSFER_SRC             = 0x00000001,
-    IMAGE_USAGE_TRANSFER_DST             = 0x00000002,
-    IMAGE_USAGE_SAMPLED                  = 0x00000004,
-    IMAGE_USAGE_STORAGE                  = 0x00000008,
-    IMAGE_USAGE_COLOR_ATTACHMENT         = 0x00000010,
-    IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT = 0x00000020,
-    IMAGE_USAGE_TRANSIENT_ATTACHMENT     = 0x00000040,
-    IMAGE_USAGE_INPUT_ATTACHMENT         = 0x00000080,
-    IMAGE_USAGE_SHADING_RATE_IMAGE_NV    = 0x00000100,
-    IMAGE_USAGE_FRAGMENT_DENSITY_MAP     = 0x00000200,
+    // clang-format off
+    union
+    {
+        struct
+        {
+            bool r : 1;
+            bool g : 1;
+            bool b : 1;
+            bool a : 1;
+        } bits;
+        uint32_t flags;
+    };
+    // clang-format on
+
+    ColorComponentFlags()
+        : flags(0) {}
+
+    ColorComponentFlags(uint32_t _flags)
+        : flags(_flags) {}
+
+    ColorComponentFlags& operator=(uint32_t rhs)
+    {
+        this->flags = rhs;
+    }
+
+    operator uint32_t() const
+    {
+        return flags;
+    }
+
+    static ColorComponentFlags RGBA();
 };
+
+// -------------------------------------------------------------------------------------------------
 
 struct ImageUsageFlags
 {
@@ -120,8 +129,20 @@ struct ImageUsageFlags
     {
         return flags;
     }
+
+    static ImageUsageFlags SampledImage();
 };
 
+// -------------------------------------------------------------------------------------------------
+
+struct VertexAttribute
+{
+    uint32_t              location  = 0;                              // @TODO: Find a way to handle between DX and VK
+    grfx::Format          format    = grfx::FORMAT_UNDEFINED;         //
+    uint32_t              binding   = 0;                              // Valid range is [0, 15]
+    uint32_t              offset    = PPX_APPEND_OFFSET_ALIGNED;      // Use PPX_APPEND_OFFSET_ALIGNED to auto calculate offsets
+    grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX; //
+};
 
 } // namespace grfx
 } // namespace ppx

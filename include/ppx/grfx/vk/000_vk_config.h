@@ -110,6 +110,7 @@ using VkPipelineLayoutPtr      = VkHandlePtr<VkPipelineLayout>;
 using VkQueuePtr               = VkHandlePtr<VkQueue>;
 using VkRenderPassPtr          = VkHandlePtr<VkRenderPass>;
 using VkSemaphorePtr           = VkHandlePtr<VkSemaphore>;
+using VkShaderModulePtr        = VkHandlePtr<VkShaderModule>;
 using VkSurfacePtr             = VkHandlePtr<VkSurfaceKHR>;
 using VkSwapchainPtr           = VkHandlePtr<VkSwapchainKHR>;
 
@@ -128,14 +129,16 @@ class DescriptorSetLayout;
 class Device;
 class Fence;
 class Gpu;
+class GraphicsPipeline;
 class Image;
 class Instance;
 class Pipeline;
-class PipelineLayout;
+class PipelineInterface;
 class Queue;
 class RenderPass;
 class RenderTargetView;
 class Semaphore;
+class ShaderModule;
 class Surface;
 class Swapchain;
 
@@ -189,6 +192,13 @@ struct ApiObjectLookUp<grfx::Fence>
 };
 
 template <>
+struct ApiObjectLookUp<grfx::GraphicsPipeline>
+{
+    using GrfxType = grfx::GraphicsPipeline;
+    using ApiType  = vk::GraphicsPipeline;
+};
+
+template <>
 struct ApiObjectLookUp<grfx::Image>
 {
     using GrfxType = grfx::Image;
@@ -217,6 +227,13 @@ struct ApiObjectLookUp<grfx::Queue>
 };
 
 template <>
+struct ApiObjectLookUp<grfx::PipelineInterface>
+{
+    using GrfxType = grfx::PipelineInterface;
+    using ApiType  = vk::PipelineInterface;
+};
+
+template <>
 struct ApiObjectLookUp<grfx::RenderPass>
 {
     using GrfxType = grfx::RenderPass;
@@ -235,6 +252,13 @@ struct ApiObjectLookUp<grfx::Semaphore>
 {
     using GrfxType = grfx::Semaphore;
     using ApiType  = vk::Semaphore;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::ShaderModule>
+{
+    using GrfxType = grfx::ShaderModule;
+    using ApiType  = vk::ShaderModule;
 };
 
 template <>

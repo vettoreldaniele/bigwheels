@@ -83,6 +83,11 @@ enum Result
     ERROR_GLFW_CREATE_WINDOW_FAILED = -201,
 
     ERROR_INVALID_CREATE_ARGUMENT = -300,
+
+    ERROR_GRFX_MAX_VERTEX_BINDING_EXCEEDED          = -1000,
+    ERROR_GRFX_VERTEX_ATTRIBUTE_FROMAT_UNDEFINED    = -1001,
+    ERROR_GRFX_VERTEX_ATTRIBUTE_OFFSET_OUT_OF_ORDER = -1002,
+    ERROR_GRFX_CANNOT_MIX_VERTEX_INPUT_RATES        = -1003,
 };
 
 inline bool Success(ppx::Result value)
@@ -95,12 +100,6 @@ inline bool Failed(ppx::Result value)
 {
     bool res = (value < ppx::SUCCESS);
     return res;
-}
-
-template <typename T>
-T InvalidValue(const T& value = static_cast<T>(~0))
-{
-    return value;
 }
 
 // -------------------------------------------------------------------------------------------------

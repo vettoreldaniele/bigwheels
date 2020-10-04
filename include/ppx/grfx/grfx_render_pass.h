@@ -52,6 +52,7 @@ struct RenderPassCreateInfo2
     void SetAllRenderTargetUsageFlags(const grfx::ImageUsageFlags& flags);
     void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
     void SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op);
+    void SetAllRenderTargetStoreOp(grfx::AttachmentStoreOp op);
     void SetAllRenderTargetToClear();
 };
 
@@ -77,6 +78,7 @@ struct RenderPassCreateInfo3
 
     void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
     void SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op);
+    void SetAllRenderTargetStoreOp(grfx::AttachmentStoreOp op);
     void SetAllRenderTargetToClear();
 };
 

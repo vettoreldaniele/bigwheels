@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <vector>
 
+namespace ppx {
+
 template <typename T>
 bool IsNull(const T* ptr)
 {
@@ -41,6 +43,20 @@ const T* DataPtr(const std::vector<T>& container)
 {
     const T* ptr = container.empty() ? nullptr : container.data();
     return ptr;
+}
+
+template <typename T>
+uint32_t SizeInBytesU32(const std::vector<T>& container)
+{
+    uint32_t size = static_cast<uint32_t>(container.size() * sizeof(T));
+    return size;
+}
+
+template <typename T>
+uint64_t SizeInBytesU64(const std::vector<T>& container)
+{
+    uint64_t size = static_cast<uint64_t>(container.size() * sizeof(T));
+    return size;
 }
 
 template <typename T>
@@ -110,5 +126,7 @@ inline std::vector<std::string> GetNotFound(const std::vector<std::string>& sear
     }
     return result;
 }
+
+} // namespace ppx
 
 #endif // UTIL_H

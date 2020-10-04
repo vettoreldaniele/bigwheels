@@ -31,7 +31,7 @@ protected:
     virtual Result AllocateObject(grfx::Fence** ppObject) override;
     virtual Result AllocateObject(grfx::GraphicsPipeline** ppObject) override;
     virtual Result AllocateObject(grfx::Image** ppObject) override;
-    virtual Result AllocateObject(grfx::PipelineLayout** ppObject) override;
+    virtual Result AllocateObject(grfx::PipelineInterface** ppObject) override;
     virtual Result AllocateObject(grfx::Queue** ppObject) override;
     virtual Result AllocateObject(grfx::RenderPass** ppObject) override;
     virtual Result AllocateObject(grfx::RenderTargetView** ppObject) override;

@@ -15,12 +15,19 @@ public:
     Buffer() {}
     virtual ~Buffer() {}
 
+    VkBufferPtr GetVkBuffer() const { return mBuffer; }
+
+    virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) override;
+    virtual void   UnmapMemory() override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
-    VkBufferPtr mBuffer;
+    VkBufferPtr       mBuffer;
+    VmaAllocationPtr  mAllocation;
+    VmaAllocationInfo mAllocationInfo = {};
 };
 
 } // namespace vk

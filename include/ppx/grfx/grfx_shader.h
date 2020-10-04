@@ -24,48 +24,6 @@ class ShaderModule
 public:
     ShaderModule() {}
     virtual ~ShaderModule() {}
-
-protected:
-    virtual Result CreateApiObjects(const grfx::ShaderModuleCreateInfo* pCreateInfo) = 0;
-    virtual void   DestroyApiObjects()                                               = 0;
-    friend class grfx::Device;
-
-private:
-    grfx::ShaderModuleCreateInfo mCreateInfo = {};
-};
-
-// -------------------------------------------------------------------------------------------------
-
-//! @struct ShaderProgramCreateInfo
-//!
-//!
-struct ShaderProgramCreateInfo
-{
-    const ShaderModule* pVS = nullptr;
-    const ShaderModule* pHS = nullptr;
-    const ShaderModule* pDS = nullptr;
-    const ShaderModule* pGS = nullptr;
-    const ShaderModule* pPS = nullptr;
-    const ShaderModule* pCS = nullptr;
-};
-
-//! @class ShaderProgram
-//!
-//!
-class ShaderProgram
-    : public grfx::DeviceObject<grfx::ShaderProgramCreateInfo>
-{
-public:
-    ShaderProgram() {}
-    virtual ~ShaderProgram() {}
-
-protected:
-    virtual Result CreateApiObjects(const grfx::ShaderProgramCreateInfo* pCreateInfo) = 0;
-    virtual void   DestroyApiObjects()                                                = 0;
-    friend class grfx::Device;
-
-private:
-    grfx::ShaderProgramCreateInfo mCreateInfo = {};
 };
 
 } // namespace grfx
