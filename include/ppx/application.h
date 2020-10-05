@@ -2,6 +2,7 @@
 #define ppx_application_h
 
 #include "ppx/base_application.h"
+#include "ppx/000_math_config.h"
 
 // clang-format off
 #include <GLFW/glfw3.h>

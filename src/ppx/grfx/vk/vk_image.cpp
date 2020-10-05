@@ -18,8 +18,14 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
             extent.height     = pCreateInfo->height;
             extent.depth      = pCreateInfo->depth;
 
+            VkImageCreateFlags createFlags =
+                VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT |
+                VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT |
+                VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT |
+                VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+
             VkImageCreateInfo vkci     = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
-            vkci.flags                 = 0;
+            vkci.flags                 = createFlags;
             vkci.imageType             = ToVkImageType(pCreateInfo->type);
             vkci.format                = ToVkFormat(pCreateInfo->format);
             vkci.extent                = extent;
@@ -120,6 +126,50 @@ void Image::DestroyApiObjects()
 }
 
 // -------------------------------------------------------------------------------------------------
+// Sampler
+// -------------------------------------------------------------------------------------------------
+Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
+{
+    VkSamplerCreateInfo vkci     = {VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+    //vkci.flags                   = 0;
+    //vkci.magFilter               = ;
+    //vkci.minFilter               = ;
+    //vkci.mipmapMode              = ;
+    //vkci.addressModeU            = ;
+    //vkci.addressModeV            = ;
+    //vkci.addressModeW            = ;
+    //vkci.mipLodBias              = ;
+    //vkci.anisotropyEnable        = ;
+    //vkci.maxAnisotropy           = ;
+    //vkci.compareEnable           = ;
+    //vkci.compareOp               = ;
+    //vkci.minLod                  = ;
+    //vkci.maxLod                  = ;
+    //vkci.borderColor             = ;
+    //vkci.unnormalizedCoordinates = ;
+
+    VkResult vkres = vkCreateSampler(
+        ToApi(GetDevice())->GetVkDevice(),
+        &vkci,
+        nullptr,
+        &mSampler);
+    if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkCreateSampler failed: " << ToString(vkres));
+        return ppx::ERROR_API_FAILURE;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void Sampler::DestroyApiObjects()
+{
+    if (mSampler) {
+        vkDestroySampler(ToApi(GetDevice())->GetVkDevice(), mSampler, nullptr);
+        mSampler.Reset();
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
 // DepthStencilView
 // -------------------------------------------------------------------------------------------------
 Result DepthStencilView::CreateApiObjects(const grfx::DepthStencilViewCreateInfo* pCreateInfo)
@@ -156,6 +206,12 @@ Result RenderTargetView::CreateApiObjects(const grfx::RenderTargetViewCreateInfo
     if (vkres != VK_SUCCESS) {
         PPX_ASSERT_MSG(false, "vkCreateImageView failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
+    }
+
+    std::unique_ptr<grfx::internal::ImageResourceView> resourceView(new vk::internal::ImageResourceView(mImageView, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+    if (!resourceView) {
+        PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView allocation failed");
+        return ppx::ERROR_ALLOCATION_FAILED;
     }
 
     return ppx::SUCCESS;

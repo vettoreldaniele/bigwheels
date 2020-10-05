@@ -9,6 +9,7 @@ namespace grfx {
 namespace vk {
 
 const char* ToString(VkResult value);
+const char* ToString(VkDescriptorType value);
 
 VkAttachmentLoadOp         ToVkAttachmentLoadOp(grfx::AttachmentLoadOp value);
 VkAttachmentStoreOp        ToVkAttachmentStoreOp(grfx::AttachmentStoreOp value);
@@ -22,6 +23,7 @@ VkCompareOp                ToVkCompareOp(grfx::CompareOp value);
 VkComponentSwizzle         ToVkComponentSwizzle(grfx::ComponentSwizzle value);
 VkComponentMapping         ToVkComponentMapping(const grfx::ComponentMapping& value);
 VkCullModeFlagBits         ToVkCullMode(grfx::CullMode value);
+VkDescriptorType           ToVkDescriptorType(grfx::DescriptorType value);
 VkFormat                   ToVkFormat(grfx::Format value);
 VkFrontFace                ToVkFrontFace(grfx::FrontFace value);
 VkImageType                ToVkImageType(grfx::ImageType value);
@@ -32,6 +34,7 @@ VkLogicOp                  ToVkLogicOp(grfx::LogicOp value);
 VkPolygonMode              ToVkPolygonMode(grfx::PolygonMode value);
 VkPresentModeKHR           ToVkPresentMode(grfx::PresentMode value);
 VkPrimitiveTopology        ToVkPrimitiveTopology(grfx::PrimitiveTopology value);
+VkShaderStageFlags         ToVkShaderStageFlags(const grfx::ShaderStageFlags& value);
 VkStencilOp                ToVkStencilOp(grfx::StencilOp value);
 VkSampleCountFlagBits      ToVkSampleCount(grfx::SampleCount value);
 VkTessellationDomainOrigin ToVkTessellationDomainOrigin(grfx::TessellationDomainOrigin value);

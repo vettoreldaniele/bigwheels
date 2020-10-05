@@ -50,7 +50,28 @@ const char* ToString(VkResult value)
         case VK_PIPELINE_COMPILE_REQUIRED_EXT                      : return "VK_PIPELINE_COMPILE_REQUIRED_EXT"; break;
     }
     // clang-format on
-    return "<UNKNOWN VkResult value>";
+    return "<unknown VkResult value>";
+}
+
+const char* ToString(VkDescriptorType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case VK_DESCRIPTOR_TYPE_SAMPLER                : return "VK_DESCRIPTOR_TYPE_SAMPLER"; break;
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER : return "VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER"; break;
+        case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE          : return "VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE"; break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE          : return "VK_DESCRIPTOR_TYPE_STORAGE_IMAGE"; break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER   : return "VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER"; break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER   : return "VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER"; break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER         : return "VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER"; break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER         : return "VK_DESCRIPTOR_TYPE_STORAGE_BUFFER"; break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : return "VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC"; break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : return "VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC"; break;
+        case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT       : return "VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT"; break;
+    }
+    // clang-format on
+    return "<unknown VkDescriptorType value>";
 }
 
 VkAttachmentLoadOp ToVkAttachmentLoadOp(grfx::AttachmentLoadOp value)
@@ -280,6 +301,27 @@ VkCullModeFlagBits ToVkCullMode(grfx::CullMode value)
     }
     // clang-format on
     return ppx::InvalidValue<VkCullModeFlagBits>();
+}
+
+VkDescriptorType ToVkDescriptorType(grfx::DescriptorType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::DESCRIPTOR_TYPE_SAMPLER                : return VK_DESCRIPTOR_TYPE_SAMPLER               ; break;
+        case grfx::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER : return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
+        case grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE          : return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE         ; break;
+        case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE          : return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         ; break;
+        case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER   : return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER  ; break;
+        case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER   : return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER  ; break;
+        case grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER         : return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER        ; break;
+        case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER         : return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        ; break;
+        case grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC; break;
+        case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC; break;
+        case grfx::DESCRIPTOR_TYPE_INPUT_ATTACHMENT       : return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT      ; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkDescriptorType>();
 }
 
 VkFormat ToVkFormat(grfx::Format value)
@@ -552,6 +594,20 @@ VkSampleCountFlagBits ToVkSampleCount(grfx::SampleCount value)
     }
     // clang-format on
     return ppx::InvalidValue<VkSampleCountFlagBits>();
+}
+
+VkShaderStageFlags ToVkShaderStageFlags(const grfx::ShaderStageFlags& value)
+{
+    VkShaderStageFlags flags = 0;
+    // clang-format off
+    if (value.bits.VS) flags |= VK_SHADER_STAGE_VERTEX_BIT;
+    if (value.bits.HS) flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+    if (value.bits.DS) flags |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+    if (value.bits.GS) flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
+    if (value.bits.DS) flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+    if (value.bits.CS) flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+    // clang-format on
+    return flags;
 }
 
 VkStencilOp ToVkStencilOp(grfx::StencilOp value)

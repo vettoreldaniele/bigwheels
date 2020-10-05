@@ -54,6 +54,7 @@ public:
     virtual void SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports) = 0;
     virtual void SetScissors(uint32_t scissorCount, const grfx::Rect* pScissors)      = 0;
 
+    virtual void BindGraphicsDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets) = 0;
     virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline) = 0;
 
     virtual void BindIndexBuffer(const grfx::IndexBufferView* pView)                         = 0;

@@ -1,6 +1,7 @@
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_buffer.h"
 #include "ppx/grfx/vk/vk_command.h"
+#include "ppx/grfx/vk/vk_descriptor.h"
 #include "ppx/grfx/vk/vk_gpu.h"
 #include "ppx/grfx/vk/vk_image.h"
 #include "ppx/grfx/vk/vk_instance.h"
@@ -341,12 +342,32 @@ Result Device::AllocateObject(grfx::DepthStencilView** ppObject)
 
 Result Device::AllocateObject(grfx::DescriptorPool** ppObject)
 {
-    return ppx::ERROR_ALLOCATION_FAILED;
+    vk::DescriptorPool* pObject = new vk::DescriptorPool();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::DescriptorSet** ppObject)
 {
-    return ppx::ERROR_ALLOCATION_FAILED;
+    vk::DescriptorSet* pObject = new vk::DescriptorSet();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
+Result Device::AllocateObject(grfx::DescriptorSetLayout** ppObject)
+{
+    vk::DescriptorSetLayout* pObject = new vk::DescriptorSetLayout();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Fence** ppObject)
@@ -412,6 +433,16 @@ Result Device::AllocateObject(grfx::RenderPass** ppObject)
 Result Device::AllocateObject(grfx::RenderTargetView** ppObject)
 {
     vk::RenderTargetView* pObject = new vk::RenderTargetView();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
+Result Device::AllocateObject(grfx::Sampler** ppObject)
+{
+    vk::Sampler* pObject = new vk::Sampler();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }

@@ -109,6 +109,7 @@ using VkPipelinePtr            = VkHandlePtr<VkPipeline>;
 using VkPipelineLayoutPtr      = VkHandlePtr<VkPipelineLayout>;
 using VkQueuePtr               = VkHandlePtr<VkQueue>;
 using VkRenderPassPtr          = VkHandlePtr<VkRenderPass>;
+using VkSamplerPtr             = VkHandlePtr<VkSampler>;
 using VkSemaphorePtr           = VkHandlePtr<VkSemaphore>;
 using VkShaderModulePtr        = VkHandlePtr<VkShaderModule>;
 using VkSurfacePtr             = VkHandlePtr<VkSurfaceKHR>;
@@ -137,10 +138,17 @@ class PipelineInterface;
 class Queue;
 class RenderPass;
 class RenderTargetView;
+class Sampler;
 class Semaphore;
 class ShaderModule;
 class Surface;
 class Swapchain;
+
+namespace internal {
+
+class ImageResourceView;
+
+} // namespace internal
 
 // -------------------------------------------------------------------------------------------------
 
@@ -168,6 +176,27 @@ struct ApiObjectLookUp<grfx::CommandPool>
 {
     using GrfxType = grfx::CommandPool;
     using ApiType  = vk::CommandPool;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::DescriptorPool>
+{
+    using GrfxType = grfx::DescriptorPool;
+    using ApiType  = vk::DescriptorPool;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::DescriptorSet>
+{
+    using GrfxType = grfx::DescriptorSet;
+    using ApiType  = vk::DescriptorSet;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::DescriptorSetLayout>
+{
+    using GrfxType = grfx::DescriptorSetLayout;
+    using ApiType  = vk::DescriptorSetLayout;
 };
 
 template <>
@@ -203,6 +232,13 @@ struct ApiObjectLookUp<grfx::Image>
 {
     using GrfxType = grfx::Image;
     using ApiType  = vk::Image;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::internal::ImageResourceView>
+{
+    using GrfxType = grfx::internal::ImageResourceView;
+    using ApiType  = vk::internal::ImageResourceView;
 };
 
 template <>
@@ -245,6 +281,13 @@ struct ApiObjectLookUp<grfx::RenderTargetView>
 {
     using GrfxType = grfx::RenderTargetView;
     using ApiType  = vk::RenderTargetView;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::Sampler>
+{
+    using GrfxType = grfx::Sampler;
+    using ApiType  = vk::Sampler;
 };
 
 template <>

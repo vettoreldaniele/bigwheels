@@ -30,6 +30,7 @@ protected:
     virtual Result AllocateObject(grfx::DepthStencilView** ppObject) override;
     virtual Result AllocateObject(grfx::DescriptorPool** ppObject) override;
     virtual Result AllocateObject(grfx::DescriptorSet** ppObject) override;
+    virtual Result AllocateObject(grfx::DescriptorSetLayout** ppObject) override;
     virtual Result AllocateObject(grfx::Fence** ppObject) override;
     virtual Result AllocateObject(grfx::GraphicsPipeline** ppObject) override;
     virtual Result AllocateObject(grfx::Image** ppObject) override;
@@ -37,6 +38,7 @@ protected:
     virtual Result AllocateObject(grfx::Queue** ppObject) override;
     virtual Result AllocateObject(grfx::RenderPass** ppObject) override;
     virtual Result AllocateObject(grfx::RenderTargetView** ppObject) override;
+    virtual Result AllocateObject(grfx::Sampler** ppObject) override;
     virtual Result AllocateObject(grfx::Semaphore** ppObject) override;
     virtual Result AllocateObject(grfx::ShaderModule** ppObject) override;
     virtual Result AllocateObject(grfx::ShaderProgram** ppObject) override;

@@ -19,19 +19,25 @@ private:
         ppx::grfx::FencePtr         renderCompleteFence;
     };
 
-    std::vector<PerFrame>           mPerFrame;
-    ppx::grfx::ShaderModulePtr      mVS;
-    ppx::grfx::ShaderModulePtr      mPS;
-    ppx::grfx::PipelineInterfacePtr mPipelineInterface;
-    ppx::grfx::GraphicsPipelinePtr  mPipeline;
-    ppx::grfx::BufferPtr            mVertexBuffer;
-    grfx::Viewport                  mViewport;
-    grfx::Rect                      mScissorRect;
+    std::vector<PerFrame>             mPerFrame;
+    ppx::grfx::ShaderModulePtr        mVS;
+    ppx::grfx::ShaderModulePtr        mPS;
+    ppx::grfx::PipelineInterfacePtr   mPipelineInterface;
+    ppx::grfx::GraphicsPipelinePtr    mPipeline;
+    ppx::grfx::BufferPtr              mVertexBuffer;
+    ppx::grfx::DescriptorPoolPtr      mDescriptorPool;
+    ppx::grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
+    ppx::grfx::DescriptorSetPtr       mDescriptorSet;
+    ppx::grfx::BufferPtr              mUniformBuffer;
+    grfx::Viewport                    mViewport;
+    grfx::Rect                        mScissorRect;
+
+    float t = 0.0f;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    settings.appName          = "PPX Triangle";
+    settings.appName          = "PPX Triangle Spinning";
     settings.grfx.api         = ppx::grfx::API_VK_1_1;
     settings.grfx.enableDebug = true;
 }
@@ -40,19 +46,52 @@ void ProjApp::Setup()
 {
     Result ppxres = ppx::SUCCESS;
 
+    // Uniform buffer
+    {
+        grfx::BufferCreateInfo bufferCreateInfo        = {};
+        bufferCreateInfo.size                          = 64;
+        bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
+        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
+
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer));
+    }
+
+    // Descriptor
+    {
+        grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
+        poolCreateInfo.uniformBuffer                  = 1;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
+
+        grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_SAGEE_ALL_GRAPHICS});
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
+
+        PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet));
+
+        grfx::WriteDescriptor write = {};
+        write.binding               = 0;
+        write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write.bufferOffset          = 0;
+        write.bufferRange           = PPX_WHOLE_SIZE;
+        write.pBuffer               = mUniformBuffer;
+        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
+    }
+
     // Pipeline
     {
-        std::vector<char> bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\StaticVertexColors.vs.spv");
+        std::vector<char> bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\VertexColors.vs.spv");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\StaticVertexColors.ps.spv");
+        bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\VertexColors.ps.spv");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
 
         grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
+        piCreateInfo.setLayoutCount                    = 1;
+        piCreateInfo.pSetLayouts[0]                    = mDescriptorSetLayout;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
 
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
@@ -92,7 +131,7 @@ void ProjApp::Setup()
         mPerFrame.push_back(frame);
     }
 
-    // Buffer and geometry data
+    // Vertex buffer and geometry data
     {
         // clang-format off
         std::vector<float> vertexData = {
@@ -116,6 +155,7 @@ void ProjApp::Setup()
         mVertexBuffer->UnmapMemory();
     }
 
+    // Viewport and scissor rect
     mViewport    = {0, 0, 640, 480, 0, 1};
     mScissorRect = {0, 0, 640, 480};
 }
@@ -136,6 +176,16 @@ void ProjApp::Render()
     // Wait for and reset render complete fence
     PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
 
+    // Update uniform buffer
+    {
+        float4x4 mat = glm::rotate(t, float3(0, 0, 1));
+
+        void* pData = nullptr;
+        PPX_CHECKED_CALL(ppxres = mUniformBuffer->MapMemory(0, &pData));
+        memcpy(pData, &mat, sizeof(mat));
+        mUniformBuffer->UnmapMemory();
+    }
+
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
@@ -154,6 +204,7 @@ void ProjApp::Render()
             frame.cmd->SetScissors(1, &mScissorRect);
             frame.cmd->SetViewports(1, &mViewport);
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer);
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->Draw(3, 1, 0, 0);
         }
@@ -174,6 +225,8 @@ void ProjApp::Render()
     PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
 
     PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Present(swapchain, imageIndex, 1, &frame.renderCompleteSemaphore));
+
+    t += 0.001f;
 }
 
 int main(int argc, char** argv)

@@ -53,6 +53,59 @@ public:
 
 // -------------------------------------------------------------------------------------------------
 
+namespace internal {
+
+class ImageResourceView
+{
+public:
+    ImageResourceView() {}
+    virtual ~ImageResourceView() {}
+};
+
+} // namespace internal
+
+//! @class ImageView
+//!
+//! This class exists to genericize descriptor updates for Vulkan's 'image' based resources.
+//!
+class ImageView
+{
+public:
+    ImageView() {}
+    virtual ~ImageView() {}
+
+    const grfx::internal::ImageResourceView* GetResourceView() const { return mResourceView.get(); }
+
+protected:
+    void SetResourceView(std::unique_ptr<internal::ImageResourceView>&& view)
+    {
+        mResourceView = std::move(view);
+    }
+
+private:
+    std::unique_ptr<internal::ImageResourceView> mResourceView;
+};
+
+// -------------------------------------------------------------------------------------------------
+
+//! @struct SamplerCreateInfo
+//!
+//!
+struct SamplerCreateInfo
+{
+};
+
+//! @class Sampler
+//!
+//!
+class Sampler
+    : public grfx::DeviceObject<grfx::SamplerCreateInfo>
+{
+public:
+};
+
+// -------------------------------------------------------------------------------------------------
+
 //! @struct DepthStencilViewCreateInfo
 //!
 //!
@@ -75,7 +128,8 @@ struct DepthStencilViewCreateInfo
 //!
 //!
 class DepthStencilView
-    : public grfx::DeviceObject<grfx::DepthStencilViewCreateInfo>
+    : public grfx::DeviceObject<grfx::DepthStencilViewCreateInfo>,
+      public grfx::ImageView
 {
 public:
     DepthStencilView() {}
@@ -144,6 +198,7 @@ class SampledImageView
 public:
     SampledImageView() {}
     virtual ~SampledImageView() {}
+
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -164,7 +219,9 @@ class StorageImageView
 public:
     StorageImageView() {}
     virtual ~StorageImageView() {}
+
 };
+
 } // namespace grfx
 } // namespace ppx
 

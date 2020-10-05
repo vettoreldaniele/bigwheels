@@ -1,5 +1,6 @@
 #include "ppx/grfx/vk/vk_command.h"
 #include "ppx/grfx/vk/vk_buffer.h"
+#include "ppx/grfx/vk/vk_descriptor.h"
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_image.h"
 #include "ppx/grfx/vk/vk_queue.h"
@@ -194,6 +195,25 @@ void CommandBuffer::SetScissors(uint32_t scissorCount, const grfx::Rect* pScisso
         0,
         scissorCount,
         reinterpret_cast<const VkRect2D*>(pScissors));
+}
+
+void CommandBuffer::BindGraphicsDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets)
+{
+    VkDescriptorSet vkSets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
+
+    for (uint32_t i = 0; i < setCount; ++i) {
+        vkSets[i] = ToApi(ppSets[i])->GetVkDescriptorSet();
+    }
+
+    vkCmdBindDescriptorSets(
+        mCommandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS ,
+        ToApi(pInterface)->GetVkPipelineLayout(),
+        0,
+        1,
+        vkSets,
+        0,
+        nullptr);
 }
 
 void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)

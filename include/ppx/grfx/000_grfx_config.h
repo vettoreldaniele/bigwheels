@@ -23,10 +23,12 @@ class Fence;
 class Gpu;
 class GraphicsPipeline;
 class Image;
+class ImageView;
 class Instance;
 class PipelineInterface;
 class Queue;
 class RenderPass;
+class Sampler;
 class Semaphore;
 class ShaderModule;
 class ShaderProgram;
@@ -38,8 +40,15 @@ class DepthStencilView;
 class RenderTargetView;
 class SampledImageView;
 class StorageImageView;
+
 struct IndexBufferView;
 struct VertexBufferView;
+
+namespace internal {
+
+class ImageResourceView;
+
+} // namespace internal
 
 // -------------------------------------------------------------------------------------------------
 
@@ -59,6 +68,7 @@ using InstancePtr            = ObjPtr<Instance>;
 using PipelineInterfacePtr   = ObjPtr<PipelineInterface>;
 using QueuePtr               = ObjPtr<Queue>;
 using RenderPassPtr          = ObjPtr<RenderPass>;
+using SamplerPtr             = ObjPtr<Sampler>;
 using SemaphorePtr           = ObjPtr<Semaphore>;
 using ShaderModulePtr        = ObjPtr<ShaderModule>;
 using ShaderProgramPtr       = ObjPtr<ShaderProgram>;

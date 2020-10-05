@@ -201,6 +201,8 @@ protected:
 //!
 struct PipelineInterfaceCreateInfo
 {
+    uint32_t                         setLayoutCount                             = 0;
+    const grfx::DescriptorSetLayout* pSetLayouts[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {nullptr};
 };
 
 //! @class PipelineInterface

@@ -1,4 +1,5 @@
 #include "ppx/grfx/vk/vk_pipeline.h"
+#include "ppx/grfx/vk/vk_descriptor.h"
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_render_pass.h"
 #include "ppx/grfx/vk/vk_shader.h"
@@ -446,7 +447,17 @@ void GraphicsPipeline::DestroyApiObjects()
 // -------------------------------------------------------------------------------------------------
 Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateInfo* pCreateInfo)
 {
+    VkDescriptorSetLayout setLayouts[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
+    for (uint32_t i = 0; i < pCreateInfo->setLayoutCount; ++i) {
+        setLayouts[i] = ToApi(pCreateInfo->pSetLayouts[i])->GetVkDescriptorSetLayout();
+    }
+
     VkPipelineLayoutCreateInfo vkci = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+    vkci.flags                      = 0;
+    vkci.setLayoutCount             = pCreateInfo->setLayoutCount;
+    vkci.pSetLayouts                = setLayouts;
+    vkci.pushConstantRangeCount     = 0;
+    vkci.pPushConstantRanges        = nullptr;
 
     VkResult vkres = vkCreatePipelineLayout(
         ToApi(GetDevice())->GetVkDevice(),

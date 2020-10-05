@@ -61,6 +61,9 @@ public:
     Result CreateDescriptorPool(const grfx::DescriptorPoolCreateInfo* pCreateInfo, grfx::DescriptorPool** ppDescriptorPool);
     void   DestroyDescriptorPool(const grfx::DescriptorPool* pDescriptorPool);
 
+    Result CreateDescriptorSetLayout(const grfx::DescriptorSetLayoutCreateInfo* pCreateInfo, grfx::DescriptorSetLayout** ppDescriptorSetLayout);
+    void   DestroyDescriptorSetLayout(const grfx::DescriptorSetLayout* pDescriptorSetLayout);
+
     Result CreateFence(const grfx::FenceCreateInfo* pCreateInfo, grfx::Fence** ppFence);
     void   DestroyFence(const grfx::Fence* pFence);
 
@@ -81,6 +84,9 @@ public:
 
     Result CreateRenderTargetView(const grfx::RenderTargetViewCreateInfo* pCreateInfo, grfx::RenderTargetView** ppRenderTargetView);
     void   DestroyRenderTargetView(const grfx::RenderTargetView* pRenderTargetView);
+
+    Result CreateSampler(const grfx::SamplerCreateInfo* pCreateInfo, grfx::Sampler** ppSampler);
+    void   DestroySampler(const grfx::Sampler* pSampler);
 
     Result CreateSemaphore(const grfx::SemaphoreCreateInfo* pCreateInfo, grfx::Semaphore** ppSemaphore);
     void   DestroySemaphore(const grfx::Semaphore* pSemaphore);
@@ -118,24 +124,26 @@ protected:
     virtual void   Destroy() override;
     friend class grfx::Instance;
 
-    virtual Result AllocateObject(grfx::Buffer** ppObject)            = 0;
-    virtual Result AllocateObject(grfx::CommandBuffer** ppObject)     = 0;
-    virtual Result AllocateObject(grfx::CommandPool** ppObject)       = 0;
-    virtual Result AllocateObject(grfx::ComputePipeline** ppObject)   = 0;
-    virtual Result AllocateObject(grfx::DepthStencilView** ppObject)  = 0;
-    virtual Result AllocateObject(grfx::DescriptorPool** ppObject)    = 0;
-    virtual Result AllocateObject(grfx::DescriptorSet** ppObject)     = 0;
-    virtual Result AllocateObject(grfx::Fence** ppObject)             = 0;
-    virtual Result AllocateObject(grfx::GraphicsPipeline** ppObject)  = 0;
-    virtual Result AllocateObject(grfx::Image** ppObject)             = 0;
-    virtual Result AllocateObject(grfx::PipelineInterface** ppObject) = 0;
-    virtual Result AllocateObject(grfx::Queue** ppObject)             = 0;
-    virtual Result AllocateObject(grfx::RenderPass** ppObject)        = 0;
-    virtual Result AllocateObject(grfx::RenderTargetView** ppObject)  = 0;
-    virtual Result AllocateObject(grfx::Semaphore** ppObject)         = 0;
-    virtual Result AllocateObject(grfx::ShaderModule** ppObject)      = 0;
-    virtual Result AllocateObject(grfx::ShaderProgram** ppObject)     = 0;
-    virtual Result AllocateObject(grfx::Swapchain** ppObject)         = 0;
+    virtual Result AllocateObject(grfx::Buffer** ppObject)              = 0;
+    virtual Result AllocateObject(grfx::CommandBuffer** ppObject)       = 0;
+    virtual Result AllocateObject(grfx::CommandPool** ppObject)         = 0;
+    virtual Result AllocateObject(grfx::ComputePipeline** ppObject)     = 0;
+    virtual Result AllocateObject(grfx::DepthStencilView** ppObject)    = 0;
+    virtual Result AllocateObject(grfx::DescriptorPool** ppObject)      = 0;
+    virtual Result AllocateObject(grfx::DescriptorSet** ppObject)       = 0;
+    virtual Result AllocateObject(grfx::DescriptorSetLayout** ppObject) = 0;
+    virtual Result AllocateObject(grfx::Fence** ppObject)               = 0;
+    virtual Result AllocateObject(grfx::GraphicsPipeline** ppObject)    = 0;
+    virtual Result AllocateObject(grfx::Image** ppObject)               = 0;
+    virtual Result AllocateObject(grfx::PipelineInterface** ppObject)   = 0;
+    virtual Result AllocateObject(grfx::Queue** ppObject)               = 0;
+    virtual Result AllocateObject(grfx::RenderPass** ppObject)          = 0;
+    virtual Result AllocateObject(grfx::RenderTargetView** ppObject)    = 0;
+    virtual Result AllocateObject(grfx::Sampler** ppObject)             = 0;
+    virtual Result AllocateObject(grfx::Semaphore** ppObject)           = 0;
+    virtual Result AllocateObject(grfx::ShaderModule** ppObject)        = 0;
+    virtual Result AllocateObject(grfx::ShaderProgram** ppObject)       = 0;
+    virtual Result AllocateObject(grfx::Swapchain** ppObject)           = 0;
 
     template <
         typename ObjectT,
@@ -171,6 +179,7 @@ protected:
     std::vector<grfx::PipelineInterfacePtr>   mPipelineInterfaces;
     std::vector<grfx::RenderPassPtr>          mRenderPasses;
     std::vector<grfx::RenderTargetViewPtr>    mRenderTargetViews;
+    std::vector<grfx::SamplerPtr>             mSamplers;
     std::vector<grfx::SemaphorePtr>           mSemaphores;
     std::vector<grfx::ShaderModulePtr>        mShaderModules;
     std::vector<grfx::ShaderProgramPtr>       mShaderPrograms;

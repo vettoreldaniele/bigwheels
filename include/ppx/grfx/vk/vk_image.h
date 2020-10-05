@@ -27,8 +27,49 @@ private:
     VkImagePtr         mImage;
     VmaAllocationPtr   mAllocation;
     VmaAllocationInfo  mAllocationInfo = {};
-    VkFormat           mVkFormat         = VK_FORMAT_UNDEFINED;
+    VkFormat           mVkFormat       = VK_FORMAT_UNDEFINED;
     VkImageAspectFlags mImageAspect    = ppx::InvalidValue<VkImageAspectFlags>();
+};
+
+// -------------------------------------------------------------------------------------------------
+
+namespace internal {
+
+class ImageResourceView
+    : public grfx::internal::ImageResourceView
+{
+public:
+    ImageResourceView(VkImageViewPtr vkImageView, VkImageLayout layout)
+        : mImageView(vkImageView), mImageLayout(layout) {}
+    virtual ~ImageResourceView() {}
+
+    VkImageViewPtr GetVkImageView() const { return mImageView; }
+    VkImageLayout  GetVkImageLayout() const { return mImageLayout; }
+
+private:
+    VkImageViewPtr mImageView;
+    VkImageLayout  mImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+};
+
+} // namespace internal
+
+// -------------------------------------------------------------------------------------------------
+
+class Sampler
+    : public grfx::Sampler
+{
+public:
+    Sampler() {}
+    virtual ~Sampler() {}
+
+    VkSamplerPtr GetVkSampler() const { return mSampler; }
+
+protected:
+    virtual Result CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo) override;
+    virtual void   DestroyApiObjects() override;
+
+private:
+    VkSamplerPtr mSampler;
 };
 
 // -------------------------------------------------------------------------------------------------

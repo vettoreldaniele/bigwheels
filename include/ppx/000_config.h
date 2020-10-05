@@ -76,6 +76,7 @@ enum Result
     ERROR_PATH_DOES_NOT_EXIST      = -5,
     ERROR_SINGLE_INIT_ONLY         = -6,
     ERROR_UNEXPECTED_NULL_ARGUMENT = -7,
+    ERROR_UNEXPECTED_COUNT_VALUE   = -8,
     ERROR_UNSUPPORTED_API          = -10,
     ERROR_API_FAILURE              = -11,
 
@@ -88,6 +89,7 @@ enum Result
     ERROR_GRFX_VERTEX_ATTRIBUTE_FROMAT_UNDEFINED    = -1001,
     ERROR_GRFX_VERTEX_ATTRIBUTE_OFFSET_OUT_OF_ORDER = -1002,
     ERROR_GRFX_CANNOT_MIX_VERTEX_INPUT_RATES        = -1003,
+    ERROR_GRFX_UNKONWN_DESCRIPTOR_TYPE              = -1004,
 };
 
 inline bool Success(ppx::Result value)
@@ -101,8 +103,6 @@ inline bool Failed(ppx::Result value)
     bool res = (value < ppx::SUCCESS);
     return res;
 }
-
-// -------------------------------------------------------------------------------------------------
 
 } // namespace ppx
 

@@ -21,6 +21,9 @@ void Device::Destroy()
     DestroyAllObjects(mBuffers);
     DestroyAllObjects(mCommandBuffers);
     DestroyAllObjects(mCommandPools);
+    DestroyAllObjects(mDescriptorSets); // Descriptor sets need to be destroyed before pools
+    DestroyAllObjects(mDescriptorPools);
+    DestroyAllObjects(mDescriptorSetLayouts);
     DestroyAllObjects(mFences);
     DestroyAllObjects(mGraphicsPipelines);
     DestroyAllObjects(mPipelineInterfaces);
@@ -204,6 +207,23 @@ void Device::DestroyDescriptorPool(const grfx::DescriptorPool* pDescriptorPool)
     DestroyObject(mDescriptorPools, pDescriptorPool);
 }
 
+Result Device::CreateDescriptorSetLayout(const grfx::DescriptorSetLayoutCreateInfo* pCreateInfo, grfx::DescriptorSetLayout** ppDescriptorSetLayout)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppDescriptorSetLayout);
+    Result gxres = CreateObject(pCreateInfo, mDescriptorSetLayouts, ppDescriptorSetLayout);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyDescriptorSetLayout(const grfx::DescriptorSetLayout* pDescriptorSetLayout)
+{
+    PPX_ASSERT_NULL_ARG(pDescriptorSetLayout);
+    DestroyObject(mDescriptorSetLayouts, pDescriptorSetLayout);
+}
+
 Result Device::CreateFence(const grfx::FenceCreateInfo* pCreateInfo, grfx::Fence** ppFence)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
@@ -352,6 +372,23 @@ void Device::DestroyRenderTargetView(const grfx::RenderTargetView* pRenderTarget
     DestroyObject(mRenderTargetViews, pRenderTargetView);
 }
 
+Result Device::CreateSampler(const grfx::SamplerCreateInfo* pCreateInfo, grfx::Sampler** ppSampler)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppSampler);
+    Result gxres = CreateObject(pCreateInfo, mSamplers, ppSampler);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroySampler(const grfx::Sampler* pSampler)
+{
+    PPX_ASSERT_NULL_ARG(pSampler);
+    DestroyObject(mSamplers, pSampler);
+}
+
 Result Device::CreateSemaphore(const grfx::SemaphoreCreateInfo* pCreateInfo, grfx::Semaphore** ppSemaphore)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
@@ -425,9 +462,13 @@ void Device::FreeCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)
 
 Result Device::AllocateDescriptorSet(const grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, grfx::DescriptorSet** ppSet)
 {
+    PPX_ASSERT_NULL_ARG(pPool);
+    PPX_ASSERT_NULL_ARG(pLayout);
     PPX_ASSERT_NULL_ARG(ppSet);
 
     grfx::internal::DescriptorSetCreateInfo createInfo = {};
+    createInfo.pPool                                   = pPool;
+    createInfo.pLayout                                 = pLayout;
 
     Result gxres = CreateObject(&createInfo, mDescriptorSets, ppSet);
     if (Failed(gxres)) {

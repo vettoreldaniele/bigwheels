@@ -67,6 +67,7 @@ set(SRC_DIR ${PPX_DIR}/src)
 list(
     APPEND PPX_HEADER_FILES
     ${INC_DIR}/ppx/000_config.h
+    ${INC_DIR}/ppx/000_math_config.h
     ${INC_DIR}/ppx/application.h
     ${INC_DIR}/ppx/base_application.h
     ${INC_DIR}/ppx/fs.h
@@ -273,6 +274,7 @@ target_include_directories(
     PRIVATE ${SRC_DIR}
     PUBLIC  ${INC_DIR}
             ${PPX_THIRD_PARTY_DIR}/glfw/include
+            ${PPX_THIRD_PARTY_DIR}/glm
 )
 
 # Include D3D12 directories if D3D12 is enabled

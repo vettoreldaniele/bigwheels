@@ -135,6 +135,46 @@ struct ImageUsageFlags
 
 // -------------------------------------------------------------------------------------------------
 
+struct ShaderStageFlags
+{
+    // clang-format off
+    union
+    {
+        struct
+        {
+            bool VS : 1;
+            bool HS : 1;
+            bool DS : 1;
+            bool GS : 1;
+            bool PS : 1;
+            bool CS : 1;
+
+        } bits;
+        uint32_t flags;
+    };
+    // clang-format on
+
+    ShaderStageFlags()
+        : flags(0) {}
+
+    ShaderStageFlags(uint32_t _flags)
+        : flags(_flags) {}
+
+    ShaderStageFlags& operator=(uint32_t rhs)
+    {
+        this->flags = rhs;
+    }
+
+    operator uint32_t() const
+    {
+        return flags;
+    }
+
+    static ShaderStageFlags SampledImage();
+};
+
+// -------------------------------------------------------------------------------------------------
+
 struct VertexAttribute
 {
     uint32_t              location  = 0;                              // @TODO: Find a way to handle between DX and VK
