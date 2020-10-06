@@ -196,7 +196,8 @@ struct RenderTargetViewCreateInfo
 //!
 //!
 class RenderTargetView
-    : public grfx::DeviceObject<grfx::RenderTargetViewCreateInfo>
+    : public grfx::DeviceObject<grfx::RenderTargetViewCreateInfo>,
+      public grfx::ImageView
 {
 public:
     RenderTargetView() {}
@@ -216,21 +217,25 @@ public:
 //!
 struct SampledImageViewCreateInfo
 {
-    grfx::Image*        pImage          = nullptr;
-    grfx::ImageViewType imageViewType   = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
-    grfx::Format        format          = grfx::FORMAT_UNDEFINED;
-    grfx::SampleCount   sampleCount     = grfx::SAMPLE_COUNT_1;
-    uint32_t            mipLevel        = 0;
-    uint32_t            mipLevelCount   = 0;
-    uint32_t            arrayLayer      = 0;
-    uint32_t            arrayLayerCount = 0;
+    grfx::Image*           pImage          = nullptr;
+    grfx::ImageViewType    imageViewType   = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
+    grfx::Format           format          = grfx::FORMAT_UNDEFINED;
+    grfx::SampleCount      sampleCount     = grfx::SAMPLE_COUNT_1;
+    uint32_t               mipLevel        = 0;
+    uint32_t               mipLevelCount   = 0;
+    uint32_t               arrayLayer      = 0;
+    uint32_t               arrayLayerCount = 0;
+    grfx::ComponentMapping components      = {};
+
+    static SampledImageViewCreateInfo GuessFromImage(grfx::Image* pImage);
 };
 
 //! @class SampledImageView
 //!
 //!
 class SampledImageView
-    : public grfx::DeviceObject<grfx::SampledImageViewCreateInfo>
+    : public grfx::DeviceObject<grfx::SampledImageViewCreateInfo>,
+      public grfx::ImageView
 {
 public:
     SampledImageView() {}
@@ -250,7 +255,8 @@ struct StorageImageViewCreateInfo
 //!
 //!
 class StorageImageView
-    : public grfx::DeviceObject<grfx::StorageImageViewCreateInfo>
+    : public grfx::DeviceObject<grfx::StorageImageViewCreateInfo>,
+      public grfx::ImageView
 {
 public:
     StorageImageView() {}

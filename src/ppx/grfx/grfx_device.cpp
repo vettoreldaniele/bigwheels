@@ -25,10 +25,12 @@ void Device::Destroy()
     DestroyAllObjects(mDescriptorPools);
     DestroyAllObjects(mDescriptorSetLayouts);
     DestroyAllObjects(mFences);
+    DestroyAllObjects(mImages);
     DestroyAllObjects(mGraphicsPipelines);
     DestroyAllObjects(mPipelineInterfaces);
     DestroyAllObjects(mRenderPasses);
     DestroyAllObjects(mRenderTargetViews);
+    DestroyAllObjects(mSampledImageViews);
     DestroyAllObjects(mSamplers);
     DestroyAllObjects(mSemaphores);
     DestroyAllObjects(mShaderModules);
@@ -382,6 +384,23 @@ void Device::DestroyRenderTargetView(const grfx::RenderTargetView* pRenderTarget
 {
     PPX_ASSERT_NULL_ARG(pRenderTargetView);
     DestroyObject(mRenderTargetViews, pRenderTargetView);
+}
+
+Result Device::CreateSampledImageView(const grfx::SampledImageViewCreateInfo* pCreateInfo, grfx::SampledImageView** ppSampledImageView)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppSampledImageView);
+    Result gxres = CreateObject(pCreateInfo, mSampledImageViews, ppSampledImageView);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroySampledImageView(const grfx::SampledImageView* pSampledImageView)
+{
+    PPX_ASSERT_NULL_ARG(pSampledImageView);
+    DestroyObject(mSampledImageViews, pSampledImageView);
 }
 
 Result Device::CreateSampler(const grfx::SamplerCreateInfo* pCreateInfo, grfx::Sampler** ppSampler)

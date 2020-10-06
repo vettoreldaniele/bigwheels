@@ -188,7 +188,7 @@ Result RenderTargetView::CreateApiObjects(const grfx::RenderTargetViewCreateInfo
     vkci.viewType                        = ToVkImageViewType(pCreateInfo->imageViewType);
     vkci.format                          = ToVkFormat(pCreateInfo->format);
     vkci.components                      = ToVkComponentMapping(pCreateInfo->components);
-    vkci.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    vkci.subresourceRange.aspectMask     = ToApi(pCreateInfo->pImage)->GetVkImageAspectFlags();
     vkci.subresourceRange.baseMipLevel   = pCreateInfo->mipLevel;
     vkci.subresourceRange.levelCount     = pCreateInfo->mipLevelCount;
     vkci.subresourceRange.baseArrayLayer = pCreateInfo->arrayLayer;
@@ -209,11 +209,60 @@ Result RenderTargetView::CreateApiObjects(const grfx::RenderTargetViewCreateInfo
         PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView allocation failed");
         return ppx::ERROR_ALLOCATION_FAILED;
     }
+    SetResourceView(std::move(resourceView));
 
     return ppx::SUCCESS;
 }
 
 void RenderTargetView::DestroyApiObjects()
+{
+    if (mImageView) {
+        vkDestroyImageView(
+            ToApi(GetDevice())->GetVkDevice(),
+            mImageView,
+            nullptr);
+        mImageView.Reset();
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+// SampledImageView
+// -------------------------------------------------------------------------------------------------
+Result SampledImageView::CreateApiObjects(const grfx::SampledImageViewCreateInfo* pCreateInfo)
+{
+    VkImageViewCreateInfo vkci           = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    vkci.flags                           = 0;
+    vkci.image                           = ToApi(pCreateInfo->pImage)->GetVkImage();
+    vkci.viewType                        = ToVkImageViewType(pCreateInfo->imageViewType);
+    vkci.format                          = ToVkFormat(pCreateInfo->format);
+    vkci.components                      = ToVkComponentMapping(pCreateInfo->components);
+    vkci.subresourceRange.aspectMask     = ToApi(pCreateInfo->pImage)->GetVkImageAspectFlags();
+    vkci.subresourceRange.baseMipLevel   = pCreateInfo->mipLevel;
+    vkci.subresourceRange.levelCount     = pCreateInfo->mipLevelCount;
+    vkci.subresourceRange.baseArrayLayer = pCreateInfo->arrayLayer;
+    vkci.subresourceRange.layerCount     = pCreateInfo->arrayLayerCount;
+
+    VkResult vkres = vkCreateImageView(
+        ToApi(GetDevice())->GetVkDevice(),
+        &vkci,
+        nullptr,
+        &mImageView);
+    if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkCreateImageView failed: " << ToString(vkres));
+        return ppx::ERROR_API_FAILURE;
+    }
+
+    std::unique_ptr<grfx::internal::ImageResourceView> resourceView(new vk::internal::ImageResourceView(mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+    if (!resourceView) {
+        PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView allocation failed");
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    SetResourceView(std::move(resourceView));
+
+    return ppx::SUCCESS;
+}
+
+void SampledImageView::DestroyApiObjects()
 {
     if (mImageView) {
         vkDestroyImageView(

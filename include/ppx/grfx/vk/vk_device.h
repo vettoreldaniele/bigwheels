@@ -38,6 +38,7 @@ protected:
     virtual Result AllocateObject(grfx::Queue** ppObject) override;
     virtual Result AllocateObject(grfx::RenderPass** ppObject) override;
     virtual Result AllocateObject(grfx::RenderTargetView** ppObject) override;
+    virtual Result AllocateObject(grfx::SampledImageView** ppObject) override;
     virtual Result AllocateObject(grfx::Sampler** ppObject) override;
     virtual Result AllocateObject(grfx::Semaphore** ppObject) override;
     virtual Result AllocateObject(grfx::ShaderModule** ppObject) override;

@@ -86,6 +86,9 @@ public:
     Result CreateRenderTargetView(const grfx::RenderTargetViewCreateInfo* pCreateInfo, grfx::RenderTargetView** ppRenderTargetView);
     void   DestroyRenderTargetView(const grfx::RenderTargetView* pRenderTargetView);
 
+    Result CreateSampledImageView(const grfx::SampledImageViewCreateInfo* pCreateInfo, grfx::SampledImageView** ppSampledImageView);
+    void   DestroySampledImageView(const grfx::SampledImageView* pSampledImageView);
+
     Result CreateSampler(const grfx::SamplerCreateInfo* pCreateInfo, grfx::Sampler** ppSampler);
     void   DestroySampler(const grfx::Sampler* pSampler);
 
@@ -143,6 +146,7 @@ protected:
     virtual Result AllocateObject(grfx::Queue** ppObject)               = 0;
     virtual Result AllocateObject(grfx::RenderPass** ppObject)          = 0;
     virtual Result AllocateObject(grfx::RenderTargetView** ppObject)    = 0;
+    virtual Result AllocateObject(grfx::SampledImageView** ppObject)    = 0;
     virtual Result AllocateObject(grfx::Sampler** ppObject)             = 0;
     virtual Result AllocateObject(grfx::Semaphore** ppObject)           = 0;
     virtual Result AllocateObject(grfx::ShaderModule** ppObject)        = 0;
@@ -184,6 +188,7 @@ protected:
     std::vector<grfx::PipelineInterfacePtr>   mPipelineInterfaces;
     std::vector<grfx::RenderPassPtr>          mRenderPasses;
     std::vector<grfx::RenderTargetViewPtr>    mRenderTargetViews;
+    std::vector<grfx::SampledImageViewPtr>    mSampledImageViews;
     std::vector<grfx::SamplerPtr>             mSamplers;
     std::vector<grfx::SemaphorePtr>           mSemaphores;
     std::vector<grfx::ShaderModulePtr>        mShaderModules;

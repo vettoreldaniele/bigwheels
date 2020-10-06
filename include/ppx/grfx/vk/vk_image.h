@@ -110,6 +110,25 @@ private:
     VkImageViewPtr mImageView;
 };
 
+// -------------------------------------------------------------------------------------------------
+
+class SampledImageView
+    : public grfx::SampledImageView
+{
+public:
+    SampledImageView() {}
+    virtual ~SampledImageView() {}
+
+    VkImageViewPtr GetVkImageView() const { return mImageView; }
+
+protected:
+    virtual Result CreateApiObjects(const grfx::SampledImageViewCreateInfo* pCreateInfo) override;
+    virtual void   DestroyApiObjects() override;
+
+private:
+    VkImageViewPtr mImageView;
+};
+
 } // namespace vk
 } // namespace grfx
 } // namespace ppx

@@ -137,7 +137,7 @@ Result CreateTextureFromFile(grfx::Queue* pQueue, const fs::path& path, grfx::Im
 
         cmdBuf->CopyBufferToImage(&copyInfo, buffer, image);
 
-        cmdBuf->TransitionImageLayout(image, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_COPY_DST);
+        cmdBuf->TransitionImageLayout(image, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     }
 
     ppxres = cmdBuf->End();
@@ -158,6 +158,9 @@ Result CreateTextureFromFile(grfx::Queue* pQueue, const fs::path& path, grfx::Im
     if (Failed(ppxres)) {
         return ppxres;
     }
+
+    keeper.images.clear();
+    *ppImage = image;
 
     return ppx::SUCCESS;
 }

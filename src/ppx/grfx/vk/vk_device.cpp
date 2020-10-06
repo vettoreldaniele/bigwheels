@@ -440,6 +440,16 @@ Result Device::AllocateObject(grfx::RenderTargetView** ppObject)
     return ppx::SUCCESS;
 }
 
+Result Device::AllocateObject(grfx::SampledImageView** ppObject)
+{
+    vk::SampledImageView* pObject = new vk::SampledImageView();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
 Result Device::AllocateObject(grfx::Sampler** ppObject)
 {
     vk::Sampler* pObject = new vk::Sampler();
