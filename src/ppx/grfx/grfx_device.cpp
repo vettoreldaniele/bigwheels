@@ -29,6 +29,7 @@ void Device::Destroy()
     DestroyAllObjects(mPipelineInterfaces);
     DestroyAllObjects(mRenderPasses);
     DestroyAllObjects(mRenderTargetViews);
+    DestroyAllObjects(mSamplers);
     DestroyAllObjects(mSemaphores);
     DestroyAllObjects(mShaderModules);
 
@@ -120,6 +121,17 @@ void Device::DestroyAllObjects(std::vector<ObjPtr<ObjectT>>& container)
     }
     // Clear container
     container.clear();
+}
+
+
+Result Device::AllocateObject(grfx::Texture** ppObject)
+{
+    grfx::Texture* pObject = new grfx::Texture();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::CreateBuffer(const grfx::BufferCreateInfo* pCreateInfo, grfx::Buffer** ppBuffer)

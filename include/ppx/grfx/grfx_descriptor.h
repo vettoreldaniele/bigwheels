@@ -14,21 +14,26 @@ namespace grfx {
 //!
 struct DescriptorBinding
 {
-    uint32_t               binding         = PPX_VALUE_IGNORED;               //
-    grfx::DescriptorType   type            = grfx::DESCRIPTOR_TYPE_UNDEFINED; //
-    uint32_t               count           = 0;                               // WARNING: Not VkDescriptorSetLayoutBinding::descriptorCount
-    grfx::ShaderStageFlags shaderStageFags = 0;                               //
+    uint32_t               binding          = PPX_VALUE_IGNORED;               //
+    grfx::DescriptorType   type             = grfx::DESCRIPTOR_TYPE_UNDEFINED; //
+    uint32_t               count            = 0;                               // WARNING: Not VkDescriptorSetLayoutBinding::descriptorCount
+    grfx::ShaderStageFlags shaderStageFlags = 0;                               //
+
+    DescriptorBinding() {}
+
+    DescriptorBinding(uint32_t binding_, grfx::DescriptorType type_, uint32_t count_ = 1, grfx::ShaderStageFlags shaderStageFlags_ = grfx::SHADER_STAGE_ALL_GRAPHICS)
+        : binding(binding_), type(type_), count(count_), shaderStageFlags(shaderStageFlags_) {}
 };
 
 struct WriteDescriptor
 {
-    uint32_t                       binding      = PPX_VALUE_IGNORED;
-    grfx::DescriptorType           type         = grfx::DESCRIPTOR_TYPE_UNDEFINED;
-    uint32_t                       bufferOffset = 0;
-    uint64_t                       bufferRange  = PPX_WHOLE_SIZE;
-    const grfx::Buffer*            pBuffer      = nullptr;
+    uint32_t               binding      = PPX_VALUE_IGNORED;
+    grfx::DescriptorType   type         = grfx::DESCRIPTOR_TYPE_UNDEFINED;
+    uint32_t               bufferOffset = 0;
+    uint64_t               bufferRange  = PPX_WHOLE_SIZE;
+    const grfx::Buffer*    pBuffer      = nullptr;
     const grfx::ImageView* pImageView   = nullptr;
-    const grfx::Sampler*           pSampler     = nullptr;
+    const grfx::Sampler*   pSampler     = nullptr;
 };
 
 // -------------------------------------------------------------------------------------------------

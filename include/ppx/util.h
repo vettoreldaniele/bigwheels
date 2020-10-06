@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef ppx_util_h
+#define ppx_util_h
 
 #include <algorithm>
 #include <cstdint>
@@ -137,4 +137,4 @@ inline std::vector<std::string> GetNotFound(const std::vector<std::string>& sear
 
 } // namespace ppx
 
-#endif // UTIL_H
+#endif // ppx_util_h

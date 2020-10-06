@@ -18,11 +18,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
             extent.height     = pCreateInfo->height;
             extent.depth      = pCreateInfo->depth;
 
-            VkImageCreateFlags createFlags =
-                VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT |
-                VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT |
-                VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT |
-                VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+            VkImageCreateFlags createFlags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
             VkImageCreateInfo vkci     = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
             vkci.flags                 = createFlags;
@@ -131,22 +127,22 @@ void Image::DestroyApiObjects()
 Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
 {
     VkSamplerCreateInfo vkci     = {VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
-    //vkci.flags                   = 0;
-    //vkci.magFilter               = ;
-    //vkci.minFilter               = ;
-    //vkci.mipmapMode              = ;
-    //vkci.addressModeU            = ;
-    //vkci.addressModeV            = ;
-    //vkci.addressModeW            = ;
-    //vkci.mipLodBias              = ;
-    //vkci.anisotropyEnable        = ;
-    //vkci.maxAnisotropy           = ;
-    //vkci.compareEnable           = ;
-    //vkci.compareOp               = ;
-    //vkci.minLod                  = ;
-    //vkci.maxLod                  = ;
-    //vkci.borderColor             = ;
-    //vkci.unnormalizedCoordinates = ;
+    vkci.flags                   = 0;
+    vkci.magFilter               = ToVkFilter(pCreateInfo->magFilter);
+    vkci.minFilter               = ToVkFilter(pCreateInfo->minFilter);
+    vkci.mipmapMode              = ToVkSamplerMipmapMode(pCreateInfo->mipmapMode);
+    vkci.addressModeU            = ToVkSamplerAddressMode(pCreateInfo->addressModeU);
+    vkci.addressModeV            = ToVkSamplerAddressMode(pCreateInfo->addressModeV);
+    vkci.addressModeW            = ToVkSamplerAddressMode(pCreateInfo->addressModeW);
+    vkci.mipLodBias              = pCreateInfo->mipLodBias;
+    vkci.anisotropyEnable        = pCreateInfo->anisotropyEnable ? VK_TRUE : VK_FALSE;
+    vkci.maxAnisotropy           = pCreateInfo->maxAnisotropy;
+    vkci.compareEnable           = pCreateInfo->compareEnable ? VK_TRUE : VK_FALSE;
+    vkci.compareOp               = ToVkCompareOp(pCreateInfo->compareOp);
+    vkci.minLod                  = pCreateInfo->minLod;
+    vkci.maxLod                  = pCreateInfo->maxLod;
+    vkci.borderColor             = ToVkBorderColor(pCreateInfo->borderColor);
+    vkci.unnormalizedCoordinates = VK_FALSE;
 
     VkResult vkres = vkCreateSampler(
         ToApi(GetDevice())->GetVkDevice(),

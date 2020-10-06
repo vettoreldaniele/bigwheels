@@ -6,6 +6,37 @@
 namespace ppx {
 namespace grfx {
 
+//! @struct BufferToImageCopyInfo
+//!
+//!
+struct BufferToImageCopyInfo
+{
+    // Se: https://stackoverflow.com/a/46504718 for a good expalnation
+    // of how Vulkan's copy parameters.
+    //
+    struct
+    {
+        uint64_t offset          = 0;
+        uint32_t footprintWidth  = 0; // [pixels] Use 0 for tight packing
+        uint32_t footprintHeight = 0; // [pixels] Use 0 for tight packing
+    } srcBuffer;
+
+    struct
+    {
+        uint32_t mipLevel        = 0;
+        uint32_t arrayLayer      = 0; // Must be 0 for 3D images
+        uint32_t arrayLayerCount = 0; // Must be 1 for 3D images
+        uint32_t x               = 0; // [pixels]
+        uint32_t y               = 0; // [pixels]
+        uint32_t z               = 0; // [pixels]
+        uint32_t width           = 0; // [pixels]
+        uint32_t height          = 0; // [pixels]
+        uint32_t depth           = 0; // [pixels]
+    } dstImage;
+};
+
+// -------------------------------------------------------------------------------------------------
+
 struct RenderPassBeginInfo
 {
     const grfx::RenderPass*      pRenderPass                            = nullptr;
@@ -52,15 +83,20 @@ public:
         grfx::ResourceState afterState) = 0;
 
     virtual void SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports) = 0;
-    virtual void SetScissors(uint32_t scissorCount, const grfx::Rect* pScissors)      = 0;
+    virtual void SetScissors(uint32_t scissorCount, const grfx::Rect* pScissors)        = 0;
 
     virtual void BindGraphicsDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets) = 0;
-    virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline) = 0;
+    virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)                                                                      = 0;
 
     virtual void BindIndexBuffer(const grfx::IndexBufferView* pView)                         = 0;
     virtual void BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews) = 0;
 
     virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) = 0;
+
+    virtual void CopyBufferToImage(
+        const grfx::BufferToImageCopyInfo* pCopyInfo,
+        const grfx::Buffer*                pSrcBuffer,
+        const grfx::Image*                 pDstImage) = 0;
 
     // Convenience functions
     void BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType indexType, uint64_t offset = 0);

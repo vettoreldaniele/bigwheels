@@ -12,7 +12,6 @@ namespace grfx {
 
 struct BufferUsageFlags
 {
-    // clang-format off
     union
     {
         struct
@@ -34,7 +33,6 @@ struct BufferUsageFlags
         } bits;
         uint32_t flags;
     };
-    // clang-format on
 
     BufferUsageFlags()
         : flags(0) {}
@@ -57,7 +55,6 @@ struct BufferUsageFlags
 
 struct ColorComponentFlags
 {
-    // clang-format off
     union
     {
         struct
@@ -69,7 +66,6 @@ struct ColorComponentFlags
         } bits;
         uint32_t flags;
     };
-    // clang-format on
 
     ColorComponentFlags()
         : flags(0) {}
@@ -94,7 +90,6 @@ struct ColorComponentFlags
 
 struct ImageUsageFlags
 {
-    // clang-format off
     union
     {
         struct
@@ -112,7 +107,6 @@ struct ImageUsageFlags
         } bits;
         uint32_t flags;
     };
-    // clang-format on
 
     ImageUsageFlags()
         : flags(0) {}
@@ -137,7 +131,6 @@ struct ImageUsageFlags
 
 struct ShaderStageFlags
 {
-    // clang-format off
     union
     {
         struct
@@ -152,7 +145,6 @@ struct ShaderStageFlags
         } bits;
         uint32_t flags;
     };
-    // clang-format on
 
     ShaderStageFlags()
         : flags(0) {}

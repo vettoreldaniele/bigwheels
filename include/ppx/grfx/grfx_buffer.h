@@ -11,7 +11,7 @@ namespace grfx {
 //!
 struct BufferCreateInfo
 {
-    uint32_t               size        = 0;
+    uint64_t               size        = 0;
     grfx::BufferUsageFlags usageFlags  = 0;
     grfx::MemoryUsage      memoryUsage = grfx::MEMORY_USAGE_GPU_ONLY;
 };

@@ -43,6 +43,11 @@ public:
 
     virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) override;
 
+    virtual void CopyBufferToImage(
+        const grfx::BufferToImageCopyInfo* pCopyInfo,
+        const grfx::Buffer*                pSrcBuffer,
+        const grfx::Image*                 pDstImage) override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;

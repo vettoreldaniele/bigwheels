@@ -48,6 +48,17 @@ void Queue::DestroyApiObjects()
     }
 }
 
+Result Queue::WaitIdle()
+{
+    VkResult vkres = vkQueueWaitIdle(mQueue);
+    if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkQueueWaitIdle failed" << ToString(vkres));
+        return ppx::ERROR_API_FAILURE;
+    }
+   
+    return ppx::SUCCESS;
+}
+
 Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
 {
     // Command buffers
@@ -59,14 +70,14 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
     // Wait semaphores
     std::vector<VkSemaphore>          waitSemaphores;
     std::vector<VkPipelineStageFlags> waitDstStageMasks;
-    for (uint32_t i = 0; i < pSubmitInfo->commandBufferCount; ++i) {
+    for (uint32_t i = 0; i < pSubmitInfo->waitSemaphoreCount; ++i) {
         waitSemaphores.push_back(ToApi(pSubmitInfo->ppWaitSemaphores[i])->GetVkSemaphore());
         waitDstStageMasks.push_back(VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
     }
 
     // Signal semaphores
     std::vector<VkSemaphore> signalSemaphores;
-    for (uint32_t i = 0; i < pSubmitInfo->commandBufferCount; ++i) {
+    for (uint32_t i = 0; i < pSubmitInfo->signalSemaphoreCount; ++i) {
         signalSemaphores.push_back(ToApi(pSubmitInfo->ppSignalSemaphores[i])->GetVkSemaphore());
     }
 

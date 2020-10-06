@@ -233,7 +233,7 @@ Result DescriptorSetLayout::CreateApiObjects(const grfx::DescriptorSetLayoutCrea
         vkBinding.binding                      = pCreateInfo->bindings[i].binding;
         vkBinding.descriptorType               = ToVkDescriptorType(pCreateInfo->bindings[i].type);
         vkBinding.descriptorCount              = pCreateInfo->bindings[i].count;
-        vkBinding.stageFlags                   = VkShaderStageFlags(pCreateInfo->bindings[i].shaderStageFags);
+        vkBinding.stageFlags                   = VkShaderStageFlags(pCreateInfo->bindings[i].shaderStageFlags);
         vkBinding.pImmutableSamplers           = nullptr;
         vkBindings.push_back(vkBinding);
     }

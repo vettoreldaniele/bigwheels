@@ -15,13 +15,14 @@ struct TextureCreateInfo
     uint32_t              width              = 0;
     uint32_t              height             = 0;
     uint32_t              depth              = 0;
-    grfx::Format          imageFormat        = grfx::FORMAT_UNDEFINED;
+    grfx::Format          sampledImageFormat = grfx::FORMAT_UNDEFINED;
     grfx::Format          renderTargetFormat = grfx::FORMAT_UNDEFINED;
     grfx::Format          depthStencilFormat = grfx::FORMAT_UNDEFINED;
     grfx::SampleCount     sampleCount        = grfx::SAMPLE_COUNT_1;
     uint32_t              mipLevelCount      = 1;
     uint32_t              arrayLayerCount    = 1;
     grfx::ImageUsageFlags usageFlags         = grfx::ImageUsageFlags::SampledImage();
+    grfx::MemoryUsage     memoryUsage        = grfx::MEMORY_USAGE_GPU_ONLY;
     void*                 pApiObject         = nullptr; // [OPTIONAL] For external images such as swapchain images
 };
 
@@ -35,27 +36,34 @@ public:
     Texture() {}
     virtual ~Texture() {}
 
+    grfx::ImageType              GetType() const { return mCreateInfo.type; }
+    uint32_t                     GetWidth() const { return mCreateInfo.width; }
+    uint32_t                     GetHeight() const { return mCreateInfo.height; }
+    uint32_t                     GetDepth() const { return mCreateInfo.depth; }
+    grfx::Format                 GetSampledImageFormat() const { return mCreateInfo.sampledImageFormat; }
+    grfx::Format                 GetRenderTargetFormat() const { return mCreateInfo.renderTargetFormat; }
+    grfx::Format                 GetDepthStencilFormat() const { return mCreateInfo.depthStencilFormat; }
+    grfx::SampleCount            GetSampleCount() const { return mCreateInfo.sampleCount; }
+    uint32_t                     GetMipLevelCount() const { return mCreateInfo.mipLevelCount; }
+    uint32_t                     GetArrayLayerCount() const { return mCreateInfo.arrayLayerCount; }
+    const grfx::ImageUsageFlags& GetUsageFlags() const { return mCreateInfo.usageFlags; }
+    grfx::MemoryUsage            GetMemoryUsage() const { return mCreateInfo.memoryUsage; }
+
     grfx::ImagePtr            GetImage() const { return mImage; }
-    grfx::DepthStencilViewPtr GetDepthStencilView() const { return mDepthStencilView; }
-    grfx::RenderTargetViewPtr GetRenderTargetView() const { return mRenderTargetView; }
     grfx::SampledImageViewPtr GetSampledImageView() const { return mSampledImageView; }
+    grfx::RenderTargetViewPtr GetRenderTargetView() const { return mRenderTargetView; }
+    grfx::DepthStencilViewPtr GetDepthStencilView() const { return mDepthStencilView; }
     grfx::StorageImageViewPtr GetStorageImageView() const { return mStorageImageView; }
 
-    uint32_t GetWidth() const;
-    uint32_t GetHeight() const;
-    uint32_t GetDepth() const;
-
 protected:
-    virtual Result CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo) = 0;
-    virtual void   DestroyApiObjects()                                          = 0;
-    friend class grfx::Device;
+    virtual Result CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo) override;
+    virtual void   DestroyApiObjects() override;
 
 private:
-    grfx::TextureCreateInfo   mCreateInfo = {};
     grfx::ImagePtr            mImage;
-    grfx::DepthStencilViewPtr mDepthStencilView;
-    grfx::RenderTargetViewPtr mRenderTargetView;
     grfx::SampledImageViewPtr mSampledImageView;
+    grfx::RenderTargetViewPtr mRenderTargetView;
+    grfx::DepthStencilViewPtr mDepthStencilView;
     grfx::StorageImageViewPtr mStorageImageView;
 };
 

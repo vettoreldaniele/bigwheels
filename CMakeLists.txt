@@ -109,7 +109,7 @@ add_subdirectory(${PPX_THIRD_PARTY_DIR}/glfw)
 add_subdirectory(src)
 
 # ------------------------------------------------------------------------------
-# Add projects, tests, etc
+# Add projects
 # ------------------------------------------------------------------------------
 
 add_subdirectory(projects)

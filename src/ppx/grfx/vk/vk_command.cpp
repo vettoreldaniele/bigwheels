@@ -207,7 +207,7 @@ void CommandBuffer::BindGraphicsDescriptorSets(const grfx::PipelineInterface* pI
 
     vkCmdBindDescriptorSets(
         mCommandBuffer,
-        VK_PIPELINE_BIND_POINT_GRAPHICS ,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
         ToApi(pInterface)->GetVkPipelineLayout(),
         0,
         1,
@@ -256,6 +256,39 @@ void CommandBuffer::BindVertexBuffers(uint32_t viewCount, const grfx::VertexBuff
 void CommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
 {
     vkCmdDraw(mCommandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
+}
+
+void CommandBuffer::CopyBufferToImage(
+    const grfx::BufferToImageCopyInfo* pCopyInfo,
+    const grfx::Buffer*                pSrcBuffer,
+    const grfx::Image*                 pDstImage)
+{
+    PPX_ASSERT_NULL_ARG(pCopyInfo);
+    PPX_ASSERT_NULL_ARG(pSrcBuffer);
+    PPX_ASSERT_NULL_ARG(pDstImage);
+
+    VkBufferImageCopy region               = {};
+    region.bufferOffset                    = static_cast<VkDeviceSize>(pCopyInfo->srcBuffer.offset);
+    region.bufferRowLength                 = pCopyInfo->srcBuffer.footprintWidth;
+    region.bufferImageHeight               = pCopyInfo->srcBuffer.footprintHeight;
+    region.imageSubresource.aspectMask     = ToApi(pDstImage)->GetVkImageAspectFlags();
+    region.imageSubresource.mipLevel       = pCopyInfo->dstImage.mipLevel;
+    region.imageSubresource.baseArrayLayer = pCopyInfo->dstImage.arrayLayer;
+    region.imageSubresource.layerCount     = pCopyInfo->dstImage.arrayLayerCount;
+    region.imageOffset.x                   = pCopyInfo->dstImage.x;
+    region.imageOffset.y                   = pCopyInfo->dstImage.y;
+    region.imageOffset.z                   = pCopyInfo->dstImage.z;
+    region.imageExtent.width               = pCopyInfo->dstImage.width;
+    region.imageExtent.height              = pCopyInfo->dstImage.height;
+    region.imageExtent.depth               = pCopyInfo->dstImage.depth;
+
+    vkCmdCopyBufferToImage(
+        mCommandBuffer,
+        ToApi(pSrcBuffer)->GetVkBuffer(),
+        ToApi(pDstImage)->GetVkImage(),
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region);
 }
 
 // -------------------------------------------------------------------------------------------------

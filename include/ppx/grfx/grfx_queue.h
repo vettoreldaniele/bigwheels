@@ -40,6 +40,8 @@ public:
     Queue() {}
     virtual ~Queue() {}
 
+    virtual Result WaitIdle() = 0;
+
     virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) = 0;
 
     virtual Result Present(

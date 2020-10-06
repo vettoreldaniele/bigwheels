@@ -193,6 +193,22 @@ VkBlendOp ToVkBlendOp(grfx::BlendOp value)
     return ppx::InvalidValue<VkBlendOp>();
 }
 
+VkBorderColor ToVkBorderColor(grfx::BorderColor value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::BORDER_COLOR_FLOAT_TRANSPARENT_BLACK : return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK; break;
+        case grfx::BORDER_COLOR_INT_TRANSPARENT_BLACK   : return VK_BORDER_COLOR_INT_TRANSPARENT_BLACK  ; break;
+        case grfx::BORDER_COLOR_FLOAT_OPAQUE_BLACK      : return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK     ; break;
+        case grfx::BORDER_COLOR_INT_OPAQUE_BLACK        : return VK_BORDER_COLOR_INT_OPAQUE_BLACK       ; break;
+        case grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE      : return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE     ; break;
+        case grfx::BORDER_COLOR_INT_OPAQUE_WHITE        : return VK_BORDER_COLOR_INT_OPAQUE_WHITE       ; break;        
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkBorderColor>();
+}
+
 VkBufferUsageFlags ToVkBufferUsageFlags(const grfx::BufferUsageFlags& value)
 {
     VkBufferUsageFlags flags = 0;
@@ -322,6 +338,18 @@ VkDescriptorType ToVkDescriptorType(grfx::DescriptorType value)
     }
     // clang-format on
     return ppx::InvalidValue<VkDescriptorType>();
+}
+
+VkFilter ToVkFilter(grfx::Filter value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::FILTER_NEAREST : return VK_FILTER_NEAREST; break;
+        case grfx::FILTER_LINEAR  : return VK_FILTER_LINEAR; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkFilter>();
 }
 
 VkFormat ToVkFormat(grfx::Format value)
@@ -579,6 +607,32 @@ VkPrimitiveTopology ToVkPrimitiveTopology(grfx::PrimitiveTopology value)
     return ppx::InvalidValue<VkPrimitiveTopology>();
 }
 
+VkSamplerAddressMode ToVkSamplerAddressMode(grfx::SamplerAddressMode value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::SAMPLER_ADDRESS_MODE_REPEAT           : return VK_SAMPLER_ADDRESS_MODE_REPEAT         ; break;
+        case grfx::SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT  : return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT; break;
+        case grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE    : return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE  ; break;
+        case grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER  : return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkSamplerAddressMode>();
+}
+
+VkSamplerMipmapMode ToVkSamplerMipmapMode(grfx::SamplerMipmapMode value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::SAMPLER_MIPMAP_MODE_NEAREST : return VK_SAMPLER_MIPMAP_MODE_NEAREST; break;
+        case grfx::SAMPLER_MIPMAP_MODE_LINEAR  : return VK_SAMPLER_MIPMAP_MODE_LINEAR; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkSamplerMipmapMode>();
+}
+
 VkSampleCountFlagBits ToVkSampleCount(grfx::SampleCount value)
 {
     // clang-format off
@@ -671,6 +725,12 @@ static Result ToVkBarrier(ResourceState state, bool isSource, VkPipelineStageFla
 
     switch (state) {
         default: return ppx::ERROR_FAILED; break;
+
+        case grfx::RESOURCE_STATE_UNDEFINED: {
+            stageMask  = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+            accessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+            layout     = VK_IMAGE_LAYOUT_UNDEFINED;
+        } break;
 
         case grfx::RESOURCE_STATE_GENERAL: {
             stageMask  = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;

@@ -23,7 +23,20 @@ struct ImageCreateInfo
     grfx::MemoryUsage     memoryUsage     = grfx::MEMORY_USAGE_GPU_ONLY;
     void*                 pApiObject      = nullptr; // [OPTIONAL] For external images such as swapchain images
 
-    static ImageCreateInfo Image2D(uint32_t width, uint32_t height, grfx::Format, grfx::MemoryUsage = grfx::MEMORY_USAGE_GPU_ONLY);
+    // Returns a create info for sampled image
+    static ImageCreateInfo SampledImage2D(
+        uint32_t          width,
+        uint32_t          height,
+        grfx::Format      format,
+        grfx::SampleCount sampleCount = grfx::SAMPLE_COUNT_1,
+        grfx::MemoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY);
+
+    // Returns a create info for sampled image and render target
+    static ImageCreateInfo RenderTarget2D(
+        uint32_t          width,
+        uint32_t          height,
+        grfx::Format      format,
+        grfx::SampleCount sampleCount = grfx::SAMPLE_COUNT_1);
 };
 
 //! @class Image
@@ -93,6 +106,20 @@ private:
 //!
 struct SamplerCreateInfo
 {
+    grfx::Filter             magFilter        = grfx::FILTER_NEAREST;
+    grfx::Filter             minFilter        = grfx::FILTER_NEAREST;
+    grfx::SamplerMipmapMode  mipmapMode       = grfx::SAMPLER_MIPMAP_MODE_NEAREST;
+    grfx::SamplerAddressMode addressModeU     = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    grfx::SamplerAddressMode addressModeV     = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    grfx::SamplerAddressMode addressModeW     = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    float                    mipLodBias       = 0.0f;
+    bool                     anisotropyEnable = false;
+    float                    maxAnisotropy    = 0.0f;
+    bool                     compareEnable    = false;
+    grfx::CompareOp          compareOp        = grfx::COMPARE_OP_NEVER;
+    float                    minLod           = 0.0f;
+    float                    maxLod           = 1.0f;
+    grfx::BorderColor        borderColor      = grfx::BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
 };
 
 //! @class Sampler
@@ -102,6 +129,8 @@ class Sampler
     : public grfx::DeviceObject<grfx::SamplerCreateInfo>
 {
 public:
+    Sampler() {}
+    virtual ~Sampler() {}
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -187,6 +216,14 @@ public:
 //!
 struct SampledImageViewCreateInfo
 {
+    grfx::Image*        pImage          = nullptr;
+    grfx::ImageViewType imageViewType   = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
+    grfx::Format        format          = grfx::FORMAT_UNDEFINED;
+    grfx::SampleCount   sampleCount     = grfx::SAMPLE_COUNT_1;
+    uint32_t            mipLevel        = 0;
+    uint32_t            mipLevelCount   = 0;
+    uint32_t            arrayLayer      = 0;
+    uint32_t            arrayLayerCount = 0;
 };
 
 //! @class SampledImageView
@@ -198,7 +235,6 @@ class SampledImageView
 public:
     SampledImageView() {}
     virtual ~SampledImageView() {}
-
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -219,7 +255,6 @@ class StorageImageView
 public:
     StorageImageView() {}
     virtual ~StorageImageView() {}
-
 };
 
 } // namespace grfx

@@ -70,7 +70,9 @@ list(
     ${INC_DIR}/ppx/000_math_config.h
     ${INC_DIR}/ppx/application.h
     ${INC_DIR}/ppx/base_application.h
+    ${INC_DIR}/ppx/bitmap.h
     ${INC_DIR}/ppx/fs.h
+    ${INC_DIR}/ppx/graphics_util.h
     ${INC_DIR}/ppx/headless_application.h
     ${INC_DIR}/ppx/log.h
     ${INC_DIR}/ppx/obj_ptr.h
@@ -84,6 +86,8 @@ list(
     APPEND PPX_SOURCE_FILES
     ${SRC_DIR}/ppx/application.cpp
     ${SRC_DIR}/ppx/base_application.cpp
+    ${SRC_DIR}/ppx/bitmap.cpp
+    ${SRC_DIR}/ppx/graphics_util.cpp
     ${SRC_DIR}/ppx/headless_application.cpp
     ${SRC_DIR}/ppx/log.cpp
     ${SRC_DIR}/ppx/platform.cpp
@@ -226,6 +230,12 @@ list(
     ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src/vk_mem_alloc.h
 )
 
+list(
+    APPEND CONTRIB_FILES
+    ${PPX_THIRD_PARTY_DIR}/contrib/MIPFile/MIPFile.h
+    ${PPX_THIRD_PARTY_DIR}/contrib/MIPFile/MIPFile.cpp
+)
+
 # ------------------------------------------------------------------------------
 # Source group
 # ------------------------------------------------------------------------------
@@ -240,6 +250,7 @@ source_group("Header Files\\ppx\\grfx\\vk"  FILES ${PPX_GRFX_VK_HEADER_FILES})
 source_group("Source Files\\ppx\\grfx\\vk"  FILES ${PPX_GRFX_VK_SOURCE_FILES})
 source_group("Header Files\\ppx\\io"        FILES ${PPX_IO_HEADER_FILES})
 source_group("Source Files\\ppx\\io"        FILES ${PPX_IO_SOURCE_FILES})
+source_group("contrib"                      FILES ${CONTRIB_FILES})
 
 # ------------------------------------------------------------------------------
 # Add library
@@ -257,6 +268,7 @@ add_library(
     ${PPX_GRFX_VK_SOURCE_FILES}
     ${PPX_IO_HEADER_FILES}
     ${PPX_IO_SOURCE_FILES}
+    ${CONTRIB_FILES}
 )
 
 if (${PPX_LINUX} OR ${PPX_GGP})
@@ -275,6 +287,7 @@ target_include_directories(
     PUBLIC  ${INC_DIR}
             ${PPX_THIRD_PARTY_DIR}/glfw/include
             ${PPX_THIRD_PARTY_DIR}/glm
+            ${PPX_THIRD_PARTY_DIR}/stb
 )
 
 # Include D3D12 directories if D3D12 is enabled

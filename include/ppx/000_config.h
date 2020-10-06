@@ -24,14 +24,12 @@
 #include "ppx/log.h"
 #include "ppx/util.h"
 
-// clang-format off
-#define PPX_STRINGIFY_(x)       #x
-#define PPX_STRINGIFY(x)        PPX_STRINGIFY_(x)
-#define PPX_LINE                PPX_STRINGIFY(__LINE__)
-#define PPX_SOURCE_LOCATION     __FUNCTION__ ## " @ " ## __FILE__ ## ":" ## PPX_LINE
-#define PPX_VAR_VALUE(var)      #var << ":"  << var
-#define PPX_ENDL                std::endl
-// clang-format on
+#define PPX_STRINGIFY_(x)   #x
+#define PPX_STRINGIFY(x)    PPX_STRINGIFY_(x)
+#define PPX_LINE            PPX_STRINGIFY(__LINE__)
+#define PPX_SOURCE_LOCATION __FUNCTION__##" @ "##__FILE__##":"##PPX_LINE
+#define PPX_VAR_VALUE(var)  #var << ":" << var
+#define PPX_ENDL            std::endl
 
 #define PPX_ASSERT_MSG(COND, MSG)                                \
     if ((COND) == false) {                                       \
@@ -90,6 +88,9 @@ enum Result
     ERROR_GRFX_VERTEX_ATTRIBUTE_OFFSET_OUT_OF_ORDER = -1002,
     ERROR_GRFX_CANNOT_MIX_VERTEX_INPUT_RATES        = -1003,
     ERROR_GRFX_UNKONWN_DESCRIPTOR_TYPE              = -1004,
+
+    ERROR_IMAGE_FILE_LOAD_FAILED               = -2000,
+    ERROR_IMAGE_CANNOT_RESIZE_EXTERNAL_STORAGE = -2001,
 };
 
 inline bool Success(ppx::Result value)

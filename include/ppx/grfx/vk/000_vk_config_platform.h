@@ -30,7 +30,6 @@
 #include "vk_mem_alloc.h"
 
 #define VK_LAYER_KHRONOS_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
-
-#define VK_CONSTANT_BUFFER_ALIGNMENT 256
+#define VK_CONSTANT_BUFFER_ALIGNMENT     256
 
 #endif // ppx_grfx_vk_config_platform_h

@@ -17,6 +17,8 @@ public:
 
     uint32_t GetQueueFamilyIndex() const { return mCreateInfo.queueFamilyIndex; }
 
+    virtual Result WaitIdle() override;
+
     virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) override;
 
     virtual Result Present(

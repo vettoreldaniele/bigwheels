@@ -1,25 +1,64 @@
 #include "ppx/grfx/grfx_texture.h"
+#include "ppx/grfx/grfx_device.h"
 #include "ppx/grfx/grfx_image.h"
 
 namespace ppx {
 namespace grfx {
 
-uint32_t Texture::GetWidth() const
+Result Texture::CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo)
 {
-    PPX_ASSERT_NULL_ARG(mImage.Get());
-    return mImage->GetWidth();
+    // Image
+    {
+        grfx::ImageCreateInfo ci = {};
+        ci.type                  = pCreateInfo->type;
+        ci.width                 = pCreateInfo->width;
+        ci.height                = pCreateInfo->height;
+        ci.depth                 = pCreateInfo->depth;
+        ci.format                = pCreateInfo->sampledImageFormat;
+        ci.sampleCount           = pCreateInfo->sampleCount;
+        ci.mipLevelCount         = pCreateInfo->mipLevelCount;
+        ci.arrayLayerCount       = pCreateInfo->arrayLayerCount;
+        ci.usageFlags            = pCreateInfo->usageFlags;
+        ci.memoryUsage           = pCreateInfo->memoryUsage;
+        ci.pApiObject            = pCreateInfo->pApiObject;
+
+        Result ppxres = GetDevice()->CreateImage(&ci, &mImage);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    if (pCreateInfo->usageFlags.bits.colorAttachment) {
+    }
+
+    if (pCreateInfo->usageFlags.bits.depthStencilAttachment) {
+    }
+
+    if (pCreateInfo->usageFlags.bits.storage) {
+    }
+
+    return ppx::SUCCESS;
 }
 
-uint32_t Texture::GetHeight() const
+void Texture::DestroyApiObjects()
 {
-    PPX_ASSERT_NULL_ARG(mImage.Get());
-    return mImage->GetHeight();
-}
+    if (mSampledImageView) {
+    }
 
-uint32_t Texture::GetDepth() const
-{
-    PPX_ASSERT_NULL_ARG(mImage.Get());
-    return mImage->GetDepth();
+    if (mRenderTargetView) {
+        GetDevice()->DestroyRenderTargetView(mRenderTargetView);
+    }
+
+    if (mDepthStencilView) {
+        GetDevice()->DestroyDepthStencilView(mDepthStencilView);
+    }
+
+    if (mStorageImageView) {
+    }
+
+    if (mImage) {
+        GetDevice()->DestroyImage(mImage);
+    }
 }
 
 } // namespace grfx
