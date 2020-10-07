@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(ppx_triangle_spinning)
+project(02_triangle_spinning)
 
 add_executable(
     ${PROJECT_NAME}

@@ -249,6 +249,8 @@ int Application::Run(int argc, char** argv)
         return false;
     }
 
+
+
     // Call config
     DispatchConfig();
 
@@ -276,6 +278,14 @@ int Application::Run(int argc, char** argv)
     // ---------------------------------------------------------------------------------------------
     // Main loop [BEGIN]
     // ---------------------------------------------------------------------------------------------
+    
+    // Initialize and start timer
+    ppx::TimerResult tmres = ppx::Timer::InitializeStaticData();
+    if (tmres != ppx::TIMER_RESULT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    tmres = mTimer.Start();
+
     mRunning = true;
     while (IsRunning()) {
         // Poll events
@@ -299,6 +309,11 @@ int Application::Run(int argc, char** argv)
 
     // Success
     return EXIT_SUCCESS;
+}
+
+float Application::GetElapsedSeconds() const
+{
+    return static_cast<float>(mTimer.SecondsSinceStart());
 }
 
 } // namespace ppx

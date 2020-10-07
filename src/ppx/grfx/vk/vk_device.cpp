@@ -327,7 +327,12 @@ Result Device::AllocateObject(grfx::CommandPool** ppObject)
 
 Result Device::AllocateObject(grfx::ComputePipeline** ppObject)
 {
-    return ppx::ERROR_ALLOCATION_FAILED;
+    vk::ComputePipeline* pObject = new vk::ComputePipeline();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::DepthStencilView** ppObject)

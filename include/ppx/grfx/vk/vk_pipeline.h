@@ -8,6 +8,28 @@ namespace ppx {
 namespace grfx {
 namespace vk {
 
+//! @class ComputePipeline
+//!
+//!
+class ComputePipeline
+    : public grfx::ComputePipeline
+{
+public:
+    ComputePipeline() {}
+    virtual ~ComputePipeline() {}
+
+    VkPipelinePtr GetVkPipeline() const { return mPipeline; }
+
+protected:
+    virtual Result CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo) override;
+    virtual void   DestroyApiObjects() override;
+
+private:
+    VkPipelinePtr mPipeline;
+};
+
+// -------------------------------------------------------------------------------------------------
+
 //! @class GraphicsPipeline
 //!
 //!

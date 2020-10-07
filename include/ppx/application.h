@@ -3,6 +3,7 @@
 
 #include "ppx/base_application.h"
 #include "ppx/000_math_config.h"
+#include "ppx/timer.h"
 
 // clang-format off
 #include <GLFW/glfw3.h>
@@ -79,6 +80,8 @@ protected:
 public:
     int Run(int argc, char** argv);
 
+    float GetElapsedSeconds() const;
+
     grfx::InstancePtr  GetInstance() const { return mInstance; }
     grfx::DevicePtr    GetDevice() const { return mDevice; }
     grfx::QueuePtr     GetGraphicsQueue(uint32_t index = 0) const { return GetDevice()->GetGraphicsQueue(index); }
@@ -97,8 +100,9 @@ private:
 
 private:
     ApplicationSettings mSettings = {};
-    void*               mWindow   = nullptr;
-    bool                mRunning  = true;
+    Timer               mTimer;
+    void*               mWindow  = nullptr;
+    bool                mRunning = true;
     grfx::InstancePtr   mInstance;
     grfx::DevicePtr     mDevice;
     grfx::SurfacePtr    mSurface;

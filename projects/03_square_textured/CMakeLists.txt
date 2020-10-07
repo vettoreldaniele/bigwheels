@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(ppx_cube)
+project(03_square_textured)
 
 add_executable(
     ${PROJECT_NAME}

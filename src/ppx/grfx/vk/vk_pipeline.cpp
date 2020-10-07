@@ -9,6 +9,48 @@ namespace grfx {
 namespace vk {
 
 // -------------------------------------------------------------------------------------------------
+// ComputePipeline
+// -------------------------------------------------------------------------------------------------
+Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo)
+{
+    VkPipelineShaderStageCreateInfo ssci = {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
+    ssci.flags                           = 0;
+    ssci.pSpecializationInfo             = nullptr;
+    ssci.pName                           = pCreateInfo->CS.entryPoint.c_str();
+    ssci.stage                           = VK_SHADER_STAGE_COMPUTE_BIT;
+    ssci.module                          = ToApi(pCreateInfo->CS.pModule)->GetVkShaderModule();
+
+    VkComputePipelineCreateInfo vkci = {VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO};
+    vkci.flags                       = 0;
+    vkci.stage                       = ssci;
+    vkci.layout                      = ToApi(pCreateInfo->pPipelineInterface)->GetVkPipelineLayout();
+    vkci.basePipelineHandle          = VK_NULL_HANDLE;
+    vkci.basePipelineIndex           = 0;
+
+    VkResult vkres = vkCreateComputePipelines(
+        ToApi(GetDevice())->GetVkDevice(),
+        VK_NULL_HANDLE,
+        1,
+        &vkci,
+        nullptr,
+        &mPipeline);
+    if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkCreateComputePipelines failed: " << ToString(vkres));
+        return ppx::ERROR_API_FAILURE;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void ComputePipeline::DestroyApiObjects()
+{
+    if (mPipeline) {
+        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPipeline, nullptr);
+        mPipeline.Reset();
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
 // GraphicsPipeline
 // -------------------------------------------------------------------------------------------------
 Result GraphicsPipeline::InitializeShaderStages(
@@ -165,7 +207,6 @@ Result GraphicsPipeline::InitializeRasterization(
     stateCreateInfo.cullMode                = ToVkCullMode(pCreateInfo->rasterState.cullMode);
     stateCreateInfo.frontFace               = ToVkFrontFace(pCreateInfo->rasterState.frontFace);
     stateCreateInfo.depthBiasEnable         = pCreateInfo->rasterState.depthBiasEnable ? VK_TRUE : VK_FALSE;
-    ;
     stateCreateInfo.depthBiasConstantFactor = pCreateInfo->rasterState.depthBiasConstantFactor;
     stateCreateInfo.depthBiasClamp          = pCreateInfo->rasterState.depthBiasClamp;
     stateCreateInfo.depthBiasSlopeFactor    = pCreateInfo->rasterState.depthBiasSlopeFactor;
@@ -427,7 +468,7 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
     }
     // Process result
     if (vkres != VK_SUCCESS) {
-        PPX_ASSERT_MSG(false, "vkCreatePipelineLayout failed: " << ToString(vkres));
+        PPX_ASSERT_MSG(false, "vkCreateGraphicsPipelines failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
     }
 

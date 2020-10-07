@@ -88,10 +88,29 @@ public:
     virtual void BindGraphicsDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets) = 0;
     virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)                                                                      = 0;
 
+    virtual void BindComputeDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets) = 0;
+    virtual void BindComputePipeline(const grfx::ComputePipeline* pPipeline)                                                                       = 0;
+
     virtual void BindIndexBuffer(const grfx::IndexBufferView* pView)                         = 0;
     virtual void BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews) = 0;
 
-    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) = 0;
+    virtual void Draw(
+        uint32_t vertexCount,
+        uint32_t instanceCount,
+        uint32_t firstVertex,
+        uint32_t firstInstance) = 0;
+
+    virtual void DrawIndexed(
+        uint32_t indexCount,
+        uint32_t instanceCount,
+        uint32_t firstIndex,
+        int32_t  vertexOffset,
+        uint32_t firstInstance) = 0;
+
+    virtual void Dispatch(
+        uint32_t groupCountX,
+        uint32_t groupCountY,
+        uint32_t groupCountZ) = 0;
 
     virtual void CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,

@@ -123,6 +123,7 @@ using VmaAllocatorPtr  = VkHandlePtr<VmaAllocator>;
 class Buffer;
 class CommandBuffer;
 class CommandPool;
+class ComputePipeline;
 class DepthStencilView;
 class DescriptorPool;
 class DescriptorSet;
@@ -176,6 +177,13 @@ struct ApiObjectLookUp<grfx::CommandPool>
 {
     using GrfxType = grfx::CommandPool;
     using ApiType  = vk::CommandPool;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::ComputePipeline>
+{
+    using GrfxType = grfx::ComputePipeline;
+    using ApiType  = vk::ComputePipeline;
 };
 
 template <>

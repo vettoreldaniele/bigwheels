@@ -6,11 +6,21 @@
 namespace ppx {
 namespace grfx {
 
+struct ShaderStageInfo
+{
+    const grfx::ShaderModule* pModule    = nullptr;
+    std::string               entryPoint = "";
+};
+
+// -------------------------------------------------------------------------------------------------
+
 //! @struct ComputePipelineCreateInfo
 //!
 //!
 struct ComputePipelineCreateInfo
 {
+    grfx::ShaderStageInfo          CS                 = {};
+    const grfx::PipelineInterface* pPipelineInterface = nullptr;
 };
 
 //! @class ComputePipeline
@@ -25,12 +35,6 @@ public:
 };
 
 // -------------------------------------------------------------------------------------------------
-
-struct ShaderStageInfo
-{
-    const grfx::ShaderModule* pModule    = nullptr;
-    std::string               entryPoint = "";
-};
 
 struct VertexInputState
 {

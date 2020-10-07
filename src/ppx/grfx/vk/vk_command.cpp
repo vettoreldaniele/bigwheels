@@ -199,6 +199,8 @@ void CommandBuffer::SetScissors(uint32_t scissorCount, const grfx::Rect* pScisso
 
 void CommandBuffer::BindGraphicsDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets)
 {
+    PPX_ASSERT_NULL_ARG(pInterface);
+
     VkDescriptorSet vkSets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
 
     for (uint32_t i = 0; i < setCount; ++i) {
@@ -218,9 +220,42 @@ void CommandBuffer::BindGraphicsDescriptorSets(const grfx::PipelineInterface* pI
 
 void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)
 {
+    PPX_ASSERT_NULL_ARG(pPipeline);
+
     vkCmdBindPipeline(
         mCommandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
+        ToApi(pPipeline)->GetVkPipeline());
+}
+
+void CommandBuffer::BindComputeDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets)
+{
+    PPX_ASSERT_NULL_ARG(pInterface);
+
+    VkDescriptorSet vkSets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
+
+    for (uint32_t i = 0; i < setCount; ++i) {
+        vkSets[i] = ToApi(ppSets[i])->GetVkDescriptorSet();
+    }
+
+    vkCmdBindDescriptorSets(
+        mCommandBuffer,
+        VK_PIPELINE_BIND_POINT_COMPUTE,
+        ToApi(pInterface)->GetVkPipelineLayout(),
+        0,
+        1,
+        vkSets,
+        0,
+        nullptr);
+}
+
+void CommandBuffer::BindComputePipeline(const grfx::ComputePipeline* pPipeline)
+{
+    PPX_ASSERT_NULL_ARG(pPipeline);
+
+    vkCmdBindPipeline(
+        mCommandBuffer,
+        VK_PIPELINE_BIND_POINT_COMPUTE,
         ToApi(pPipeline)->GetVkPipeline());
 }
 
@@ -253,9 +288,31 @@ void CommandBuffer::BindVertexBuffers(uint32_t viewCount, const grfx::VertexBuff
         offsets);
 }
 
-void CommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
+void CommandBuffer::Draw(
+    uint32_t vertexCount,
+    uint32_t instanceCount,
+    uint32_t firstVertex,
+    uint32_t firstInstance)
 {
     vkCmdDraw(mCommandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
+}
+
+void CommandBuffer::DrawIndexed(
+        uint32_t indexCount,
+        uint32_t instanceCount,
+        uint32_t firstIndex,
+        int32_t  vertexOffset,
+        uint32_t firstInstance)
+{
+    vkCmdDrawIndexed(mCommandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+}
+
+void CommandBuffer::Dispatch(
+        uint32_t groupCountX,
+        uint32_t groupCountY,
+        uint32_t groupCountZ)
+{
+    vkCmdDispatch(mCommandBuffer, groupCountX, groupCountY, groupCountZ);
 }
 
 void CommandBuffer::CopyBufferToImage(
