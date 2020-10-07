@@ -100,7 +100,8 @@ protected:
     friend class grfx::Device;
 
 protected:
-    std::vector<grfx::ImagePtr>      mImages;
+    std::vector<grfx::ImagePtr>      mDepthStencilImages;
+    std::vector<grfx::ImagePtr>      mColorImages;
     std::vector<grfx::RenderPassPtr> mRenderPasses;
 };
 

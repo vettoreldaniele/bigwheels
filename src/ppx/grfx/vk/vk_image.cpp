@@ -1,5 +1,6 @@
 #include "ppx/grfx/vk/vk_image.h"
 #include "ppx/grfx/vk/vk_device.h"
+#include "ppx/grfx/vk/vk_queue.h"
 
 namespace ppx {
 namespace grfx {
@@ -98,6 +99,31 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
     mVkFormat    = ToVkFormat(pCreateInfo->format);
     mImageAspect = DetermineAspectMask(mVkFormat);
 
+    // Transition depth/stencil images from VK_IMAGE_LAYOUT_UNDEFINED to VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    if (((mImageAspect & VK_IMAGE_ASPECT_DEPTH_BIT) != 0) && IsNull(pCreateInfo->pApiObject)) {
+        grfx::QueuePtr grfxQueue = GetDevice()->GetAnyAvailableQueue();
+        if (!grfxQueue) {
+            return ppx::ERROR_FAILED;
+        }
+
+        vk::Queue* pQueue = ToApi(grfxQueue.Get());
+
+        VkResult vkres = pQueue->TransitionImageLayout(
+            mImage,                                           // image
+            mImageAspect,                                     // aspectMask
+            0,                                                // baseMipLevel
+            1,                                                // levelCount
+            0,                                                // baseArrayLayer
+            1,                                                // layerCount
+            VK_IMAGE_LAYOUT_UNDEFINED,                        // oldLayout
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, // newLayout
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);               // newPipelineStage)
+        if (vkres != VK_SUCCESS) {
+            PPX_ASSERT_MSG(false, "vk::Queue::TransitionImageLayout failed: " << ToString(vkres));
+            return ppx::ERROR_API_FAILURE;
+        }
+    }
+
     return ppx::SUCCESS;
 }
 
@@ -170,11 +196,47 @@ void Sampler::DestroyApiObjects()
 // -------------------------------------------------------------------------------------------------
 Result DepthStencilView::CreateApiObjects(const grfx::DepthStencilViewCreateInfo* pCreateInfo)
 {
-    return ppx::ERROR_FAILED;
+    VkImageViewCreateInfo vkci           = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    vkci.flags                           = 0;
+    vkci.image                           = ToApi(pCreateInfo->pImage)->GetVkImage();
+    vkci.viewType                        = ToVkImageViewType(pCreateInfo->imageViewType);
+    vkci.format                          = ToVkFormat(pCreateInfo->format);
+    vkci.components                      = ToVkComponentMapping(pCreateInfo->components);
+    vkci.subresourceRange.aspectMask     = ToApi(pCreateInfo->pImage)->GetVkImageAspectFlags();
+    vkci.subresourceRange.baseMipLevel   = pCreateInfo->mipLevel;
+    vkci.subresourceRange.levelCount     = pCreateInfo->mipLevelCount;
+    vkci.subresourceRange.baseArrayLayer = pCreateInfo->arrayLayer;
+    vkci.subresourceRange.layerCount     = pCreateInfo->arrayLayerCount;
+
+    VkResult vkres = vkCreateImageView(
+        ToApi(GetDevice())->GetVkDevice(),
+        &vkci,
+        nullptr,
+        &mImageView);
+    if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkCreateImageView(DepthStencilView) failed: " << ToString(vkres));
+        return ppx::ERROR_API_FAILURE;
+    }
+
+    std::unique_ptr<grfx::internal::ImageResourceView> resourceView(new vk::internal::ImageResourceView(mImageView, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
+    if (!resourceView) {
+        PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView(DepthStencilView) allocation failed");
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    SetResourceView(std::move(resourceView));
+
+    return ppx::SUCCESS;
 }
 
 void DepthStencilView::DestroyApiObjects()
 {
+    if (mImageView) {
+        vkDestroyImageView(
+            ToApi(GetDevice())->GetVkDevice(),
+            mImageView,
+            nullptr);
+        mImageView.Reset();
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -200,13 +262,13 @@ Result RenderTargetView::CreateApiObjects(const grfx::RenderTargetViewCreateInfo
         nullptr,
         &mImageView);
     if (vkres != VK_SUCCESS) {
-        PPX_ASSERT_MSG(false, "vkCreateImageView failed: " << ToString(vkres));
+        PPX_ASSERT_MSG(false, "vkCreateImageView(RenderTargetView) failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
     }
 
     std::unique_ptr<grfx::internal::ImageResourceView> resourceView(new vk::internal::ImageResourceView(mImageView, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL));
     if (!resourceView) {
-        PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView allocation failed");
+        PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView(RenderTargetView) allocation failed");
         return ppx::ERROR_ALLOCATION_FAILED;
     }
     SetResourceView(std::move(resourceView));
@@ -248,13 +310,13 @@ Result SampledImageView::CreateApiObjects(const grfx::SampledImageViewCreateInfo
         nullptr,
         &mImageView);
     if (vkres != VK_SUCCESS) {
-        PPX_ASSERT_MSG(false, "vkCreateImageView failed: " << ToString(vkres));
+        PPX_ASSERT_MSG(false, "vkCreateImageView(SampledImageView) failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
     }
 
     std::unique_ptr<grfx::internal::ImageResourceView> resourceView(new vk::internal::ImageResourceView(mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
     if (!resourceView) {
-        PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView allocation failed");
+        PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView(SampledImageView) allocation failed");
         return ppx::ERROR_ALLOCATION_FAILED;
     }
     SetResourceView(std::move(resourceView));

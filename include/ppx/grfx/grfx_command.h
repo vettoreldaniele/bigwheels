@@ -42,8 +42,8 @@ struct RenderPassBeginInfo
     const grfx::RenderPass*      pRenderPass                            = nullptr;
     grfx::Rect                   renderArea                             = {};
     uint32_t                     RTVClearCount                          = 0;
-    grfx::RenderTargetClearValue RTVClearValues[PPX_MAX_RENDER_TARGETS] = {};
-    grfx::DepthStencilClearValue DSVClearValue                          = {};
+    grfx::RenderTargetClearValue RTVClearValues[PPX_MAX_RENDER_TARGETS] = {0.0f, 0.0f, 0.0f, 0.0f};
+    grfx::DepthStencilClearValue DSVClearValue                          = {1.0f, 0xFF};
 };
 
 // -------------------------------------------------------------------------------------------------

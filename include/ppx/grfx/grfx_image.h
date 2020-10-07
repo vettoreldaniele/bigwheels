@@ -31,6 +31,13 @@ struct ImageCreateInfo
         grfx::SampleCount sampleCount = grfx::SAMPLE_COUNT_1,
         grfx::MemoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY);
 
+    // Returns a create info for sampled image and depth stencil target
+    static ImageCreateInfo DepthStencilTarget(
+        uint32_t          width,
+        uint32_t          height,
+        grfx::Format      format,
+        grfx::SampleCount sampleCount = grfx::SAMPLE_COUNT_1);
+
     // Returns a create info for sampled image and render target
     static ImageCreateInfo RenderTarget2D(
         uint32_t          width,
@@ -141,12 +148,13 @@ public:
 struct DepthStencilViewCreateInfo
 {
     grfx::Image*            pImage          = nullptr;
-    grfx::ImageViewType     type            = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
+    grfx::ImageViewType     imageViewType   = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
     grfx::Format            format          = grfx::FORMAT_UNDEFINED;
     uint32_t                mipLevel        = 0;
     uint32_t                mipLevelCount   = 0;
     uint32_t                arrayLayer      = 0;
     uint32_t                arrayLayerCount = 0;
+    grfx::ComponentMapping  components      = {};
     grfx::AttachmentLoadOp  depthLoadOp     = ATTACHMENT_LOAD_OP_LOAD;
     grfx::AttachmentStoreOp depthStoreOp    = ATTACHMENT_STORE_OP_STORE;
     grfx::AttachmentLoadOp  stencilLoadOp   = ATTACHMENT_LOAD_OP_LOAD;
@@ -187,9 +195,9 @@ struct RenderTargetViewCreateInfo
     uint32_t                mipLevelCount   = 0;
     uint32_t                arrayLayer      = 0;
     uint32_t                arrayLayerCount = 0;
+    grfx::ComponentMapping  components      = {};
     grfx::AttachmentLoadOp  loadOp          = ATTACHMENT_LOAD_OP_LOAD;
     grfx::AttachmentStoreOp storeOp         = ATTACHMENT_STORE_OP_STORE;
-    grfx::ComponentMapping  components      = {};
 };
 
 //! @class RenderTargetView

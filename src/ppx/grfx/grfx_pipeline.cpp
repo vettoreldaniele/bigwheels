@@ -102,6 +102,19 @@ void FillOutGraphicsPipelineCreateInfo(
         pDstCreateInfo->rasterState.frontFace   = pSrcCreateInfo->frontFace;
     }
 
+    // Depth/stencil
+    {
+        pDstCreateInfo->depthStencilState.depthTestEnable       = true;
+        pDstCreateInfo->depthStencilState.depthWriteEnable      = true;
+        pDstCreateInfo->depthStencilState.depthCompareOp        = grfx::COMPARE_OP_LESS;
+        pDstCreateInfo->depthStencilState.depthBoundsTestEnable = false;
+        pDstCreateInfo->depthStencilState.minDepthBounds        = 0.0f;
+        pDstCreateInfo->depthStencilState.maxDepthBounds        = 1.0f;
+        pDstCreateInfo->depthStencilState.stencilTestEnable     = false;
+        pDstCreateInfo->depthStencilState.front                 = {};
+        pDstCreateInfo->depthStencilState.back                  = {};
+    }
+
     // Color blend
     {
         pDstCreateInfo->colorBlendState.blendAttachmentCount = pSrcCreateInfo->outputState.renderTargetCount;

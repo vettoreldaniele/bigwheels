@@ -289,7 +289,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
             return ppxres;
         }
 
-        mImages.push_back(image);
+        mColorImages.push_back(image);
     }
 
     return ppx::SUCCESS;

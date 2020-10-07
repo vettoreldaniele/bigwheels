@@ -273,8 +273,9 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
             rtvCreateInfo.mipLevelCount                    = 1;
             rtvCreateInfo.arrayLayer                       = 0;
             rtvCreateInfo.arrayLayerCount                  = 1;
-            rtvCreateInfo.loadOp                           = ATTACHMENT_LOAD_OP_LOAD;
-            rtvCreateInfo.storeOp                          = ATTACHMENT_STORE_OP_STORE;
+            rtvCreateInfo.components                       = {};
+            rtvCreateInfo.loadOp                           = pCreateInfo->renderTargetLoadOps[i];
+            rtvCreateInfo.storeOp                          = pCreateInfo->renderTargetStoreOps[i];
 
             grfx::RenderTargetViewPtr rtv;
             Result                    ppxres = GetDevice()->CreateRenderTargetView(&rtvCreateInfo, &rtv);
@@ -292,16 +293,17 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
 
             grfx::DepthStencilViewCreateInfo dsvCreateInfo = {};
             dsvCreateInfo.pImage                           = image;
-            dsvCreateInfo.type                             = grfx::IMAGE_VIEW_TYPE_2D;
+            dsvCreateInfo.imageViewType                    = grfx::IMAGE_VIEW_TYPE_2D;
             dsvCreateInfo.format                           = pCreateInfo->V2.depthStencilFormat;
             dsvCreateInfo.mipLevel                         = 0;
             dsvCreateInfo.mipLevelCount                    = 1;
             dsvCreateInfo.arrayLayer                       = 0;
             dsvCreateInfo.arrayLayerCount                  = 1;
-            dsvCreateInfo.depthLoadOp                      = ATTACHMENT_LOAD_OP_LOAD;
-            dsvCreateInfo.depthStoreOp                     = ATTACHMENT_STORE_OP_STORE;
-            dsvCreateInfo.stencilLoadOp                    = ATTACHMENT_LOAD_OP_LOAD;
-            dsvCreateInfo.stencilStoreOp                   = ATTACHMENT_STORE_OP_STORE;
+            dsvCreateInfo.components                       = {};
+            dsvCreateInfo.depthLoadOp                      = pCreateInfo->depthLoadOp;
+            dsvCreateInfo.depthStoreOp                     = pCreateInfo->depthStoreOp;
+            dsvCreateInfo.stencilLoadOp                    = pCreateInfo->stencilLoadOp;
+            dsvCreateInfo.stencilStoreOp                   = pCreateInfo->stencilStoreOp;
 
             grfx::DepthStencilViewPtr dsv;
             Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);
@@ -332,7 +334,7 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
             mRenderTargetImages.push_back({true, image});
         }
         // Copy DSV image
-        if (!IsNull(pCreateInfo->V1.pDepthStencilView)) {
+        if (!IsNull(pCreateInfo->V3.pDepthStencilImage)) {
             grfx::ImagePtr image = pCreateInfo->V3.pDepthStencilImage;
 
             mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, image};
@@ -354,6 +356,7 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
             rtvCreateInfo.mipLevelCount                    = image->GetMipLevelCount();
             rtvCreateInfo.arrayLayer                       = 0;
             rtvCreateInfo.arrayLayerCount                  = image->GetArrayLayerCount();
+            rtvCreateInfo.components                       = {};
             rtvCreateInfo.loadOp                           = pCreateInfo->renderTargetLoadOps[i];
             rtvCreateInfo.storeOp                          = pCreateInfo->renderTargetStoreOps[i];
 
@@ -368,21 +371,22 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
         }
 
         // DSV
-        if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
+        if (mDepthStencilImage.object) {
             grfx::ImagePtr image = mDepthStencilImage.object;
 
             grfx::DepthStencilViewCreateInfo dsvCreateInfo = {};
             dsvCreateInfo.pImage                           = image;
-            dsvCreateInfo.type                             = image->GuessImageViewType();
+            dsvCreateInfo.imageViewType                    = image->GuessImageViewType();
             dsvCreateInfo.format                           = image->GetFormat();
             dsvCreateInfo.mipLevel                         = 0;
             dsvCreateInfo.mipLevelCount                    = image->GetMipLevelCount();
             dsvCreateInfo.arrayLayer                       = 0;
             dsvCreateInfo.arrayLayerCount                  = image->GetArrayLayerCount();
-            dsvCreateInfo.depthLoadOp                      = ATTACHMENT_LOAD_OP_LOAD;
-            dsvCreateInfo.depthStoreOp                     = ATTACHMENT_STORE_OP_STORE;
-            dsvCreateInfo.stencilLoadOp                    = ATTACHMENT_LOAD_OP_LOAD;
-            dsvCreateInfo.stencilStoreOp                   = ATTACHMENT_STORE_OP_STORE;
+            dsvCreateInfo.components                       = {};
+            dsvCreateInfo.depthLoadOp                      = pCreateInfo->depthLoadOp;
+            dsvCreateInfo.depthStoreOp                     = pCreateInfo->depthStoreOp;
+            dsvCreateInfo.stencilLoadOp                    = pCreateInfo->stencilLoadOp;
+            dsvCreateInfo.stencilStoreOp                   = pCreateInfo->stencilStoreOp;
 
             grfx::DepthStencilViewPtr dsv;
             Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);

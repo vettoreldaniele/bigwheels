@@ -14,16 +14,32 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         return ppxres;
     }
 
-    for (size_t i = 0; i < mImages.size(); ++i) {
+    if (pCreateInfo->depthFormat != grfx::FORMAT_UNDEFINED) {
+        for (uint32_t i = 0; i < pCreateInfo->imageCount; ++i) {
+            grfx::ImageCreateInfo dpCreateInfo = ImageCreateInfo::DepthStencilTarget(pCreateInfo->width, pCreateInfo->height, pCreateInfo->depthFormat);
+
+            grfx::ImagePtr depthStencilTarget;
+            ppxres = GetDevice()->CreateImage(&dpCreateInfo, &depthStencilTarget);
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+
+            mDepthStencilImages.push_back(depthStencilTarget);
+        }
+    }
+
+    // Create render passes
+    for (size_t i = 0; i < pCreateInfo->imageCount; ++i) {
         grfx::RenderPassCreateInfo3 rpCreateInfo = {};
         rpCreateInfo.width                       = pCreateInfo->width;
         rpCreateInfo.height                      = pCreateInfo->height;
         rpCreateInfo.renderTargetCount           = 1;
-        rpCreateInfo.pRenderTargetImages[0]      = mImages[i];
-        rpCreateInfo.pDepthStencilImage          = nullptr;
+        rpCreateInfo.pRenderTargetImages[0]      = mColorImages[i];
+        rpCreateInfo.pDepthStencilImage          = mDepthStencilImages.empty() ? nullptr : mDepthStencilImages[i];
         rpCreateInfo.renderTargetClearValues[0]  = {0.0f, 0.0f, 0.0f, 0.0f};
         rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
         rpCreateInfo.renderTargetLoadOps[0]      = {grfx::ATTACHMENT_LOAD_OP_CLEAR};
+        rpCreateInfo.depthLoadOp                 = grfx::ATTACHMENT_LOAD_OP_CLEAR;
 
         grfx::RenderPassPtr renderPass;
         ppxres = GetDevice()->CreateRenderPass(&rpCreateInfo, &renderPass);
@@ -40,10 +56,10 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
 
 Result Swapchain::GetImage(uint32_t imageIndex, grfx::Image** ppImage) const
 {
-    if (!IsIndexInRange(imageIndex, mImages)) {
+    if (!IsIndexInRange(imageIndex, mColorImages)) {
         return ppx::ERROR_OUT_OF_RANGE;
     }
-    *ppImage = mImages[imageIndex];
+    *ppImage = mColorImages[imageIndex];
     return ppx::SUCCESS;
 }
 

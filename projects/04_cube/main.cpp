@@ -1,5 +1,4 @@
 #include "ppx/ppx.h"
-#include "ppx/graphics_util.h"
 using namespace ppx;
 
 class ProjApp
@@ -30,18 +29,16 @@ private:
     ppx::grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
     ppx::grfx::DescriptorSetPtr       mDescriptorSet;
     ppx::grfx::BufferPtr              mUniformBuffer;
-    ppx::grfx::ImagePtr               mImage;
-    ppx::grfx::SamplerPtr             mSampler;
-    ppx::grfx::SampledImageViewPtr    mSampledImageView;
     grfx::Viewport                    mViewport;
     grfx::Rect                        mScissorRect;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    settings.appName          = "03_textured_square";
-    settings.grfx.api         = ppx::grfx::API_VK_1_1;
-    settings.grfx.enableDebug = true;
+    settings.appName                    = "04_cube";
+    settings.grfx.api                   = ppx::grfx::API_VK_1_1;
+    settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
+    settings.grfx.enableDebug           = true;
 }
 
 void ProjApp::Setup()
@@ -58,17 +55,6 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer));
     }
 
-    // Texture image, view,  and sampler
-    {
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), "C:\\code\\hai\\BigWheels\\assets\\textures\\box_panel.jpg", &mImage));
-
-        grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage);
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&viewCreateInfo, &mSampledImageView));
-
-        grfx::SamplerCreateInfo samplerCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
-    }
-
     // Descriptor
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
@@ -76,9 +62,7 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
 
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet));
@@ -90,28 +74,16 @@ void ProjApp::Setup()
         write.bufferRange           = PPX_WHOLE_SIZE;
         write.pBuffer               = mUniformBuffer;
         PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
-
-        write            = {};
-        write.binding    = 1;
-        write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView = mSampledImageView;
-        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
-
-        write          = {};
-        write.binding  = 2;
-        write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-        write.pSampler = mSampler;
-        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
     }
 
     // Pipeline
     {
-        std::vector<char> bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\Texture.vs.spv");
+        std::vector<char> bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\VertexColors.vs.spv");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\Texture.ps.spv");
+        bytecode = fs::load_file("C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\VertexColors.ps.spv");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
@@ -125,8 +97,8 @@ void ProjApp::Setup()
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
         gpCreateInfo.vertexInputState.attributeCount    = 2;
-        gpCreateInfo.vertexInputState.attributes[0]     = {0, grfx::FORMAT_R32G32B32A32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
-        gpCreateInfo.vertexInputState.attributes[1]     = {1, grfx::FORMAT_R32G32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
+        gpCreateInfo.vertexInputState.attributes[0]     = {0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
+        gpCreateInfo.vertexInputState.attributes[1]     = {1, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
@@ -134,6 +106,7 @@ void ProjApp::Setup()
         gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
         gpCreateInfo.outputState.renderTargetCount      = 1;
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
+        gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
         gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPipeline));
     }
@@ -161,14 +134,49 @@ void ProjApp::Setup()
     // Vertex buffer and geometry data
     {
         // clang-format off
-        std::vector<float> vertexData = {
-            -0.5f,  0.5f, 0.0f, 1.0f,   0.0f, 0.0f,
-            -0.5f, -0.5f, 0.0f, 1.0f,   0.0f, 1.0f,
-             0.5f, -0.5f, 0.0f, 1.0f,   1.0f, 1.0f,
+        std::vector<float> vertexData = {  
+            // position          // vertex colors
+            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 0.0f,  // -Z side
+             1.0f, 1.0f,-1.0f,   1.0f, 0.0f, 0.0f,
+             1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 0.0f,
+            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 0.0f,
+            -1.0f, 1.0f,-1.0f,   1.0f, 0.0f, 0.0f,
+             1.0f, 1.0f,-1.0f,   1.0f, 0.0f, 0.0f,
 
-            -0.5f,  0.5f, 0.0f, 1.0f,   0.0f, 0.0f,
-             0.5f, -0.5f, 0.0f, 1.0f,   1.0f, 1.0f,
-             0.5f,  0.5f, 0.0f, 1.0f,   1.0f, 0.0f,
+            -1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,  // +Z side
+            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+             1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+             1.0f,-1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+             1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+
+            -1.0f,-1.0f,-1.0f,   0.0f, 0.0f, 1.0f,  // -X side
+            -1.0f,-1.0f, 1.0f,   0.0f, 0.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f,
+            -1.0f, 1.0f,-1.0f,   0.0f, 0.0f, 1.0f,
+            -1.0f,-1.0f,-1.0f,   0.0f, 0.0f, 1.0f,
+
+             1.0f, 1.0f,-1.0f,   1.0f, 1.0f, 0.0f,  // +X side
+             1.0f, 1.0f, 1.0f,   1.0f, 1.0f, 0.0f,
+             1.0f,-1.0f, 1.0f,   1.0f, 1.0f, 0.0f,
+             1.0f,-1.0f, 1.0f,   1.0f, 1.0f, 0.0f,
+             1.0f,-1.0f,-1.0f,   1.0f, 1.0f, 0.0f,
+             1.0f, 1.0f,-1.0f,   1.0f, 1.0f, 0.0f,
+
+            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 1.0f,  // -Y side
+             1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 1.0f,
+             1.0f,-1.0f, 1.0f,   1.0f, 0.0f, 1.0f,
+            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 1.0f,
+             1.0f,-1.0f, 1.0f,   1.0f, 0.0f, 1.0f,
+            -1.0f,-1.0f, 1.0f,   1.0f, 0.0f, 1.0f,
+
+            -1.0f, 1.0f,-1.0f,   0.0f, 1.0f, 1.0f,  // +Y side
+            -1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 1.0f,
+             1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f,-1.0f,   0.0f, 1.0f, 1.0f,
+             1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 1.0f,
+             1.0f, 1.0f,-1.0f,   0.0f, 1.0f, 1.0f,
         };
         // clang-format on
         uint32_t dataSize = ppx::SizeInBytesU32(vertexData);
@@ -209,8 +217,11 @@ void ProjApp::Render()
 
     // Update uniform buffer
     {
-        float t = GetElapsedSeconds();
-        float4x4 mat = glm::rotate(t, float3(0, 0, 1));
+        float    t   = GetElapsedSeconds();
+        float4x4 P   = glm::perspective(glm::radians(60.0f), 640.0f / 480.0f, 0.001f, 10000.0f);
+        float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
+        float4x4 M   = glm::rotate(t, float3(0, 0, 1)) * glm::rotate(t, float3(0, 1, 0)) * glm::rotate(t, float3(1, 0, 0));
+        float4x4 mat = P * V * M;
 
         void* pData = nullptr;
         PPX_CHECKED_CALL(ppxres = mUniformBuffer->MapMemory(0, &pData));
@@ -229,6 +240,7 @@ void ProjApp::Render()
         beginInfo.renderArea                = renderPass->GetRenderArea();
         beginInfo.RTVClearCount             = 1;
         beginInfo.RTVClearValues[0]         = {{0, 0, 0, 0}};
+        beginInfo.DSVClearValue             = {1.0f, 0xFF};
 
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);
@@ -238,7 +250,7 @@ void ProjApp::Render()
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer);
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mPipeline);
-            frame.cmd->Draw(6, 1, 0, 0);
+            frame.cmd->Draw(36, 1, 0, 0);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

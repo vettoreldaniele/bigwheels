@@ -83,7 +83,7 @@ struct DepthStencilState
 {
     bool                 depthTestEnable       = true;
     bool                 depthWriteEnable      = true;
-    grfx::CompareOp      depthCompareOp        = grfx::COMPARE_OP_GREATER_OR_EQUAL;
+    grfx::CompareOp      depthCompareOp        = grfx::COMPARE_OP_LESS;
     bool                 depthBoundsTestEnable = false;
     float                minDepthBounds        = 0.0f;
     float                maxDepthBounds        = 1.0f;

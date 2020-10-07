@@ -237,7 +237,7 @@ Result GraphicsPipeline::InitializeDepthStencil(
     stateCreateInfo.flags                 = 0;
     stateCreateInfo.depthTestEnable       = pCreateInfo->depthStencilState.depthTestEnable ? VK_TRUE : VK_FALSE;
     stateCreateInfo.depthWriteEnable      = pCreateInfo->depthStencilState.depthWriteEnable ? VK_TRUE : VK_FALSE;
-    stateCreateInfo.depthCompareOp        = VK_COMPARE_OP_LESS;
+    stateCreateInfo.depthCompareOp        = ToVkCompareOp(pCreateInfo->depthStencilState.depthCompareOp);
     stateCreateInfo.depthBoundsTestEnable = pCreateInfo->depthStencilState.depthBoundsTestEnable ? VK_TRUE : VK_FALSE;
     stateCreateInfo.stencilTestEnable     = pCreateInfo->depthStencilState.stencilTestEnable ? VK_TRUE : VK_FALSE;
     stateCreateInfo.front.failOp          = ToVkStencilOp(pCreateInfo->depthStencilState.front.failOp);
