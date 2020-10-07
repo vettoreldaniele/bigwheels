@@ -112,6 +112,12 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         }
     }
 
+#if defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
+    if (ElementExists(std::string(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME), mFoundExtensions)) {
+        mExtensions.push_back(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+    }
+#endif // defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
+
     // Add additional extensions and uniquify
     AppendElements(pCreateInfo->vulkanExtensions, mExtensions);
     Unique(mExtensions);
@@ -259,6 +265,10 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         mTimelineSemaphoreAvailable = true;
     }
     PPX_LOG_INFO("Vulkan timeline semaphore is present: " << mTimelineSemaphoreAvailable);
+
+#if defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
+    mExtendedDynamicStateAvailable = ElementExists(std::string(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME), mFoundExtensions));
+#endif // defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
 
     // VMA
     {

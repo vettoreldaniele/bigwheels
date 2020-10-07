@@ -248,7 +248,7 @@ void ProjApp::Render()
         float    t   = GetElapsedSeconds();
         float4x4 P   = glm::perspective(glm::radians(60.0f), 640.0f / 480.0f, 0.001f, 10000.0f);
         float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
-        float4x4 M   = glm::rotate(t, float3(0, 0, 1)) * glm::rotate(t, float3(0, 1, 0)) * glm::rotate(t, float3(1, 0, 0));
+        float4x4 M   = glm::rotate(t/4, float3(0, 0, 1)) * glm::rotate(t/4, float3(0, 1, 0)) * glm::rotate(t/4, float3(1, 0, 0));
         float4x4 mat = P * V * M;
 
         void* pData = nullptr;

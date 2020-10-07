@@ -19,6 +19,7 @@ public:
     VmaAllocatorPtr GetVmaAllocator() const { return mVmaAllocator; }
 
     bool IsTimelineSemaphoreAvailable() const { return mTimelineSemaphoreAvailable; }
+    bool IsExtendedDynamicStateAvailable() const { return mExtendedDynamicStateAvailable; }
 
     virtual Result WaitIdle();
 
@@ -61,6 +62,7 @@ private:
     VkDevicePtr              mDevice;
     VmaAllocatorPtr          mVmaAllocator;
     bool                     mTimelineSemaphoreAvailable = false;
+    bool                     mExtendedDynamicStateAvailable = false;
 };
 
 } // namespace vk

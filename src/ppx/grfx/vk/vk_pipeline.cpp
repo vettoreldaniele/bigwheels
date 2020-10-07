@@ -325,6 +325,24 @@ Result GraphicsPipeline::InitializeDynamicState(
     dynamicStates.push_back(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK);
     dynamicStates.push_back(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
 
+#if defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
+    if (ToApi(GetDevice())->IsExtendedDynamicStateAvailable()) {
+        // Provided by VK_EXT_extended_dynamic_state
+        dynamicStates.push_back(VK_DYNAMIC_STATE_CULL_MODE_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_FRONT_FACE_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_STENCIL_OP_EXT);
+    }
+#endif // defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
+
     stateCreateInfo.flags             = 0;
     stateCreateInfo.dynamicStateCount = CountU32(dynamicStates);
     stateCreateInfo.pDynamicStates    = DataPtr(dynamicStates);
