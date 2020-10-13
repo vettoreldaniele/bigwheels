@@ -40,6 +40,8 @@ public:
     Device() {}
     virtual ~Device() {}
 
+    bool isDebugEnabled() const;
+
     grfx::Api GetApi() const;
 
     grfx::GpuPtr GetGpu() const { return mCreateInfo.pGpu; }
@@ -104,8 +106,15 @@ public:
     Result CreateTexture(const grfx::TextureCreateInfo* pCreateInfo, grfx::Texture** ppTexture);
     void   DestroyTexture(const grfx::Texture* pTexture);
 
-    Result AllocateCommandBuffer(const grfx::CommandPool* pPool, grfx::CommandBuffer** ppCommandBuffer);
-    void   FreeCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);
+    // See comment section for grfx::internal::CommandBufferCreateInfo for
+    // details about 'resourceDescriptorCount' and 'samplerDescriptorCount'.
+    //
+    Result AllocateCommandBuffer(
+        const grfx::CommandPool* pPool,
+        grfx::CommandBuffer**    ppCommandBuffer,
+        uint32_t                 resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT,
+        uint32_t                 samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT);
+    void FreeCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);
 
     Result AllocateDescriptorSet(grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, grfx::DescriptorSet** ppSet);
     void   FreeDescriptorSet(const grfx::DescriptorSet* pSet);

@@ -1,5 +1,6 @@
 #include "ppx/grfx/dx/dx_command.h"
 #include "ppx/grfx/dx/dx_buffer.h"
+#include "ppx/grfx/dx/dx_descriptor.h"
 #include "ppx/grfx/dx/dx_device.h"
 #include "ppx/grfx/dx/dx_image.h"
 #include "ppx/grfx/dx/dx_pipeline.h"
@@ -14,6 +15,8 @@ namespace dx {
 // -------------------------------------------------------------------------------------------------
 Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo)
 {
+    D3D12DevicePtr device = ToApi(GetDevice())->GetDxDevice();
+
     UINT                     nodeMask = 0;
     D3D12_COMMAND_LIST_TYPE  type     = ToApi(pCreateInfo->pPool)->GetDxCommandType();
     D3D12_COMMAND_LIST_FLAGS flags    = D3D12_COMMAND_LIST_FLAG_NONE;
@@ -22,7 +25,7 @@ Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreate
     //       call Close() it after creation unlike command lists created with
     //       CreateCommandList.
     //
-    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateCommandList1(nodeMask, type, flags, IID_PPV_ARGS(&mCommandList));
+    HRESULT hr = device->CreateCommandList1(nodeMask, type, flags, IID_PPV_ARGS(&mCommandList));
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandList1 failed");
         return ppx::ERROR_API_FAILURE;
@@ -31,6 +34,40 @@ Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreate
     // Store command allocator for reset
     mCommandAllocator = ToApi(pCreateInfo->pPool)->GetDxCommandAllocator();
 
+    // Heap sizes
+    mHeapSizeCBVSRVUAV = static_cast<UINT>(pCreateInfo->resourceDescriptorCount);
+    mHeapSizeSampler   = static_cast<UINT>(pCreateInfo->samplerDescriptorCount);
+
+    // Allocate CBVSRVUAV heap
+    if (mHeapSizeCBVSRVUAV > 0) {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.NumDescriptors             = mHeapSizeCBVSRVUAV;
+        desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        desc.NodeMask                   = 0;
+
+        HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
+        if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CBVSRVUAV) failed");
+            return ppx::ERROR_API_FAILURE;
+        }
+    }
+
+    // Allocate Sampler heap
+    if (mHeapSizeSampler > 0) {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+        desc.NumDescriptors             = mHeapSizeSampler;
+        desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        desc.NodeMask                   = 0;
+
+        HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapSampler));
+        if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(Sampler) failed");
+            return ppx::ERROR_API_FAILURE;
+        }
+    }
+
     return ppx::SUCCESS;
 }
 
@@ -38,6 +75,14 @@ void CommandBuffer::DestroyApiObjects()
 {
     if (mCommandList) {
         mCommandList.Reset();
+    }
+
+    if (mHeapCBVSRVUAV) {
+        mHeapCBVSRVUAV.Reset();
+    }
+
+    if (mHeapSampler) {
+        mHeapSampler.Reset();
     }
 }
 
@@ -62,6 +107,14 @@ Result CommandBuffer::Begin()
         PPX_ASSERT_MSG(false, "ID3D12CommandList::Reset failed");
         return ppx::ERROR_API_FAILURE;
     }
+
+    // Set descriptor heaps
+    ID3D12DescriptorHeap* heaps[2] = {mHeapCBVSRVUAV.Get(), mHeapSampler.Get()};
+    mCommandList->SetDescriptorHeaps(2, heaps);
+
+    // Reset heap offsets
+    mHeapOffsetCBVSRVUAV = 0;
+    mHeapOffsetSampler   = 0;
 
     return ppx::SUCCESS;
 }
@@ -172,7 +225,29 @@ void CommandBuffer::BindGraphicsDescriptorSets(
     uint32_t                          setCount,
     const grfx::DescriptorSet* const* ppSets)
 {
+    // Since D3D12 can only
+    if (GetDevice()->isDebugEnabled()) {
+    }
+
     mCommandList->SetGraphicsRootSignature(ToApi(pInterface)->GetDxRootSignature().Get());
+
+    D3D12DevicePtr device = ToApi(GetDevice())->GetDxDevice();
+
+    D3D12_CPU_DESCRIPTOR_HANDLE dstRangeStart  = mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE srcRangeStart  = ToApi(ppSets[0])->GetHeapCBVSRVUAV()->GetCPUDescriptorHandleForHeapStart();
+    UINT                        numDescriptors = 1;
+
+    device->CopyDescriptors(
+        1,
+        &dstRangeStart,
+        &numDescriptors,
+        1,
+        &srcRangeStart,
+        &numDescriptors,
+        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor = mHeapCBVSRVUAV->GetGPUDescriptorHandleForHeapStart();
+    mCommandList->SetGraphicsRootDescriptorTable(0, baseDescriptor);
 }
 
 void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)

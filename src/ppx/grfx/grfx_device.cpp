@@ -44,6 +44,11 @@ void Device::Destroy()
     PPX_LOG_INFO("Destroyed device: " << mCreateInfo.pGpu->GetDeviceName());
 }
 
+bool Device::isDebugEnabled() const
+{
+    return GetInstance()->isDebugEnabled();
+}
+
 grfx::Api Device::GetApi() const
 {
     return GetInstance()->GetApi();
@@ -125,7 +130,6 @@ void Device::DestroyAllObjects(std::vector<ObjPtr<ObjectT>>& container)
     // Clear container
     container.clear();
 }
-
 
 Result Device::AllocateObject(grfx::Texture** ppObject)
 {
@@ -472,12 +476,18 @@ void Device::DestroySwapchain(const grfx::Swapchain* pSwapchain)
     DestroyObject(mSwapchains, pSwapchain);
 }
 
-Result Device::AllocateCommandBuffer(const grfx::CommandPool* pPool, grfx::CommandBuffer** ppCommandBuffer)
+Result Device::AllocateCommandBuffer(
+    const grfx::CommandPool* pPool,
+    grfx::CommandBuffer**    ppCommandBuffer,
+    uint32_t                 resourceDescriptorCount,
+    uint32_t                 samplerDescriptorCount)
 {
     PPX_ASSERT_NULL_ARG(ppCommandBuffer);
 
     grfx::internal::CommandBufferCreateInfo createInfo = {};
     createInfo.pPool                                   = pPool;
+    createInfo.resourceDescriptorCount                 = resourceDescriptorCount;
+    createInfo.samplerDescriptorCount                  = samplerDescriptorCount;
 
     Result gxres = CreateObject(&createInfo, mCommandBuffers, ppCommandBuffer);
     if (Failed(gxres)) {

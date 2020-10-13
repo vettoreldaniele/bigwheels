@@ -48,8 +48,11 @@ public:
 
     virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) = 0;
 
-    Result CreateCommandBuffer(grfx::CommandBuffer** ppCommandBuffer);
-    void   DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);
+    Result CreateCommandBuffer(
+        grfx::CommandBuffer** ppCommandBuffer,
+        uint32_t              resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT,
+        uint32_t              samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT);
+    void DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);
 
 private:
     struct CommandSet

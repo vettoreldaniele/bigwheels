@@ -50,9 +50,33 @@ struct RenderPassBeginInfo
 
 namespace internal {
 
+//! @struct CommandBufferCreateInfo
+//!
+//! For D3D12 every command buffer will have two GPU visible descriptor heaps:
+//!   - one for CBVSRVUAV descriptors
+//!   - one for Sampler descriptors
+//!
+//! Both of heaps are set when the command buffer begins.
+//!
+//! Each time that BindGraphicsDescriptorSets or BindComputeDescriptorSets
+//! is called, the contents of each descriptor set's CBVSRVAUV and Sampler heaps 
+//! will be copied into the command buffer's respective heap. 
+//!
+//! The offsets from used in the copies will be saved and used to set the
+//! root descriptor tables.
+//!
+//! 'resourceDescriptorCount' and 'samplerDescriptorCount' tells the
+//! D3D12 command buffer how large CBVSRVUAV and Sampler heaps should be.
+//!
+//! 'samplerDescriptorCount' cannot exceed PPX_MAX_SAMPLER_DESCRIPTORS.
+//!
+//! Vulkan does not use 'samplerDescriptorCount' or 'samplerDescriptorCount'.
+//!
 struct CommandBufferCreateInfo
 {
-    const grfx::CommandPool* pPool = nullptr;
+    const grfx::CommandPool* pPool                      = nullptr;
+    uint32_t                 resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT;
+    uint32_t                 samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT;
 };
 
 } // namespace internal

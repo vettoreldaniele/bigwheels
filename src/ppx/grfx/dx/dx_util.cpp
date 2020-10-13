@@ -134,7 +134,6 @@ D3D12_LOGIC_OP ToD3D12LogicOp(grfx::LogicOp value)
 
 D3D12_PRIMITIVE_TOPOLOGY_TYPE ToD3D12PrimitiveTopology(grfx::PrimitiveTopology value)
 {
-    D3D12_PRIMITIVE_TOPOLOGY_TYPE result = D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
     // clang-format off
     switch (value) {
         default: break;
@@ -148,6 +147,32 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE ToD3D12PrimitiveTopology(grfx::PrimitiveTopology v
     }
     // clang-format on
     return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+}
+
+D3D12_DESCRIPTOR_RANGE_TYPE ToD3D12RangeType(grfx::DescriptorType value)
+{
+    switch (value) {
+        default: break;
+        case grfx::DESCRIPTOR_TYPE_SAMPLER: {
+            return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+        } break;
+
+        case grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+        case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: {
+            return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+        } break;
+
+        case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE:
+        case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+        case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER: {
+            return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+        } break;
+
+        case grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER: {
+            return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+        } break;
+    }
+    return ppx::InvalidValue<D3D12_DESCRIPTOR_RANGE_TYPE>();
 }
 
 D3D12_RESOURCE_STATES ToD3D12ResourceStates(grfx::ResourceState value)

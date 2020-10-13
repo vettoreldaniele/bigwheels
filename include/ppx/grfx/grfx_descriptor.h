@@ -20,7 +20,7 @@ struct DescriptorBinding
 {
     uint32_t             binding    = PPX_VALUE_IGNORED;               //
     grfx::DescriptorType type       = grfx::DESCRIPTOR_TYPE_UNDEFINED; //
-    uint32_t             arrayCount = 0;                               // WARNING: Not VkDescriptorSetLayoutBinding::descriptorCount
+    uint32_t             arrayCount = 1;                               // WARNING: Not VkDescriptorSetLayoutBinding::descriptorCount
 
     DescriptorBinding() {}
 

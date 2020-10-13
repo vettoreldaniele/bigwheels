@@ -253,21 +253,45 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
 {
     dx::Device* pDevice = ToApi(GetDevice());
 
+    std::vector<std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>>> parameterRanges;
+
     std::vector<D3D12_ROOT_PARAMETER1> parameters;
     for (uint32_t setIndex = 0; setIndex < pCreateInfo->setCount; ++setIndex) {
         uint32_t                                    set      = pCreateInfo->sets[setIndex].set;
         const dx::DescriptorSetLayout*              pLayout  = ToApi(pCreateInfo->sets[setIndex].pLayout);
         const std::vector<grfx::DescriptorBinding>& bindings = pLayout->GetBindings();
 
-        //for (size_t bindingIndex = 0; bindingIndex < bindings.size(); ++bindingIndex) {
-        //    const grfx::DescriptorBinding& binding = bindings[bindingIndex];
-        //}
+        // Allocate unique container for this table's ranges
+        std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>> ranges = std::make_unique<std::vector<D3D12_DESCRIPTOR_RANGE1>>();
+        if (!ranges) {
+            PPX_ASSERT_MSG(false, "allocation for descriptor table ranges failed");
+            return ppx::ERROR_ALLOCATION_FAILED;
+        }
+        // Fill out ranges
+        for (size_t bindingIndex = 0; bindingIndex < bindings.size(); ++bindingIndex) {
+            const grfx::DescriptorBinding& binding = bindings[bindingIndex];
 
-        D3D12_ROOT_PARAMETER1 parameter = {};
-        parameter.ParameterType         = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        parameter.ShaderVisibility      = ToD3D12ShaderVisibliity(pLayout->GetShaderVisiblity());
+            D3D12_DESCRIPTOR_RANGE1 range           = {};
+            range.RangeType                         = ToD3D12RangeType(binding.type);
+            range.NumDescriptors                    = static_cast<UINT>(binding.arrayCount);
+            range.BaseShaderRegister                = static_cast<UINT>(binding.binding);
+            range.RegisterSpace                     = static_cast<UINT>(set);
+            range.Flags                             = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
+            range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-        //parameters.push_back(paramter);
+            ranges->push_back(range);
+        }
+
+        // Fill out parameter
+        D3D12_ROOT_PARAMETER1 parameter               = {};
+        parameter.ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+        parameter.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(ranges->size());
+        parameter.DescriptorTable.pDescriptorRanges   = DataPtr(*ranges);
+        parameter.ShaderVisibility                    = ToD3D12ShaderVisibliity(pLayout->GetShaderVisiblity());
+        // Store parameter
+        parameters.push_back(parameter);
+        // Store ranges
+        parameterRanges.push_back(std::move(ranges));
     }
 
     D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};

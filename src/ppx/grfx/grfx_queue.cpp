@@ -4,7 +4,10 @@
 namespace ppx {
 namespace grfx {
 
-Result Queue::CreateCommandBuffer(grfx::CommandBuffer** ppCommandBuffer)
+Result Queue::CreateCommandBuffer(
+    grfx::CommandBuffer** ppCommandBuffer,
+    uint32_t              resourceDescriptorCount,
+    uint32_t              samplerDescriptorCount)
 {
     CommandSet set = {};
 
@@ -16,7 +19,7 @@ Result Queue::CreateCommandBuffer(grfx::CommandBuffer** ppCommandBuffer)
         return ppxres;
     }
 
-    ppxres = GetDevice()->AllocateCommandBuffer(set.commandPool, &set.commandBuffer);
+    ppxres = GetDevice()->AllocateCommandBuffer(set.commandPool, &set.commandBuffer, resourceDescriptorCount, samplerDescriptorCount);
     if (Failed(ppxres)) {
         GetDevice()->DestroyCommandPool(set.commandPool);
         return ppxres;

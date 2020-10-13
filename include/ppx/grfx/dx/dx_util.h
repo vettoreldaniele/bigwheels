@@ -19,6 +19,7 @@ D3D12_FILL_MODE               ToD3D12FillMode(grfx::PolygonMode value);
 D3D12_HEAP_TYPE               ToD3D12HeapType(grfx::MemoryUsage value);
 D3D12_LOGIC_OP                ToD3D12LogicOp(grfx::LogicOp value);
 D3D12_PRIMITIVE_TOPOLOGY_TYPE ToD3D12PrimitiveTopology(grfx::PrimitiveTopology value);
+D3D12_DESCRIPTOR_RANGE_TYPE   ToD3D12RangeType(grfx::DescriptorType value);
 D3D12_RESOURCE_STATES         ToD3D12ResourceStates(grfx::ResourceState value);
 D3D12_RTV_DIMENSION           ToD3D12RTVDimension(grfx::ImageViewType value);
 D3D12_SHADER_VISIBILITY       ToD3D12ShaderVisibliity(grfx::ShaderStageBits value);

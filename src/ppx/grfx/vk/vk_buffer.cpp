@@ -9,14 +9,9 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
 {
     vk::Device* pDevice = ToApi(GetDevice());
 
-    // Align buffer size in case we want to use dynamic uniform buffers
-    // later. Dynamic uniform buffers requires a specific size alignment.
-    // VK_CONSTANT_BUFFER_ALIGNMENT is selected to work across the widest
-    // set of GPUs.
-    //
     VkDeviceSize alignedSize = static_cast<VkDeviceSize>(pCreateInfo->size);
     if (pCreateInfo->usageFlags.bits.uniformBuffer) {
-        alignedSize = RoundUp<VkDeviceSize>(pCreateInfo->size, VK_CONSTANT_BUFFER_ALIGNMENT);
+        alignedSize = RoundUp<VkDeviceSize>(pCreateInfo->size, PPX_UNIFORM_BUFFER_ALIGNMENT);
     }
 
     VkBufferCreateInfo createInfo    = {VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};

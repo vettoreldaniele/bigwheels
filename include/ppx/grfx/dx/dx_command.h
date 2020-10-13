@@ -90,6 +90,12 @@ protected:
 private:
     D3D12GraphicsCommandListPtr mCommandList;
     D3D12CommandAllocatorPtr    mCommandAllocator;
+    UINT                        mHeapSizeCBVSRVUAV = 0;
+    UINT                        mHeapSizeSampler   = 0;
+    D3D12DescriptorHeapPtr      mHeapCBVSRVUAV;
+    D3D12DescriptorHeapPtr      mHeapSampler;
+    UINT                        mHeapOffsetCBVSRVUAV = 0;
+    UINT                        mHeapOffsetSampler   = 0;
 };
 
 // -------------------------------------------------------------------------------------------------

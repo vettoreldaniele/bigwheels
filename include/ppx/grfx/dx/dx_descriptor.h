@@ -64,8 +64,8 @@ class DescriptorSet
 public:
     struct HeapOffset
     {
-        uint32_t                    binding          = UINT32_MAX;
-        uint32_t                    offset           = UINT32_MAX;
+        UINT                        binding          = UINT32_MAX;
+        UINT                        offset           = UINT32_MAX;
         D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle = {};
     };
 
@@ -74,6 +74,9 @@ public:
 
     std::vector<HeapOffset>& GetHeapOffsets() { return mHeapOffsets; }
 
+    D3D12DescriptorHeapPtr  GetHeapCBVSRVUAV() const { return mHeapCBVSRVUAV; }
+    D3D12DescriptorHeapPtr  GetHeapSampler() const { return mHeapSampler; }
+
     virtual Result UpdateDescriptors(uint32_t writeCount, const grfx::WriteDescriptor* pWrites) override;
 
 protected:
@@ -81,6 +84,10 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
+    UINT                    mHeapSizeCBVSRVUAV = 0;
+    UINT                    mHeapSizeSampler   = 0;
+    D3D12DescriptorHeapPtr  mHeapCBVSRVUAV;
+    D3D12DescriptorHeapPtr  mHeapSampler;
     std::vector<HeapOffset> mHeapOffsets;
 };
 
