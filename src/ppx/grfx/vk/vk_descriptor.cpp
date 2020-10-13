@@ -138,7 +138,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
         switch (descriptorType) {
             default: {
                 PPX_ASSERT_MSG(false, "unknown descriptor type: " << ToString(descriptorType) << "(" << descriptorType << ")");
-                return ppx::ERROR_GRFX_UNKONWN_DESCRIPTOR_TYPE;
+                return ppx::ERROR_GRFX_UNKNOWN_DESCRIPTOR_TYPE;
             } break;
 
             case VK_DESCRIPTOR_TYPE_SAMPLER:
@@ -229,13 +229,30 @@ Result DescriptorSetLayout::CreateApiObjects(const grfx::DescriptorSetLayoutCrea
 {
     std::vector<VkDescriptorSetLayoutBinding> vkBindings;
     for (size_t i = 0; i < pCreateInfo->bindings.size(); ++i) {
-        VkDescriptorSetLayoutBinding vkBinding = {};
-        vkBinding.binding                      = pCreateInfo->bindings[i].binding;
-        vkBinding.descriptorType               = ToVkDescriptorType(pCreateInfo->bindings[i].type);
-        vkBinding.descriptorCount              = pCreateInfo->bindings[i].count;
-        vkBinding.stageFlags                   = VkShaderStageFlags(pCreateInfo->bindings[i].shaderStageFlags);
-        vkBinding.pImmutableSamplers           = nullptr;
-        vkBindings.push_back(vkBinding);
+        //
+        // NOTE: To keep D3D12 and Vulkan aligned, we do not support Vulkan's
+        //       descriptor arrayness model. This means that the value for
+        //       VkDescriptorSetLayoutBinding::descriptorCount is always 1.
+        //
+        //       If grfx::DescriptorBinding::arrayCount is greater than 1, we
+        //       create that many entries. The binding number is incremented
+        //       per entry starting from the initial binding value.
+        //
+        // NOTE: All bindings in a set use the same shader stage flags because
+        //       we need to match D3D12's behavior. D3D12 controls shader 
+        //       visibility at the root parameter level and not the binding level.
+        //
+        const grfx::DescriptorBinding& baseBinding = pCreateInfo->bindings[i];
+
+        for (uint32_t bindingOffset = 0; bindingOffset < baseBinding.arrayCount; ++bindingOffset) {
+            VkDescriptorSetLayoutBinding vkBinding = {};
+            vkBinding.binding                      = baseBinding.binding + bindingOffset;
+            vkBinding.descriptorType               = ToVkDescriptorType(baseBinding.type);
+            vkBinding.descriptorCount              = 1;
+            vkBinding.stageFlags                   = ToVkShaderStageFlags(pCreateInfo->shaderVisiblity);
+            vkBinding.pImmutableSamplers           = nullptr;
+            vkBindings.push_back(vkBinding);
+        }
     }
 
     VkDescriptorSetLayoutCreateInfo vkci = {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};

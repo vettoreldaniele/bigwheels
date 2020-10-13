@@ -222,6 +222,10 @@ Result Instance::EnumerateAndCreateeGpus()
     VkResult vkres = vkEnumeratePhysicalDevices(mInstance, &count, nullptr);
     PPX_ASSERT_MSG((vkres == VK_SUCCESS), "vkEnumeratePhysicalDevices(0) failed");
     if (vkres == VK_SUCCESS) {
+        if (count == 0) {
+            return ppx::ERROR_NO_GPUS_FOUND;
+        }
+
         std::vector<VkPhysicalDevice> physicalDevices(count);
         vkres = vkEnumeratePhysicalDevices(mInstance, &count, physicalDevices.data());
         PPX_ASSERT_MSG((vkres == VK_SUCCESS), "vkEnumeratePhysicalDevices(1) failed");
@@ -231,8 +235,8 @@ Result Instance::EnumerateAndCreateeGpus()
                 vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
                 PPX_LOG_INFO("Found GPU [" << i << "]: " << deviceProperties.deviceName);
 
-                grfx::GpuCreateInfo gpuCreateInfo = {};
-                gpuCreateInfo.pApiObject          = static_cast<void*>(physicalDevices[i]);
+                grfx::internal::GpuCreateInfo gpuCreateInfo = {};
+                gpuCreateInfo.pApiObject                    = static_cast<void*>(physicalDevices[i]);
 
                 grfx::GpuPtr tmpGpu;
                 Result       ppxres = CreateGpu(&gpuCreateInfo, &tmpGpu);

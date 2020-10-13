@@ -1,8 +1,113 @@
 #include "ppx/grfx/dx/dx_buffer.h"
+#include "ppx/grfx/dx/dx_device.h"
 
 namespace ppx {
 namespace grfx {
 namespace dx {
+
+Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
+{
+    D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
+
+    // 
+    if (pCreateInfo->usageFlags.bits.storageBuffer) {
+        flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    }
+
+    D3D12_RESOURCE_DESC resourceDesc = {};
+    resourceDesc.Dimension           = D3D12_RESOURCE_DIMENSION_BUFFER;
+    resourceDesc.Alignment           = 0;
+    resourceDesc.Width               = static_cast<UINT64>(pCreateInfo->size);
+    resourceDesc.Height              = 1;
+    resourceDesc.DepthOrArraySize    = 1;
+    resourceDesc.MipLevels           = 1;
+    resourceDesc.Format              = DXGI_FORMAT_UNKNOWN;
+    resourceDesc.SampleDesc.Count    = 1; // Must be 1 or will fail
+    resourceDesc.SampleDesc.Quality  = 0;
+    resourceDesc.Layout              = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    resourceDesc.Flags               = flags;
+
+    // Save D3D12 allocation heap type to be used by Buffer::MapMemory an Buffer::UnmapMemory
+    //
+    mHeapType = ToD3D12HeapType(pCreateInfo->memoryUsage);
+
+    D3D12MA::ALLOCATION_DESC allocationDesc = {};
+    allocationDesc.HeapType                 = mHeapType;
+
+    D3D12_RESOURCE_STATES initialResourceState = ToD3D12ResourceStates(pCreateInfo->initialState);
+    // Using D3D12_HEAP_TYPE_UPLOAD requires D3D12_RESOURCE_STATE_GENERIC_READ
+    //
+    if (mHeapType == D3D12_HEAP_TYPE_UPLOAD) {
+        initialResourceState |= D3D12_RESOURCE_STATE_GENERIC_READ;
+    }
+    // Using D3D12_HEAP_TYPE_READBACK requires D3D12_RESOURCE_STATE_COPY_DEST
+    //
+    if (mHeapType == D3D12_HEAP_TYPE_READBACK) {
+        initialResourceState |= D3D12_RESOURCE_STATE_COPY_DEST;
+    }
+
+    dx::Device* pDevice = ToApi(GetDevice());
+    HRESULT hr = pDevice->GetAllocator()->CreateResource(
+        &allocationDesc,
+        &resourceDesc,
+        initialResourceState,
+        NULL,
+        &mAllocation,
+        IID_PPV_ARGS(&mResource));
+    if (FAILED(hr)) {
+        return ppx::ERROR_API_FAILURE;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void Buffer::DestroyApiObjects()
+{
+    if (mResource) {
+        mResource.Reset();
+    }
+
+    if (mAllocation) {
+        mAllocation->Release();
+        mAllocation.Reset();
+    }
+
+    mHeapType = InvalidValue<D3D12_HEAP_TYPE>();
+}
+
+Result Buffer::MapMemory(uint64_t offset, void** ppMappedAddress)
+{
+    if (IsNull(ppMappedAddress)) {
+        return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    }
+
+    // Use {0, 0} if we're not intending to read this resource
+    //
+    D3D12_RANGE readRange = {0, 0};
+    if (mHeapType == D3D12_HEAP_TYPE_READBACK) {
+        readRange.Begin = offset;
+        readRange.End   = mCreateInfo.size;
+    }
+
+    HRESULT hr = mResource->Map(0, &readRange, ppMappedAddress);
+    if (FAILED(hr)) {
+        return ppx::ERROR_API_FAILURE;
+    }
+    return ppx::SUCCESS;
+}
+
+void Buffer::UnmapMemory()
+{
+    // Use {0, 0} if no data is written
+    //
+    D3D12_RANGE writtenRange = {0, 0};
+
+    // Use NULL if data might have been written
+    //
+    D3D12_RANGE* pRange = (mHeapType == D3D12_HEAP_TYPE_UPLOAD) ? nullptr : &writtenRange;
+
+    mResource->Unmap(0, pRange);
+}
 
 } // namespace dx
 } // namespace grfx

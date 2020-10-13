@@ -18,10 +18,11 @@ public:
     VkDevicePtr     GetVkDevice() const { return mDevice; }
     VmaAllocatorPtr GetVmaAllocator() const { return mVmaAllocator; }
 
-    bool IsTimelineSemaphoreAvailable() const { return mTimelineSemaphoreAvailable; }
-    bool IsExtendedDynamicStateAvailable() const { return mExtendedDynamicStateAvailable; }
+    bool HasTimelineSemaphore() const { return mHasTimelineSemaphore; }
+    bool HasExtendedDynamicState() const { return mHasExtendedDynamicState; }
+    bool HasUnreistrictedDepthRange() const { return mHasUnrestrictedDepthRange; }
 
-    virtual Result WaitIdle();
+    virtual Result WaitIdle() override;
 
 protected:
     virtual Result AllocateObject(grfx::Buffer** ppObject) override;
@@ -61,8 +62,9 @@ private:
     std::vector<std::string> mExtensions;
     VkDevicePtr              mDevice;
     VmaAllocatorPtr          mVmaAllocator;
-    bool                     mTimelineSemaphoreAvailable = false;
-    bool                     mExtendedDynamicStateAvailable = false;
+    bool                     mHasTimelineSemaphore    = false;
+    bool                     mHasExtendedDynamicState = false;
+    bool                     mHasUnrestrictedDepthRange = false;
 };
 
 } // namespace vk

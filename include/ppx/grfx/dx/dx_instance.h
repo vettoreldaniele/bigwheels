@@ -15,6 +15,8 @@ public:
     Instance() {}
     virtual ~Instance() {}
 
+    DXGIFactoryPtr GetDxFactory() const { return mFactory; }
+
 protected:
     virtual Result AllocateObject(grfx::Device** ppDevice) override;
     virtual Result AllocateObject(grfx::Gpu** ppGpu) override;
@@ -23,6 +25,12 @@ protected:
 protected:
     virtual Result CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
+
+private:
+    Result EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel);
+
+private:
+    DXGIFactoryPtr mFactory;
 };
 
 } // namespace dx

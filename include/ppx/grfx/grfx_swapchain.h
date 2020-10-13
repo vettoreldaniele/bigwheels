@@ -63,6 +63,7 @@ public:
 //!
 struct SwapchainCreateInfo
 {
+    grfx::Queue*      pQueue      = nullptr;
     grfx::Surface*    pSurface    = nullptr;
     uint32_t          width       = 0;
     uint32_t          height      = 0;
@@ -93,13 +94,23 @@ public:
     grfx::ImagePtr      GetImage(uint32_t imageIndex) const;
     grfx::RenderPassPtr GetRenderPass(uint32_t imageIndex) const;
 
-    virtual Result AcquireNextImage(uint64_t timeout, const grfx::Semaphore* pSemaphore, const grfx::Fence* pFence, uint32_t* pImageIndex) = 0;
+    virtual Result AcquireNextImage(
+        uint64_t         timeout,    // Nanoseconds
+        grfx::Semaphore* pSemaphore, // Wait sempahore
+        grfx::Fence*     pFence,     // Wait fence
+        uint32_t*        pImageIndex) = 0;
+
+    virtual Result Present(
+        uint32_t                      imageIndex,
+        uint32_t                      waitSemaphoreCount,
+        const grfx::Semaphore* const* ppWaitSemaphores) = 0;
 
 protected:
     virtual Result Create(const grfx::SwapchainCreateInfo* pCreateInfo) override;
     friend class grfx::Device;
 
 protected:
+    grfx::QueuePtr                   mQueue;
     std::vector<grfx::ImagePtr>      mDepthStencilImages;
     std::vector<grfx::ImagePtr>      mColorImages;
     std::vector<grfx::RenderPassPtr> mRenderPasses;

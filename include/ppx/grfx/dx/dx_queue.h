@@ -2,10 +2,34 @@
 #define ppx_grfx_dx_queue_h
 
 #include "ppx/grfx/dx/000_dx_config.h"
+#include "ppx/grfx/grfx_queue.h"
 
 namespace ppx {
 namespace grfx {
 namespace dx {
+
+class Queue
+    : public grfx::Queue
+{
+public:
+    Queue() {}
+    virtual ~Queue() {}
+
+    D3D12CommandQueuePtr GetDxQueue() const { return mCommandQueue; }
+
+    virtual Result WaitIdle() override;
+
+    virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) override;
+
+protected:
+    virtual Result CreateApiObjects(const grfx::internal::QueueCreateInfo* pCreateInfo) override;
+    virtual void   DestroyApiObjects() override;
+
+private:
+    D3D12CommandQueuePtr            mCommandQueue;
+    grfx::FencePtr                  mWaitIdleFence;
+    std::vector<ID3D12CommandList*> mListBuffer;
+};
 
 } // namespace dx
 } // namespace grfx

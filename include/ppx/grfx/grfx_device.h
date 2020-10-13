@@ -107,7 +107,7 @@ public:
     Result AllocateCommandBuffer(const grfx::CommandPool* pPool, grfx::CommandBuffer** ppCommandBuffer);
     void   FreeCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);
 
-    Result AllocateDescriptorSet(const grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, grfx::DescriptorSet** ppSet);
+    Result AllocateDescriptorSet(grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, grfx::DescriptorSet** ppSet);
     void   FreeDescriptorSet(const grfx::DescriptorSet* pSet);
 
     uint32_t       GetGraphicsQueueCount() const;

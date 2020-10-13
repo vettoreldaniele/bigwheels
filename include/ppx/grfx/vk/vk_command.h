@@ -32,17 +32,33 @@ public:
         grfx::ResourceState beforeState,
         grfx::ResourceState afterState) override;
 
-    virtual void SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports) override;
-    virtual void SetScissors(uint32_t scissorCount, const grfx::Rect* pScissors) override;
+    virtual void SetViewports(
+        uint32_t              viewportCount,
+        const grfx::Viewport* pViewports) override;
 
-    virtual void BindGraphicsDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets) override;
+    virtual void SetScissors(
+        uint32_t          scissorCount,
+        const grfx::Rect* pScissors) override;
+
+    virtual void BindGraphicsDescriptorSets(
+        const grfx::PipelineInterface*    pInterface,
+        uint32_t                          setCount,
+        const grfx::DescriptorSet* const* ppSets) override;
+
     virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline) override;
 
-    virtual void BindComputeDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets) override;
+    virtual void BindComputeDescriptorSets(
+        const grfx::PipelineInterface*    pInterface,
+        uint32_t                          setCount,
+        const grfx::DescriptorSet* const* ppSets) override;
+
     virtual void BindComputePipeline(const grfx::ComputePipeline* pPipeline) override;
 
     virtual void BindIndexBuffer(const grfx::IndexBufferView* pView) override;
-    virtual void BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews) override;
+
+    virtual void BindVertexBuffers(
+        uint32_t                      viewCount,
+        const grfx::VertexBufferView* pViews) override;
 
     virtual void Draw(
         uint32_t vertexCount,
@@ -70,6 +86,13 @@ public:
 protected:
     virtual Result CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
+
+private:
+    void BindDescriptorSets(
+        VkPipelineBindPoint               bindPoint,
+        const grfx::PipelineInterface*    pInterface,
+        uint32_t                          setCount,
+        const grfx::DescriptorSet* const* ppSets);
 
 private:
     VkCommandBufferPtr mCommandBuffer;

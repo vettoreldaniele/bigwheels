@@ -6,6 +6,7 @@
 #include "ppx/grfx/grfx_enums.h"
 #include "ppx/grfx/grfx_format.h"
 #include "ppx/grfx/grfx_helper.h"
+#include "ppx/grfx/grfx_util.h"
 
 namespace ppx {
 namespace grfx {

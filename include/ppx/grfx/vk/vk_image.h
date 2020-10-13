@@ -19,6 +19,9 @@ public:
     VkFormat           GetVkFormat() const { return mVkFormat; }
     VkImageAspectFlags GetVkImageAspectFlags() const { return mImageAspect; }
 
+    virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) override;
+    virtual void   UnmapMemory() override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;

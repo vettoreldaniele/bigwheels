@@ -38,8 +38,11 @@ public:
 
 struct VertexInputState
 {
-    uint32_t              attributeCount                     = 0;
-    grfx::VertexAttribute attributes[PPX_MAX_RENDER_TARGETS] = {{0, grfx::FORMAT_UNDEFINED, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX}};
+    uint32_t            bindingCount                      = 0;
+    grfx::VertexBinding bindings[PPX_MAX_VERTEX_BINDINGS] = {};
+
+    //uint32_t              attributeCount                     = 0;
+    //grfx::VertexAttribute attributes[PPX_MAX_RENDER_TARGETS] = {{"", 0, grfx::FORMAT_UNDEFINED, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX}};
 };
 
 struct InputAssemblyState
@@ -65,7 +68,13 @@ struct RasterState
     float             depthBiasConstantFactor = 0.0f;
     float             depthBiasClamp          = 0.0f;
     float             depthBiasSlopeFactor    = 0.0f;
+    bool              depthClipEnable         = false;
     grfx::SampleCount rasterizationSamples    = grfx::SAMPLE_COUNT_1;
+};
+
+struct MultisampleState
+{
+    bool alphaToCoverageEnable = false;
 };
 
 struct StencilOpState
@@ -142,6 +151,7 @@ struct GraphicsPipelineCreateInfo
     grfx::InputAssemblyState       inputAssemblyState = {};
     grfx::TessellationState        tessellationState  = {};
     grfx::RasterState              rasterState        = {};
+    grfx::MultisampleState         multisampleState   = {};
     grfx::DepthStencilState        depthStencilState  = {};
     grfx::ColorBlendState          colorBlendState    = {};
     grfx::OutputState              outputState        = {};
@@ -157,6 +167,7 @@ struct GraphicsPipelineCreateInfo2
     grfx::PolygonMode              polygonMode                        = grfx::POLYGON_MODE_FILL;
     grfx::CullMode                 cullMode                           = grfx::CULL_MODE_NONE;
     grfx::FrontFace                frontFace                          = grfx::FRONT_FACE_CCW;
+    bool                           depthEnable                        = true; // Depth read AND write state
     grfx::BlendMode                blendModes[PPX_MAX_RENDER_TARGETS] = {grfx::BLEND_MODE_NONE};
     grfx::OutputState              outputState                        = {};
     const grfx::PipelineInterface* pPipelineInterface                 = nullptr;
@@ -185,17 +196,17 @@ protected:
     friend class grfx::Device;
 
 protected:
-    struct VertexInputBinding
-    {
-        uint32_t                           binding    = PPX_MAX_VERTEX_ATTRIBUTES;
-        std::vector<grfx::VertexAttribute> attributes = {};
-        uint32_t                           stride     = 0;
-        grfx::VertexInputRate              inputRate  = grfx::VERTEX_INPUT_RATE_VERTEX;
-
-        void CalculateOffsetsAndStride();
-    };
-
-    std::vector<VertexInputBinding> mInputBindings;
+    //struct VertexInputBinding
+    //{
+    //    uint32_t                           binding    = PPX_MAX_VERTEX_ATTRIBUTES;
+    //    std::vector<grfx::VertexAttribute> attributes = {};
+    //    uint32_t                           stride     = 0;
+    //    grfx::VertexInputRate              inputRate  = grfx::VERTEX_INPUT_RATE_VERTEX;
+    //
+    //    void CalculateOffsetsAndStride();
+    //};
+    //
+    //std::vector<VertexInputBinding> mInputBindings;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -205,8 +216,15 @@ protected:
 //!
 struct PipelineInterfaceCreateInfo
 {
-    uint32_t                         setLayoutCount                             = 0;
-    const grfx::DescriptorSetLayout* pSetLayouts[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {nullptr};
+    uint32_t setCount = 0;
+    struct
+    {
+        uint32_t                         set     = PPX_VALUE_IGNORED; // Set number
+        const grfx::DescriptorSetLayout* pLayout = nullptr;           // Set layout
+    } sets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {};
+
+    //uint32_t                         setLayoutCount                             = 0;
+    //const grfx::DescriptorSetLayout* pSetLayouts[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {nullptr};
 };
 
 //! @class PipelineInterface
@@ -220,6 +238,17 @@ class PipelineInterface
 public:
     PipelineInterface() {}
     virtual ~PipelineInterface() {}
+
+    bool                         HasConsecutiveSetNumbers() const { return mHasConsecutiveSetNumbers; }
+    const std::vector<uint32_t>& GetSetNumbers() const { return mSetNumbers; }
+
+protected:
+    virtual Result Create(const grfx::PipelineInterfaceCreateInfo* pCreateInfo) override;
+    friend class grfx::Device;
+
+private:
+    bool                  mHasConsecutiveSetNumbers = false;
+    std::vector<uint32_t> mSetNumbers               = {};
 };
 
 } // namespace grfx

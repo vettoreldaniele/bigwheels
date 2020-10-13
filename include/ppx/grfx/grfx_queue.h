@@ -13,8 +13,8 @@ struct SubmitInfo
     uint32_t                          waitSemaphoreCount   = 0;
     const grfx::Semaphore* const*     ppWaitSemaphores     = nullptr;
     uint32_t                          signalSemaphoreCount = 0;
-    const grfx::Semaphore* const*     ppSignalSemaphores   = nullptr;
-    const grfx::Fence*                pFence               = nullptr;
+    grfx::Semaphore**                 ppSignalSemaphores   = nullptr;
+    grfx::Fence*                      pFence               = nullptr;
 };
 
 namespace internal {
@@ -24,8 +24,10 @@ namespace internal {
 //!
 struct QueueCreateInfo
 {
-    uint32_t queueFamilyIndex = PPX_VALUE_IGNORED; // Vulkan
-    uint32_t queueIndex       = PPX_VALUE_IGNORED; // Vulkan
+    grfx::CommandType commandType      = grfx::COMMAND_TYPE_UNDEFINED;
+    uint32_t          queueFamilyIndex = PPX_VALUE_IGNORED; // Vulkan
+    uint32_t          queueIndex       = PPX_VALUE_IGNORED; // Vulkan
+    void*             pApiObject       = nullptr;           // D3D12
 };
 
 } // namespace internal
@@ -40,15 +42,11 @@ public:
     Queue() {}
     virtual ~Queue() {}
 
+    grfx::CommandType GetCommandType() const { return mCreateInfo.commandType; }
+
     virtual Result WaitIdle() = 0;
 
     virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) = 0;
-
-    virtual Result Present(
-        const grfx::Swapchain*        pSwapchain,
-        uint32_t                      imageIndex,
-        uint32_t                      waitSemaphoreCount,
-        const grfx::Semaphore* const* ppWaitSemaphores) = 0;
 
     Result CreateCommandBuffer(grfx::CommandBuffer** ppCommandBuffer);
     void   DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);

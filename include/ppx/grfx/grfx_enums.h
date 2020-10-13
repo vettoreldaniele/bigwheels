@@ -9,7 +9,8 @@ enum Api
     API_UNDEFINED = 0,
     API_VK_1_1,
     API_VK_1_2,
-    API_DX,
+    API_DX_12_0,
+    API_DX_12_1,
 };
 
 enum AttachmentLoadOp
@@ -167,6 +168,14 @@ enum CompareOp
     COMPARE_OP_ALWAYS           = 7,
 };
 
+enum CommandType
+{
+    COMMAND_TYPE_UNDEFINED = 0,
+    COMMAND_TYPE_GRAPHICS  = 1,
+    COMMAND_TYPE_COMPUTE   = 2,
+    COMMAND_TYPE_TRANSFER  = 3,
+};
+
 enum ComponentSwizzle
 {
     COMPONENT_SWIZZLE_IDENTITY = 0,
@@ -316,6 +325,7 @@ enum PrimitiveTopology
     PRIMITIVE_TOPOLOGY_POINT_LIST     = 3,
     PRIMITIVE_TOPOLOGY_LINE_LIST      = 4,
     PRIMITIVE_TOPOLOGY_LINE_STRIP     = 5,
+    PRIMITIVE_TOPOLOGY_PATCH_LIST     = 6,
 };
 
 enum ResourceState
@@ -408,8 +418,8 @@ enum VendorId
 
 enum VertexInputRate
 {
-    VERTEX_INPUT_RATE_VERTEX   = 0,
-    VERETX_INPUT_RATE_INSTANCE = 1,
+    VERTEX_INPUT_RATE_VERTEX    = 0,
+    VERETX_INPUT_RATE_INSTANCE  = 1,
 };
 
 } // namespace grfx

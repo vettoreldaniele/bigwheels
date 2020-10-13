@@ -185,11 +185,16 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     }
 
     // Image usage
+    //
+    // NOTE: D3D12 support for DXGI_USAGE_UNORDERED_ACCESS is pretty spotty
+    //       so we'll leave out VK_IMAGE_USAGE_STORAGE_BIT for now to
+    //       keep the swwapchains between D3D12 and Vulkan as equivalent as
+    //       possible.
+    //
     VkImageUsageFlags usageFlags =
         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
         VK_IMAGE_USAGE_TRANSFER_DST_BIT |
         VK_IMAGE_USAGE_SAMPLED_BIT |
-        VK_IMAGE_USAGE_STORAGE_BIT |
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     // Create swapchain
@@ -240,12 +245,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
 
     // Transition images from VK_IMAGE_LAYOUT_UNDEFINED to VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
     {
-        grfx::QueuePtr grfxQueue = GetDevice()->GetAnyAvailableQueue();
-        if (!grfxQueue) {
-            return ppx::ERROR_FAILED;
-        }
-
-        vk::Queue* pQueue = ToApi(grfxQueue.Get());
+        vk::Queue* pQueue = ToApi(pCreateInfo->pQueue);
         for (uint32_t i = 0; i < imageCount; ++i) {
             vkres = pQueue->TransitionImageLayout(
                 images[i],                          // image
@@ -292,6 +292,10 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         mColorImages.push_back(image);
     }
 
+    // Save queue for presentation
+    mQueue = ToApi(pCreateInfo->pQueue)->GetVkQueue();
+
+    // Success
     return ppx::SUCCESS;
 }
 
@@ -306,7 +310,11 @@ void Swapchain::DestroyApiObjects()
     }
 }
 
-Result Swapchain::AcquireNextImage(uint64_t timeout, const grfx::Semaphore* pSemaphore, const grfx::Fence* pFence, uint32_t* pImageIndex)
+Result Swapchain::AcquireNextImage(
+    uint64_t         timeout,
+    grfx::Semaphore* pSemaphore,
+    grfx::Fence*     pFence,
+    uint32_t*        pImageIndex)
 {
     VkResult vkres = vkAcquireNextImageKHR(
         ToApi(GetDevice())->GetVkDevice(),
@@ -324,6 +332,35 @@ Result Swapchain::AcquireNextImage(uint64_t timeout, const grfx::Semaphore* pSem
     // Handle warning cases
     if (vkres > VK_SUCCESS) {
         PPX_LOG_WARN("vkAcquireNextImageKHR returned: " << ToString(vkres));
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result Swapchain::Present(
+    uint32_t                      imageIndex,
+    uint32_t                      waitSemaphoreCount,
+    const grfx::Semaphore* const* ppWaitSemaphores)
+{
+    std::vector<VkSemaphore> semaphores;
+    for (uint32_t i = 0; i < waitSemaphoreCount; ++i) {
+        VkSemaphore semaphore = ToApi(ppWaitSemaphores[i])->GetVkSemaphore();
+        semaphores.push_back(semaphore);
+    }
+
+    VkPresentInfoKHR vkpi   = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
+    vkpi.waitSemaphoreCount = CountU32(semaphores);
+    vkpi.pWaitSemaphores    = DataPtr(semaphores);
+    vkpi.swapchainCount     = 1;
+    vkpi.pSwapchains        = mSwapchain;
+    vkpi.pImageIndices      = &imageIndex;
+    vkpi.pResults           = nullptr;
+
+    VkResult vkres = vkQueuePresentKHR(
+        mQueue,
+        &vkpi);
+    if (vkres != VK_SUCCESS) {
+        return ppx::ERROR_API_FAILURE;
     }
 
     return ppx::SUCCESS;

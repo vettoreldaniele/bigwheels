@@ -147,6 +147,31 @@ void Image::DestroyApiObjects()
     }
 }
 
+Result Image::MapMemory(uint64_t offset, void** ppMappedAddress)
+{
+    if (IsNull(ppMappedAddress)) {
+        return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    }
+
+    VkResult vkres = vmaMapMemory(
+        ToApi(GetDevice())->GetVmaAllocator(),
+        mAllocation,
+        ppMappedAddress);
+    if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vmaMapMemory failed: " << ToString(vkres));
+        return ppx::ERROR_API_FAILURE;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void Image::UnmapMemory()
+{
+    vmaUnmapMemory(
+        ToApi(GetDevice())->GetVmaAllocator(),
+        mAllocation);
+}
+
 // -------------------------------------------------------------------------------------------------
 // Sampler
 // -------------------------------------------------------------------------------------------------

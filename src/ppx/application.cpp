@@ -125,6 +125,7 @@ Result Application::InitializeGrfxSurface()
     // Swapchain
     {
         grfx::SwapchainCreateInfo ci = {};
+        ci.pQueue                    = mDevice->GetGraphicsQueue();
         ci.pSurface                  = mSurface;
         ci.width                     = mSettings.window.width;
         ci.height                    = mSettings.window.height;
@@ -249,8 +250,6 @@ int Application::Run(int argc, char** argv)
         return false;
     }
 
-
-
     // Call config
     DispatchConfig();
 
@@ -278,7 +277,7 @@ int Application::Run(int argc, char** argv)
     // ---------------------------------------------------------------------------------------------
     // Main loop [BEGIN]
     // ---------------------------------------------------------------------------------------------
-    
+
     // Initialize and start timer
     ppx::TimerResult tmres = ppx::Timer::InitializeStaticData();
     if (tmres != ppx::TIMER_RESULT_SUCCESS) {

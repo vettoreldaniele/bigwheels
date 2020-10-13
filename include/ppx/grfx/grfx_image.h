@@ -69,6 +69,9 @@ public:
 
     // Convenience functions
     grfx::ImageViewType GuessImageViewType(bool isCube = false) const;
+
+    virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) = 0;
+    virtual void   UnmapMemory()                                      = 0;
 };
 
 // -------------------------------------------------------------------------------------------------

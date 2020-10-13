@@ -4,7 +4,7 @@ namespace ppx {
 namespace grfx {
 namespace vk {
 
-Result Gpu::CreateApiObjects(const grfx::GpuCreateInfo* pCreateInfo)
+Result Gpu::CreateApiObjects(const grfx::internal::GpuCreateInfo* pCreateInfo)
 {
     if (IsNull(pCreateInfo->pApiObject)) {
         return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;

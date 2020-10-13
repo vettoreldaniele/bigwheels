@@ -6,13 +6,18 @@
 namespace ppx {
 namespace grfx {
 
+namespace internal {
+
 struct GpuCreateInfo
 {
-    void* pApiObject = nullptr;
+    int32_t featureLevel = ppx::InvalidValue<int32_t>(); // D3D12
+    void*   pApiObject   = nullptr;
 };
 
+} // namespace internal
+
 class Gpu
-    : public grfx::InstanceObject<grfx::GpuCreateInfo>
+    : public grfx::InstanceObject<grfx::internal::GpuCreateInfo>
 {
 public:
     Gpu() {}

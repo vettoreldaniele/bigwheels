@@ -14,13 +14,18 @@ void CommandBuffer::BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType
     BindIndexBuffer(&view);
 }
 
-void CommandBuffer::BindVertexBuffers(uint32_t bufferCount, const grfx::Buffer* const* ppBuffers, const uint64_t* pOffsets)
+void CommandBuffer::BindVertexBuffers(
+    uint32_t                   bufferCount,
+    const grfx::Buffer* const* ppBuffers,
+    const uint32_t*            pStrides,
+    const uint64_t*            pOffsets)
 {
-    PPX_ASSERT_MSG(bufferCount < PPX_MAX_VERTEX_ATTRIBUTES, "bufferCount exceeds PPX_MAX_VERTEX_ATTRIBUTES");
+    PPX_ASSERT_MSG(bufferCount < PPX_MAX_VERTEX_BINDINGS, "bufferCount exceeds PPX_MAX_VERTEX_ATTRIBUTES");
 
-    grfx::VertexBufferView views[PPX_MAX_VERTEX_ATTRIBUTES] = {};
+    grfx::VertexBufferView views[PPX_MAX_VERTEX_BINDINGS] = {};
     for (uint32_t i = 0; i < bufferCount; ++i) {
-        views[i].pBuffer = ppBuffers[i];
+        views[i].pBuffer    = ppBuffers[i];
+        views[i].stride = pStrides[i];
         if (!IsNull(pOffsets)) {
             views[i].offset = pOffsets[i];
         }

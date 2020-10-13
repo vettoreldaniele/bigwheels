@@ -8,26 +8,36 @@ namespace grfx {
 
 //! @struct DescriptorBinding
 //!
+//! NOTE: D3D12 controls shader visibility in the root paramter and not in the binding.
+//!       All bindings in a set will use the same shader visibility that's determined by
+//!       grfx::DescriptorLayoutCreateInfo::shaderStageFlags.
+//!
 //! *** WARNING ***
 //! 'DescriptorBinding::count' is *NOT* the same as 'VkDescriptorSetLayoutBinding::descriptorCount'.
 //!
 //!
 struct DescriptorBinding
 {
-    uint32_t               binding          = PPX_VALUE_IGNORED;               //
-    grfx::DescriptorType   type             = grfx::DESCRIPTOR_TYPE_UNDEFINED; //
-    uint32_t               count            = 0;                               // WARNING: Not VkDescriptorSetLayoutBinding::descriptorCount
-    grfx::ShaderStageFlags shaderStageFlags = 0;                               //
+    uint32_t             binding    = PPX_VALUE_IGNORED;               //
+    grfx::DescriptorType type       = grfx::DESCRIPTOR_TYPE_UNDEFINED; //
+    uint32_t             arrayCount = 0;                               // WARNING: Not VkDescriptorSetLayoutBinding::descriptorCount
 
     DescriptorBinding() {}
 
-    DescriptorBinding(uint32_t binding_, grfx::DescriptorType type_, uint32_t count_ = 1, grfx::ShaderStageFlags shaderStageFlags_ = grfx::SHADER_STAGE_ALL_GRAPHICS)
-        : binding(binding_), type(type_), count(count_), shaderStageFlags(shaderStageFlags_) {}
+    DescriptorBinding(
+        uint32_t               binding_,
+        grfx::DescriptorType   type_,
+        uint32_t               arrayCount_       = 1,
+        grfx::ShaderStageFlags shaderStageFlags_ = grfx::SHADER_STAGE_ALL_GRAPHICS)
+        : binding(binding_),
+          type(type_),
+          arrayCount(arrayCount_) {}
 };
 
 struct WriteDescriptor
 {
     uint32_t               binding      = PPX_VALUE_IGNORED;
+    uint32_t               arrayIndex   = 0;
     grfx::DescriptorType   type         = grfx::DESCRIPTOR_TYPE_UNDEFINED;
     uint32_t               bufferOffset = 0;
     uint64_t               bufferRange  = PPX_WHOLE_SIZE;
@@ -76,7 +86,7 @@ namespace internal {
 //!
 struct DescriptorSetCreateInfo
 {
-    const grfx::DescriptorPool*      pPool   = nullptr;
+    grfx::DescriptorPool*            pPool   = nullptr;
     const grfx::DescriptorSetLayout* pLayout = nullptr;
 };
 
@@ -92,6 +102,8 @@ public:
     DescriptorSet() {}
     virtual ~DescriptorSet() {}
 
+    grfx::DescriptorPoolPtr GetPool() const { return mCreateInfo.pPool; }
+
     virtual Result UpdateDescriptors(uint32_t writeCount, const grfx::WriteDescriptor* pWrites) = 0;
 };
 
@@ -99,10 +111,17 @@ public:
 
 //! @struct DescriptorSetLayoutCreateInfo
 //!
+//! NOTE: D3D12 and Vulkan have different ways of controlling shader visibility
+//!       for descriptor bindings:
+//!         - D3D12 controls visibility at the root parameter level
+//!         - Vulkan controls visiblity at the binding level
+//!       We'll use the D3D12 model because it allows use to cascade the vsilbity
+//!       flags from the set to the bindings.
 //!
 struct DescriptorSetLayoutCreateInfo
 {
     std::vector<grfx::DescriptorBinding> bindings;
+    grfx::ShaderStageBits                shaderVisiblity = SHADER_STAGE_ALL_GRAPHICS; // Single value not set of flags
 };
 
 //! @class DescriptorSetLayout
@@ -114,6 +133,13 @@ class DescriptorSetLayout
 public:
     DescriptorSetLayout() {}
     virtual ~DescriptorSetLayout() {}
+
+    const std::vector<grfx::DescriptorBinding>& GetBindings() const { return mCreateInfo.bindings; }
+    grfx::ShaderStageBits                       GetShaderVisiblity() const { return mCreateInfo.shaderVisiblity; }
+
+protected:
+    virtual Result Create(const grfx::DescriptorSetLayoutCreateInfo* pCreateInfo) override;
+    friend class grfx::Device;
 };
 
 } // namespace grfx

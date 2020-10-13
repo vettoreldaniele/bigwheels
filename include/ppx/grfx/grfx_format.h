@@ -111,6 +111,12 @@ enum Format
     FORMAT_R8G8B8A8_SRGB,
     FORMAT_B8G8R8_SRGB,
     FORMAT_B8G8R8A8_SRGB,
+
+    // 10-bit RGB, 2-bit A packed
+    FORMAT_R10G10B10A2_UNORM,
+
+    // 11-bit R, 11-bit G, 10-bit B packed
+    FORMAT_R11G11B10_FLOAT,
 };
 
 uint32_t FormatSize(grfx::Format format);

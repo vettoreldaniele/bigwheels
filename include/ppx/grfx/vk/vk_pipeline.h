@@ -67,8 +67,9 @@ private:
         const grfx::GraphicsPipelineCreateInfo* pCreateInfo,
         VkPipelineViewportStateCreateInfo&      stateCreateInfo);
     Result InitializeRasterization(
-        const grfx::GraphicsPipelineCreateInfo* pCreateInfo,
-        VkPipelineRasterizationStateCreateInfo& stateCreateInfo);
+        const grfx::GraphicsPipelineCreateInfo*             pCreateInfo,
+        VkPipelineRasterizationDepthClipStateCreateInfoEXT& depthClipStateCreateInfo,
+        VkPipelineRasterizationStateCreateInfo&             stateCreateInfo);
     Result InitializeMultisample(
         const grfx::GraphicsPipelineCreateInfo* pCreateInfo,
         VkPipelineMultisampleStateCreateInfo&   stateCreateInfo);

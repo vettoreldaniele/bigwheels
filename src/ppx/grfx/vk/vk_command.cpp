@@ -197,25 +197,88 @@ void CommandBuffer::SetScissors(uint32_t scissorCount, const grfx::Rect* pScisso
         reinterpret_cast<const VkRect2D*>(pScissors));
 }
 
-void CommandBuffer::BindGraphicsDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets)
+void CommandBuffer::BindDescriptorSets(
+    VkPipelineBindPoint               bindPoint,
+    const grfx::PipelineInterface*    pInterface,
+    uint32_t                          setCount,
+    const grfx::DescriptorSet* const* ppSets)
 {
     PPX_ASSERT_NULL_ARG(pInterface);
 
-    VkDescriptorSet vkSets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
-
-    for (uint32_t i = 0; i < setCount; ++i) {
-        vkSets[i] = ToApi(ppSets[i])->GetVkDescriptorSet();
+    // D3D12 needs the pipeline interface (root signature) bound even if there
+    // aren't any descriptor sets. Since Vulkan doesn't require this, we'll
+    // just treat it as a NOOP if setCount is zero.
+    //
+    if (setCount == 0) {
+        return;
     }
 
-    vkCmdBindDescriptorSets(
-        mCommandBuffer,
-        VK_PIPELINE_BIND_POINT_GRAPHICS,
-        ToApi(pInterface)->GetVkPipelineLayout(),
-        0,
-        1,
-        vkSets,
-        0,
-        nullptr);
+    // Get set numbers
+    const std::vector<uint32_t>& setNumbers = pInterface->GetSetNumbers();
+
+    // setCount cannot exceed the number of sets in the pipeline interface
+    uint32_t setNumberCount = CountU32(setNumbers);
+    if (setCount > setNumberCount) {
+        PPX_ASSERT_MSG(false, "setCount exceeds the number of sets in pipeline interface");
+    }
+
+    if (setCount > 0) {
+        // Get Vulkan handles
+        VkDescriptorSet vkSets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
+        for (uint32_t i = 0; i < setCount; ++i) {
+            vkSets[i] = ToApi(ppSets[i])->GetVkDescriptorSet();
+        }
+
+        // If we have consecutive set numbers we can bind just once...
+        if (pInterface->HasConsecutiveSetNumbers()) {
+            uint32_t firstSet = setNumbers[0];
+
+            vkCmdBindDescriptorSets(
+                mCommandBuffer,                           // commandBuffer
+                bindPoint,                                // pipelineBindPoint
+                ToApi(pInterface)->GetVkPipelineLayout(), // layout
+                firstSet,                                 // firstSet
+                setCount,                                 // descriptorSetCount
+                vkSets,                                   // pDescriptorSets
+                0,                                        // dynamicOffsetCount
+                nullptr);                                 // pDynamicOffsets
+        }
+        // ...otherwise we get to bind a bunch of times
+        else {
+            for (uint32_t i = 0; i < setCount; ++i) {
+                uint32_t firstSet = setNumbers[i];
+
+                vkCmdBindDescriptorSets(
+                    mCommandBuffer,                           // commandBuffer
+                    bindPoint,                                // pipelineBindPoint
+                    ToApi(pInterface)->GetVkPipelineLayout(), // layout
+                    firstSet,                                 // firstSet
+                    1,                                        // descriptorSetCount
+                    &vkSets[i],                               // pDescriptorSets
+                    0,                                        // dynamicOffsetCount
+                    nullptr);                                 // pDynamicOffsets
+            }
+        }
+    }
+    else {
+        vkCmdBindDescriptorSets(
+            mCommandBuffer,                           // commandBuffer
+            bindPoint,                                // pipelineBindPoint
+            ToApi(pInterface)->GetVkPipelineLayout(), // layout
+            0,                                        // firstSet
+            0,                                        // descriptorSetCount
+            nullptr,                                  // pDescriptorSets
+            0,                                        // dynamicOffsetCount
+            nullptr);                                 // pDynamicOffsets
+    }
+}
+
+void CommandBuffer::BindGraphicsDescriptorSets(
+    const grfx::PipelineInterface*    pInterface,
+    uint32_t                          setCount,
+    const grfx::DescriptorSet* const* ppSets)
+{
+    BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pInterface, setCount, ppSets);
 }
 
 void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)
@@ -228,25 +291,12 @@ void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline
         ToApi(pPipeline)->GetVkPipeline());
 }
 
-void CommandBuffer::BindComputeDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets)
+void CommandBuffer::BindComputeDescriptorSets(
+    const grfx::PipelineInterface*    pInterface,
+    uint32_t                          setCount,
+    const grfx::DescriptorSet* const* ppSets)
 {
-    PPX_ASSERT_NULL_ARG(pInterface);
-
-    VkDescriptorSet vkSets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
-
-    for (uint32_t i = 0; i < setCount; ++i) {
-        vkSets[i] = ToApi(ppSets[i])->GetVkDescriptorSet();
-    }
-
-    vkCmdBindDescriptorSets(
-        mCommandBuffer,
-        VK_PIPELINE_BIND_POINT_COMPUTE,
-        ToApi(pInterface)->GetVkPipelineLayout(),
-        0,
-        1,
-        vkSets,
-        0,
-        nullptr);
+    BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pInterface, setCount, ppSets);
 }
 
 void CommandBuffer::BindComputePipeline(const grfx::ComputePipeline* pPipeline)
@@ -270,7 +320,7 @@ void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
 
 void CommandBuffer::BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews)
 {
-    PPX_ASSERT_MSG(viewCount < PPX_MAX_VERTEX_ATTRIBUTES, "viewCount exceeds PPX_MAX_VERTEX_ATTRIBUTES");
+    PPX_ASSERT_MSG(viewCount < PPX_MAX_VERTEX_BINDINGS, "viewCount exceeds PPX_MAX_VERTEX_ATTRIBUTES");
 
     VkBuffer     buffers[PPX_MAX_RENDER_TARGETS] = {VK_NULL_HANDLE};
     VkDeviceSize offsets[PPX_MAX_RENDER_TARGETS] = {0};
@@ -298,19 +348,19 @@ void CommandBuffer::Draw(
 }
 
 void CommandBuffer::DrawIndexed(
-        uint32_t indexCount,
-        uint32_t instanceCount,
-        uint32_t firstIndex,
-        int32_t  vertexOffset,
-        uint32_t firstInstance)
+    uint32_t indexCount,
+    uint32_t instanceCount,
+    uint32_t firstIndex,
+    int32_t  vertexOffset,
+    uint32_t firstInstance)
 {
     vkCmdDrawIndexed(mCommandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 void CommandBuffer::Dispatch(
-        uint32_t groupCountX,
-        uint32_t groupCountY,
-        uint32_t groupCountZ)
+    uint32_t groupCountX,
+    uint32_t groupCountY,
+    uint32_t groupCountZ)
 {
     vkCmdDispatch(mCommandBuffer, groupCountX, groupCountY, groupCountZ);
 }

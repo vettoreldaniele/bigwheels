@@ -7,7 +7,11 @@ namespace grfx {
 
 Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
 {
+    PPX_ASSERT_NULL_ARG(pCreateInfo->pQueue);
     PPX_ASSERT_NULL_ARG(pCreateInfo->pSurface);
+    if (IsNull(pCreateInfo->pQueue) || IsNull(pCreateInfo->pSurface)) {
+        return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    }
 
     Result ppxres = grfx::DeviceObject<grfx::SwapchainCreateInfo>::Create(pCreateInfo);
     if (Failed(ppxres)) {

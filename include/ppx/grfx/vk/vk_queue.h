@@ -15,17 +15,13 @@ public:
     Queue() {}
     virtual ~Queue() {}
 
+    VkQueuePtr GetVkQueue() const { return mQueue; }
+
     uint32_t GetQueueFamilyIndex() const { return mCreateInfo.queueFamilyIndex; }
 
     virtual Result WaitIdle() override;
 
     virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) override;
-
-    virtual Result Present(
-        const grfx::Swapchain*        pSwapchain,
-        uint32_t                      imageIndex,
-        uint32_t                      waitSemaphoreCount,
-        const grfx::Semaphore* const* ppWaitSemaphores) override;
 
     VkResult TransitionImageLayout(
         VkImage              image,

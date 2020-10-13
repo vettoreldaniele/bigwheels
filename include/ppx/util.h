@@ -7,6 +7,12 @@
 
 namespace ppx {
 
+struct RangeU32
+{
+    uint32_t start;
+    uint32_t end;
+};
+
 template <typename T>
 bool IsNull(const T* ptr)
 {
@@ -67,10 +73,32 @@ bool IsIndexInRange(uint32_t index, const std::vector<T>& container)
     return res;
 }
 
+// Returns true if [a,b) overlaps with [c, d)
+inline bool HasOverlapHalfOpen(uint32_t a, uint32_t b, uint32_t c, uint32_t d)
+{
+    bool overlap = std::max<uint32_t>(a, c) < std::min<uint32_t>(c, d);
+    return overlap;
+}
+
+inline bool HasOverlapHalfOpen(const ppx::RangeU32& r0, const ppx::RangeU32& r1)
+{
+    return HasOverlapHalfOpen(r0.start, r0.end, r1.start, r1.end);
+}
+
+template <typename T, class UnaryPredicate>
+typename std::vector<T>::iterator FindIf(std::vector<T>& container, UnaryPredicate predicate)
+{
+    typename std::vector<T>::iterator it = std::find_if(
+        std::begin(container),
+        std::end(container),
+        predicate);
+    return it;
+}
+
 template <typename T>
 bool ElementExists(const T& elem, const std::vector<T>& container)
 {
-    auto it = std::find(std::begin(container), std::end(container), elem);
+    auto it     = std::find(std::begin(container), std::end(container), elem);
     bool exists = (it != std::end(container));
     return exists;
 }

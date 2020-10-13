@@ -16,6 +16,7 @@ struct InstanceCreateInfo
     bool                     enableSwapchain = true;                // Enable support for swapchain
     std::string              applicationName;                       // [OPTIONAL] Application name
     std::string              engineName;                            // [OPTIONAL] Engine name
+    bool                     forceDxDiscreteAllocations = false;    // [OPTIONAL] Forces D3D12 to make discrete allocations for resources
     std::vector<std::string> vulkanLayers;                          // [OPTIONAL] Additional instance layers
     std::vector<std::string> vulkanExtensions;                      // [OPTIONAL] Additional instance extensions
 };
@@ -27,6 +28,7 @@ public:
     virtual ~Instance() {}
 
     bool IsSwapchainEnabled() const { return mCreateInfo.enableSwapchain; }
+    bool ForceDxDiscreteAllocations() const { return mCreateInfo.forceDxDiscreteAllocations; }
 
     grfx::Api GetApi() const { return mCreateInfo.api; }
 
@@ -43,7 +45,7 @@ public:
     void   DestroySurface(const grfx::Surface* pSurface);
 
 protected:
-    Result CreateGpu(const grfx::GpuCreateInfo* pCreateInfo, grfx::Gpu** ppGpu);
+    Result CreateGpu(const grfx::internal::GpuCreateInfo* pCreateInfo, grfx::Gpu** ppGpu);
     void   DestroyGpu(const grfx::Gpu* pGpu);
 
     virtual Result AllocateObject(grfx::Device** ppDevice)   = 0;

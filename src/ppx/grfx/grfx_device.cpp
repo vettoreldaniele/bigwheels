@@ -18,6 +18,11 @@ Result Device::Create(const grfx::DeviceCreateInfo* pCreateInfo)
 
 void Device::Destroy()
 {
+    // Destroy queues first to clear any pending work
+    DestroyAllObjects(mGraphicsQueues);
+    DestroyAllObjects(mComputeQueues);
+    DestroyAllObjects(mTransferQueues);
+
     DestroyAllObjects(mBuffers);
     DestroyAllObjects(mCommandBuffers);
     DestroyAllObjects(mCommandPools);
@@ -34,10 +39,6 @@ void Device::Destroy()
     DestroyAllObjects(mSamplers);
     DestroyAllObjects(mSemaphores);
     DestroyAllObjects(mShaderModules);
-
-    DestroyAllObjects(mGraphicsQueues);
-    DestroyAllObjects(mComputeQueues);
-    DestroyAllObjects(mTransferQueues);
 
     grfx::InstanceObject<grfx::DeviceCreateInfo>::Destroy();
     PPX_LOG_INFO("Destroyed device: " << mCreateInfo.pGpu->GetDeviceName());
@@ -491,7 +492,7 @@ void Device::FreeCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)
     DestroyObject(mCommandBuffers, pCommandBuffer);
 }
 
-Result Device::AllocateDescriptorSet(const grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, grfx::DescriptorSet** ppSet)
+Result Device::AllocateDescriptorSet(grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, grfx::DescriptorSet** ppSet)
 {
     PPX_ASSERT_NULL_ARG(pPool);
     PPX_ASSERT_NULL_ARG(pLayout);

@@ -181,7 +181,7 @@ void Instance::DestroySurface(const grfx::Surface* pSurface)
     DestroyObject(mSurfaces, pSurface);
 }
 
-Result Instance::CreateGpu(const grfx::GpuCreateInfo* pCreateInfo, grfx::Gpu** ppGpu)
+Result Instance::CreateGpu(const grfx::internal::GpuCreateInfo* pCreateInfo, grfx::Gpu** ppGpu)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
     PPX_ASSERT_NULL_ARG(ppGpu);
@@ -207,21 +207,27 @@ Result CreateInstance(const grfx::InstanceCreateInfo* pCreateInfo, grfx::Instanc
     }
 
     grfx::Instance* pObject = nullptr;
-    if (pCreateInfo->api == grfx::API_DX) {
-        pObject = new dx::Instance();
-        if (IsNull(pObject)) {
-            return ppx::ERROR_ALLOCATION_FAILED;
-        }
-    }
-    else if ((pCreateInfo->api == grfx::API_VK_1_1) || (pCreateInfo->api == grfx::API_VK_1_2)) {
-        pObject = new vk::Instance();
-        if (IsNull(pObject)) {
-            return ppx::ERROR_ALLOCATION_FAILED;
-        }
-    }
-    else {
-        PPX_ASSERT_MSG(false, "Unsupported API");
-        return ppx::ERROR_UNSUPPORTED_API;
+    switch (pCreateInfo->api) {
+        default: {
+            PPX_ASSERT_MSG(false, "Unsupported API");
+            return ppx::ERROR_UNSUPPORTED_API;
+        } break;
+
+        case grfx::API_DX_12_0:
+        case grfx::API_DX_12_1: {
+            pObject = new dx::Instance();
+            if (IsNull(pObject)) {
+                return ppx::ERROR_ALLOCATION_FAILED;
+            }
+        } break;
+
+        case grfx::API_VK_1_1:
+        case grfx::API_VK_1_2: {
+            pObject = new vk::Instance();
+            if (IsNull(pObject)) {
+                return ppx::ERROR_ALLOCATION_FAILED;
+            }
+        } break;
     }
 
     Result ppxres = pObject->Create(pCreateInfo);

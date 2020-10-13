@@ -44,6 +44,7 @@ void Queue::DestroyApiObjects()
     }
 
     if (mQueue) {
+        WaitIdle();
         mQueue.Reset();
     }
 }
@@ -95,38 +96,6 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
         1,
         &vksi,
         IsNull(pSubmitInfo->pFence) ? VK_NULL_HANDLE : ToApi(pSubmitInfo->pFence)->GetVkFence());
-    if (vkres != VK_SUCCESS) {
-        return ppx::ERROR_API_FAILURE;
-    }
-
-    return ppx::SUCCESS;
-}
-
-Result Queue::Present(
-    const grfx::Swapchain*        pSwapchain,
-    uint32_t                      imageIndex,
-    uint32_t                      waitSemaphoreCount,
-    const grfx::Semaphore* const* ppWaitSemaphores)
-{
-    std::vector<VkSemaphore> semaphores;
-    for (uint32_t i = 0; i < waitSemaphoreCount; ++i) {
-        VkSemaphore semaphore = ToApi(ppWaitSemaphores[i])->GetVkSemaphore();
-        semaphores.push_back(semaphore);
-    }
-
-    VkSwapchainKHR swapchain = ToApi(pSwapchain)->GetVkSwapchain();
-
-    VkPresentInfoKHR vkpi   = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
-    vkpi.waitSemaphoreCount = CountU32(semaphores);
-    vkpi.pWaitSemaphores    = DataPtr(semaphores);
-    vkpi.swapchainCount     = 1;
-    vkpi.pSwapchains        = &swapchain;
-    vkpi.pImageIndices      = &imageIndex;
-    vkpi.pResults           = nullptr;
-
-    VkResult vkres = vkQueuePresentKHR(
-        mQueue,
-        &vkpi);
     if (vkres != VK_SUCCESS) {
         return ppx::ERROR_API_FAILURE;
     }

@@ -61,8 +61,21 @@ endif()
 # Add header and source files
 # ------------------------------------------------------------------------------
 
-set(INC_DIR ${PPX_DIR}/include)
-set(SRC_DIR ${PPX_DIR}/src)
+set(INC_DIR   ${PPX_DIR}/include)
+set(SRC_DIR   ${PPX_DIR}/src)
+set(IMGUI_DIR ${PPX_DIR}/third_party/imgui)
+
+list(APPEND IMGUI_HEADER_FILES
+  ${IMGUI_DIR}/imgui.h
+  ${IMGUI_DIR}/examples/imgui_impl_glfw.h
+)
+
+list(APPEND IMGUI_SOURCE_FILES
+  ${IMGUI_DIR}/imgui.cpp
+  ${IMGUI_DIR}/imgui_draw.cpp
+  ${IMGUI_DIR}/imgui_widgets.cpp
+  ${IMGUI_DIR}/examples/imgui_impl_glfw.cpp
+)
 
 list(
     APPEND PPX_HEADER_FILES
@@ -74,6 +87,7 @@ list(
     ${INC_DIR}/ppx/fs.h
     ${INC_DIR}/ppx/graphics_util.h
     ${INC_DIR}/ppx/headless_application.h
+    ${INC_DIR}/ppx/imgui_impl.h
     ${INC_DIR}/ppx/log.h
     ${INC_DIR}/ppx/obj_ptr.h
     ${INC_DIR}/ppx/platform.h
@@ -89,6 +103,7 @@ list(
     ${SRC_DIR}/ppx/bitmap.cpp
     ${SRC_DIR}/ppx/graphics_util.cpp
     ${SRC_DIR}/ppx/headless_application.cpp
+    ${SRC_DIR}/ppx/imgui_impl.cpp
     ${SRC_DIR}/ppx/log.cpp
     ${SRC_DIR}/ppx/platform.cpp
     ${SRC_DIR}/ppx/timer.cpp
@@ -115,6 +130,7 @@ list(
     ${INC_DIR}/ppx/grfx/grfx_swapchain.h
     ${INC_DIR}/ppx/grfx/grfx_sync.h
     ${INC_DIR}/ppx/grfx/grfx_texture.h
+    ${INC_DIR}/ppx/grfx/grfx_util.h
 )
 
 list(
@@ -135,6 +151,7 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_swapchain.cpp
     ${SRC_DIR}/ppx/grfx/grfx_sync.cpp
     ${SRC_DIR}/ppx/grfx/grfx_texture.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_util.cpp
 )
 
 list(
@@ -159,6 +176,7 @@ if (PPX_D3D12)
         ${INC_DIR}/ppx/grfx/dx/dx_buffer.h
         ${INC_DIR}/ppx/grfx/dx/dx_command.h
         ${INC_DIR}/ppx/grfx/dx/dx_descriptor.h
+        ${INC_DIR}/ppx/grfx/dx/dx_descriptor_helper.h
         ${INC_DIR}/ppx/grfx/dx/dx_device.h
         ${INC_DIR}/ppx/grfx/dx/dx_gpu.h
         ${INC_DIR}/ppx/grfx/dx/dx_image.h
@@ -169,6 +187,7 @@ if (PPX_D3D12)
         ${INC_DIR}/ppx/grfx/dx/dx_shader.h
         ${INC_DIR}/ppx/grfx/dx/dx_swapchain.h
         ${INC_DIR}/ppx/grfx/dx/dx_sync.h
+        ${INC_DIR}/ppx/grfx/dx/dx_util.h
     )
 
     list(
@@ -176,6 +195,7 @@ if (PPX_D3D12)
         ${SRC_DIR}/ppx/grfx/dx/dx_buffer.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_command.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_descriptor.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_descriptor_helper.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_device.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_gpu.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_image.cpp
@@ -186,6 +206,7 @@ if (PPX_D3D12)
         ${SRC_DIR}/ppx/grfx/dx/dx_shader.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_swapchain.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_sync.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_util.cpp
         ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src/D3D12MemAlloc.h
         ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src/D3D12MemAlloc.cpp
     )
@@ -240,17 +261,18 @@ list(
 # Source group
 # ------------------------------------------------------------------------------
 
-source_group("Header Files\\ppx"            FILES ${PPX_HEADER_FILES})
-source_group("Source Files\\ppx"            FILES ${PPX_SOURCE_FILES})
-source_group("Header Files\\ppx\\grfx"      FILES ${PPX_GRFX_HEADER_FILES})
-source_group("Source Files\\ppx\\grfx"      FILES ${PPX_GRFX_SOURCE_FILES})
-source_group("Header Files\\ppx\\grfx\\dx"  FILES ${PPX_GRFX_DX_HEADER_FILES})
-source_group("Source Files\\ppx\\grfx\\dx"  FILES ${PPX_GRFX_DX_SOURCE_FILES})
-source_group("Header Files\\ppx\\grfx\\vk"  FILES ${PPX_GRFX_VK_HEADER_FILES})
-source_group("Source Files\\ppx\\grfx\\vk"  FILES ${PPX_GRFX_VK_SOURCE_FILES})
-source_group("Header Files\\ppx\\io"        FILES ${PPX_IO_HEADER_FILES})
-source_group("Source Files\\ppx\\io"        FILES ${PPX_IO_SOURCE_FILES})
-source_group("contrib"                      FILES ${CONTRIB_FILES})
+source_group("ppx\\header"           FILES ${PPX_HEADER_FILES})
+source_group("ppx\\source"           FILES ${PPX_SOURCE_FILES})
+source_group("ppx-grfx\\header"      FILES ${PPX_GRFX_HEADER_FILES})
+source_group("ppx-grfx\\source"      FILES ${PPX_GRFX_SOURCE_FILES})
+source_group("ppx-grfx-dx\\header"  FILES ${PPX_GRFX_DX_HEADER_FILES})
+source_group("ppx-grfx-dx\\source"  FILES ${PPX_GRFX_DX_SOURCE_FILES})
+source_group("ppx-grfx-vk\\header"  FILES ${PPX_GRFX_VK_HEADER_FILES})
+source_group("ppx-grfx-vk\\source"  FILES ${PPX_GRFX_VK_SOURCE_FILES})
+source_group("ppx-io\\header"       FILES ${PPX_IO_HEADER_FILES})
+source_group("ppx-io\\source"       FILES ${PPX_IO_SOURCE_FILES})
+source_group("ThirdParty\\contrib"   FILES ${CONTRIB_FILES})
+source_group("ThirdParty\\imgui"     FILES ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
 
 # ------------------------------------------------------------------------------
 # Add library
@@ -269,6 +291,8 @@ add_library(
     ${PPX_IO_HEADER_FILES}
     ${PPX_IO_SOURCE_FILES}
     ${CONTRIB_FILES}
+    ${IMGUI_HEADER_FILES}
+    ${IMGUI_SOURCE_FILES}
 )
 
 if (${PPX_LINUX} OR ${PPX_GGP})
@@ -288,6 +312,7 @@ target_include_directories(
             ${PPX_THIRD_PARTY_DIR}/glfw/include
             ${PPX_THIRD_PARTY_DIR}/glm
             ${PPX_THIRD_PARTY_DIR}/stb
+            ${PPX_THIRD_PARTY_DIR}/imgui
 )
 
 # Include D3D12 directories if D3D12 is enabled

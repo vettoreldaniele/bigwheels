@@ -6,6 +6,8 @@
 #include "ppx/grfx/grfx_format.h"
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 namespace ppx {
 namespace grfx {
@@ -129,6 +131,14 @@ struct ImageUsageFlags
 
 // -------------------------------------------------------------------------------------------------
 
+struct Range
+{
+    uint32_t start = 0;
+    uint32_t end   = 0;
+};
+
+// -------------------------------------------------------------------------------------------------
+
 struct ShaderStageFlags
 {
     union
@@ -169,11 +179,40 @@ struct ShaderStageFlags
 
 struct VertexAttribute
 {
-    uint32_t              location  = 0;                              // @TODO: Find a way to handle between DX and VK
-    grfx::Format          format    = grfx::FORMAT_UNDEFINED;         //
-    uint32_t              binding   = 0;                              // Valid range is [0, 15]
-    uint32_t              offset    = PPX_APPEND_OFFSET_ALIGNED;      // Use PPX_APPEND_OFFSET_ALIGNED to auto calculate offsets
-    grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX; //
+    std::string           semanticName = "";                             // Semantic name (no effect in Vulkan currently)
+    uint32_t              location     = 0;                              // @TODO: Find a way to handle between DX and VK
+    grfx::Format          format       = grfx::FORMAT_UNDEFINED;         //
+    uint32_t              binding      = 0;                              // Valid range is [0, 15]
+    uint32_t              offset       = PPX_APPEND_OFFSET_ALIGNED;      // Use PPX_APPEND_OFFSET_ALIGNED to auto calculate offsets
+    grfx::VertexInputRate inputRate    = grfx::VERTEX_INPUT_RATE_VERTEX; //
+};
+
+// -------------------------------------------------------------------------------------------------
+
+class VertexBinding
+{
+public:
+    VertexBinding(uint32_t binding = 0)
+        : mBinding(binding) {}
+
+    ~VertexBinding() {}
+
+    uint32_t              GetBinding() const { return mBinding; }
+    const uint32_t&       GetStride() const { return mStride; }
+    grfx::VertexInputRate GetInputRate() const { return mInputRate; }
+    uint32_t              GetAttributeCount() const { return static_cast<uint32_t>(mAttributes.size()); }
+    bool                  GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const;
+    void                  AppendAttribute(const grfx::VertexAttribute& attribute);
+
+    VertexBinding& operator+=(const grfx::VertexAttribute& rhs);
+
+private:
+    static const grfx::VertexInputRate kInvalidVertexInputRate = static_cast<grfx::VertexInputRate>(~0);
+
+    uint32_t                           mBinding   = 0;
+    uint32_t                           mStride    = 0;
+    grfx::VertexInputRate              mInputRate = kInvalidVertexInputRate;
+    std::vector<grfx::VertexAttribute> mAttributes;
 };
 
 } // namespace grfx

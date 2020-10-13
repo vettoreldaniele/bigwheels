@@ -354,117 +354,121 @@ VkFilter ToVkFilter(grfx::Filter value)
 
 VkFormat ToVkFormat(grfx::Format value)
 {
-    VkFormat result = VK_FORMAT_UNDEFINED;
-
     // clang-format off
     switch (value) {
         default: break;
 
         // 8-bit signed normalized
-        case FORMAT_R8_SNORM           : result = VK_FORMAT_R8_SNORM; break;
-        case FORMAT_R8G8_SNORM         : result = VK_FORMAT_R8G8_SNORM; break;
-        case FORMAT_R8G8B8_SNORM       : result = VK_FORMAT_R8G8B8_SNORM; break;
-        case FORMAT_R8G8B8A8_SNORM     : result = VK_FORMAT_R8G8B8A8_SNORM; break;
-        case FORMAT_B8G8R8_SNORM       : result = VK_FORMAT_B8G8R8_SNORM; break;
-        case FORMAT_B8G8R8A8_SNORM     : result = VK_FORMAT_B8G8R8A8_SNORM; break;
+        case FORMAT_R8_SNORM           : return VK_FORMAT_R8_SNORM; break;
+        case FORMAT_R8G8_SNORM         : return VK_FORMAT_R8G8_SNORM; break;
+        case FORMAT_R8G8B8_SNORM       : return VK_FORMAT_R8G8B8_SNORM; break;
+        case FORMAT_R8G8B8A8_SNORM     : return VK_FORMAT_R8G8B8A8_SNORM; break;
+        case FORMAT_B8G8R8_SNORM       : return VK_FORMAT_B8G8R8_SNORM; break;
+        case FORMAT_B8G8R8A8_SNORM     : return VK_FORMAT_B8G8R8A8_SNORM; break;
                                              
         // 8-bit unsigned normalized         
-        case FORMAT_R8_UNORM           : result = VK_FORMAT_R8_UNORM; break;
-        case FORMAT_R8G8_UNORM         : result = VK_FORMAT_R8G8_UNORM; break;
-        case FORMAT_R8G8B8_UNORM       : result = VK_FORMAT_R8G8B8_UNORM; break;
-        case FORMAT_R8G8B8A8_UNORM     : result = VK_FORMAT_R8G8B8A8_UNORM; break;
-        case FORMAT_B8G8R8_UNORM       : result = VK_FORMAT_B8G8R8_UNORM; break;
-        case FORMAT_B8G8R8A8_UNORM     : result = VK_FORMAT_B8G8R8A8_UNORM; break;
+        case FORMAT_R8_UNORM           : return VK_FORMAT_R8_UNORM; break;
+        case FORMAT_R8G8_UNORM         : return VK_FORMAT_R8G8_UNORM; break;
+        case FORMAT_R8G8B8_UNORM       : return VK_FORMAT_R8G8B8_UNORM; break;
+        case FORMAT_R8G8B8A8_UNORM     : return VK_FORMAT_R8G8B8A8_UNORM; break;
+        case FORMAT_B8G8R8_UNORM       : return VK_FORMAT_B8G8R8_UNORM; break;
+        case FORMAT_B8G8R8A8_UNORM     : return VK_FORMAT_B8G8R8A8_UNORM; break;
                                              
         // 8-bit signed integer              
-        case FORMAT_R8_SINT            : result = VK_FORMAT_R8_SINT; break;
-        case FORMAT_R8G8_SINT          : result = VK_FORMAT_R8G8_SINT; break;
-        case FORMAT_R8G8B8_SINT        : result = VK_FORMAT_R8G8B8_SINT; break;
-        case FORMAT_R8G8B8A8_SINT      : result = VK_FORMAT_R8G8B8A8_SINT; break;
-        case FORMAT_B8G8R8_SINT        : result = VK_FORMAT_B8G8R8_SINT; break;
-        case FORMAT_B8G8R8A8_SINT      : result = VK_FORMAT_B8G8R8A8_SINT; break;
+        case FORMAT_R8_SINT            : return VK_FORMAT_R8_SINT; break;
+        case FORMAT_R8G8_SINT          : return VK_FORMAT_R8G8_SINT; break;
+        case FORMAT_R8G8B8_SINT        : return VK_FORMAT_R8G8B8_SINT; break;
+        case FORMAT_R8G8B8A8_SINT      : return VK_FORMAT_R8G8B8A8_SINT; break;
+        case FORMAT_B8G8R8_SINT        : return VK_FORMAT_B8G8R8_SINT; break;
+        case FORMAT_B8G8R8A8_SINT      : return VK_FORMAT_B8G8R8A8_SINT; break;
                                              
         // 8-bit unsigned integer            
-        case FORMAT_R8_UINT            : result = VK_FORMAT_R8_UINT; break;
-        case FORMAT_R8G8_UINT          : result = VK_FORMAT_R8G8_UINT; break;
-        case FORMAT_R8G8B8_UINT        : result = VK_FORMAT_R8G8B8_UINT; break;
-        case FORMAT_R8G8B8A8_UINT      : result = VK_FORMAT_R8G8B8A8_UINT; break;
-        case FORMAT_B8G8R8_UINT        : result = VK_FORMAT_B8G8R8_UINT; break;
-        case FORMAT_B8G8R8A8_UINT      : result = VK_FORMAT_B8G8R8A8_UINT; break;
+        case FORMAT_R8_UINT            : return VK_FORMAT_R8_UINT; break;
+        case FORMAT_R8G8_UINT          : return VK_FORMAT_R8G8_UINT; break;
+        case FORMAT_R8G8B8_UINT        : return VK_FORMAT_R8G8B8_UINT; break;
+        case FORMAT_R8G8B8A8_UINT      : return VK_FORMAT_R8G8B8A8_UINT; break;
+        case FORMAT_B8G8R8_UINT        : return VK_FORMAT_B8G8R8_UINT; break;
+        case FORMAT_B8G8R8A8_UINT      : return VK_FORMAT_B8G8R8A8_UINT; break;
                                              
         // 16-bit signed normalized          
-        case FORMAT_R16_SNORM          : result = VK_FORMAT_R16_SNORM; break;
-        case FORMAT_R16G16_SNORM       : result = VK_FORMAT_R16G16_SNORM; break;
-        case FORMAT_R16G16B16_SNORM    : result = VK_FORMAT_R16G16B16_SNORM; break;
-        case FORMAT_R16G16B16A16_SNORM : result = VK_FORMAT_R16G16B16A16_SNORM; break;
+        case FORMAT_R16_SNORM          : return VK_FORMAT_R16_SNORM; break;
+        case FORMAT_R16G16_SNORM       : return VK_FORMAT_R16G16_SNORM; break;
+        case FORMAT_R16G16B16_SNORM    : return VK_FORMAT_R16G16B16_SNORM; break;
+        case FORMAT_R16G16B16A16_SNORM : return VK_FORMAT_R16G16B16A16_SNORM; break;
                                              
         // 16-bit unsigned normalized        
-        case FORMAT_R16_UNORM          : result = VK_FORMAT_R16_UNORM; break;
-        case FORMAT_R16G16_UNORM       : result = VK_FORMAT_R16G16_UNORM; break;
-        case FORMAT_R16G16B16_UNORM    : result = VK_FORMAT_R16G16B16_UNORM; break;
-        case FORMAT_R16G16B16A16_UNORM : result = VK_FORMAT_R16G16B16A16_UNORM; break;
+        case FORMAT_R16_UNORM          : return VK_FORMAT_R16_UNORM; break;
+        case FORMAT_R16G16_UNORM       : return VK_FORMAT_R16G16_UNORM; break;
+        case FORMAT_R16G16B16_UNORM    : return VK_FORMAT_R16G16B16_UNORM; break;
+        case FORMAT_R16G16B16A16_UNORM : return VK_FORMAT_R16G16B16A16_UNORM; break;
                                              
         // 16-bit signed integer             
-        case FORMAT_R16_SINT           : result = VK_FORMAT_R16_SINT; break;
-        case FORMAT_R16G16_SINT        : result = VK_FORMAT_R16G16_SINT; break;
-        case FORMAT_R16G16B16_SINT     : result = VK_FORMAT_R16G16B16_SINT; break;
-        case FORMAT_R16G16B16A16_SINT  : result = VK_FORMAT_R16G16B16A16_SINT; break;
+        case FORMAT_R16_SINT           : return VK_FORMAT_R16_SINT; break;
+        case FORMAT_R16G16_SINT        : return VK_FORMAT_R16G16_SINT; break;
+        case FORMAT_R16G16B16_SINT     : return VK_FORMAT_R16G16B16_SINT; break;
+        case FORMAT_R16G16B16A16_SINT  : return VK_FORMAT_R16G16B16A16_SINT; break;
                                              
         // 16-bit unsigned integer           
-        case FORMAT_R16_UINT           : result = VK_FORMAT_R16_UINT; break;
-        case FORMAT_R16G16_UINT        : result = VK_FORMAT_R16G16_UINT; break;
-        case FORMAT_R16G16B16_UINT     : result = VK_FORMAT_R16G16B16_UINT; break;
-        case FORMAT_R16G16B16A16_UINT  : result = VK_FORMAT_R16G16B16A16_UINT; break;
+        case FORMAT_R16_UINT           : return VK_FORMAT_R16_UINT; break;
+        case FORMAT_R16G16_UINT        : return VK_FORMAT_R16G16_UINT; break;
+        case FORMAT_R16G16B16_UINT     : return VK_FORMAT_R16G16B16_UINT; break;
+        case FORMAT_R16G16B16A16_UINT  : return VK_FORMAT_R16G16B16A16_UINT; break;
                                              
         // 16-bit float                      
-        case FORMAT_R16_FLOAT          : result = VK_FORMAT_R16_SFLOAT; break;
-        case FORMAT_R16G16_FLOAT       : result = VK_FORMAT_R16G16_SFLOAT; break;
-        case FORMAT_R16G16B16_FLOAT    : result = VK_FORMAT_R16G16B16_SFLOAT; break;
-        case FORMAT_R16G16B16A16_FLOAT : result = VK_FORMAT_R16G16B16A16_SFLOAT; break;
+        case FORMAT_R16_FLOAT          : return VK_FORMAT_R16_SFLOAT; break;
+        case FORMAT_R16G16_FLOAT       : return VK_FORMAT_R16G16_SFLOAT; break;
+        case FORMAT_R16G16B16_FLOAT    : return VK_FORMAT_R16G16B16_SFLOAT; break;
+        case FORMAT_R16G16B16A16_FLOAT : return VK_FORMAT_R16G16B16A16_SFLOAT; break;
                                              
         // 32-bit signed integer             
-        case FORMAT_R32_SINT           : result = VK_FORMAT_R32_SINT; break;
-        case FORMAT_R32G32_SINT        : result = VK_FORMAT_R32G32_SINT; break;
-        case FORMAT_R32G32B32_SINT     : result = VK_FORMAT_R32G32B32_SINT; break;
-        case FORMAT_R32G32B32A32_SINT  : result = VK_FORMAT_R32G32B32A32_SINT; break;
+        case FORMAT_R32_SINT           : return VK_FORMAT_R32_SINT; break;
+        case FORMAT_R32G32_SINT        : return VK_FORMAT_R32G32_SINT; break;
+        case FORMAT_R32G32B32_SINT     : return VK_FORMAT_R32G32B32_SINT; break;
+        case FORMAT_R32G32B32A32_SINT  : return VK_FORMAT_R32G32B32A32_SINT; break;
                                              
         // 32-bit unsigned integer           
-        case FORMAT_R32_UINT           : result = VK_FORMAT_R32_UINT; break;
-        case FORMAT_R32G32_UINT        : result = VK_FORMAT_R32G32_UINT; break;
-        case FORMAT_R32G32B32_UINT     : result = VK_FORMAT_R32G32B32_UINT; break;
-        case FORMAT_R32G32B32A32_UINT  : result = VK_FORMAT_R32G32B32A32_UINT; break;
+        case FORMAT_R32_UINT           : return VK_FORMAT_R32_UINT; break;
+        case FORMAT_R32G32_UINT        : return VK_FORMAT_R32G32_UINT; break;
+        case FORMAT_R32G32B32_UINT     : return VK_FORMAT_R32G32B32_UINT; break;
+        case FORMAT_R32G32B32A32_UINT  : return VK_FORMAT_R32G32B32A32_UINT; break;
                                              
         // 32-bit float                      
-        case FORMAT_R32_FLOAT          : result = VK_FORMAT_R32_SFLOAT; break;
-        case FORMAT_R32G32_FLOAT       : result = VK_FORMAT_R32G32_SFLOAT; break;
-        case FORMAT_R32G32B32_FLOAT    : result = VK_FORMAT_R32G32B32_SFLOAT; break;
-        case FORMAT_R32G32B32A32_FLOAT : result = VK_FORMAT_R32G32B32A32_SFLOAT; break;
+        case FORMAT_R32_FLOAT          : return VK_FORMAT_R32_SFLOAT; break;
+        case FORMAT_R32G32_FLOAT       : return VK_FORMAT_R32G32_SFLOAT; break;
+        case FORMAT_R32G32B32_FLOAT    : return VK_FORMAT_R32G32B32_SFLOAT; break;
+        case FORMAT_R32G32B32A32_FLOAT : return VK_FORMAT_R32G32B32A32_SFLOAT; break;
                                              
         // 8-bit unsigned integer stencil    
-        case FORMAT_S8_UINT            : result = VK_FORMAT_S8_UINT; break;
+        case FORMAT_S8_UINT            : return VK_FORMAT_S8_UINT; break;
                                              
         // 16-bit unsigned normalized depth  
-        case FORMAT_D16_UNORM          : result = VK_FORMAT_D16_UNORM; break;
+        case FORMAT_D16_UNORM          : return VK_FORMAT_D16_UNORM; break;
                                              
         // 32-bit float depth                
-        case FORMAT_D32_FLOAT          : result = VK_FORMAT_D32_SFLOAT; break;
+        case FORMAT_D32_FLOAT          : return VK_FORMAT_D32_SFLOAT; break;
                                              
         // Depth/stencil combinations        
-        case FORMAT_D16_UNORM_S8_UINT  : result = VK_FORMAT_D16_UNORM_S8_UINT; break;
-        case FORMAT_D24_UNORM_S8_UINT  : result = VK_FORMAT_D24_UNORM_S8_UINT; break;
-        case FORMAT_D32_FLOAT_S8_UINT  : result = VK_FORMAT_D32_SFLOAT_S8_UINT; break;
+        case FORMAT_D16_UNORM_S8_UINT  : return VK_FORMAT_D16_UNORM_S8_UINT; break;
+        case FORMAT_D24_UNORM_S8_UINT  : return VK_FORMAT_D24_UNORM_S8_UINT; break;
+        case FORMAT_D32_FLOAT_S8_UINT  : return VK_FORMAT_D32_SFLOAT_S8_UINT; break;
                                              
         // SRGB                              
-        case FORMAT_R8_SRGB            : result = VK_FORMAT_R8_SRGB; break;
-        case FORMAT_R8G8_SRGB          : result = VK_FORMAT_R8G8_SRGB; break;
-        case FORMAT_R8G8B8_SRGB        : result = VK_FORMAT_R8G8B8_SRGB; break;
-        case FORMAT_R8G8B8A8_SRGB      : result = VK_FORMAT_R8G8B8A8_SRGB; break;
-        case FORMAT_B8G8R8_SRGB        : result = VK_FORMAT_B8G8R8_SRGB; break;
-        case FORMAT_B8G8R8A8_SRGB      : result = VK_FORMAT_B8G8R8A8_SRGB; break;
+        case FORMAT_R8_SRGB            : return VK_FORMAT_R8_SRGB; break;
+        case FORMAT_R8G8_SRGB          : return VK_FORMAT_R8G8_SRGB; break;
+        case FORMAT_R8G8B8_SRGB        : return VK_FORMAT_R8G8B8_SRGB; break;
+        case FORMAT_R8G8B8A8_SRGB      : return VK_FORMAT_R8G8B8A8_SRGB; break;
+        case FORMAT_B8G8R8_SRGB        : return VK_FORMAT_B8G8R8_SRGB; break;
+        case FORMAT_B8G8R8A8_SRGB      : return VK_FORMAT_B8G8R8A8_SRGB; break;
+
+        // 10-bit
+        case FORMAT_R10G10B10A2_UNORM  : return VK_FORMAT_A2R10G10B10_UNORM_PACK32; break;
+
+        // 11-bit R, 11-bit G, 10-bit B packed
+        case FORMAT_R11G11B10_FLOAT    : return VK_FORMAT_B10G11R11_UFLOAT_PACK32; break;
     }
     // clang-format on
 
-    return result;
+    return VK_FORMAT_UNDEFINED;
 }
 
 VkFrontFace ToVkFrontFace(grfx::FrontFace value)

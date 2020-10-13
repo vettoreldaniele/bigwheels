@@ -118,6 +118,12 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
     }
 #endif // defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
 
+    // Depth clip
+    if (ElementExists(std::string(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME), mFoundExtensions)) {
+        mExtensions.push_back(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
+    }
+
+
     // Add additional extensions and uniquify
     AppendElements(pCreateInfo->vulkanExtensions, mExtensions);
     Unique(mExtensions);
@@ -259,16 +265,19 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     //   - Enable timeline semaphore if extension was loaded
     //
     if (GetInstance()->GetApi() == grfx::API_VK_1_1) {
-        mTimelineSemaphoreAvailable = ElementExists(std::string(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME), mExtensions);
+        mHasTimelineSemaphore = ElementExists(std::string(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME), mExtensions);
     }
     else {
-        mTimelineSemaphoreAvailable = true;
+        mHasTimelineSemaphore = true;
     }
-    PPX_LOG_INFO("Vulkan timeline semaphore is present: " << mTimelineSemaphoreAvailable);
+    PPX_LOG_INFO("Vulkan timeline semaphore is present: " << mHasTimelineSemaphore);
 
 #if defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
     mExtendedDynamicStateAvailable = ElementExists(std::string(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME), mFoundExtensions));
 #endif // defined(PPX_VK_EXTENDED_DYNAMIC_STATE)
+
+    // Depth clip enabled
+    mHasUnrestrictedDepthRange = ElementExists(std::string(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME), mExtensions);
 
     // VMA
     {
@@ -284,6 +293,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         }
     }
 
+    // Create queues
     ppxres = CreateQueues(pCreateInfo);
     if (Failed(ppxres)) {
         return ppxres;

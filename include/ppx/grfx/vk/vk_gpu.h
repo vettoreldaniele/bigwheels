@@ -28,7 +28,7 @@ public:
     virtual uint32_t GetTransferQueueCount() const override;
 
 protected:
-    virtual Result CreateApiObjects(const grfx::GpuCreateInfo* pCreateInfo) override;
+    virtual Result CreateApiObjects(const grfx::internal::GpuCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:

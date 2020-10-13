@@ -82,17 +82,33 @@ public:
         grfx::ResourceState beforeState,
         grfx::ResourceState afterState) = 0;
 
-    virtual void SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports) = 0;
-    virtual void SetScissors(uint32_t scissorCount, const grfx::Rect* pScissors)        = 0;
+    virtual void SetViewports(
+        uint32_t              viewportCount,
+        const grfx::Viewport* pViewports) = 0;
 
-    virtual void BindGraphicsDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets) = 0;
-    virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)                                                                      = 0;
+    virtual void SetScissors(
+        uint32_t          scissorCount,
+        const grfx::Rect* pScissors) = 0;
 
-    virtual void BindComputeDescriptorSets(const grfx::PipelineInterface* pInterface, uint32_t setCount, const grfx::DescriptorSet* const* ppSets) = 0;
-    virtual void BindComputePipeline(const grfx::ComputePipeline* pPipeline)                                                                       = 0;
+    virtual void BindGraphicsDescriptorSets(
+        const grfx::PipelineInterface*    pInterface,
+        uint32_t                          setCount,
+        const grfx::DescriptorSet* const* ppSets) = 0;
 
-    virtual void BindIndexBuffer(const grfx::IndexBufferView* pView)                         = 0;
-    virtual void BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews) = 0;
+    virtual void BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline) = 0;
+
+    virtual void BindComputeDescriptorSets(
+        const grfx::PipelineInterface*    pInterface,
+        uint32_t                          setCount,
+        const grfx::DescriptorSet* const* ppSets) = 0;
+
+    virtual void BindComputePipeline(const grfx::ComputePipeline* pPipeline) = 0;
+
+    virtual void BindIndexBuffer(const grfx::IndexBufferView* pView) = 0;
+
+    virtual void BindVertexBuffers(
+        uint32_t                      viewCount,
+        const grfx::VertexBufferView* pViews) = 0;
 
     virtual void Draw(
         uint32_t vertexCount,
@@ -119,7 +135,12 @@ public:
 
     // Convenience functions
     void BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType indexType, uint64_t offset = 0);
-    void BindVertexBuffers(uint32_t bufferCount, const grfx::Buffer* const* ppBuffers, const uint64_t* pOffsets = nullptr);
+
+    void BindVertexBuffers(
+        uint32_t                   bufferCount,
+        const grfx::Buffer* const* ppBuffers,
+        const uint32_t*            pStrides,
+        const uint64_t*            pOffsets = nullptr);
 };
 
 // -------------------------------------------------------------------------------------------------

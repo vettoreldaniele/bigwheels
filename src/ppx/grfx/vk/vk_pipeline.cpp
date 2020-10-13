@@ -133,22 +133,47 @@ Result GraphicsPipeline::InitializeVertexInput(
     VkPipelineVertexInputStateCreateInfo&           stateCreateInfo)
 {
     // Fill out Vulkan attributes and bindings
-    for (auto& binding : mInputBindings) {
-        for (auto& attribute : binding.attributes) {
+    for (uint32_t bindingIndex = 0; bindingIndex < pCreateInfo->vertexInputState.bindingCount; ++bindingIndex) {
+        const grfx::VertexBinding& binding = pCreateInfo->vertexInputState.bindings[bindingIndex];
+        // Iterate each attribute in the binding
+        const uint32_t attributeCount = binding.GetAttributeCount();
+        for (uint32_t attributeIndex = 0; attributeIndex < attributeCount; ++attributeIndex) {
+            // This should be safe since there's no modifications to the index
+            const grfx::VertexAttribute* pAttribute = nullptr;
+            binding.GetAttribute(attributeIndex, &pAttribute);
+
             VkVertexInputAttributeDescription vkAttribute = {};
-            vkAttribute.location                          = attribute.location;
-            vkAttribute.binding                           = attribute.binding;
-            vkAttribute.format                            = ToVkFormat(attribute.format);
-            vkAttribute.offset                            = attribute.offset;
+            vkAttribute.location                          = pAttribute->location;
+            vkAttribute.binding                           = pAttribute->binding;
+            vkAttribute.format                            = ToVkFormat(pAttribute->format);
+            vkAttribute.offset                            = pAttribute->offset;
             vkAttributes.push_back(vkAttribute);
         }
 
         VkVertexInputBindingDescription vkBinding = {};
-        vkBinding.binding                         = binding.binding;
-        vkBinding.stride                          = binding.stride;
-        vkBinding.inputRate                       = ToVkVertexInputRate(binding.inputRate);
+        vkBinding.binding                         = binding.GetBinding();
+        vkBinding.stride                          = binding.GetStride();
+        vkBinding.inputRate                       = ToVkVertexInputRate(binding.GetInputRate());
         vkBindings.push_back(vkBinding);
     }
+
+    //// Fill out Vulkan attributes and bindings
+    //for (auto& binding : mInputBindings) {
+    //    for (auto& attribute : binding.attributes) {
+    //        VkVertexInputAttributeDescription vkAttribute = {};
+    //        vkAttribute.location                          = attribute.location;
+    //        vkAttribute.binding                           = attribute.binding;
+    //        vkAttribute.format                            = ToVkFormat(attribute.format);
+    //        vkAttribute.offset                            = attribute.offset;
+    //        vkAttributes.push_back(vkAttribute);
+    //    }
+    //
+    //    VkVertexInputBindingDescription vkBinding = {};
+    //    vkBinding.binding                         = binding.binding;
+    //    vkBinding.stride                          = binding.stride;
+    //    vkBinding.inputRate                       = ToVkVertexInputRate(binding.inputRate);
+    //    vkBindings.push_back(vkBinding);
+    //}
 
     stateCreateInfo.flags                           = 0;
     stateCreateInfo.vertexBindingDescriptionCount   = CountU32(vkBindings);
@@ -197,8 +222,9 @@ Result GraphicsPipeline::InitializeViewports(
 }
 
 Result GraphicsPipeline::InitializeRasterization(
-    const grfx::GraphicsPipelineCreateInfo* pCreateInfo,
-    VkPipelineRasterizationStateCreateInfo& stateCreateInfo)
+    const grfx::GraphicsPipelineCreateInfo*             pCreateInfo,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT& depthClipStateCreateInfo,
+    VkPipelineRasterizationStateCreateInfo&             stateCreateInfo)
 {
     stateCreateInfo.flags                   = 0;
     stateCreateInfo.depthClampEnable        = pCreateInfo->rasterState.depthClampEnable ? VK_TRUE : VK_FALSE;
@@ -211,6 +237,14 @@ Result GraphicsPipeline::InitializeRasterization(
     stateCreateInfo.depthBiasClamp          = pCreateInfo->rasterState.depthBiasClamp;
     stateCreateInfo.depthBiasSlopeFactor    = pCreateInfo->rasterState.depthBiasSlopeFactor;
     stateCreateInfo.lineWidth               = 1.0f;
+
+    // Handle depth clip enable
+    if (ToApi(GetDevice())->HasUnreistrictedDepthRange()) {
+        depthClipStateCreateInfo.flags           = 0;
+        depthClipStateCreateInfo.depthClipEnable = pCreateInfo->rasterState.depthClipEnable;
+        // Set pNext
+        stateCreateInfo.pNext = &depthClipStateCreateInfo;
+    }
 
     return ppx::SUCCESS;
 }
@@ -389,9 +423,10 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
         return ppxres;
     }
 
-    VkPipelineRasterizationStateCreateInfo rasterizationState = {VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT depthClipStateCreateInfo = {VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT};
+    VkPipelineRasterizationStateCreateInfo             rasterizationState       = {VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
     //
-    ppxres = InitializeRasterization(pCreateInfo, rasterizationState);
+    ppxres = InitializeRasterization(pCreateInfo, depthClipStateCreateInfo, rasterizationState);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -507,13 +542,13 @@ void GraphicsPipeline::DestroyApiObjects()
 Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateInfo* pCreateInfo)
 {
     VkDescriptorSetLayout setLayouts[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
-    for (uint32_t i = 0; i < pCreateInfo->setLayoutCount; ++i) {
-        setLayouts[i] = ToApi(pCreateInfo->pSetLayouts[i])->GetVkDescriptorSetLayout();
+    for (uint32_t i = 0; i < pCreateInfo->setCount; ++i) {
+        setLayouts[i] = ToApi(pCreateInfo->sets[i].pLayout)->GetVkDescriptorSetLayout();
     }
 
     VkPipelineLayoutCreateInfo vkci = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
     vkci.flags                      = 0;
-    vkci.setLayoutCount             = pCreateInfo->setLayoutCount;
+    vkci.setLayoutCount             = pCreateInfo->setCount;
     vkci.pSetLayouts                = setLayouts;
     vkci.pushConstantRangeCount     = 0;
     vkci.pPushConstantRanges        = nullptr;
