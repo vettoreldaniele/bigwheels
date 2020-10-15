@@ -137,7 +137,7 @@ Result CreateTextureFromFile(grfx::Queue* pQueue, const fs::path& path, grfx::Im
 
         cmdBuf->CopyBufferToImage(&copyInfo, buffer, image);
 
-        cmdBuf->TransitionImageLayout(image, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        cmdBuf->TransitionImageLayout(image, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_SHADER_RESOURCE);
     }
 
     ppxres = cmdBuf->End();

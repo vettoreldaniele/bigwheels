@@ -15,7 +15,7 @@ public:
     Queue() {}
     virtual ~Queue() {}
 
-    D3D12CommandQueuePtr GetDxQueue() const { return mCommandQueue; }
+    typename D3D12CommandQueuePtr::InterfaceType* GetDxQueue() const { return mCommandQueue.Get(); }
 
     virtual Result WaitIdle() override;
 

@@ -15,7 +15,8 @@ public:
     Instance() {}
     virtual ~Instance() {}
 
-    DXGIFactoryPtr GetDxFactory() const { return mFactory; }
+    typename DXGIDebugPtr::InterfaceType*   GetDxgiDebug() const { return mDXGIDebug.Get(); }
+    typename DXGIFactoryPtr::InterfaceType* GetDxFactory() const { return mFactory.Get(); }
 
 protected:
     virtual Result AllocateObject(grfx::Device** ppDevice) override;
@@ -30,7 +31,10 @@ private:
     Result EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel);
 
 private:
-    DXGIFactoryPtr mFactory;
+    DXGIDebugPtr     mDXGIDebug;
+    DXGIInfoQueuePtr mDXGIInfoQueue;
+    D3D12DebugPtr    mD3D12Debug;
+    DXGIFactoryPtr   mFactory;
 };
 
 } // namespace dx

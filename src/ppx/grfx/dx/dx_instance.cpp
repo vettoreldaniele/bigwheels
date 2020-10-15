@@ -3,8 +3,6 @@
 #include "ppx/grfx/dx/dx_gpu.h"
 #include "ppx/grfx/dx/dx_swapchain.h"
 
-#include <dxgidebug.h>
-
 namespace ppx {
 namespace grfx {
 namespace dx {
@@ -86,21 +84,32 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 
     UINT dxgiFactoryFlags = 0;
     if (pCreateInfo->enableDebug) {
-        // Get debug interface
-        ComPtr<ID3D12Debug> debugController;
-        HRESULT             hr = D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
+        // Get DXGI debug interface
+        HRESULT hr = DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebug));
+        if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "DXGIGetDebugInterface1(DXGIDebug) failed");
+            return ppx::ERROR_API_FAILURE;
+        }
+
+        // Get DXGI info queue
+        hr = DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIInfoQueue));
+        if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "DXGIGetDebugInterface1(DXGIInfoQueue) failed");
+            return ppx::ERROR_API_FAILURE;
+        }
+
+        // Set breaks
+        mDXGIInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true);
+        mDXGIInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true);
+
+        // Get D3D12 debug interface
+        hr = D3D12GetDebugInterface(IID_PPV_ARGS(&mD3D12Debug));
         if (FAILED(hr)) {
             return ppx::ERROR_API_FAILURE;
         }
         // Enable additional debug layers
-        debugController->EnableDebugLayer();
+        mD3D12Debug->EnableDebugLayer();
         dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
-
-        ComPtr<IDXGIInfoQueue> dxgiInfoQueue;
-        if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgiInfoQueue.GetAddressOf())))) {
-            dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true);
-            dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true);
-        }
     }
 
     ComPtr<IDXGIFactory4> dxgiFactory;
@@ -109,6 +118,8 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(DXGIFactory, dxgiFactory.Get());
+
     // Cast to our version of IDXGIFactory
     hr = dxgiFactory.As(&mFactory);
     if (FAILED(hr)) {
@@ -125,8 +136,24 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 
 void Instance::DestroyApiObjects()
 {
+    if (mCreateInfo.enableDebug) {
+        mDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_ALL));
+    }
+
     if (mFactory) {
         mFactory.Reset();
+    }
+
+    if (mD3D12Debug) {
+        mD3D12Debug.Reset();
+    }
+
+    if (mDXGIInfoQueue) {
+        mDXGIInfoQueue.Reset();
+    }
+
+    if (mDXGIDebug) {
+        mDXGIDebug.Reset();
     }
 }
 

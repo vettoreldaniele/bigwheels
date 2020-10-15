@@ -17,6 +17,7 @@ Result Fence::CreateApiObjects(const grfx::FenceCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateFence(fence) failed");
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12Fence(Fence), mFence.Get());
 
     mFenceEventHandle = CreateEventEx(NULL, false, false, EVENT_ALL_ACCESS);
     if (mFenceEventHandle == INVALID_HANDLE_VALUE) {
@@ -70,6 +71,7 @@ Result Semaphore::CreateApiObjects(const grfx::SemaphoreCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateFence(fence) failed");
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12Fence(Semaphore), mFence.Get());
 
     return ppx::SUCCESS;
 }

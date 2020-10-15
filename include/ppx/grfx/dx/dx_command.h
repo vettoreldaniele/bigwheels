@@ -96,6 +96,15 @@ private:
     D3D12DescriptorHeapPtr      mHeapSampler;
     UINT                        mHeapOffsetCBVSRVUAV = 0;
     UINT                        mHeapOffsetSampler   = 0;
+
+    struct RootDescriptorTable
+    {
+        UINT                        parameterIndex = PPX_VALUE_IGNORED;
+        D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor = {~0ULL};
+    };
+
+    std::vector<RootDescriptorTable> mRootDescriptorTablesCBVSRVUAV;
+    std::vector<RootDescriptorTable> mRootDescriptorTablesSampler;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -107,8 +116,8 @@ public:
     CommandPool() {}
     virtual ~CommandPool() {}
 
-    D3D12CommandAllocatorPtr GetDxCommandAllocator() const { return mCommandAllocator; }
-    D3D12_COMMAND_LIST_TYPE  GetDxCommandType() const { return mCommandType; }
+    typename D3D12CommandAllocatorPtr::InterfaceType* GetDxCommandAllocator() const { return mCommandAllocator.Get(); }
+    D3D12_COMMAND_LIST_TYPE                           GetDxCommandType() const { return mCommandType; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::CommandPoolCreateInfo* pCreateInfo) override;

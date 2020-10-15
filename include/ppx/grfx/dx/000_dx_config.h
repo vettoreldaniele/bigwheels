@@ -6,11 +6,19 @@
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <dxgidebug.h>
 
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;
 
 #include "D3D12MemAlloc.h"
+
+#if defined(PPX_ENABLE_LOG_OBJECT_CREATION)
+#define PPX_LOG_OBJECT_CREATION(TAG, ADDR) \
+    PPX_LOG_INFO("DX OBJECT CREATED: addr=0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(16) << reinterpret_cast<uintptr_t>(ADDR) << ", type="## #TAG)
+#else
+#define PPX_LOG_OBJECT_CREATION(TAG, ADDR)
+#endif
 
 namespace ppx {
 namespace grfx {
@@ -18,9 +26,12 @@ namespace dx {
 
 using DXGIAdapterPtr              = ComPtr<IDXGIAdapter4>;
 using DXGIFactoryPtr              = ComPtr<IDXGIFactory7>;
+using DXGIDebugPtr                = ComPtr<IDXGIDebug1>;
+using DXGIInfoQueuePtr            = ComPtr<IDXGIInfoQueue>;
 using DXGISwapChainPtr            = ComPtr<IDXGISwapChain4>;
 using D3D12CommandAllocatorPtr    = ComPtr<ID3D12CommandAllocator>;
 using D3D12CommandQueuePtr        = ComPtr<ID3D12CommandQueue>;
+using D3D12DebugPtr               = ComPtr<ID3D12Debug>;
 using D3D12DescriptorHeapPtr      = ComPtr<ID3D12DescriptorHeap>;
 using D3D12DevicePtr              = ComPtr<ID3D12Device5>;
 using D3D12FencePtr               = ComPtr<ID3D12Fence1>;
@@ -223,7 +234,6 @@ struct ApiObjectLookUp<grfx::Swapchain>
     using GrfxType = grfx::Swapchain;
     using ApiType  = dx::Swapchain;
 };
-
 template <typename GrfxTypeT>
 typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(GrfxTypeT* pGrfxObject)
 {

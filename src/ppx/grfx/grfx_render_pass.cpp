@@ -391,7 +391,7 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
             grfx::DepthStencilViewPtr dsv;
             Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);
             if (Failed(ppxres)) {
-                PPX_ASSERT_MSG(false, "RTV create failed");
+                PPX_ASSERT_MSG(false, "DSV create failed");
                 return ppxres;
             }
 

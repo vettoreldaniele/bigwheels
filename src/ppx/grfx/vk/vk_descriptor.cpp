@@ -237,10 +237,7 @@ Result DescriptorSetLayout::CreateApiObjects(const grfx::DescriptorSetLayoutCrea
         //       If grfx::DescriptorBinding::arrayCount is greater than 1, we
         //       create that many entries. The binding number is incremented
         //       per entry starting from the initial binding value.
-        //
-        // NOTE: All bindings in a set use the same shader stage flags because
-        //       we need to match D3D12's behavior. D3D12 controls shader 
-        //       visibility at the root parameter level and not the binding level.
+
         //
         const grfx::DescriptorBinding& baseBinding = pCreateInfo->bindings[i];
 
@@ -249,7 +246,7 @@ Result DescriptorSetLayout::CreateApiObjects(const grfx::DescriptorSetLayoutCrea
             vkBinding.binding                      = baseBinding.binding + bindingOffset;
             vkBinding.descriptorType               = ToVkDescriptorType(baseBinding.type);
             vkBinding.descriptorCount              = 1;
-            vkBinding.stageFlags                   = ToVkShaderStageFlags(pCreateInfo->shaderVisiblity);
+            vkBinding.stageFlags                   = ToVkShaderStageFlags(baseBinding.shaderVisiblity);
             vkBinding.pImmutableSamplers           = nullptr;
             vkBindings.push_back(vkBinding);
         }

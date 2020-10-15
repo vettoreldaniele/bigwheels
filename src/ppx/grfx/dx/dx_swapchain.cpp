@@ -111,7 +111,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
 
     ComPtr<IDXGISwapChain1> dxgiSwapChain;
     HRESULT                 hr = factory->CreateSwapChainForHwnd(
-        ToApi(pCreateInfo->pQueue)->GetDxQueue().Get(),  // pDevice
+        ToApi(pCreateInfo->pQueue)->GetDxQueue(),  // pDevice
         ToApi(pCreateInfo->pSurface)->GetWindowHandle(), // hWnd
         &dxDesc,                                         // pDesc
         nullptr,                                         // pFullscreenDesc
@@ -121,6 +121,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, "IDXGIFactory2::CreateSwapChainForHwnd failed");
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(DXGISwapChain, dxgiSwapChain.Get());
 
     hr = dxgiSwapChain.As(&mSwapchain);
     if (FAILED(hr)) {
@@ -194,7 +195,12 @@ void Swapchain::DestroyApiObjects()
     mFrameLatencyWaitableObject = nullptr;
 
     if (mSwapchain) {
+        mSwapchain->Release();
         mSwapchain.Reset();
+    }
+
+    if (mQueue) {
+        mQueue.Reset();
     }
 }
 

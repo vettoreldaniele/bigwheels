@@ -16,7 +16,7 @@ public:
     Image() {}
     virtual ~Image() {}
 
-    D3D12ResourcePtr GetDxImage() const { return mResource; }
+    typename D3D12ResourcePtr::InterfaceType* GetDxResource() const { return mResource.Get(); }
 
     virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) override;
     virtual void   UnmapMemory() override;
@@ -26,7 +26,8 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-    D3D12ResourcePtr mResource;
+    D3D12ResourcePtr            mResource;
+    ObjPtr<D3D12MA::Allocation> mAllocation;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -38,11 +39,14 @@ public:
     Sampler() {}
     virtual ~Sampler() {}
 
+    const D3D12_SAMPLER_DESC& GetDesc() const { return mDesc; }
+
 protected:
     virtual Result CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
+    D3D12_SAMPLER_DESC mDesc = {};
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -54,11 +58,15 @@ public:
     DepthStencilView() {}
     virtual ~DepthStencilView() {}
 
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCpuDescriptorHandle() const { return mDescriptor.handle; }
+
 protected:
     virtual Result CreateApiObjects(const grfx::DepthStencilViewCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
+    D3D12_DEPTH_STENCIL_VIEW_DESC mDesc       = {};
+    dx::DescriptorHandle          mDescriptor = {};
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -77,7 +85,8 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-    dx::DescriptorHandle mDescriptor = {};
+    D3D12_RENDER_TARGET_VIEW_DESC mDesc       = {};
+    dx::DescriptorHandle          mDescriptor = {};
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -89,11 +98,14 @@ public:
     SampledImageView() {}
     virtual ~SampledImageView() {}
 
+    const D3D12_SHADER_RESOURCE_VIEW_DESC& GetDesc() const { return mDesc; }
+
 protected:
     virtual Result CreateApiObjects(const grfx::SampledImageViewCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
+    D3D12_SHADER_RESOURCE_VIEW_DESC mDesc = {};
 };
 
 // -------------------------------------------------------------------------------------------------

@@ -21,9 +21,10 @@ Result Queue::CreateApiObjects(const grfx::internal::QueueCreateInfo* pCreateInf
         PPX_ASSERT_MSG(false, "failed casting to ID3DCommandQueue");
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12CommandQueue, mCommandQueue.Get());
 
     grfx::FenceCreateInfo fenceCreateInfo = {};
-    Result ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &mWaitIdleFence);
+    Result                ppxres          = GetDevice()->CreateFence(&fenceCreateInfo, &mWaitIdleFence);
     if (Failed(ppxres)) {
         PPX_ASSERT_MSG(false, "wait for idle fence create failed");
         return ppxres;
@@ -34,8 +35,13 @@ Result Queue::CreateApiObjects(const grfx::internal::QueueCreateInfo* pCreateInf
 
 void Queue::DestroyApiObjects()
 {
+    WaitIdle();
+
+    if (mWaitIdleFence) {
+        mWaitIdleFence.Reset();
+    }
+
     if (mCommandQueue) {
-        WaitIdle();
         mCommandQueue.Reset();
     }
 }
@@ -43,7 +49,7 @@ void Queue::DestroyApiObjects()
 Result Queue::WaitIdle()
 {
     dx::Fence* pFence = ToApi(mWaitIdleFence.Get());
-    UINT64 value = pFence->GetNextSignalValue();
+    UINT64     value  = pFence->GetNextSignalValue();
     mCommandQueue->Signal(pFence->GetDxFence().Get(), value);
     Result ppxres = pFence->Wait();
     if (Failed(ppxres)) {
@@ -65,7 +71,7 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
     for (uint32_t i = 0; i < pSubmitInfo->waitSemaphoreCount; ++i) {
         ID3D12Fence* pDxFence = ToApi(pSubmitInfo->ppWaitSemaphores[i])->GetDxFence().Get();
         UINT64       value    = ToApi(pSubmitInfo->ppWaitSemaphores[i])->GetWaitForValue();
-        HRESULT hr = mCommandQueue->Wait(pDxFence, value);
+        HRESULT      hr       = mCommandQueue->Wait(pDxFence, value);
         if (FAILED(hr)) {
             PPX_ASSERT_MSG(false, "ID3D12CommandQueue::Wait failed");
             return ppx::ERROR_API_FAILURE;
@@ -79,7 +85,7 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
     for (uint32_t i = 0; i < pSubmitInfo->signalSemaphoreCount; ++i) {
         ID3D12Fence* pDxFence = ToApi(pSubmitInfo->ppSignalSemaphores[i])->GetDxFence().Get();
         UINT64       value    = ToApi(pSubmitInfo->ppSignalSemaphores[i])->GetNextSignalValue();
-        HRESULT hr = mCommandQueue->Signal(pDxFence, value);
+        HRESULT      hr       = mCommandQueue->Signal(pDxFence, value);
         if (FAILED(hr)) {
             PPX_ASSERT_MSG(false, "ID3D12CommandQueue::Signal failed");
             return ppx::ERROR_API_FAILURE;

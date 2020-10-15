@@ -95,6 +95,17 @@ typename std::vector<T>::iterator FindIf(std::vector<T>& container, UnaryPredica
     return it;
 }
 
+template <typename T, class UnaryPredicate>
+typename std::vector<T>::const_iterator FindIf(const std::vector<T>& container, UnaryPredicate predicate)
+{
+    typename std::vector<T>::const_iterator it = std::find_if(
+        std::begin(container),
+        std::end(container),
+        predicate);
+    return it;
+}
+
+
 template <typename T>
 bool ElementExists(const T& elem, const std::vector<T>& container)
 {

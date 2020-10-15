@@ -218,6 +218,7 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateGraphicsPipelineState failed");
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12PipelineState(Graphics), mPipeline.Get());
 
     // clang-format off
     switch (pCreateInfo->inputAssemblyState.topology) {
@@ -253,20 +254,69 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
 {
     dx::Device* pDevice = ToApi(GetDevice());
 
-    std::vector<std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>>> parameterRanges;
+    //std::vector<std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>>> parameterRanges;
+    std::vector<std::unique_ptr<D3D12_DESCRIPTOR_RANGE1>> parameterRanges;
 
+    // Creates a parameter for each binding - this is naive way of
+    // create paramters and their associated range. It flavors flexibility.
+    //
+    // @TODO: Optimize
+    //
     std::vector<D3D12_ROOT_PARAMETER1> parameters;
     for (uint32_t setIndex = 0; setIndex < pCreateInfo->setCount; ++setIndex) {
         uint32_t                                    set      = pCreateInfo->sets[setIndex].set;
         const dx::DescriptorSetLayout*              pLayout  = ToApi(pCreateInfo->sets[setIndex].pLayout);
         const std::vector<grfx::DescriptorBinding>& bindings = pLayout->GetBindings();
 
-        // Allocate unique container for this table's ranges
-        std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>> ranges = std::make_unique<std::vector<D3D12_DESCRIPTOR_RANGE1>>();
+        for (size_t bindingIndex = 0; bindingIndex < bindings.size(); ++bindingIndex) {
+            const grfx::DescriptorBinding& binding = bindings[bindingIndex];
+
+            // Allocate unique range
+            std::unique_ptr<D3D12_DESCRIPTOR_RANGE1> range = std::make_unique<D3D12_DESCRIPTOR_RANGE1>();
+            if (!range) {
+                PPX_ASSERT_MSG(false, "allocation for descriptor range failed for set=" << set << ", binding=" << binding.binding);
+                return ppx::ERROR_ALLOCATION_FAILED;
+            }
+            // Fill out range
+            range->RangeType                         = ToD3D12RangeType(binding.type);
+            range->NumDescriptors                    = static_cast<UINT>(binding.arrayCount);
+            range->BaseShaderRegister                = static_cast<UINT>(binding.binding);
+            range->RegisterSpace                     = static_cast<UINT>(set);
+            range->Flags                             = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
+            range->OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+            // Fill out parameter
+            D3D12_ROOT_PARAMETER1 parameter               = {};
+            parameter.ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+            parameter.DescriptorTable.NumDescriptorRanges = 1;
+            parameter.DescriptorTable.pDescriptorRanges   = range.get();
+            parameter.ShaderVisibility                    = ToD3D12ShaderVisibliity(binding.shaderVisiblity);
+            // Store parameter
+            parameters.push_back(parameter);
+            // Store ranges
+            parameterRanges.push_back(std::move(range));
+            // Store parameter index
+            ParameterIndex paramIndex = {};
+            paramIndex.set            = set;
+            paramIndex.binding        = binding.binding;
+            paramIndex.index          = static_cast<UINT>(parameters.size() - 1);
+            mParameterIndices.push_back(paramIndex);
+        }
+
+        /*
+        // Allocate container for CBVSRVUAV ranges
+        std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>> rangesCBVSRVUAV = std::make_unique<std::vector<D3D12_DESCRIPTOR_RANGE1>>();
         if (!ranges) {
-            PPX_ASSERT_MSG(false, "allocation for descriptor table ranges failed");
+            PPX_ASSERT_MSG(false, "allocation for descriptor ranges failed (CBVSRVUAV)");
             return ppx::ERROR_ALLOCATION_FAILED;
         }
+        // Allocate container for Sampler ranges
+        std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>> rangesSampler = std::make_unique<std::vector<D3D12_DESCRIPTOR_RANGE1>>();
+        if (!ranges) {
+            PPX_ASSERT_MSG(false, "allocation for descriptor ranges failed (Sampler)");
+            return ppx::ERROR_ALLOCATION_FAILED;
+        }
+
         // Fill out ranges
         for (size_t bindingIndex = 0; bindingIndex < bindings.size(); ++bindingIndex) {
             const grfx::DescriptorBinding& binding = bindings[bindingIndex];
@@ -279,19 +329,35 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
             range.Flags                             = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
             range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-            ranges->push_back(range);
+            // Explicitly check for sampler
+            if (range.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER) {
+                rangesSampler->push_back(range);
+            }
+            // Assume everything else is CBVSRVUAV
+            else {
+                rangesCBVSRVUAV->push_back(range);
+            }
         }
 
-        // Fill out parameter
-        D3D12_ROOT_PARAMETER1 parameter               = {};
-        parameter.ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-        parameter.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(ranges->size());
-        parameter.DescriptorTable.pDescriptorRanges   = DataPtr(*ranges);
-        parameter.ShaderVisibility                    = ToD3D12ShaderVisibliity(pLayout->GetShaderVisiblity());
-        // Store parameter
-        parameters.push_back(parameter);
-        // Store ranges
-        parameterRanges.push_back(std::move(ranges));
+        // CBVSRVUAV parameter
+        {
+            // Fill out parameter
+            D3D12_ROOT_PARAMETER1 parameter               = {};
+            parameter.ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+            parameter.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(rangesCBVSRVUAV->size());
+            parameter.DescriptorTable.pDescriptorRanges   = DataPtr(*rangesCBVSRVUAV);
+            parameter.ShaderVisibility                    = ToD3D12ShaderVisibliity(pLayout->GetShaderVisiblity());
+            // Store parameter
+            parameters.push_back(parameter);
+            // Store ranges
+            parameterRanges.push_back(std::move(ranges));
+            // Store parameter index
+            ParameterIndex paramIndex = {};
+            paramIndex.set            = set;
+            paramIndex.index          = static_cast<UINT>(parameters.size() - 1);
+            mParameterIndices.push_back(paramIndex);
+        }
+*/
     }
 
     D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
@@ -323,6 +389,7 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateRootSignature failed");
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12RootSignature, mRootSignature.Get());
 
     return ppx::SUCCESS;
 }
@@ -332,6 +399,21 @@ void PipelineInterface::DestroyApiObjects()
     if (mRootSignature) {
         mRootSignature.Reset();
     }
+}
+
+UINT PipelineInterface::FindParameterIndex(uint32_t set, uint32_t binding) const
+{
+    auto it = FindIf(
+        mParameterIndices,
+        [set, binding](const ParameterIndex& elem) -> bool { 
+            bool isSameSet = elem.set == set;
+            bool isSameBinding = elem.binding == binding;
+            bool isSame = isSameSet && isSameBinding;
+            return isSame; });
+    if (it == std::end(mParameterIndices)) {
+        return PPX_VALUE_IGNORED;
+    }
+    return static_cast<UINT>(it->index);
 }
 
 } // namespace dx

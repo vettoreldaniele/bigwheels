@@ -15,7 +15,7 @@ public:
     Buffer() {}
     virtual ~Buffer() {}
 
-    D3D12ResourcePtr GetDxResource() const { return mResource; }
+    typename D3D12ResourcePtr::InterfaceType* GetDxResource() const { return mResource.Get(); }
 
     virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) override;
     virtual void   UnmapMemory() override;

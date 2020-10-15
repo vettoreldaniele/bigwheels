@@ -30,6 +30,7 @@ Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreate
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandList1 failed");
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12GraphicsCommandList, mCommandList.Get());
 
     // Store command allocator for reset
     mCommandAllocator = ToApi(pCreateInfo->pPool)->GetDxCommandAllocator();
@@ -75,6 +76,10 @@ void CommandBuffer::DestroyApiObjects()
 {
     if (mCommandList) {
         mCommandList.Reset();
+    }
+
+    if (mCommandAllocator) {
+        mCommandAllocator.Reset();
     }
 
     if (mHeapCBVSRVUAV) {
@@ -137,6 +142,7 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
     const grfx::RenderPass* pRenderPass = pBeginInfo->pRenderPass;
 
     D3D12_CPU_DESCRIPTOR_HANDLE renderTargetDescriptors[PPX_MAX_RENDER_TARGETS] = {};
+    D3D12_CPU_DESCRIPTOR_HANDLE depthStencilDesciptor                           = {};
 
     // Get handle to render target descirptors
     uint32_t renderTargetCount = pRenderPass->GetRenderTargetCount();
@@ -145,12 +151,19 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
         renderTargetDescriptors[i] = pRTV->GetCpuDescriptorHandle();
     }
 
+    // Get handle for depth stencil descriptor
+    bool hasDepthStencil = false;
+    if (pRenderPass->GetDepthStencilView()) {
+        depthStencilDesciptor = ToApi(pRenderPass->GetDepthStencilView())->GetCpuDescriptorHandle();
+        hasDepthStencil       = true;
+    }
+
     // Set render targets
     mCommandList->OMSetRenderTargets(
         static_cast<UINT>(renderTargetCount),
         renderTargetDescriptors,
         FALSE,
-        nullptr);
+        hasDepthStencil ? &depthStencilDesciptor : nullptr);
 
     // Clear render targets if load op is clear
     renderTargetCount = std::min(renderTargetCount, pBeginInfo->RTVClearCount);
@@ -161,6 +174,19 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
             const grfx::RenderTargetClearValue& clearValue = pBeginInfo->RTVClearValues[i];
             mCommandList->ClearRenderTargetView(handle, clearValue.rgba, 0, nullptr);
         }
+    }
+
+    // Clear depth stencil if load op is clear
+    if (hasDepthStencil && (pRenderPass->GetDepthStencilView()->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR)) {
+        D3D12_CLEAR_FLAGS                   flags      = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
+        const grfx::DepthStencilClearValue& clearValue = pBeginInfo->DSVClearValue;
+        mCommandList->ClearDepthStencilView(
+            depthStencilDesciptor,
+            flags,
+            static_cast<FLOAT>(clearValue.depth),
+            static_cast<UINT8>(clearValue.stencil),
+            0,
+            nullptr);
     }
 }
 
@@ -180,7 +206,7 @@ void CommandBuffer::TransitionImageLayout(
 {
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Transition.pResource   = ToApi(pImage)->GetDxImage().Get();
+    barrier.Transition.pResource   = ToApi(pImage)->GetDxResource();
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState);
     barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState);
@@ -225,29 +251,98 @@ void CommandBuffer::BindGraphicsDescriptorSets(
     uint32_t                          setCount,
     const grfx::DescriptorSet* const* ppSets)
 {
-    // Since D3D12 can only
-    if (GetDevice()->isDebugEnabled()) {
-    }
-
+    // Set root signature
     mCommandList->SetGraphicsRootSignature(ToApi(pInterface)->GetDxRootSignature().Get());
 
-    D3D12DevicePtr device = ToApi(GetDevice())->GetDxDevice();
+    dx::Device*                  pApiDevice             = ToApi(GetDevice());
+    D3D12DevicePtr               device                 = pApiDevice->GetDxDevice();
+    const dx::PipelineInterface* pApiPipelineInterface  = ToApi(pInterface);
+    const std::vector<uint32_t>& setNumbers             = pApiPipelineInterface->GetSetNumbers();
+    UINT                         incrementSizeCBVSRVUAV = pApiDevice->GetHandleIncrementSizeCBVSRVUAV();
+    UINT                         incrementSizeSampler   = pApiDevice->GetHandleIncrementSizeSampler();
 
-    D3D12_CPU_DESCRIPTOR_HANDLE dstRangeStart  = mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart();
-    D3D12_CPU_DESCRIPTOR_HANDLE srcRangeStart  = ToApi(ppSets[0])->GetHeapCBVSRVUAV()->GetCPUDescriptorHandleForHeapStart();
-    UINT                        numDescriptors = 1;
+    uint32_t parameterIndexCount = pApiPipelineInterface->GetParameterIndexCount();
+    if (parameterIndexCount > mRootDescriptorTablesCBVSRVUAV.size()) {
+        mRootDescriptorTablesCBVSRVUAV.resize(parameterIndexCount);
+        mRootDescriptorTablesSampler.resize(parameterIndexCount);
+    }
 
-    device->CopyDescriptors(
-        1,
-        &dstRangeStart,
-        &numDescriptors,
-        1,
-        &srcRangeStart,
-        &numDescriptors,
-        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    // Root descriptor tables
+    size_t rdtCountCBVSRVUAV = 0;
+    size_t rdtCountSampler   = 0;
+    for (uint32_t setIndex = 0; setIndex < setCount; ++setIndex) {
+        PPX_ASSERT_MSG(ppSets[setIndex] != nullptr, "ppSets[" << setIndex << "] is null");
+        uint32_t                 set      = setNumbers[setIndex];
+        const dx::DescriptorSet* pApiSet  = ToApi(ppSets[setIndex]);
+        auto&                    bindings = pApiSet->GetLayout()->GetBindings();
 
-    D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor = mHeapCBVSRVUAV->GetGPUDescriptorHandleForHeapStart();
-    mCommandList->SetGraphicsRootDescriptorTable(0, baseDescriptor);
+        // Copy the descriptors
+        {
+            UINT numDescriptors = pApiSet->GetNumDescriptorsCBVSRVUAV();
+            if (numDescriptors > 0) {
+                D3D12_CPU_DESCRIPTOR_HANDLE dstRangeStart = mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart();
+                D3D12_CPU_DESCRIPTOR_HANDLE srcRangeStart = pApiSet->GetHeapCBVSRVUAV()->GetCPUDescriptorHandleForHeapStart();
+
+                dstRangeStart.ptr += (mHeapOffsetCBVSRVUAV * incrementSizeCBVSRVUAV);
+
+                device->CopyDescriptorsSimple(
+                    numDescriptors,
+                    dstRangeStart,
+                    srcRangeStart,
+                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            }
+
+            numDescriptors = pApiSet->GetNumDescriptorsSampler();
+            if (numDescriptors > 0) {
+                D3D12_CPU_DESCRIPTOR_HANDLE dstRangeStart = mHeapSampler->GetCPUDescriptorHandleForHeapStart();
+                D3D12_CPU_DESCRIPTOR_HANDLE srcRangeStart = pApiSet->GetHeapSampler()->GetCPUDescriptorHandleForHeapStart();
+
+                dstRangeStart.ptr += (mHeapOffsetSampler * incrementSizeSampler);
+
+                device->CopyDescriptorsSimple(
+                    numDescriptors,
+                    dstRangeStart,
+                    srcRangeStart,
+                    D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+            }
+        }
+
+        size_t bindingCount = bindings.size();
+        for (size_t bindingIndex = 0; bindingIndex < bindingCount; ++bindingIndex) {
+            auto& binding        = bindings[bindingIndex];
+            UINT  parameterIndex = pApiPipelineInterface->FindParameterIndex(set, binding.binding);
+            PPX_ASSERT_MSG(parameterIndex != UINT32_MAX, "invalid parameter index for set=" << set << ", binding=" << binding.binding);
+
+            if (binding.type == grfx::DESCRIPTOR_TYPE_SAMPLER) {
+                RootDescriptorTable& rdt = mRootDescriptorTablesSampler[rdtCountSampler];
+                rdt.parameterIndex       = parameterIndex;
+                rdt.baseDescriptor       = mHeapSampler->GetGPUDescriptorHandleForHeapStart();
+                rdt.baseDescriptor.ptr += (mHeapOffsetSampler * incrementSizeSampler);
+
+                mHeapOffsetSampler += static_cast<UINT>(binding.arrayCount);
+                rdtCountSampler += 1;
+            }
+            else {
+                RootDescriptorTable& rdt = mRootDescriptorTablesCBVSRVUAV[rdtCountCBVSRVUAV];
+                rdt.parameterIndex       = parameterIndex;
+                rdt.baseDescriptor       = mHeapCBVSRVUAV->GetGPUDescriptorHandleForHeapStart();
+                rdt.baseDescriptor.ptr += (mHeapOffsetCBVSRVUAV * incrementSizeCBVSRVUAV);
+
+                mHeapOffsetCBVSRVUAV += static_cast<UINT>(binding.arrayCount);
+                rdtCountCBVSRVUAV += 1;
+            }
+        }
+    }
+
+    for (uint32_t i = 0; i < rdtCountCBVSRVUAV; ++i) {
+        const RootDescriptorTable& rdt = mRootDescriptorTablesCBVSRVUAV[i];
+        mCommandList->SetGraphicsRootDescriptorTable(rdt.parameterIndex, rdt.baseDescriptor);
+    }
+
+    for (uint32_t i = 0; i < rdtCountSampler; ++i) {
+        const RootDescriptorTable& rdt = mRootDescriptorTablesSampler[i];
+        mCommandList->SetGraphicsRootDescriptorTable(rdt.parameterIndex, rdt.baseDescriptor);
+    }
 }
 
 void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)
@@ -325,7 +420,64 @@ void CommandBuffer::CopyBufferToImage(
     const grfx::Buffer*                pSrcBuffer,
     const grfx::Image*                 pDstImage)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    D3D12DevicePtr      device        = ToApi(GetDevice())->GetDxDevice();
+    D3D12_RESOURCE_DESC resouceDesc   = ToApi(pDstImage)->GetDxResource()->GetDesc();
+    const uint32_t      mipLevelCount = pDstImage->GetMipLevelCount();
+
+    D3D12_TEXTURE_COPY_LOCATION dst = {};
+    dst.pResource                   = ToApi(pDstImage)->GetDxResource();
+    dst.Type                        = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+
+    D3D12_TEXTURE_COPY_LOCATION src = {};
+    src.pResource                   = ToApi(pSrcBuffer)->GetDxResource();
+    src.Type                        = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+
+    for (uint32_t i = 0; i < pCopyInfo->dstImage.arrayLayerCount; ++i) {
+        uint32_t arrayLayer = pCopyInfo->dstImage.arrayLayer + i;
+
+        dst.SubresourceIndex = static_cast<UINT>((arrayLayer * mipLevelCount) + pCopyInfo->dstImage.mipLevel);
+
+        UINT   numSubresources = 1;
+        UINT   numRows         = 0;
+        UINT64 rowSizeInBytes  = 0;
+        UINT64 totalBytes      = 0;
+
+        device->GetCopyableFootprints(
+            &resouceDesc,
+            dst.SubresourceIndex,
+            numSubresources,
+            static_cast<UINT64>(pCopyInfo->srcBuffer.offset),
+            &src.PlacedFootprint,
+            &numRows,
+            &rowSizeInBytes,
+            &totalBytes);
+
+        mCommandList->CopyTextureRegion(
+            &dst,
+            static_cast<UINT>(pCopyInfo->dstImage.x),
+            static_cast<UINT>(pCopyInfo->dstImage.y),
+            static_cast<UINT>(pCopyInfo->dstImage.z),
+            &src,
+            nullptr);
+    }
+
+    /*
+    D3D12_TEXTURE_COPY_LOCATION dst = {};
+    dst.pResource                   = ToApi(pDstImage)->GetDxResource();
+    dst.Type                        = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+
+    D3D12_TEXTURE_COPY_LOCATION src = {};
+    src.pResource                   = ToApi(pSrcBuffer)->GetDxResource();
+    src.Type                        = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+
+    mCommandList->CopyTextureRegion(
+        &dst,
+        static_cast<UINT>(pCopyInfo->dstImage.x),
+        static_cast<UINT>(pCopyInfo->dstImage.y),
+        static_cast<UINT>(pCopyInfo->dstImage.z),
+        &src,
+        nullptr);
+    */
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -351,6 +503,7 @@ Result CommandPool::CreateApiObjects(const grfx::CommandPoolCreateInfo* pCreateI
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandAllocator failed");
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12CommandAllocator, mCommandAllocator.Get());
 
     return ppx::SUCCESS;
 }

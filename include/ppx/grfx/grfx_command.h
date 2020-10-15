@@ -1,6 +1,27 @@
 #ifndef ppx_grfx_command_buffer_h
 #define ppx_grfx_command_buffer_h
 
+// *** Graphics API Note ***
+// 
+// In the cosmos of game engines, there's more than one way to build
+// command buffers and track various bits that company that. 
+// 
+// Smaller engines and graphics demo may favor command buffer reuse or 
+// at least reusing the same resources in a similar order per frame. 
+// 
+// Larger engines may have have an entire job system where available
+// command buffers are use for the next immediate task. There may
+// or may not be any affinity for command buffers and tasks.
+//
+// We're going to favor the second case - command buffers do not
+// have affinity for tasks. This means that for D3D12 we'll copy
+// descriptors from the set's CPU heaps to the command buffer's 
+// GPU visible heaps when the indGraphicsDescriptorSets or 
+// BindComputeDescriptorSets is called. This may not be the most 
+// efficient way to do this but it does give us the flexiblity
+// to shape D3D12 to look like Vulkan.
+//
+
 #include "ppx/grfx/000_grfx_config.h"
 
 namespace ppx {

@@ -38,22 +38,18 @@ public:
     DescriptorPool() {}
     virtual ~DescriptorPool() {}
 
-    Result AllocateDescriptorSet(const dx::DescriptorSetLayout* pLayout, dx::DescriptorSet* pSet);
-    void   FreeDescriptorSet(const dx::DescriptorSet* pSet);
+    Result AllocateDescriptorSet(uint32_t numDescriptorsCBVSRVUAV, uint32_t numDescriptorsSampler);
+    void   FreeDescriptorSet(uint32_t numDescriptorsCBVSRVUAV, uint32_t numDescriptorsSampler);
 
 protected:
     virtual Result CreateApiObjects(const grfx::DescriptorPoolCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
-    uint32_t                mHeapSizeCBVSRVUAV = 0;
-    uint32_t                mHeapSizeSampler   = 0;
-    D3D12DescriptorHeapPtr  mHeapCBVSRVUAV;
-    D3D12DescriptorHeapPtr  mHeapSampler;
-    uint32_t                mNumAvailableCBVSRVUAV = 0;
-    uint32_t                mNumAvailableSampler   = 0;
-    std::vector<Allocation> mAllocationsCBVSRVUAV;
-    std::vector<Allocation> mAllocationsSampler;
+    uint32_t mDescriptorCountCBVSRVUAV = 0;
+    uint32_t mDescriptorCountSampler   = 0;
+    uint32_t mAllocatedCountCBVSRVUAV  = 0;
+    uint32_t mAllocatedCountSampler    = 0;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -72,10 +68,13 @@ public:
     DescriptorSet() {}
     virtual ~DescriptorSet() {}
 
-    std::vector<HeapOffset>& GetHeapOffsets() { return mHeapOffsets; }
+    //std::vector<HeapOffset>& GetHeapOffsets() { return mHeapOffsets; }
 
-    D3D12DescriptorHeapPtr  GetHeapCBVSRVUAV() const { return mHeapCBVSRVUAV; }
-    D3D12DescriptorHeapPtr  GetHeapSampler() const { return mHeapSampler; }
+    UINT GetNumDescriptorsCBVSRVUAV() const { return mNumDescriptorsCBVSRVUAV; }
+    UINT GetNumDescriptorsSampler() const { return mNumDescriptorsSampler; }
+
+    typename D3D12DescriptorHeapPtr::InterfaceType* GetHeapCBVSRVUAV() const { return mHeapCBVSRVUAV.Get(); }
+    typename D3D12DescriptorHeapPtr::InterfaceType* GetHeapSampler() const { return mHeapSampler.Get(); }
 
     virtual Result UpdateDescriptors(uint32_t writeCount, const grfx::WriteDescriptor* pWrites) override;
 
@@ -84,8 +83,8 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-    UINT                    mHeapSizeCBVSRVUAV = 0;
-    UINT                    mHeapSizeSampler   = 0;
+    UINT                    mNumDescriptorsCBVSRVUAV = 0;
+    UINT                    mNumDescriptorsSampler   = 0;
     D3D12DescriptorHeapPtr  mHeapCBVSRVUAV;
     D3D12DescriptorHeapPtr  mHeapSampler;
     std::vector<HeapOffset> mHeapOffsets;

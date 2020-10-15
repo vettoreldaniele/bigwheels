@@ -9,7 +9,7 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
 {
     D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 
-    // 
+    //
     if (pCreateInfo->usageFlags.bits.storageBuffer) {
         flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
     }
@@ -47,7 +47,7 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
     }
 
     dx::Device* pDevice = ToApi(GetDevice());
-    HRESULT hr = pDevice->GetAllocator()->CreateResource(
+    HRESULT     hr      = pDevice->GetAllocator()->CreateResource(
         &allocationDesc,
         &resourceDesc,
         initialResourceState,
@@ -57,6 +57,7 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12Resource(Buffer), mResource.Get());
 
     return ppx::SUCCESS;
 }

@@ -167,6 +167,7 @@ void Application::ShutdownGrfx()
             mSurface.Reset();
         }
 
+        grfx::DestroyInstance(mInstance);
         mInstance.Reset();
     }
 }

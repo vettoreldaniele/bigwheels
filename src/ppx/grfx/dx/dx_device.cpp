@@ -125,7 +125,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     D3D_FEATURE_LEVEL featureLevel = ToApi(pCreateInfo->pGpu)->GetFeatureLevel();
 
     // Cast to XIDXGIAdapter
-    DXGIAdapterPtr adapter = ToApi(pCreateInfo->pGpu)->GetDxAdapter();
+    typename DXGIAdapterPtr::InterfaceType* pAdapter = ToApi(pCreateInfo->pGpu)->GetDxAdapter();
 
     //
     // Enable SM 6.0 for DXIL support
@@ -136,7 +136,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         // Create a temp device so we can query it for SM 6.0 support
         D3D12DevicePtr device;
         {
-            HRESULT hr = D3D12CreateDevice(adapter.Get(), featureLevel, IID_PPV_ARGS(&device));
+            HRESULT hr = D3D12CreateDevice(pAdapter, featureLevel, IID_PPV_ARGS(&device));
             if (FAILED(hr)) {
                 return ppx::ERROR_API_FAILURE;
             }
@@ -174,10 +174,11 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     }
 
     // Create real D3D12 device
-    HRESULT hr = D3D12CreateDevice(adapter.Get(), featureLevel, IID_PPV_ARGS(&mDevice));
+    HRESULT hr = D3D12CreateDevice(pAdapter, featureLevel, IID_PPV_ARGS(&mDevice));
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_OBJECT_CREATION(D3D12Device, mDevice.Get());
 
     // Handle increment sizes
     mHandleIncrementSizeCBVSRVUAV = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -207,7 +208,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
         allocatorDesc.Flags                   = flags;
         allocatorDesc.pDevice                 = mDevice.Get();
-        allocatorDesc.pAdapter                = adapter.Get();
+        allocatorDesc.pAdapter                = pAdapter;
 
         HRESULT hr = D3D12MA::CreateAllocator(&allocatorDesc, &mAllocator);
         if (FAILED(hr)) {
@@ -248,6 +249,9 @@ void Device::DestroyApiObjects()
     mFnD3D12CreateRootSignatureDeserializer          = nullptr;
     mFnD3D12SerializeVersionedRootSignature          = nullptr;
     mFnD3D12CreateVersionedRootSignatureDeserializer = nullptr;
+
+    mRTVHandleManager.Destroy();
+    mDSVHandleManager.Destroy();
 
     if (mAllocator) {
         mAllocator->Release();
@@ -550,7 +554,28 @@ Result Device::AllocateObject(grfx::Swapchain** ppObject)
 
 Result Device::WaitIdle()
 {
-    return ppx::ERROR_FAILED;
+    for (auto& queue : mGraphicsQueues) {
+        Result ppxres = ToApi(queue)->WaitIdle();
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    for (auto& queue : mComputeQueues) {
+        Result ppxres = ToApi(queue)->WaitIdle();
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    for (auto& queue : mTransferQueues) {
+        Result ppxres = ToApi(queue)->WaitIdle();
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    return ppx::SUCCESS;
 }
 
 } // namespace dx

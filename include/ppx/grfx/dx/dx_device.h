@@ -16,8 +16,8 @@ public:
     Device() {}
     virtual ~Device() {}
 
-    D3D12DevicePtr      GetDxDevice() const { return mDevice; }
-    D3D12MA::Allocator* GetAllocator() const { return mAllocator; }
+    typename D3D12DevicePtr::InterfaceType* GetDxDevice() const { return mDevice.Get(); }
+    D3D12MA::Allocator*                     GetAllocator() const { return mAllocator; }
 
     UINT GetHandleIncrementSizeCBVSRVUAV() const { return mHandleIncrementSizeCBVSRVUAV; }
     UINT GetHandleIncrementSizeSampler() const { return mHandleIncrementSizeSampler; }

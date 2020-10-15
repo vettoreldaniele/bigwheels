@@ -1,6 +1,7 @@
 #include "ppx/grfx/dx/dx_descriptor.h"
-#include "ppx/grfx/dx/dx_device.h"
 #include "ppx/grfx/dx/dx_buffer.h"
+#include "ppx/grfx/dx/dx_device.h"
+#include "ppx/grfx/dx/dx_image.h"
 
 // *** Graphics API Note ***
 //
@@ -31,285 +32,70 @@ Result DescriptorPool::CreateApiObjects(const grfx::DescriptorPoolCreateInfo* pC
         return ppx::ERROR_GRFX_UNKNOWN_DESCRIPTOR_TYPE;
     }
 
-    // Get counts
-    mHeapSizeCBVSRVUAV = pCreateInfo->sampledImage +
-                         pCreateInfo->storageImage +
-                         pCreateInfo->uniformTexelBuffer +
-                         pCreateInfo->storageTexelBuffer +
-                         pCreateInfo->uniformBuffer +
-                         pCreateInfo->storageBuffer;
-    mHeapSizeSampler = pCreateInfo->sampler;
+    // Get totals for each descriptor type
+    mDescriptorCountCBVSRVUAV = pCreateInfo->sampledImage +
+                                pCreateInfo->storageImage +
+                                pCreateInfo->uniformTexelBuffer +
+                                pCreateInfo->storageTexelBuffer +
+                                pCreateInfo->uniformBuffer +
+                                pCreateInfo->storageBuffer;
+    mDescriptorCountSampler = pCreateInfo->sampler;
 
-    // Get D3D12 device
-    D3D12DevicePtr device = ToApi(GetDevice())->GetDxDevice();
-
-    // Allocate CBVSRVUAV heap
-    {
-        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-        desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        desc.NumDescriptors             = static_cast<UINT>(mHeapSizeCBVSRVUAV);
-        desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        desc.NodeMask                   = 0;
-
-        HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
-        if (FAILED(hr)) {
-            PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CPU CBVSRVUAV) failed");
-            return ppx::ERROR_API_FAILURE;
-        }
-    }
-
-    // Allocate Sampler heap
-    {
-        // CPU
-        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-        desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-        desc.NumDescriptors             = static_cast<UINT>(mHeapSizeCBVSRVUAV);
-        desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-        desc.NodeMask                   = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-
-        HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapSampler));
-        if (FAILED(hr)) {
-            PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CPU Sampler) failed");
-            return ppx::ERROR_API_FAILURE;
-        }
-    }
-
-    mNumAvailableCBVSRVUAV = mHeapSizeCBVSRVUAV;
-    mNumAvailableSampler   = mHeapSizeSampler;
-
-    // Add end of heap markers in the allocation trackers
-    mAllocationsCBVSRVUAV.push_back(DescriptorPool::Allocation{nullptr, END_OF_HEAP_BINDING_ID, mHeapSizeCBVSRVUAV, 0});
-    mAllocationsSampler.push_back(DescriptorPool::Allocation{nullptr, END_OF_HEAP_BINDING_ID, mHeapSizeSampler, 0});
+    // Paranoid zero out these values
+    mAllocatedCountCBVSRVUAV = 0;
+    mAllocatedCountSampler   = 0;
 
     return ppx::SUCCESS;
 }
 
 void DescriptorPool::DestroyApiObjects()
 {
-    mHeapSizeCBVSRVUAV     = 0;
-    mHeapSizeSampler       = 0;
-    mNumAvailableCBVSRVUAV = 0;
-    mNumAvailableSampler   = 0;
-
-    if (mHeapCBVSRVUAV) {
-        mHeapCBVSRVUAV.Reset();
-    }
-    if (mHeapSampler) {
-        mHeapSampler.Reset();
-    }
+    mDescriptorCountCBVSRVUAV = 0;
+    mDescriptorCountSampler   = 0;
+    mAllocatedCountCBVSRVUAV  = 0;
+    mAllocatedCountSampler    = 0;
 }
 
-// Expects that 'occupants' is sorted by offsets
-//
-static Result FindFirstAvailableHeapOffset(
-    const uint32_t                                 rangeCount,
-    const std::vector<DescriptorPool::Allocation>& occupants,
-    uint32_t&                                      heapOffset)
+Result DescriptorPool::AllocateDescriptorSet(uint32_t numDescriptorsCBVSRVUAV, uint32_t numDescriptorsSampler)
 {
-    size_t allocationCount = occupants.size();
-    if (allocationCount == 0) {
-        // This should never happen since there is always
-        // at least one occupant - the end of the heap.
-        //
-        PPX_ASSERT_MSG(false, "unexpected empty occupants");
-        return ppx::ERROR_FAILED;
-    }
-
-    if (allocationCount > 1) {
-        for (size_t j = 1; j < allocationCount; ++j) {
-            size_t      i       = j - 1;
-            const auto& prev    = occupants[i];
-            const auto& next    = occupants[j];
-            uint32_t    prevEnd = prev.offset + prev.count;
-            uint32_t    nextBeg = next.offset;
-            uint32_t    diff    = nextBeg - prevEnd;
-            if (diff >= rangeCount) {
-                heapOffset = prevEnd;
-                return ppx::SUCCESS;
-            }
+    if (numDescriptorsCBVSRVUAV > 0) {
+        int32_t remaining = static_cast<int32_t>(mDescriptorCountCBVSRVUAV) - static_cast<int32_t>(mAllocatedCountCBVSRVUAV);
+        if (remaining > static_cast<int32_t>(numDescriptorsCBVSRVUAV)) {
+            PPX_ASSERT_MSG(false, "out of descriptors (CBRSRVUAV)");
+            return ppx::ERROR_OUT_OF_MEMORY;
         }
     }
-    else {
-        heapOffset = 0;
-        return ppx::SUCCESS;
-    }
-    return ppx::ERROR_ALLOCATION_FAILED;
-}
 
-static void SortByOffset(std::vector<dx::DescriptorPool::Allocation>& container)
-{
-    std::sort(
-        std::begin(container),
-        std::end(container),
-        [](const DescriptorPool::Allocation& a, const DescriptorPool::Allocation& b) -> bool {
-            bool isLess = a.offset < b.offset;
-            return isLess; });
-}
-
-static Result AllocateRanges(
-    dx::DescriptorSet*                                       pSet,
-    const std::vector<DescriptorSetLayout::DescriptorRange>& ranges,
-    const uint32_t                                           heapSize,
-    const D3D12_CPU_DESCRIPTOR_HANDLE&                       heapStart,
-    UINT                                                     handleIncrementSize,
-    std::vector<DescriptorPool::Allocation>&                 allocations,
-    std::vector<DescriptorSet::HeapOffset>&                  heapOffsets)
-{
-    // We'll use a list of occupants to determine if
-    // there's enough space for a given range. We'll
-    // start out by populating this list with the current
-    // allocations. Then we'll grow it using the incoming
-    // ranges.
-    //
-    // If all the ranges can fit into the available space,
-    // then we're good.
-    //
-    // If any range fails to fit then we bail on the
-    // entire thing.
-    //
-    std::vector<DescriptorPool::Allocation> occupants;
-    for (auto& elem : allocations) {
-        occupants.push_back(elem);
-    }
-    // Sort occupants
-    SortByOffset(occupants);
-
-    // Iterage the ranges and detrmine if all the ranges
-    // can fit in he available space.
-    //
-    // NOTE: This is basic implementation and makes no
-    //       attempt at best fit. It just looks for the
-    //       first available offset that can fit the range.
-    //
-    for (auto& range : ranges) {
-        // Find available
-        uint32_t heapOffset = UINT32_MAX;
-        Result   ppxres     = FindFirstAvailableHeapOffset(range.count, occupants, heapOffset);
-        if (Failed(ppxres)) {
-            return ppxres;
+    if (numDescriptorsSampler > 0) {
+        int32_t remaining = static_cast<int32_t>(mDescriptorCountSampler) - static_cast<int32_t>(mAllocatedCountSampler);
+        if (remaining > static_cast<int32_t>(numDescriptorsSampler)) {
+            PPX_ASSERT_MSG(false, "out of descriptors (Sampler)");
+            return ppx::ERROR_OUT_OF_MEMORY;
         }
-
-        // Paranoid check
-        if (heapOffset >= heapSize) {
-            // This should never happen...
-            PPX_ASSERT_MSG(false, "heap offset exceeds heap size");
-            return ppx::ERROR_FAILED;
-        }
-
-        // Fill out occupant
-        DescriptorPool::Allocation occupant = {};
-        occupant.pSet                       = nullptr;
-        occupant.binding                    = range.binding;
-        occupant.offset                     = heapOffset;
-        occupant.count                      = range.count;
-        // Store occupant
-        occupants.push_back(occupant);
-        // Sort occupants
-        SortByOffset(occupants);
     }
 
-    // If we got here than all the ranges fit into the available space.
-    //
-    // Iterate through the occupants and anything with a null pSet means
-    // it's new allocation for the target set.
-    //
-    for (const auto& occupant : occupants) {
-        // Skip anything that already has a set assignment or is the end of heap entry
-        if (!IsNull(occupant.pSet) || (occupant.binding == END_OF_HEAP_BINDING_ID)) {
-            continue;
-        }
-
-        // Copy and store the allocation for the pool
-        DescriptorPool::Allocation allocation = occupant;
-        allocation.pSet                       = pSet;
-        allocations.push_back(allocation);
-
-        DescriptorSet::HeapOffset heapOffset = {};
-        heapOffset.binding                   = occupant.binding;
-        heapOffset.offset                    = occupant.offset;
-        heapOffset.descriptorHandle.ptr      = heapStart.ptr + static_cast<SIZE_T>(handleIncrementSize * occupant.offset);
-        heapOffsets.push_back(heapOffset);
-    }
-    // Sort allocations
-    SortByOffset(allocations);
+    mAllocatedCountCBVSRVUAV += numDescriptorsCBVSRVUAV;
+    mAllocatedCountSampler += numDescriptorsSampler;
 
     return ppx::SUCCESS;
 }
 
-Result DescriptorPool::AllocateDescriptorSet(const dx::DescriptorSetLayout* pLayout, dx::DescriptorSet* pSet)
+void DescriptorPool::FreeDescriptorSet(uint32_t numDescriptorsCBVSRVUAV, uint32_t numDescriptorsSampler)
 {
-    // Early out if there's not enough space available
-    bool hasEnoughCBVSRVUAV = (pLayout->GetCountCBVSRVUAV() <= mNumAvailableCBVSRVUAV);
-    bool hasEnoughSampler   = (pLayout->GetCountSampler() <= mNumAvailableSampler);
-    if (!(hasEnoughCBVSRVUAV && hasEnoughSampler)) {
-        return ppx::ERROR_ALLOCATION_FAILED;
+    int32_t remaining = static_cast<int32_t>(mAllocatedCountCBVSRVUAV) - static_cast<int32_t>(numDescriptorsCBVSRVUAV);
+    if (remaining < 0) {
+        // Isn't suppose to ever happen
+        PPX_ASSERT_MSG(false, "pool is freeing more descriptors than it containers (CBVSRVUAV)");
     }
 
-    // Target offsets
-    auto& heapOffsets = pSet->GetHeapOffsets();
-
-    // CBVSRVUAV
-    {
-        auto& ranges = pLayout->GetRangesCBVSRVUAV();
-        if (!ranges.empty()) {
-            D3D12_CPU_DESCRIPTOR_HANDLE heapStart           = mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart();
-            UINT                        handleIncrementSize = ToApi(GetDevice())->GetHandleIncrementSizeCBVSRVUAV();
-
-            Result ppxres = AllocateRanges(
-                pSet,
-                ranges,
-                mHeapSizeCBVSRVUAV,
-                heapStart,
-                handleIncrementSize,
-                mAllocationsCBVSRVUAV,
-                heapOffsets);
-            if (Failed(ppxres)) {
-                return ppxres;
-            }
-        }
+    remaining = static_cast<int32_t>(mAllocatedCountSampler) - static_cast<int32_t>(numDescriptorsSampler);
+    if (remaining < 0) {
+        // Isn't suppose to ever happen
+        PPX_ASSERT_MSG(false, "pool is freeing more descriptors than it containers (CBVSRVUAV)");
     }
 
-    //// Sampler
-    //{
-    //    auto& ranges = pLayout->GetRangesSampler();
-    //    if (!ranges.empty()) {
-    //        Result ppxres = AllocateRanges(pSet, ranges, mHeapSizeSampler, mAllocationsSampler, heapOffsets);
-    //        if (Failed(ppxres)) {
-    //            return ppxres;
-    //        }
-    //    }
-    //}
-
-    return ppx::SUCCESS;
-}
-
-void DescriptorPool::FreeDescriptorSet(const dx::DescriptorSet* pSet)
-{
-    // Bail if pSet wasn't allocated from this pool
-    dx::DescriptorPool* pPool = ToApi(pSet->GetPool());
-    if (pPool != this) {
-        return;
-    }
-
-    // Remove all CBVSRVUAV allocations that match pSet
-    mAllocationsCBVSRVUAV.erase(
-        std::remove_if(
-            std::begin(mAllocationsCBVSRVUAV),
-            std::end(mAllocationsCBVSRVUAV),
-            [pSet](const Allocation& elem) -> bool {
-                bool isMatch = (elem.pSet == pSet);
-                return isMatch; }),
-        std::end(mAllocationsCBVSRVUAV));
-
-    // Remove all Sampler allocations that match pSet
-    mAllocationsSampler.erase(
-        std::remove_if(
-            std::begin(mAllocationsSampler),
-            std::end(mAllocationsSampler),
-            [pSet](const Allocation& elem) -> bool {
-                bool isMatch = (elem.pSet == pSet);
-                return isMatch; }),
-        std::end(mAllocationsSampler));
+    mAllocatedCountCBVSRVUAV -= numDescriptorsCBVSRVUAV;
+    mAllocatedCountSampler -= numDescriptorsSampler;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -317,17 +103,29 @@ void DescriptorPool::FreeDescriptorSet(const dx::DescriptorSet* pSet)
 // -------------------------------------------------------------------------------------------------
 Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreateInfo* pCreateInfo)
 {
+    // Check to see if the pool has available descriptors for each type left. This
+    // is to keep alignment with Vulkan, it may not be necessary at all.
+    //
+    uint32_t numDescriptorsCBVSRVUAV = ToApi(pCreateInfo->pLayout)->GetCountCBVSRVUAV();
+    uint32_t numDescriptorsSampler   = ToApi(pCreateInfo->pLayout)->GetCountSampler();
+
+    Result ppxres = ToApi(pCreateInfo->pPool)->AllocateDescriptorSet(numDescriptorsCBVSRVUAV, numDescriptorsSampler);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Get D3D12 device
     D3D12DevicePtr device = ToApi(GetDevice())->GetDxDevice();
 
     // Heap sizes
-    mHeapSizeCBVSRVUAV = static_cast<UINT>(ToApi(pCreateInfo->pLayout)->GetCountCBVSRVUAV());
-    mHeapSizeSampler   = static_cast<UINT>(ToApi(pCreateInfo->pLayout)->GetCountSampler());
+    mNumDescriptorsCBVSRVUAV = static_cast<UINT>(numDescriptorsCBVSRVUAV);
+    mNumDescriptorsSampler   = static_cast<UINT>(numDescriptorsSampler);
 
     // Allocate CBVSRVUAV heap
-    if (mHeapSizeCBVSRVUAV > 0) {
+    if (mNumDescriptorsCBVSRVUAV > 0) {
         D3D12_DESCRIPTOR_HEAP_DESC desc = {};
         desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        desc.NumDescriptors             = mHeapSizeCBVSRVUAV;
+        desc.NumDescriptors             = mNumDescriptorsCBVSRVUAV;
         desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
         desc.NodeMask                   = 0;
 
@@ -336,14 +134,15 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
             PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CBVSRVUAV) failed");
             return ppx::ERROR_API_FAILURE;
         }
+        PPX_LOG_OBJECT_CREATION(D3D12DescriptorHeap(CBVSRVUAV), mHeapCBVSRVUAV.Get());
     }
 
     // Allocate Sampler heap
-    if (mHeapSizeSampler > 0) {
+    if (mNumDescriptorsSampler > 0) {
         // CPU
         D3D12_DESCRIPTOR_HEAP_DESC desc = {};
         desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-        desc.NumDescriptors             = mHeapSizeSampler;
+        desc.NumDescriptors             = mNumDescriptorsSampler;
         desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
         desc.NodeMask                   = 0;
 
@@ -352,10 +151,11 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
             PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(Sampler) failed");
             return ppx::ERROR_API_FAILURE;
         }
+        PPX_LOG_OBJECT_CREATION(D3D12DescriptorHeap(Sampler), mHeapSampler.Get());
     }
 
     // Build CBVSRVUAV offsets
-    if (mHeapSizeCBVSRVUAV > 0) {
+    if (mNumDescriptorsCBVSRVUAV > 0) {
         UINT                        incrementSize = ToApi(GetDevice())->GetHandleIncrementSizeCBVSRVUAV();
         D3D12_CPU_DESCRIPTOR_HANDLE heapStart     = mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart();
         UINT                        offset        = 0;
@@ -378,11 +178,40 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
         }
     }
 
+    // Build Sampler offsets
+    if (mNumDescriptorsSampler > 0) {
+        UINT                        incrementSize = ToApi(GetDevice())->GetHandleIncrementSizeSampler();
+        D3D12_CPU_DESCRIPTOR_HANDLE heapStart     = mHeapSampler->GetCPUDescriptorHandleForHeapStart();
+        UINT                        offset        = 0;
+
+        auto& ranges = ToApi(pCreateInfo->pLayout)->GetRangesSampler();
+        for (size_t i = 0; i < ranges.size(); ++i) {
+            const dx::DescriptorSetLayout::DescriptorRange& range = ranges[i];
+
+            // Fill out heap offset
+            HeapOffset heapOffset           = {};
+            heapOffset.binding              = range.binding;
+            heapOffset.offset               = offset;
+            heapOffset.descriptorHandle.ptr = heapStart.ptr + static_cast<SIZE_T>(offset * incrementSize);
+
+            // Store heap offset
+            mHeapOffsets.push_back(heapOffset);
+
+            // Increment offset by the range count
+            offset += static_cast<UINT>(range.count);
+        }
+    }
+
     return ppx::SUCCESS;
 }
 
 void DescriptorSet::DestroyApiObjects()
 {
+    ToApi(mCreateInfo.pPool)->FreeDescriptorSet(mNumDescriptorsCBVSRVUAV, mNumDescriptorsSampler);
+
+    mNumDescriptorsCBVSRVUAV = 0;
+    mNumDescriptorsSampler   = 0;
+
     mHeapOffsets.clear();
 
     if (mHeapCBVSRVUAV) {
@@ -433,10 +262,26 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
             } break;
 
             case grfx::DESCRIPTOR_TYPE_SAMPLER: {
+                const D3D12_SAMPLER_DESC& desc = ToApi(srcWrite.pSampler)->GetDesc();
+
+                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeSampler * srcWrite.arrayIndex);
+                D3D12_CPU_DESCRIPTOR_HANDLE handle = D3D12_CPU_DESCRIPTOR_HANDLE{ptr};
+
+                device->CreateSampler(&desc, handle);
             } break;
 
             case grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE:
             case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: {
+                const dx::SampledImageView*            pView = static_cast<const dx::SampledImageView*>(srcWrite.pImageView);
+                const D3D12_SHADER_RESOURCE_VIEW_DESC& desc  = pView->GetDesc();
+
+                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeSampler * srcWrite.arrayIndex);
+                D3D12_CPU_DESCRIPTOR_HANDLE handle = D3D12_CPU_DESCRIPTOR_HANDLE{ptr};
+
+                device->CreateShaderResourceView(
+                    ToApi(pView->GetImage())->GetDxResource(),
+                    &desc,
+                    handle);
             } break;
 
             case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE:
@@ -500,6 +345,8 @@ Result DescriptorSetLayout::CreateApiObjects(const grfx::DescriptorSetLayoutCrea
 
 void DescriptorSetLayout::DestroyApiObjects()
 {
+    mCountCBVSRVUAV = 0;
+    mCountSampler   = 0;
     mRangesCBVSRVUAV.clear();
     mRangesSampler.clear();
 }

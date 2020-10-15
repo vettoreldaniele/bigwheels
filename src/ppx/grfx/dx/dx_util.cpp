@@ -79,6 +79,20 @@ D3D12_CULL_MODE ToD3D12CullMode(grfx::CullMode value)
     return ppx::InvalidValue<D3D12_CULL_MODE>();
 }
 
+D3D12_DSV_DIMENSION ToD3D12DSVDimension(grfx::ImageViewType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::IMAGE_VIEW_TYPE_1D       : return D3D12_DSV_DIMENSION_TEXTURE1D; break;
+        case grfx::IMAGE_VIEW_TYPE_1D_ARRAY : return D3D12_DSV_DIMENSION_TEXTURE1DARRAY; break;
+        case grfx::IMAGE_VIEW_TYPE_2D       : return D3D12_DSV_DIMENSION_TEXTURE2D; break;
+        case grfx::IMAGE_VIEW_TYPE_2D_ARRAY : return D3D12_DSV_DIMENSION_TEXTURE2DARRAY; break;
+    }
+    // clang-format on
+    return D3D12_DSV_DIMENSION_UNKNOWN;
+}
+
 D3D12_FILL_MODE ToD3D12FillMode(grfx::PolygonMode value)
 {
     // clang-format off
@@ -180,12 +194,14 @@ D3D12_RESOURCE_STATES ToD3D12ResourceStates(grfx::ResourceState value)
     // clang-format off
     switch (value) {
         default: break;
+        case grfx::RESOURCE_STATE_UNDEFINED                 : return D3D12_RESOURCE_STATE_COMMON; break;
         case grfx::RESOURCE_STATE_GENERAL                   : return D3D12_RESOURCE_STATE_COMMON; break;
         case grfx::RESOURCE_STATE_CONSTANT_BUFFER           : return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER; break;
         case grfx::RESOURCE_STATE_VERTEX_BUFFER             : return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER; break;
         case grfx::RESOURCE_STATE_INDEX_BUFFER              : return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER; break;
         case grfx::RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE : return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; break;
         case grfx::RESOURCE_STATE_PIXEL_SHADER_RESOURCE     : return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE; break;
+        case grfx::RESOURCE_STATE_SHADER_RESOURCE           : return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE| D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE; break;
         case grfx::RESOURCE_STATE_DEPTH_STENCIL_READ        : return D3D12_RESOURCE_STATE_DEPTH_READ; break;
         case grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE       : return D3D12_RESOURCE_STATE_DEPTH_WRITE; break;
         case grfx::RESOURCE_STATE_RENDER_TARGET             : return D3D12_RESOURCE_STATE_RENDER_TARGET; break;
@@ -205,13 +221,32 @@ D3D12_RTV_DIMENSION ToD3D12RTVDimension(grfx::ImageViewType value)
     // clang-format off
     switch (value) {
         default: break;
-        case IMAGE_VIEW_TYPE_1D   : return D3D12_RTV_DIMENSION_TEXTURE1D; break;
-        case IMAGE_VIEW_TYPE_2D   : return D3D12_RTV_DIMENSION_TEXTURE2D; break;
-        case IMAGE_VIEW_TYPE_3D   : return D3D12_RTV_DIMENSION_TEXTURE3D; break;
-        case IMAGE_VIEW_TYPE_CUBE : return D3D12_RTV_DIMENSION_TEXTURE2D; break;
+        case grfx::IMAGE_VIEW_TYPE_1D       : return D3D12_RTV_DIMENSION_TEXTURE1D; break;
+        case grfx::IMAGE_VIEW_TYPE_1D_ARRAY : return D3D12_RTV_DIMENSION_TEXTURE1DARRAY; break;
+        case grfx::IMAGE_VIEW_TYPE_2D       : return D3D12_RTV_DIMENSION_TEXTURE2D; break;
+        case grfx::IMAGE_VIEW_TYPE_2D_ARRAY : return D3D12_RTV_DIMENSION_TEXTURE2DARRAY; break;
+        case grfx::IMAGE_VIEW_TYPE_3D       : return D3D12_RTV_DIMENSION_TEXTURE3D; break;
     }
     // clang-format on
     return ppx::InvalidValue<D3D12_RTV_DIMENSION>();
+}
+
+D3D12_SHADER_COMPONENT_MAPPING ToD3D12ShaderComponentMapping(grfx::ComponentSwizzle value, D3D12_SHADER_COMPONENT_MAPPING identity)
+{
+    if (value == grfx::COMPONENT_SWIZZLE_IDENTITY)
+        return identity;
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::COMPONENT_SWIZZLE_ZERO : return D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_0; break;
+        case grfx::COMPONENT_SWIZZLE_ONE  : return D3D12_SHADER_COMPONENT_MAPPING_FORCE_VALUE_1; break;
+        case grfx::COMPONENT_SWIZZLE_R    : return D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_0; break;
+        case grfx::COMPONENT_SWIZZLE_G    : return D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_1; break;
+        case grfx::COMPONENT_SWIZZLE_B    : return D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_2; break;
+        case grfx::COMPONENT_SWIZZLE_A    : return D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_3; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_SHADER_COMPONENT_MAPPING>();
 }
 
 D3D12_SHADER_VISIBILITY ToD3D12ShaderVisibliity(grfx::ShaderStageBits value)
@@ -231,6 +266,20 @@ D3D12_SHADER_VISIBILITY ToD3D12ShaderVisibliity(grfx::ShaderStageBits value)
     return ppx::InvalidValue<D3D12_SHADER_VISIBILITY>();
 }
 
+D3D12_SRV_DIMENSION ToD3D12SRVDimension(grfx::ImageViewType value, uint32_t arrayLayerCount)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case IMAGE_VIEW_TYPE_1D   : return (arrayLayerCount > 1) ? D3D12_SRV_DIMENSION_TEXTURE1DARRAY : D3D12_SRV_DIMENSION_TEXTURE1D; break;
+        case IMAGE_VIEW_TYPE_2D   : return (arrayLayerCount > 1) ? D3D12_SRV_DIMENSION_TEXTURE2DARRAY : D3D12_SRV_DIMENSION_TEXTURE2D; break;
+        case IMAGE_VIEW_TYPE_3D   : return D3D12_SRV_DIMENSION_TEXTURE3D;
+        case IMAGE_VIEW_TYPE_CUBE : return (arrayLayerCount > 1) ? D3D12_SRV_DIMENSION_TEXTURECUBEARRAY : D3D12_SRV_DIMENSION_TEXTURECUBE; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_SRV_DIMENSION>();
+}
+
 D3D12_STENCIL_OP ToD3D12StencilOp(grfx::StencilOp value)
 {
     // clang-format off
@@ -247,6 +296,33 @@ D3D12_STENCIL_OP ToD3D12StencilOp(grfx::StencilOp value)
     }
     // clang-format on
     return ppx::InvalidValue<D3D12_STENCIL_OP>();
+}
+
+D3D12_TEXTURE_ADDRESS_MODE ToD3D12TextureAddressMode(grfx::SamplerAddressMode value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::SAMPLER_ADDRESS_MODE_REPEAT          : return D3D12_TEXTURE_ADDRESS_MODE_WRAP; break;
+        case grfx::SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT : return D3D12_TEXTURE_ADDRESS_MODE_MIRROR; break;
+        case grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE   : return D3D12_TEXTURE_ADDRESS_MODE_CLAMP; break;
+        case grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER : return D3D12_TEXTURE_ADDRESS_MODE_BORDER; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_TEXTURE_ADDRESS_MODE>();
+}
+
+D3D12_RESOURCE_DIMENSION ToD3D12TextureResourceDimension(grfx::ImageType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::IMAGE_TYPE_1D : return D3D12_RESOURCE_DIMENSION_TEXTURE1D; break;
+        case grfx::IMAGE_TYPE_2D : return D3D12_RESOURCE_DIMENSION_TEXTURE2D; break;
+        case grfx::IMAGE_TYPE_3D : return D3D12_RESOURCE_DIMENSION_TEXTURE3D; break;
+    }
+    // clang-format on
+    return D3D12_RESOURCE_DIMENSION_UNKNOWN;
 }
 
 UINT8 ToD3D12WriteMask(uint32_t value)

@@ -24,6 +24,7 @@ ImageCreateInfo ImageCreateInfo::DepthStencilTarget(
     ci.usageFlags.bits.sampled                = true;
     ci.usageFlags.bits.depthStencilAttachment = true;
     ci.memoryUsage                            = grfx::MEMORY_USAGE_GPU_ONLY;
+    ci.initialState                           = grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE;
     ci.pApiObject                             = nullptr;
     return ci;
 }

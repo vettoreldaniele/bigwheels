@@ -15,7 +15,7 @@ public:
     Gpu() {}
     virtual ~Gpu() {}
 
-    DXGIAdapterPtr GetDxAdapter() const { return mGpu; }
+    typename DXGIAdapterPtr::InterfaceType* GetDxAdapter() const { return mGpu.Get(); }
 
     D3D_FEATURE_LEVEL GetFeatureLevel() const { return static_cast<D3D_FEATURE_LEVEL>(mCreateInfo.featureLevel); }
 

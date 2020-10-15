@@ -79,7 +79,7 @@ private:
     friend Result  CreateInstance(const grfx::InstanceCreateInfo* pCreateInfo, grfx::Instance** ppInstance);
     friend void    DestroyInstance(const grfx::Instance* pInstance);
 
-private:
+protected:
     grfx::InstanceCreateInfo      mCreateInfo = {};
     std::vector<grfx::GpuPtr>     mGpus;
     std::vector<grfx::DevicePtr>  mDevices;

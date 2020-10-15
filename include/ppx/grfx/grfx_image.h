@@ -11,17 +11,20 @@ namespace grfx {
 //!
 struct ImageCreateInfo
 {
-    grfx::ImageType       type            = grfx::IMAGE_TYPE_2D;
-    uint32_t              width           = 0;
-    uint32_t              height          = 0;
-    uint32_t              depth           = 0;
-    grfx::Format          format          = grfx::FORMAT_UNDEFINED;
-    grfx::SampleCount     sampleCount     = grfx::SAMPLE_COUNT_1;
-    uint32_t              mipLevelCount   = 1;
-    uint32_t              arrayLayerCount = 1;
-    grfx::ImageUsageFlags usageFlags      = grfx::ImageUsageFlags::SampledImage();
-    grfx::MemoryUsage     memoryUsage     = grfx::MEMORY_USAGE_GPU_ONLY;
-    void*                 pApiObject      = nullptr; // [OPTIONAL] For external images such as swapchain images
+    grfx::ImageType              type            = grfx::IMAGE_TYPE_2D;
+    uint32_t                     width           = 0;
+    uint32_t                     height          = 0;
+    uint32_t                     depth           = 0;
+    grfx::Format                 format          = grfx::FORMAT_UNDEFINED;
+    grfx::SampleCount            sampleCount     = grfx::SAMPLE_COUNT_1;
+    uint32_t                     mipLevelCount   = 1;
+    uint32_t                     arrayLayerCount = 1;
+    grfx::ImageUsageFlags        usageFlags      = grfx::ImageUsageFlags::SampledImage();
+    grfx::MemoryUsage            memoryUsage     = grfx::MEMORY_USAGE_GPU_ONLY;  // D3D12 will fail on any other memory usage
+    grfx::ResourceState          initialState    = grfx::RESOURCE_STATE_GENERAL; // This may not be the best choice
+    grfx::RenderTargetClearValue RTVClearValue   = {0, 0, 0, 0};                 // Optimized RTV clear value
+    grfx::DepthStencilClearValue DSVClearValue   = {1.0f, 0xFF};                 // Optimized DSV clear value
+    void*                        pApiObject      = nullptr;                      // [OPTIONAL] For external images such as swapchain images
 
     // Returns a create info for sampled image
     static ImageCreateInfo SampledImage2D(
@@ -251,6 +254,8 @@ class SampledImageView
 public:
     SampledImageView() {}
     virtual ~SampledImageView() {}
+
+    grfx::Image* GetImage() const { return mCreateInfo.pImage; }
 };
 
 // -------------------------------------------------------------------------------------------------
