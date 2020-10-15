@@ -70,10 +70,12 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
 {
     mDescriptorPool = ToApi(pCreateInfo->pPool)->GetVkDescriptorPool();
 
+    VkDescriptorSetLayout layout = ToApi(pCreateInfo->pLayout)->GetVkDescriptorSetLayout();
+
     VkDescriptorSetAllocateInfo vkai = {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
     vkai.descriptorPool              = mDescriptorPool;
     vkai.descriptorSetCount          = 1;
-    vkai.pSetLayouts                 = ToApi(pCreateInfo->pLayout)->GetVkDescriptorSetLayout();
+    vkai.pSetLayouts                 = &layout;
 
     VkResult vkres = vkAllocateDescriptorSets(
         ToApi(GetDevice())->GetVkDevice(),
