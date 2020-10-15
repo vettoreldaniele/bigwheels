@@ -6,6 +6,7 @@
 namespace ppx {
 namespace grfx {
 
+const char* ToString(grfx::Api value);
 const char* ToString(grfx::DescriptorType value);
 
 } // namespace grfx

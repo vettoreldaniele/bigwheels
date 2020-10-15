@@ -183,10 +183,14 @@ Result Application::CreatePlatformWindow()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, mSettings.window.resizable ? GLFW_TRUE : GLFW_FALSE);
 
+    // Decorated window title
+    std::stringstream windowTitle;
+    windowTitle << mSettings.window.title << " | " <<  ToString(mSettings.grfx.api) << " | " << mDevice->GetDeviceName();
+
     GLFWwindow* pWindow = glfwCreateWindow(
         static_cast<int>(mSettings.window.width),
         static_cast<int>(mSettings.window.height),
-        mSettings.window.title.c_str(),
+        windowTitle.str().c_str(),
         nullptr,
         nullptr);
     if (IsNull(pWindow)) {

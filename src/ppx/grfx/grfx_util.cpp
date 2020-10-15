@@ -3,6 +3,18 @@
 namespace ppx {
 namespace grfx {
 
+const char* ToString(grfx::Api value)
+{
+    switch (value) {
+        default: break;
+        case grfx::API_VK_1_1  : return "Vulkan 1.1"; break;
+        case grfx::API_VK_1_2  : return "Vulkan 1.2"; break;
+        case grfx::API_DX_12_0 : return "D3D12 12.0"; break;
+        case grfx::API_DX_12_1 : return "D3D12 12.1"; break;
+    }
+    return "<unknown graphics API>";
+}
+
 const char* ToString(grfx::DescriptorType value)
 {
     // clang-format off
