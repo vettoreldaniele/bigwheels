@@ -11,6 +11,9 @@ const char* gVsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\Sta
 const char* gPsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\StaticVertexColors.ps.spv";
 #endif
 
+#define kWindowWidth  1280
+#define kWindowHeight 720
+
 class ProjApp
     : public ppx::Application
 {
@@ -43,6 +46,8 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "01_triangle";
+    settings.window.width     = kWindowWidth;
+    settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
 }
@@ -132,8 +137,8 @@ void ProjApp::Setup()
         mVertexBuffer->UnmapMemory();
     }
 
-    mViewport    = {0, 0, 640, 480, 0, 1};
-    mScissorRect = {0, 0, 640, 480};
+    mViewport    = {0, 0, kWindowWidth, kWindowHeight, 0, 1};
+    mScissorRect = {0, 0, kWindowWidth, kWindowHeight};
 }
 
 void ProjApp::Render()
@@ -173,6 +178,10 @@ void ProjApp::Render()
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
             frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->Draw(3, 1, 0, 0);
+
+            // Draw ImGui
+            DrawDebugInfo();
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

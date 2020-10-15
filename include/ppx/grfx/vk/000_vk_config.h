@@ -342,6 +342,14 @@ const typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(const GrfxTypeT* pGrfx
     return pApiObject;
 }
 
+template <typename GrfxTypeT>
+typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(ObjPtr<GrfxTypeT>& pGrfxObject)
+{
+    using ApiType       = typename ApiObjectLookUp<GrfxTypeT>::ApiType;
+    ApiType* pApiObject = static_cast<ApiType*>(pGrfxObject.Get());
+    return pApiObject;
+}
+
 // -------------------------------------------------------------------------------------------------
 
 const uint32_t kAllQueueMask      = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;

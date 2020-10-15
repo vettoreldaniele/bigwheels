@@ -1,26 +1,61 @@
 #ifndef ppx_imgui_impl_h
 #define ppx_imgui_impl_h
 
-#include "ppx/grfx/grfx_device.h"
-
 #include "imgui.h"
+
+#include "grfx/000_grfx_config.h"
 
 namespace ppx {
 
-class ImguiImpl
+class Application;
+
+class ImGuiImpl
 {
 public:
-    ImguiImpl() {}
-    ~ImguiImpl() {}
+    ImGuiImpl() {}
+    virtual ~ImGuiImpl() {}
 
-    Result Init();
-    void   Shutdown();
-    void   NewFrame();
-    void   RenderDrawData(ImDrawData* pDrawData, grfx::CommandBuffer* pCommandBuffer);
-   
-private:
-    grfx::DevicePtr mDevice;    
+    virtual Result Init(ppx::Application* pApp)                = 0;
+    virtual void   Shutdown(ppx::Application* pApp)            = 0;
+    virtual void   NewFrame()                                  = 0;
+    virtual void   Render(grfx::CommandBuffer* pCommandBuffer) = 0;
+
+protected:
+    void SetColorStyle();
 };
+
+class ImGuiImplVk
+    : public ImGuiImpl
+{
+public:
+    ImGuiImplVk() {}
+    virtual ~ImGuiImplVk() {}
+
+    virtual Result Init(ppx::Application* pApp) override;
+    virtual void   Shutdown(ppx::Application* pApp) override;
+    virtual void   NewFrame() override;
+    virtual void   Render(grfx::CommandBuffer* pCommandBuffer) override;
+
+private:
+    grfx::DescriptorPoolPtr mDescriptorPool;
+};
+
+#if defined(PPX_D3D12)
+class ImGuiImplDx
+    : public ImGuiImpl
+{
+public:
+    ImGuiImplDx() {}
+    virtual ~ImGuiImplDx() {}
+
+    virtual Result Init(ppx::Application* pApp) override;
+    virtual void   Shutdown(ppx::Application* pApp) override;
+    virtual void   NewFrame() override;
+    virtual void   Render(grfx::CommandBuffer* pCommandBuffer) override;
+
+private:
+};
+#endif // defined(PPX_D3D12)
 
 } // namespace ppx
 

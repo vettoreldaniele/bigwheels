@@ -103,6 +103,8 @@ enum Result
 
     ERROR_IMAGE_FILE_LOAD_FAILED               = -2000,
     ERROR_IMAGE_CANNOT_RESIZE_EXTERNAL_STORAGE = -2001,
+
+    ERROR_IMGUI_INITIALIZATION_FAILED = -3000,
 };
 
 inline bool Success(ppx::Result value)

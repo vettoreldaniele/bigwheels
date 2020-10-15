@@ -144,13 +144,52 @@ Result Application::InitializeGrfxSurface()
     return ppx::SUCCESS;
 }
 
-void Application::ShutdownGrfx()
+Result Application::InitializeImGui()
 {
-    // Wait for device idle
+    switch (mSettings.grfx.api) {
+        default: {
+            PPX_ASSERT_MSG(false, "[imgui] unknown graphics API");
+            return ppx::ERROR_UNSUPPORTED_API;
+        } break;
+
+        case grfx::API_VK_1_1:
+        case grfx::API_VK_1_2: {
+            mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplVk());
+        } break;
+
+#if defined(PPX_D3D12)
+        case grfx::API_DX_12_0:
+        case grfx::API_DX_12_1: {
+            mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplDx());
+        } break;
+#endif // defined(PPX_D3D12)
+    }
+
+    Result ppxres = mImGui->Init(this);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void Application::ShutdownImGui()
+{
+    if (mImGui) {
+        mImGui->Shutdown(this);
+        mImGui.reset();
+    }
+}
+
+void Application::StopGrfx()
+{
     if (mDevice) {
         mDevice->WaitIdle();
     }
+}
 
+void Application::ShutdownGrfx()
+{
     if (mInstance) {
         if (mSwapchain) {
             mDevice->DestroySwapchain(mSwapchain);
@@ -185,7 +224,7 @@ Result Application::CreatePlatformWindow()
 
     // Decorated window title
     std::stringstream windowTitle;
-    windowTitle << mSettings.window.title << " | " <<  ToString(mSettings.grfx.api) << " | " << mDevice->GetDeviceName();
+    windowTitle << mSettings.window.title << " | " << ToString(mSettings.grfx.api) << " | " << mDevice->GetDeviceName();
 
     GLFWwindow* pWindow = glfwCreateWindow(
         static_cast<int>(mSettings.window.width),
@@ -240,6 +279,15 @@ void Application::DispatchRender()
     Render();
 }
 
+void Application::DrawImGui(grfx::CommandBuffer* pCommandBuffer)
+{
+    if (!mImGui) {
+        return;
+    }
+
+    mImGui->Render(pCommandBuffer);
+}
+
 bool Application::IsRunning() const
 {
     bool isRunning = (glfwWindowShouldClose(static_cast<GLFWwindow*>(mWindow)) == 0);
@@ -276,6 +324,12 @@ int Application::Run(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    // Setup ImGui
+    ppxres = InitializeImGui();
+    if (Failed(ppxres)) {
+        return EXIT_FAILURE;
+    }
+
     // Call setup
     DispatchSetup();
 
@@ -292,18 +346,38 @@ int Application::Run(int argc, char** argv)
 
     mRunning = true;
     while (IsRunning()) {
+        // Frame start
+        mFrameStartTime = static_cast<float>(mTimer.MillisSinceStart());
+
         // Poll events
         glfwPollEvents();
 
+        // Start new Imgui frame
+        if (mImGui) {
+            mImGui->NewFrame();
+        }
+
         // Call render
         DispatchRender();
+
+        // Frame end
+        mFrameEndTime      = static_cast<float>(mTimer.MillisSinceStart());
+        mPreviousFrameTime = mFrameEndTime - mFrameStartTime;
     }
     // ---------------------------------------------------------------------------------------------
     // Main loop [END]
     // ---------------------------------------------------------------------------------------------
 
+    // Stop graphics first before shutting down to make sure
+    // that there aren't any command buffers in flight.
+    //
+    StopGrfx();
+
     // Call shutdown
     DispatchShutdown();
+
+    // Shutdown Imgui
+    ShutdownImGui();
 
     // Shutdown graphics
     ShutdownGrfx();
@@ -318,6 +392,272 @@ int Application::Run(int argc, char** argv)
 float Application::GetElapsedSeconds() const
 {
     return static_cast<float>(mTimer.SecondsSinceStart());
+}
+
+uint32_t Application::GetProcessId() const
+{
+    uint32_t pid = UINT32_MAX;
+#if defined(PPX_LINUX)
+    pid = static_cast<uint32_t>(getpid());
+#elif defined(PPX_MSW)
+    pid = static_cast<uint32_t>(::GetCurrentProcessId());
+#endif
+    return pid;
+}
+
+void Application::DrawDebugInfo()
+{
+    if (!mImGui) {
+        return;
+    }
+
+    if (ImGui::Begin("Debug Info")) {
+        ImGui::Columns(2);
+
+        // Application PID
+        {
+            ImGui::Text("Application PID");
+            ImGui::NextColumn();
+            ImGui::Text("%d", GetProcessId());
+            ImGui::NextColumn();
+        }
+
+        ImGui::Separator();
+
+        // API
+        {
+            ImGui::Text("API");
+            ImGui::NextColumn();
+            ImGui::Text("%s", ToString(mSettings.grfx.api));
+            ImGui::NextColumn();
+        }
+
+        // GPU
+        {
+            ImGui::Text("GPU");
+            ImGui::NextColumn();
+            ImGui::Text("%s", GetDevice()->GetDeviceName());
+            ImGui::NextColumn();
+        }
+
+        ImGui::Separator();
+
+        // Previous frame time
+        {
+            ImGui::Text("Previous Frame Time");
+            ImGui::NextColumn();
+            ImGui::Text("%f ms", mPreviousFrameTime);
+            ImGui::NextColumn();
+        }
+
+        ImGui::Columns(1);
+    }
+    ImGui::End();
+
+    /*
+    if (ImGui::Begin("Application Info")) {
+        {
+            ImGui::Columns(2);
+            // Application PID
+            {
+                ImGui::Text("Application PID");
+                ImGui::NextColumn();
+                ImGui::Text("%d", GetProcessId());
+                ImGui::NextColumn();
+            }
+            // Application Name
+            {
+                ImGui::Text("Application Name");
+                ImGui::NextColumn();
+                ImGui::Text("%s", configuration.name.c_str());
+                ImGui::NextColumn();
+            }
+            // GPU
+            {
+                ImGui::Text("GPU");
+                ImGui::NextColumn();
+                ImGui::Text("%s", GetDevice()->GetDescriptiveName());
+                ImGui::NextColumn();
+            }
+            // GPU Type
+            {
+                ImGui::Text("GPU Type");
+                ImGui::NextColumn();
+                ImGui::Text("%s", vkex::ToStringShort(gpu_properties.deviceType).c_str());
+                ImGui::NextColumn();
+            }
+            ImGui::Columns(1);
+        }
+
+        ImGui::Separator();
+
+        {
+            ImGui::Columns(2);
+            // Debug Utils
+            {
+                ImGui::Text("Vulkan Debug Utils");
+                ImGui::NextColumn();
+                ImGui::Text("%d", m_configuration.graphics_debug.enable);
+                ImGui::NextColumn();
+            }
+        }
+
+        ImGui::Separator();
+
+        {
+            ImGui::Columns(2);
+            // Average Frame Time
+            {
+                ImGui::Text("Average Frame Time");
+                ImGui::NextColumn();
+                ImGui::Text("%f ms", (GetAverageFrameTime() * 1000.0));
+                ImGui::NextColumn();
+            }
+            // Current Frame Time
+            {
+                ImGui::Text("Current Frame Time");
+                ImGui::NextColumn();
+                ImGui::Text("%f ms", GetFrameElapsedTime() * 1000.0f);
+                ImGui::NextColumn();
+            }
+            // Max Frame Time
+            {
+                ImGui::Text("Max Past %d Frames Time", kWindowFrames);
+                ImGui::NextColumn();
+                ImGui::Text("%f ms", GetMaxWindowFrameTime() * 1000.0f);
+                ImGui::NextColumn();
+            }
+            // Min Frame Time
+            {
+                ImGui::Text("Min Past %d Frames Time", kWindowFrames);
+                ImGui::NextColumn();
+                ImGui::Text("%f ms", GetMinWindowFrameTime() * 1000.0f);
+                ImGui::NextColumn();
+            }
+            // Frames Per Second
+            {
+                ImGui::Text("Frames Per Second");
+                ImGui::NextColumn();
+                ImGui::Text("%f fps", GetFramesPerSecond());
+                ImGui::NextColumn();
+            }
+            // Total Frames
+            {
+                ImGui::Text("Total Frames");
+                ImGui::NextColumn();
+                ImGui::Text("%llu frames", static_cast<unsigned long long>(GetElapsedFrames()));
+                ImGui::NextColumn();
+            }
+            // Elapsed Time
+            {
+                ImGui::Text("Elapsed Time (s)");
+                ImGui::NextColumn();
+                ImGui::Text("%f seconds", GetElapsedTime());
+                ImGui::NextColumn();
+            }
+            ImGui::Columns(1);
+        }
+
+        ImGui::Separator();
+
+        // Function call times
+        {
+            ImGui::Columns(2);
+            // Update Function Call Time
+            {
+                ImGui::Text("Update Call Time");
+                ImGui::NextColumn();
+                ImGui::Text("%f ms", m_update_fn_time * 1000.0);
+                ImGui::NextColumn();
+            }
+            // Render Function Call Time
+            {
+                ImGui::Text("Render Call Time");
+                ImGui::NextColumn();
+                ImGui::Text("%f ms", m_render_fn_time * 1000.0f);
+                ImGui::NextColumn();
+            }
+            // Present Function Call Time
+            {
+                ImGui::Text("Present Call Time");
+                ImGui::NextColumn();
+                ImGui::Text("%f ms", m_present_fn_time * 1000.0f);
+                ImGui::NextColumn();
+            }
+            ImGui::Columns(1);
+        }
+
+        ImGui::Separator();
+
+        // Swapchain
+        {
+            ImGui::Columns(2);
+            // Image count
+            {
+                ImGui::Text("Swapchain Image Count");
+                ImGui::NextColumn();
+                ImGui::Text("%u", configuration.swapchain.image_count);
+                ImGui::NextColumn();
+            }
+            // Format
+            {
+                ImGui::Text("Swapchain Format");
+                ImGui::NextColumn();
+                ImGui::Text("%s", vkex::ToStringShort(configuration.swapchain.color_format).c_str());
+                ImGui::NextColumn();
+            }
+            // Color space
+            {
+                ImGui::Text("Swapchain Color Space");
+                ImGui::NextColumn();
+                ImGui::Text("%s", vkex::ToStringShort(configuration.swapchain.color_space).c_str());
+                ImGui::NextColumn();
+            }
+            // Size
+            {
+                ImGui::Text("Swapchain Size");
+                ImGui::NextColumn();
+                ImGui::Text("%ux%u", configuration.window.width, configuration.window.height);
+                ImGui::NextColumn();
+            }
+            // Size
+            {
+                ImGui::Text("Present Mode");
+                ImGui::NextColumn();
+                ImGui::Text("%s", vkex::ToStringShort(configuration.swapchain.present_mode).c_str());
+                ImGui::NextColumn();
+            }
+            ImGui::Columns(1);
+        }
+
+        ImGui::Separator();
+
+        // Vulkan call times
+        {
+            ImGui::Columns(2);
+            // vkQueuePresentKHR
+            {
+                ImGui::Text("vkQueuePresentKHR");
+                ImGui::NextColumn();
+                ImGui::Text("%f", m_average_vk_queue_present_time);
+                ImGui::NextColumn();
+            }
+            ImGui::Columns(1);
+
+            //ImGui::PlotLines(
+            //  "0 to 100us",
+            //  (float*)m_queue_present_times.data() + 2,
+            //  m_queue_present_times.size(),
+            //  0,
+            //  nullptr,
+            //  0,
+            //  100 * 0.000001f, // microseconds
+            //  ImVec2(0, 64),
+            //  sizeof(TimeRange));
+        }
+    }
+    ImGui::End();
+*/
 }
 
 } // namespace ppx

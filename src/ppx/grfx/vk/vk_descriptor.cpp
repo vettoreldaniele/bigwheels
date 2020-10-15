@@ -15,7 +15,7 @@ Result DescriptorPool::CreateApiObjects(const grfx::DescriptorPoolCreateInfo* pC
     std::vector<VkDescriptorPoolSize> poolSizes;
     // clang-format off
     if (pCreateInfo->sampler              > 0) poolSizes.push_back({VK_DESCRIPTOR_TYPE_SAMPLER               , pCreateInfo->sampler             });
-    if (pCreateInfo->sampledImage         > 0) poolSizes.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, pCreateInfo->sampledImage        });
+    if (pCreateInfo->combinedImageSampler > 0) poolSizes.push_back({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, pCreateInfo->combinedImageSampler});
     if (pCreateInfo->sampledImage         > 0) poolSizes.push_back({VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE         , pCreateInfo->sampledImage        });
     if (pCreateInfo->storageImage         > 0) poolSizes.push_back({VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , pCreateInfo->storageImage        });
     if (pCreateInfo->uniformTexelBuffer   > 0) poolSizes.push_back({VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER  , pCreateInfo->uniformTexelBuffer  });

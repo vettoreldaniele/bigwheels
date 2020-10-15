@@ -3,6 +3,7 @@
 
 #include "ppx/base_application.h"
 #include "ppx/000_math_config.h"
+#include "ppx/imgui_impl.h"
 #include "ppx/timer.h"
 
 // clang-format off
@@ -77,11 +78,17 @@ protected:
     virtual void DispatchShutdown();
     virtual void DispatchRender();
 
+    void DrawImGui(grfx::CommandBuffer* pCommandBuffer);
+    void DrawDebugInfo();
+
 public:
     int Run(int argc, char** argv);
 
     float GetElapsedSeconds() const;
 
+    uint32_t GetProcessId() const;
+
+    void*              GetWindow() const { return mWindow; }
     grfx::InstancePtr  GetInstance() const { return mInstance; }
     grfx::DevicePtr    GetDevice() const { return mDevice; }
     grfx::QueuePtr     GetGraphicsQueue(uint32_t index = 0) const { return GetDevice()->GetGraphicsQueue(index); }
@@ -93,20 +100,28 @@ private:
     void   InternalCtor();
     Result InitializeGrfxDevice();
     Result InitializeGrfxSurface();
+    Result InitializeImGui();
+    void   ShutdownImGui();
+    void   StopGrfx();
     void   ShutdownGrfx();
     Result CreatePlatformWindow();
     void   DestroyPlatformWindow();
     bool   IsRunning() const;
 
 private:
-    ApplicationSettings mSettings = {};
-    Timer               mTimer;
-    void*               mWindow  = nullptr;
-    bool                mRunning = true;
-    grfx::InstancePtr   mInstance;
-    grfx::DevicePtr     mDevice;
-    grfx::SurfacePtr    mSurface;
-    grfx::SwapchainPtr  mSwapchain;
+    ApplicationSettings        mSettings = {};
+    Timer                      mTimer;
+    void*                      mWindow  = nullptr;
+    bool                       mRunning = true;
+    grfx::InstancePtr          mInstance;
+    grfx::DevicePtr            mDevice;
+    grfx::SurfacePtr           mSurface;
+    grfx::SwapchainPtr         mSwapchain;
+    std::unique_ptr<ImGuiImpl> mImGui;
+
+    float mFrameStartTime    = 0;
+    float mFrameEndTime      = 0;
+    float mPreviousFrameTime = 0;
 };
 
 } // namespace ppx

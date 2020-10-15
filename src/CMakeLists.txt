@@ -66,16 +66,23 @@ set(SRC_DIR   ${PPX_DIR}/src)
 set(IMGUI_DIR ${PPX_DIR}/third_party/imgui)
 
 list(APPEND IMGUI_HEADER_FILES
-  ${IMGUI_DIR}/imgui.h
-  ${IMGUI_DIR}/examples/imgui_impl_glfw.h
+    ${IMGUI_DIR}/imgui.h
+    ${IMGUI_DIR}/examples/imgui_impl_glfw.h
 )
 
 list(APPEND IMGUI_SOURCE_FILES
-  ${IMGUI_DIR}/imgui.cpp
-  ${IMGUI_DIR}/imgui_draw.cpp
-  ${IMGUI_DIR}/imgui_widgets.cpp
-  ${IMGUI_DIR}/examples/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/examples/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/examples/imgui_impl_vulkan.cpp
 )
+
+if (PPX_D3D12)
+    list(APPEND IMGUI_SOURCE_FILES
+        ${IMGUI_DIR}/examples/imgui_impl_dx12.cpp
+    )
+endif()
 
 list(
     APPEND PPX_HEADER_FILES
@@ -261,18 +268,18 @@ list(
 # Source group
 # ------------------------------------------------------------------------------
 
-source_group("ppx\\header"           FILES ${PPX_HEADER_FILES})
-source_group("ppx\\source"           FILES ${PPX_SOURCE_FILES})
-source_group("ppx-grfx\\header"      FILES ${PPX_GRFX_HEADER_FILES})
-source_group("ppx-grfx\\source"      FILES ${PPX_GRFX_SOURCE_FILES})
+source_group("ppx\\header"          FILES ${PPX_HEADER_FILES})
+source_group("ppx\\source"          FILES ${PPX_SOURCE_FILES})
+source_group("ppx-grfx\\header"     FILES ${PPX_GRFX_HEADER_FILES})
+source_group("ppx-grfx\\source"     FILES ${PPX_GRFX_SOURCE_FILES})
 source_group("ppx-grfx-dx\\header"  FILES ${PPX_GRFX_DX_HEADER_FILES})
 source_group("ppx-grfx-dx\\source"  FILES ${PPX_GRFX_DX_SOURCE_FILES})
 source_group("ppx-grfx-vk\\header"  FILES ${PPX_GRFX_VK_HEADER_FILES})
 source_group("ppx-grfx-vk\\source"  FILES ${PPX_GRFX_VK_SOURCE_FILES})
 source_group("ppx-io\\header"       FILES ${PPX_IO_HEADER_FILES})
 source_group("ppx-io\\source"       FILES ${PPX_IO_SOURCE_FILES})
-source_group("ThirdParty\\contrib"   FILES ${CONTRIB_FILES})
-source_group("ThirdParty\\imgui"     FILES ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
+source_group("ThirdParty\\contrib"  FILES ${CONTRIB_FILES})
+source_group("ThirdParty\\imgui"    FILES ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
 
 # ------------------------------------------------------------------------------
 # Add library
