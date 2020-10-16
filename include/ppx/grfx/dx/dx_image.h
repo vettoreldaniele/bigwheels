@@ -117,11 +117,14 @@ public:
     StorageImageView() {}
     virtual ~StorageImageView() {}
 
+    const D3D12_UNORDERED_ACCESS_VIEW_DESC& GetDesc() const { return mDesc; }
+
 protected:
     virtual Result CreateApiObjects(const grfx::StorageImageViewCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
+    D3D12_UNORDERED_ACCESS_VIEW_DESC mDesc = {};
 };
 
 } // namespace dx

@@ -583,7 +583,15 @@ void Application::DrawDebugInfo()
 
         ImGui::Separator();
 
-        // Previous frame time
+        // Average FPS
+        {
+            ImGui::Text("Frame Count");
+            ImGui::NextColumn();
+            ImGui::Text("%d", mFrameCount);
+            ImGui::NextColumn();
+        }
+
+        // Average FPS
         {
             ImGui::Text("Average FPS");
             ImGui::NextColumn();
@@ -602,211 +610,6 @@ void Application::DrawDebugInfo()
         ImGui::Columns(1);
     }
     ImGui::End();
-
-    /*
-    if (ImGui::Begin("Application Info")) {
-        {
-            ImGui::Columns(2);
-            // Application PID
-            {
-                ImGui::Text("Application PID");
-                ImGui::NextColumn();
-                ImGui::Text("%d", GetProcessId());
-                ImGui::NextColumn();
-            }
-            // Application Name
-            {
-                ImGui::Text("Application Name");
-                ImGui::NextColumn();
-                ImGui::Text("%s", configuration.name.c_str());
-                ImGui::NextColumn();
-            }
-            // GPU
-            {
-                ImGui::Text("GPU");
-                ImGui::NextColumn();
-                ImGui::Text("%s", GetDevice()->GetDescriptiveName());
-                ImGui::NextColumn();
-            }
-            // GPU Type
-            {
-                ImGui::Text("GPU Type");
-                ImGui::NextColumn();
-                ImGui::Text("%s", vkex::ToStringShort(gpu_properties.deviceType).c_str());
-                ImGui::NextColumn();
-            }
-            ImGui::Columns(1);
-        }
-
-        ImGui::Separator();
-
-        {
-            ImGui::Columns(2);
-            // Debug Utils
-            {
-                ImGui::Text("Vulkan Debug Utils");
-                ImGui::NextColumn();
-                ImGui::Text("%d", m_configuration.graphics_debug.enable);
-                ImGui::NextColumn();
-            }
-        }
-
-        ImGui::Separator();
-
-        {
-            ImGui::Columns(2);
-            // Average Frame Time
-            {
-                ImGui::Text("Average Frame Time");
-                ImGui::NextColumn();
-                ImGui::Text("%f ms", (GetAverageFrameTime() * 1000.0));
-                ImGui::NextColumn();
-            }
-            // Current Frame Time
-            {
-                ImGui::Text("Current Frame Time");
-                ImGui::NextColumn();
-                ImGui::Text("%f ms", GetFrameElapsedTime() * 1000.0f);
-                ImGui::NextColumn();
-            }
-            // Max Frame Time
-            {
-                ImGui::Text("Max Past %d Frames Time", kWindowFrames);
-                ImGui::NextColumn();
-                ImGui::Text("%f ms", GetMaxWindowFrameTime() * 1000.0f);
-                ImGui::NextColumn();
-            }
-            // Min Frame Time
-            {
-                ImGui::Text("Min Past %d Frames Time", kWindowFrames);
-                ImGui::NextColumn();
-                ImGui::Text("%f ms", GetMinWindowFrameTime() * 1000.0f);
-                ImGui::NextColumn();
-            }
-            // Frames Per Second
-            {
-                ImGui::Text("Frames Per Second");
-                ImGui::NextColumn();
-                ImGui::Text("%f fps", GetFramesPerSecond());
-                ImGui::NextColumn();
-            }
-            // Total Frames
-            {
-                ImGui::Text("Total Frames");
-                ImGui::NextColumn();
-                ImGui::Text("%llu frames", static_cast<unsigned long long>(GetElapsedFrames()));
-                ImGui::NextColumn();
-            }
-            // Elapsed Time
-            {
-                ImGui::Text("Elapsed Time (s)");
-                ImGui::NextColumn();
-                ImGui::Text("%f seconds", GetElapsedTime());
-                ImGui::NextColumn();
-            }
-            ImGui::Columns(1);
-        }
-
-        ImGui::Separator();
-
-        // Function call times
-        {
-            ImGui::Columns(2);
-            // Update Function Call Time
-            {
-                ImGui::Text("Update Call Time");
-                ImGui::NextColumn();
-                ImGui::Text("%f ms", m_update_fn_time * 1000.0);
-                ImGui::NextColumn();
-            }
-            // Render Function Call Time
-            {
-                ImGui::Text("Render Call Time");
-                ImGui::NextColumn();
-                ImGui::Text("%f ms", m_render_fn_time * 1000.0f);
-                ImGui::NextColumn();
-            }
-            // Present Function Call Time
-            {
-                ImGui::Text("Present Call Time");
-                ImGui::NextColumn();
-                ImGui::Text("%f ms", m_present_fn_time * 1000.0f);
-                ImGui::NextColumn();
-            }
-            ImGui::Columns(1);
-        }
-
-        ImGui::Separator();
-
-        // Swapchain
-        {
-            ImGui::Columns(2);
-            // Image count
-            {
-                ImGui::Text("Swapchain Image Count");
-                ImGui::NextColumn();
-                ImGui::Text("%u", configuration.swapchain.image_count);
-                ImGui::NextColumn();
-            }
-            // Format
-            {
-                ImGui::Text("Swapchain Format");
-                ImGui::NextColumn();
-                ImGui::Text("%s", vkex::ToStringShort(configuration.swapchain.color_format).c_str());
-                ImGui::NextColumn();
-            }
-            // Color space
-            {
-                ImGui::Text("Swapchain Color Space");
-                ImGui::NextColumn();
-                ImGui::Text("%s", vkex::ToStringShort(configuration.swapchain.color_space).c_str());
-                ImGui::NextColumn();
-            }
-            // Size
-            {
-                ImGui::Text("Swapchain Size");
-                ImGui::NextColumn();
-                ImGui::Text("%ux%u", configuration.window.width, configuration.window.height);
-                ImGui::NextColumn();
-            }
-            // Size
-            {
-                ImGui::Text("Present Mode");
-                ImGui::NextColumn();
-                ImGui::Text("%s", vkex::ToStringShort(configuration.swapchain.present_mode).c_str());
-                ImGui::NextColumn();
-            }
-            ImGui::Columns(1);
-        }
-
-        ImGui::Separator();
-
-        // Vulkan call times
-        {
-            ImGui::Columns(2);
-            // vkQueuePresentKHR
-            {
-                ImGui::Text("vkQueuePresentKHR");
-                ImGui::NextColumn();
-                ImGui::Text("%f", m_average_vk_queue_present_time);
-                ImGui::NextColumn();
-            }
-            ImGui::Columns(1);
-
-            //ImGui::PlotLines(
-            //  "0 to 100us",
-            //  (float*)m_queue_present_times.data() + 2,
-            //  m_queue_present_times.size(),
-            //  0,
-            //  nullptr,
-            //  0,
-            //  100 * 0.000001f, // microseconds
-            //  ImVec2(0, 64),
-            //  sizeof(TimeRange));
-        }
-    }
-    ImGui::End();
-*/
 }
 
 } // namespace ppx

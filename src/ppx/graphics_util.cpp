@@ -42,7 +42,11 @@ struct ScopeKeeper
     }
 };
 
-Result CreateTextureFromFile(grfx::Queue* pQueue, const fs::path& path, grfx::Image** ppImage)
+Result CreateTextureFromFile(
+    grfx::Queue*                 pQueue,
+    const fs::path&              path,
+    grfx::Image**                ppImage,
+    const grfx::ImageUsageFlags& additionalImageUsage)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppImage);
@@ -97,6 +101,8 @@ Result CreateTextureFromFile(grfx::Queue* pQueue, const fs::path& path, grfx::Im
         ci.usageFlags.bits.transferDst = true;
         ci.usageFlags.bits.sampled     = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
+
+        ci.usageFlags.flags |= additionalImageUsage.flags;
 
         ppxres = pQueue->GetDevice()->CreateImage(&ci, &image);
         if (Failed(ppxres)) {

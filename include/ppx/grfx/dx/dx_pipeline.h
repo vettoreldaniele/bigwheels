@@ -15,11 +15,14 @@ public:
     ComputePipeline() {}
     virtual ~ComputePipeline() {}
 
+    D3D12PipelineStatePtr GetDxPipeline() const { return mPipeline; }
+
 protected:
     virtual Result CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
+    D3D12PipelineStatePtr mPipeline;
 };
 
 // -------------------------------------------------------------------------------------------------

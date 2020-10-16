@@ -114,4 +114,5 @@ add_subdirectory(02_triangle_spinning)
 add_subdirectory(03_square_textured)
 add_subdirectory(04_cube)
 add_subdirectory(05_cube_textured)
+add_subdirectory(06_compute_fill)
 

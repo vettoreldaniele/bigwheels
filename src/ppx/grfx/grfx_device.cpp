@@ -26,6 +26,7 @@ void Device::Destroy()
     DestroyAllObjects(mBuffers);
     DestroyAllObjects(mCommandBuffers);
     DestroyAllObjects(mCommandPools);
+    DestroyAllObjects(mComputePipelines);
     DestroyAllObjects(mDescriptorSets); // Descriptor sets need to be destroyed before pools
     DestroyAllObjects(mDescriptorPools);
     DestroyAllObjects(mDescriptorSetLayouts);
@@ -38,6 +39,7 @@ void Device::Destroy()
     DestroyAllObjects(mSampledImageViews);
     DestroyAllObjects(mSamplers);
     DestroyAllObjects(mSemaphores);
+    DestroyAllObjects(mStorageImageViews);
     DestroyAllObjects(mShaderModules);
 
     grfx::InstanceObject<grfx::DeviceCreateInfo>::Destroy();
@@ -457,6 +459,23 @@ void Device::DestroyShaderModule(const grfx::ShaderModule* pShaderModule)
 {
     PPX_ASSERT_NULL_ARG(pShaderModule);
     DestroyObject(mShaderModules, pShaderModule);
+}
+
+Result Device::CreateStorageImageView(const grfx::StorageImageViewCreateInfo* pCreateInfo, grfx::StorageImageView** ppStorageImageView)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppStorageImageView);
+    Result gxres = CreateObject(pCreateInfo, mStorageImageViews, ppStorageImageView);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyStorageImageView(const grfx::StorageImageView* pStorageImageView)
+{
+    PPX_ASSERT_NULL_ARG(pStorageImageView);
+    DestroyObject(mStorageImageViews, pStorageImageView);
 }
 
 Result Device::CreateSwapchain(const grfx::SwapchainCreateInfo* pCreateInfo, grfx::Swapchain** ppSwapchain)

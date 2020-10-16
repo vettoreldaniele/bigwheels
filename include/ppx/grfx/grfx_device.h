@@ -100,6 +100,9 @@ public:
     Result CreateShaderModule(const grfx::ShaderModuleCreateInfo* pCreateInfo, grfx::ShaderModule** ppShaderModule);
     void   DestroyShaderModule(const grfx::ShaderModule* pShaderModule);
 
+    Result CreateStorageImageView(const grfx::StorageImageViewCreateInfo* pCreateInfo, grfx::StorageImageView** ppStorageImageView);
+    void   DestroyStorageImageView(const grfx::StorageImageView* pStorageImageView);
+
     Result CreateSwapchain(const grfx::SwapchainCreateInfo* pCreateInfo, grfx::Swapchain** ppSwapchain);
     void   DestroySwapchain(const grfx::Swapchain* pSwapchain);
 
@@ -160,6 +163,7 @@ protected:
     virtual Result AllocateObject(grfx::Semaphore** ppObject)           = 0;
     virtual Result AllocateObject(grfx::ShaderModule** ppObject)        = 0;
     virtual Result AllocateObject(grfx::ShaderProgram** ppObject)       = 0;
+    virtual Result AllocateObject(grfx::StorageImageView** ppObject)    = 0;
     virtual Result AllocateObject(grfx::Swapchain** ppObject)           = 0;
     virtual Result AllocateObject(grfx::Texture** ppObject);
 
@@ -202,6 +206,7 @@ protected:
     std::vector<grfx::SemaphorePtr>           mSemaphores;
     std::vector<grfx::ShaderModulePtr>        mShaderModules;
     std::vector<grfx::ShaderProgramPtr>       mShaderPrograms;
+    std::vector<grfx::StorageImageViewPtr>    mStorageImageViews;
     std::vector<grfx::SwapchainPtr>           mSwapchains;
     std::vector<grfx::TexturePtr>             mTextures;
     std::vector<grfx::QueuePtr>               mGraphicsQueues;

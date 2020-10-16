@@ -132,6 +132,25 @@ private:
     VkImageViewPtr mImageView;
 };
 
+// -------------------------------------------------------------------------------------------------
+
+class StorageImageView
+    : public grfx::StorageImageView
+{
+public:
+    StorageImageView() {}
+    virtual ~StorageImageView() {}
+
+    VkImageViewPtr GetVkImageView() const { return mImageView; }
+
+protected:
+    virtual Result CreateApiObjects(const grfx::StorageImageViewCreateInfo* pCreateInfo) override;
+    virtual void   DestroyApiObjects() override;
+
+private:
+    VkImageViewPtr mImageView;
+};
+
 } // namespace vk
 } // namespace grfx
 } // namespace ppx

@@ -265,6 +265,17 @@ public:
 //!
 struct StorageImageViewCreateInfo
 {
+    grfx::Image*           pImage          = nullptr;
+    grfx::ImageViewType    imageViewType   = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
+    grfx::Format           format          = grfx::FORMAT_UNDEFINED;
+    grfx::SampleCount      sampleCount     = grfx::SAMPLE_COUNT_1;
+    uint32_t               mipLevel        = 0;
+    uint32_t               mipLevelCount   = 0;
+    uint32_t               arrayLayer      = 0;
+    uint32_t               arrayLayerCount = 0;
+    grfx::ComponentMapping components      = {};
+
+    static StorageImageViewCreateInfo GuessFromImage(grfx::Image* pImage);
 };
 
 //! @class StorageImageView
@@ -277,6 +288,8 @@ class StorageImageView
 public:
     StorageImageView() {}
     virtual ~StorageImageView() {}
+
+    grfx::Image* GetImage() const { return mCreateInfo.pImage; }
 };
 
 } // namespace grfx

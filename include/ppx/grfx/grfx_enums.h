@@ -199,17 +199,18 @@ enum DescriptorType
     // NOTE: These *DO NOT* match the enums in Vulkan
     //
     DESCRIPTOR_TYPE_UNDEFINED              = 0,
-    DESCRIPTOR_TYPE_SAMPLER                = 1,
-    DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 2,
-    DESCRIPTOR_TYPE_SAMPLED_IMAGE          = 3,
-    DESCRIPTOR_TYPE_STORAGE_IMAGE          = 4,
-    DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER   = 5,
-    DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER   = 6,
-    DESCRIPTOR_TYPE_UNIFORM_BUFFER         = 7,
-    DESCRIPTOR_TYPE_STORAGE_BUFFER         = 8,
-    DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 9,
-    DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 10,
-    DESCRIPTOR_TYPE_INPUT_ATTACHMENT       = 11,
+    DESCRIPTOR_TYPE_SAMPLER                = 1,  // Sampler
+    DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 2,  // Combined image and sampler (Vulkan only)
+    DESCRIPTOR_TYPE_SAMPLED_IMAGE          = 3,  // RO image object
+    DESCRIPTOR_TYPE_STORAGE_IMAGE          = 4,  // RW image object
+    DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER   = 5,  // RO texel buffer object
+    DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER   = 6,  // RW texel buffer object
+    DESCRIPTOR_TYPE_UNIFORM_BUFFER         = 7,  // constant/uniform buffer object
+    DESCRIPTOR_TYPE_STORAGE_BUFFER         = 8,  // RW structured buffer object
+    DESCRIPTOR_TYPE_STRUCTURED_BUFFER      = 9,  // RO structured buffer object
+    DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 10, // (Vulkan only)
+    DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 11, // (Vulkan only)
+    DESCRIPTOR_TYPE_INPUT_ATTACHMENT       = 12, // (Vulkan only)
 };
 
 enum Filter

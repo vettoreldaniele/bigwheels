@@ -246,6 +246,94 @@ void CommandBuffer::SetScissors(
     mCommandList->RSSetScissorRects(static_cast<UINT>(scissorCount), rects);
 }
 
+void CommandBuffer::FillOutBindDescriptorSetsTables(
+    const grfx::PipelineInterface*    pInterface,
+    uint32_t                          setCount,
+    const grfx::DescriptorSet* const* ppSets,
+    size_t&                           rdtCountCBVSRVUAV,
+    size_t&                           rdtCountSampler)
+{
+    dx::Device*                  pApiDevice             = ToApi(GetDevice());
+    D3D12DevicePtr               device                 = pApiDevice->GetDxDevice();
+    const dx::PipelineInterface* pApiPipelineInterface  = ToApi(pInterface);
+    const std::vector<uint32_t>& setNumbers             = pApiPipelineInterface->GetSetNumbers();
+    UINT                         incrementSizeCBVSRVUAV = pApiDevice->GetHandleIncrementSizeCBVSRVUAV();
+    UINT                         incrementSizeSampler   = pApiDevice->GetHandleIncrementSizeSampler();
+
+    uint32_t parameterIndexCount = pApiPipelineInterface->GetParameterIndexCount();
+    if (parameterIndexCount > mRootDescriptorTablesCBVSRVUAV.size()) {
+        mRootDescriptorTablesCBVSRVUAV.resize(parameterIndexCount);
+        mRootDescriptorTablesSampler.resize(parameterIndexCount);
+    }
+
+    // Root descriptor tables
+    rdtCountCBVSRVUAV = 0;
+    rdtCountSampler   = 0;
+    for (uint32_t setIndex = 0; setIndex < setCount; ++setIndex) {
+        PPX_ASSERT_MSG(ppSets[setIndex] != nullptr, "ppSets[" << setIndex << "] is null");
+        uint32_t                 set      = setNumbers[setIndex];
+        const dx::DescriptorSet* pApiSet  = ToApi(ppSets[setIndex]);
+        auto&                    bindings = pApiSet->GetLayout()->GetBindings();
+
+        // Copy the descriptors
+        {
+            UINT numDescriptors = pApiSet->GetNumDescriptorsCBVSRVUAV();
+            if (numDescriptors > 0) {
+                D3D12_CPU_DESCRIPTOR_HANDLE dstRangeStart = mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart();
+                D3D12_CPU_DESCRIPTOR_HANDLE srcRangeStart = pApiSet->GetHeapCBVSRVUAV()->GetCPUDescriptorHandleForHeapStart();
+
+                dstRangeStart.ptr += (mHeapOffsetCBVSRVUAV * incrementSizeCBVSRVUAV);
+
+                device->CopyDescriptorsSimple(
+                    numDescriptors,
+                    dstRangeStart,
+                    srcRangeStart,
+                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            }
+
+            numDescriptors = pApiSet->GetNumDescriptorsSampler();
+            if (numDescriptors > 0) {
+                D3D12_CPU_DESCRIPTOR_HANDLE dstRangeStart = mHeapSampler->GetCPUDescriptorHandleForHeapStart();
+                D3D12_CPU_DESCRIPTOR_HANDLE srcRangeStart = pApiSet->GetHeapSampler()->GetCPUDescriptorHandleForHeapStart();
+
+                dstRangeStart.ptr += (mHeapOffsetSampler * incrementSizeSampler);
+
+                device->CopyDescriptorsSimple(
+                    numDescriptors,
+                    dstRangeStart,
+                    srcRangeStart,
+                    D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+            }
+        }
+
+        size_t bindingCount = bindings.size();
+        for (size_t bindingIndex = 0; bindingIndex < bindingCount; ++bindingIndex) {
+            auto& binding        = bindings[bindingIndex];
+            UINT  parameterIndex = pApiPipelineInterface->FindParameterIndex(set, binding.binding);
+            PPX_ASSERT_MSG(parameterIndex != UINT32_MAX, "invalid parameter index for set=" << set << ", binding=" << binding.binding);
+
+            if (binding.type == grfx::DESCRIPTOR_TYPE_SAMPLER) {
+                RootDescriptorTable& rdt = mRootDescriptorTablesSampler[rdtCountSampler];
+                rdt.parameterIndex       = parameterIndex;
+                rdt.baseDescriptor       = mHeapSampler->GetGPUDescriptorHandleForHeapStart();
+                rdt.baseDescriptor.ptr += (mHeapOffsetSampler * incrementSizeSampler);
+
+                mHeapOffsetSampler += static_cast<UINT>(binding.arrayCount);
+                rdtCountSampler += 1;
+            }
+            else {
+                RootDescriptorTable& rdt = mRootDescriptorTablesCBVSRVUAV[rdtCountCBVSRVUAV];
+                rdt.parameterIndex       = parameterIndex;
+                rdt.baseDescriptor       = mHeapCBVSRVUAV->GetGPUDescriptorHandleForHeapStart();
+                rdt.baseDescriptor.ptr += (mHeapOffsetCBVSRVUAV * incrementSizeCBVSRVUAV);
+
+                mHeapOffsetCBVSRVUAV += static_cast<UINT>(binding.arrayCount);
+                rdtCountCBVSRVUAV += 1;
+            }
+        }
+    }
+}
+
 void CommandBuffer::BindGraphicsDescriptorSets(
     const grfx::PipelineInterface*    pInterface,
     uint32_t                          setCount,
@@ -254,6 +342,12 @@ void CommandBuffer::BindGraphicsDescriptorSets(
     // Set root signature
     mCommandList->SetGraphicsRootSignature(ToApi(pInterface)->GetDxRootSignature().Get());
 
+    // Fill out mRootDescriptorTablesCBVSRVUAV and mRootDescriptorTablesSampler
+    size_t rdtCountCBVSRVUAV = 0;
+    size_t rdtCountSampler   = 0;
+    FillOutBindDescriptorSetsTables(pInterface, setCount, ppSets, rdtCountCBVSRVUAV, rdtCountSampler);
+
+    /*
     dx::Device*                  pApiDevice             = ToApi(GetDevice());
     D3D12DevicePtr               device                 = pApiDevice->GetDxDevice();
     const dx::PipelineInterface* pApiPipelineInterface  = ToApi(pInterface);
@@ -333,12 +427,15 @@ void CommandBuffer::BindGraphicsDescriptorSets(
             }
         }
     }
+*/
 
+    // Set CBVSRVUAV root descriptor tables
     for (uint32_t i = 0; i < rdtCountCBVSRVUAV; ++i) {
         const RootDescriptorTable& rdt = mRootDescriptorTablesCBVSRVUAV[i];
         mCommandList->SetGraphicsRootDescriptorTable(rdt.parameterIndex, rdt.baseDescriptor);
     }
 
+    // Set Sampler root descriptor tables
     for (uint32_t i = 0; i < rdtCountSampler; ++i) {
         const RootDescriptorTable& rdt = mRootDescriptorTablesSampler[i];
         mCommandList->SetGraphicsRootDescriptorTable(rdt.parameterIndex, rdt.baseDescriptor);
@@ -356,12 +453,30 @@ void CommandBuffer::BindComputeDescriptorSets(
     uint32_t                          setCount,
     const grfx::DescriptorSet* const* ppSets)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    // Set root signature
+    mCommandList->SetComputeRootSignature(ToApi(pInterface)->GetDxRootSignature().Get());
+
+    // Fill out mRootDescriptorTablesCBVSRVUAV and mRootDescriptorTablesSampler
+    size_t rdtCountCBVSRVUAV = 0;
+    size_t rdtCountSampler   = 0;
+    FillOutBindDescriptorSetsTables(pInterface, setCount, ppSets, rdtCountCBVSRVUAV, rdtCountSampler);
+
+    // Set CBVSRVUAV root descriptor tables
+    for (uint32_t i = 0; i < rdtCountCBVSRVUAV; ++i) {
+        const RootDescriptorTable& rdt = mRootDescriptorTablesCBVSRVUAV[i];
+        mCommandList->SetComputeRootDescriptorTable(rdt.parameterIndex, rdt.baseDescriptor);
+    }
+
+    // Set Sampler root descriptor tables
+    for (uint32_t i = 0; i < rdtCountSampler; ++i) {
+        const RootDescriptorTable& rdt = mRootDescriptorTablesSampler[i];
+        mCommandList->SetComputeRootDescriptorTable(rdt.parameterIndex, rdt.baseDescriptor);
+    }
 }
 
 void CommandBuffer::BindComputePipeline(const grfx::ComputePipeline* pPipeline)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    mCommandList->SetPipelineState(ToApi(pPipeline)->GetDxPipeline().Get());
 }
 
 void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
@@ -412,7 +527,10 @@ void CommandBuffer::Dispatch(
     uint32_t groupCountY,
     uint32_t groupCountZ)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    mCommandList->Dispatch(
+        static_cast<UINT>(groupCountX),
+        static_cast<UINT>(groupCountY),
+        static_cast<UINT>(groupCountZ));
 }
 
 void CommandBuffer::CopyBufferToImage(

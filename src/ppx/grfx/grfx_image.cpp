@@ -93,5 +93,23 @@ SampledImageViewCreateInfo SampledImageViewCreateInfo::GuessFromImage(grfx::Imag
     return ci;
 }
 
+// -------------------------------------------------------------------------------------------------
+// StorageImageView
+// -------------------------------------------------------------------------------------------------
+StorageImageViewCreateInfo StorageImageViewCreateInfo::GuessFromImage(grfx::Image* pImage)
+{
+    StorageImageViewCreateInfo ci = {};
+    ci.pImage                     = pImage;
+    ci.imageViewType              = pImage->GuessImageViewType();
+    ci.format                     = pImage->GetFormat();
+    ci.sampleCount                = pImage->GetSampleCount();
+    ci.mipLevel                   = 0;
+    ci.mipLevelCount              = pImage->GetMipLevelCount();
+    ci.arrayLayer                 = 0;
+    ci.arrayLayerCount            = pImage->GetArrayLayerCount();
+    ci.components                 = {};
+    return ci;
+}
+
 } // namespace grfx
 } // namespace ppx

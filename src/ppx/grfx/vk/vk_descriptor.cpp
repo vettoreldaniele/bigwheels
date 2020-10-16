@@ -26,6 +26,19 @@ Result DescriptorPool::CreateApiObjects(const grfx::DescriptorPoolCreateInfo* pC
     if (pCreateInfo->storageBufferDynamic > 0) poolSizes.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, pCreateInfo->storageBufferDynamic});
     if (pCreateInfo->inputAttachment      > 0) poolSizes.push_back({VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT      , pCreateInfo->inputAttachment     });
     // clang-format on
+    if (pCreateInfo->structuredBuffer > 0) {
+        auto it = FindIf(
+            poolSizes,
+            [](const VkDescriptorPoolSize& elem) -> bool {
+                bool isSame = elem.type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; 
+                return isSame; });
+        if (it != std::end(poolSizes)) {
+            it->descriptorCount += pCreateInfo->structuredBuffer;
+        }
+        else {
+            poolSizes.push_back({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, pCreateInfo->structuredBuffer});
+        }
+    }
 
     // Flags
     uint32_t flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;

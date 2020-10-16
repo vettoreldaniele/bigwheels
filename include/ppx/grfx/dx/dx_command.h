@@ -88,6 +88,14 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
+    void FillOutBindDescriptorSetsTables(
+        const grfx::PipelineInterface*    pInterface,
+        uint32_t                          setCount,
+        const grfx::DescriptorSet* const* ppSets,
+        size_t&                           rdtCountCBVSRVUAV,
+        size_t&                           rdtCountSampler);
+
+private:
     D3D12GraphicsCommandListPtr mCommandList;
     D3D12CommandAllocatorPtr    mCommandAllocator;
     UINT                        mHeapSizeCBVSRVUAV = 0;

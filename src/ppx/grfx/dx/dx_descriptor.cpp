@@ -38,7 +38,8 @@ Result DescriptorPool::CreateApiObjects(const grfx::DescriptorPoolCreateInfo* pC
                                 pCreateInfo->uniformTexelBuffer +
                                 pCreateInfo->storageTexelBuffer +
                                 pCreateInfo->uniformBuffer +
-                                pCreateInfo->storageBuffer;
+                                pCreateInfo->storageBuffer +
+                                pCreateInfo->structuredBuffer;
     mDescriptorCountSampler = pCreateInfo->sampler;
 
     // Paranoid zero out these values
@@ -60,7 +61,7 @@ Result DescriptorPool::AllocateDescriptorSet(uint32_t numDescriptorsCBVSRVUAV, u
 {
     if (numDescriptorsCBVSRVUAV > 0) {
         int32_t remaining = static_cast<int32_t>(mDescriptorCountCBVSRVUAV) - static_cast<int32_t>(mAllocatedCountCBVSRVUAV);
-        if (remaining > static_cast<int32_t>(numDescriptorsCBVSRVUAV)) {
+        if (remaining < static_cast<int32_t>(numDescriptorsCBVSRVUAV)) {
             PPX_ASSERT_MSG(false, "out of descriptors (CBRSRVUAV)");
             return ppx::ERROR_OUT_OF_MEMORY;
         }
@@ -68,7 +69,7 @@ Result DescriptorPool::AllocateDescriptorSet(uint32_t numDescriptorsCBVSRVUAV, u
 
     if (numDescriptorsSampler > 0) {
         int32_t remaining = static_cast<int32_t>(mDescriptorCountSampler) - static_cast<int32_t>(mAllocatedCountSampler);
-        if (remaining > static_cast<int32_t>(numDescriptorsSampler)) {
+        if (remaining < static_cast<int32_t>(numDescriptorsSampler)) {
             PPX_ASSERT_MSG(false, "out of descriptors (Sampler)");
             return ppx::ERROR_OUT_OF_MEMORY;
         }
@@ -278,15 +279,25 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
                 SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeSampler * srcWrite.arrayIndex);
                 D3D12_CPU_DESCRIPTOR_HANDLE handle = D3D12_CPU_DESCRIPTOR_HANDLE{ptr};
 
-                device->CreateShaderResourceView(
-                    ToApi(pView->GetImage())->GetDxResource(),
-                    &desc,
-                    handle);
+                device->CreateShaderResourceView(ToApi(pView->GetImage())->GetDxResource(), &desc, handle);
             } break;
 
-            case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE:
+            case grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER: {
+            } break;
+
+            case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER:{
+            } break;
+
             case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-            case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER: {
+            case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE: {
+                const dx::StorageImageView*             pView = static_cast<const dx::StorageImageView*>(srcWrite.pImageView);
+                const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc  = pView->GetDesc();
+
+                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeSampler * srcWrite.arrayIndex);
+                D3D12_CPU_DESCRIPTOR_HANDLE handle = D3D12_CPU_DESCRIPTOR_HANDLE{ptr};
+
+                device->CreateUnorderedAccessView(ToApi(pView->GetImage())->GetDxResource(), nullptr, &desc, handle);
+
             } break;
 
             case grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER: {

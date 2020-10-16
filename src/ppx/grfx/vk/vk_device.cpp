@@ -510,6 +510,16 @@ Result Device::AllocateObject(grfx::ShaderProgram** ppObject)
     return ppx::ERROR_ALLOCATION_FAILED;
 }
 
+Result Device::AllocateObject(grfx::StorageImageView** ppObject)
+{
+    vk::StorageImageView* pObject = new vk::StorageImageView();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
 Result Device::AllocateObject(grfx::Swapchain** ppObject)
 {
     vk::Swapchain* pObject = new vk::Swapchain();

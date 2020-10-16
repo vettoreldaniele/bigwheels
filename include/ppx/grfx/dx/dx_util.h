@@ -29,6 +29,7 @@ D3D12_SRV_DIMENSION            ToD3D12SRVDimension(grfx::ImageViewType value, ui
 D3D12_STENCIL_OP               ToD3D12StencilOp(grfx::StencilOp value);
 D3D12_TEXTURE_ADDRESS_MODE     ToD3D12TextureAddressMode(grfx::SamplerAddressMode value);
 D3D12_RESOURCE_DIMENSION       ToD3D12TextureResourceDimension(grfx::ImageType value);
+D3D12_UAV_DIMENSION            ToD3D12UAVDimension(grfx::ImageViewType value, uint32_t arrayLayerCount);
 UINT8                          ToD3D12WriteMask(uint32_t value);
 
 DXGI_FORMAT ToDxgiFormat(grfx::Format value);

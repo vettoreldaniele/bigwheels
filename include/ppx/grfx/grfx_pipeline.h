@@ -222,9 +222,6 @@ struct PipelineInterfaceCreateInfo
         uint32_t                         set     = PPX_VALUE_IGNORED; // Set number
         const grfx::DescriptorSetLayout* pLayout = nullptr;           // Set layout
     } sets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {};
-
-    //uint32_t                         setLayoutCount                             = 0;
-    //const grfx::DescriptorSetLayout* pSetLayouts[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {nullptr};
 };
 
 //! @class PipelineInterface

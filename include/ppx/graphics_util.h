@@ -7,7 +7,11 @@
 
 namespace ppx {
 
-Result CreateTextureFromFile(grfx::Queue* pQueue, const fs::path& path, grfx::Image** ppImage);
+Result CreateTextureFromFile(
+    grfx::Queue*                 pQueue,
+    const fs::path&              path,
+    grfx::Image**                ppImage,
+    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
 
 } // namespace ppx
 

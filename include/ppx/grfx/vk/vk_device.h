@@ -45,6 +45,7 @@ protected:
     virtual Result AllocateObject(grfx::Semaphore** ppObject) override;
     virtual Result AllocateObject(grfx::ShaderModule** ppObject) override;
     virtual Result AllocateObject(grfx::ShaderProgram** ppObject) override;
+    virtual Result AllocateObject(grfx::StorageImageView** ppObject) override;
     virtual Result AllocateObject(grfx::Swapchain** ppObject) override;
 
 protected:

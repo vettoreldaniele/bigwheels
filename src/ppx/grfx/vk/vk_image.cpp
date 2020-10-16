@@ -360,6 +360,54 @@ void SampledImageView::DestroyApiObjects()
     }
 }
 
+// -------------------------------------------------------------------------------------------------
+// StorageImageView
+// -------------------------------------------------------------------------------------------------
+Result StorageImageView::CreateApiObjects(const grfx::StorageImageViewCreateInfo* pCreateInfo)
+{
+    VkImageViewCreateInfo vkci           = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    vkci.flags                           = 0;
+    vkci.image                           = ToApi(pCreateInfo->pImage)->GetVkImage();
+    vkci.viewType                        = ToVkImageViewType(pCreateInfo->imageViewType);
+    vkci.format                          = ToVkFormat(pCreateInfo->format);
+    vkci.components                      = ToVkComponentMapping(pCreateInfo->components);
+    vkci.subresourceRange.aspectMask     = ToApi(pCreateInfo->pImage)->GetVkImageAspectFlags();
+    vkci.subresourceRange.baseMipLevel   = pCreateInfo->mipLevel;
+    vkci.subresourceRange.levelCount     = pCreateInfo->mipLevelCount;
+    vkci.subresourceRange.baseArrayLayer = pCreateInfo->arrayLayer;
+    vkci.subresourceRange.layerCount     = pCreateInfo->arrayLayerCount;
+
+    VkResult vkres = vkCreateImageView(
+        ToApi(GetDevice())->GetVkDevice(),
+        &vkci,
+        nullptr,
+        &mImageView);
+    if (vkres != VK_SUCCESS) {
+        PPX_ASSERT_MSG(false, "vkCreateImageView(StorageImageView) failed: " << ToString(vkres));
+        return ppx::ERROR_API_FAILURE;
+    }
+
+    std::unique_ptr<grfx::internal::ImageResourceView> resourceView(new vk::internal::ImageResourceView(mImageView, VK_IMAGE_LAYOUT_GENERAL));
+    if (!resourceView) {
+        PPX_ASSERT_MSG(false, "vk::internal::ImageResourceView(StorageImageView) allocation failed");
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    SetResourceView(std::move(resourceView));
+
+    return ppx::SUCCESS;
+}
+
+void StorageImageView::DestroyApiObjects()
+{
+    if (mImageView) {
+        vkDestroyImageView(
+            ToApi(GetDevice())->GetVkDevice(),
+            mImageView,
+            nullptr);
+        mImageView.Reset();
+    }
+}
+
 } // namespace vk
 } // namespace grfx
 } // namespace ppx

@@ -182,7 +182,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
     // Handle increment sizes
     mHandleIncrementSizeCBVSRVUAV = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    mHandleIncrementSizeSampler = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+    mHandleIncrementSizeSampler   = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
     // Check for Root signature version 1.1
     {
@@ -540,6 +540,16 @@ Result Device::AllocateObject(grfx::ShaderModule** ppObject)
 Result Device::AllocateObject(grfx::ShaderProgram** ppObject)
 {
     return ppx::ERROR_ALLOCATION_FAILED;
+}
+
+Result Device::AllocateObject(grfx::StorageImageView** ppObject)
+{
+    dx::StorageImageView* pObject = new dx::StorageImageView();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Swapchain** ppObject)

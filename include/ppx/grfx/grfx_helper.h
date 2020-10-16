@@ -24,6 +24,7 @@ struct BufferUsageFlags
             bool storageTexelBuffer             : 1;
             bool uniformBuffer                  : 1;
             bool storageBuffer                  : 1;
+            bool structuredBuffer               : 1;
             bool indexBuffer                    : 1;
             bool vertexBuffer                   : 1;
             bool indirectBuffer                 : 1;
@@ -113,8 +114,8 @@ struct ImageUsageFlags
     ImageUsageFlags()
         : flags(0) {}
 
-    ImageUsageFlags(uint32_t _flags)
-        : flags(_flags) {}
+    ImageUsageFlags(uint32_t flags_)
+        : flags(flags_) {}
 
     ImageUsageFlags& operator=(uint32_t rhs)
     {

@@ -325,6 +325,19 @@ D3D12_RESOURCE_DIMENSION ToD3D12TextureResourceDimension(grfx::ImageType value)
     return D3D12_RESOURCE_DIMENSION_UNKNOWN;
 }
 
+D3D12_UAV_DIMENSION ToD3D12UAVDimension(grfx::ImageViewType value, uint32_t arrayLayerCount)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case IMAGE_VIEW_TYPE_1D   : return (arrayLayerCount > 1) ? D3D12_UAV_DIMENSION_TEXTURE1DARRAY : D3D12_UAV_DIMENSION_TEXTURE1D; break;
+        case IMAGE_VIEW_TYPE_2D   : return (arrayLayerCount > 1) ? D3D12_UAV_DIMENSION_TEXTURE2DARRAY : D3D12_UAV_DIMENSION_TEXTURE2D; break;
+        case IMAGE_VIEW_TYPE_3D   : return D3D12_UAV_DIMENSION_TEXTURE3D;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_UAV_DIMENSION>();
+}
+
 UINT8 ToD3D12WriteMask(uint32_t value)
 {
     UINT8 mask = 0;

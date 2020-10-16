@@ -13,11 +13,29 @@ namespace dx {
 // -------------------------------------------------------------------------------------------------
 Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo)
 {
-    return ppx::ERROR_FAILED;
+    D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
+    desc.pRootSignature                    = ToApi(pCreateInfo->pPipelineInterface)->GetDxRootSignature().Get();
+    desc.CS.pShaderBytecode                = ToApi(pCreateInfo->CS.pModule)->GetCode();
+    desc.CS.BytecodeLength                 = ToApi(pCreateInfo->CS.pModule)->GetSize();
+    desc.NodeMask                          = 0;
+    desc.CachedPSO                         = {};
+    desc.Flags                             = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&mPipeline));
+    if (FAILED(hr)) {
+        PPX_ASSERT_MSG(false, "ID3D12Device::CreateComputePipelineState failed");
+        return ppx::ERROR_API_FAILURE;
+    }
+    PPX_LOG_OBJECT_CREATION(D3D12PipelineState(Compute), mPipeline.Get());
+
+    return ppx::SUCCESS;
 }
 
 void ComputePipeline::DestroyApiObjects()
 {
+    if (mPipeline) {
+        mPipeline.Reset();
+    }
 }
 
 // -------------------------------------------------------------------------------------------------

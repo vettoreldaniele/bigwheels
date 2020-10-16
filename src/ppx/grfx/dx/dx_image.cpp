@@ -48,9 +48,9 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         D3D12_RESOURCE_STATES initialResourceState = ToD3D12ResourceStates(pCreateInfo->initialState);
 
         // Optimized clear values
-        bool useClearValue = (flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) || (flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-        D3D12_CLEAR_VALUE clearValue = {};
-        clearValue.Format            = resourceDesc.Format;
+        bool              useClearValue = (flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) || (flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+        D3D12_CLEAR_VALUE clearValue    = {};
+        clearValue.Format               = resourceDesc.Format;
         if (pCreateInfo->usageFlags.bits.depthStencilAttachment) {
             clearValue.DepthStencil.Depth   = static_cast<FLOAT>(pCreateInfo->DSVClearValue.depth);
             clearValue.DepthStencil.Stencil = static_cast<UINT8>(pCreateInfo->DSVClearValue.stencil);
@@ -364,11 +364,25 @@ void SampledImageView::DestroyApiObjects()
 // -------------------------------------------------------------------------------------------------
 Result StorageImageView::CreateApiObjects(const grfx::StorageImageViewCreateInfo* pCreateInfo)
 {
-    return ppx::ERROR_FAILED;
+    mDesc.Format        = ToDxgiFormat(pCreateInfo->format);
+    mDesc.ViewDimension = ToD3D12UAVDimension(pCreateInfo->imageViewType, pCreateInfo->arrayLayerCount);
+    if (pCreateInfo->arrayLayerCount > 1) {
+        mDesc.Texture2DArray.MipSlice        = static_cast<UINT>(pCreateInfo->mipLevel);
+        mDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(pCreateInfo->arrayLayer);
+        mDesc.Texture2DArray.ArraySize       = static_cast<UINT>(pCreateInfo->arrayLayerCount);
+        mDesc.Texture2DArray.PlaneSlice      = 0;
+    }
+    else {
+        mDesc.Texture2D.MipSlice   = static_cast<UINT>(pCreateInfo->mipLevel);
+        mDesc.Texture2D.PlaneSlice = 0;
+    }
+
+    return ppx::SUCCESS;
 }
 
 void StorageImageView::DestroyApiObjects()
 {
+    mDesc = {};
 }
 
 } // namespace dx
