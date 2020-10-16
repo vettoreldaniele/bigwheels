@@ -178,6 +178,26 @@ public:
     r.update_cache();
     return r; 
   }
+
+  /*! @fn append_extension
+   
+   @return Returns a path with extension added. 
+           Argument must include period if one is desired.
+
+   Example(s);
+     - path("file").append_extension(".jpg") returns "file.jpg"
+     - path("file").append_extension("jpg")  returns "filejpg"
+
+  */
+  fs::path append_extension(const char* ext) { 
+    fs::path r = *this; 
+    if (!r.m_parts.empty()) {
+      r.m_parts.back().append(ext);
+      r.m_dirty = true;
+      r.update_cache();
+    }
+    return r;
+  }
   
   /*! @fn extension 
 

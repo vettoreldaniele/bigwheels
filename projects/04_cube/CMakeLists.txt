@@ -24,3 +24,4 @@ project(04_cube)
 
 add_vk_sample(${PROJECT_NAME} TRUE)
 add_dx_sample(${PROJECT_NAME} TRUE)
+add_dxil_sample(${PROJECT_NAME} TRUE)

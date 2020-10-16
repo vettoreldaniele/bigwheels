@@ -85,6 +85,26 @@ inline bool HasOverlapHalfOpen(const ppx::RangeU32& r0, const ppx::RangeU32& r1)
     return HasOverlapHalfOpen(r0.start, r0.end, r1.start, r1.end);
 }
 
+template <typename T>
+typename std::vector<T>::iterator Find(std::vector<T>& container, const T& element)
+{
+    typename std::vector<T>::iterator it = std::find(
+        std::begin(container),
+        std::end(container),
+        element);
+    return it;
+}
+
+template <typename T>
+typename std::vector<T>::const_iterator Find(const std::vector<T>& container, const T& element)
+{
+    typename std::vector<T>::iterator it = std::find(
+        std::begin(container),
+        std::end(container),
+        element);
+    return it;
+}
+
 template <typename T, class UnaryPredicate>
 typename std::vector<T>::iterator FindIf(std::vector<T>& container, UnaryPredicate predicate)
 {

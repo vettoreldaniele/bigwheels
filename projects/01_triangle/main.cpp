@@ -2,13 +2,9 @@
 using namespace ppx;
 
 #if defined(USE_DX)
-grfx::Api   kApi          = grfx::API_DX_12_0;
-const char* gVsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\dxbc\\StaticVertexColors.vs.dxbc";
-const char* gPsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\dxbc\\StaticVertexColors.ps.dxbc";
+grfx::Api kApi = grfx::API_DX_12_0;
 #elif defined(USE_VK)
-grfx::Api   kApi          = grfx::API_VK_1_1;
-const char* gVsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\StaticVertexColors.vs.spv";
-const char* gPsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\StaticVertexColors.ps.spv";
+grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
 #define kWindowWidth  1280
@@ -50,6 +46,9 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
+#if defined(USE_DXIL)
+    settings.grfx.enableDXIL = true;
+#endif
 }
 
 void ProjApp::Setup()
@@ -58,12 +57,12 @@ void ProjApp::Setup()
 
     // Pipeline
     {
-        std::vector<char> bytecode = fs::load_file(gVsShaderPath);
+        std::vector<char> bytecode = LoadShader(GetAssetPath("shaders"), "StaticVertexColors.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = fs::load_file(gPsShaderPath);
+        bytecode = LoadShader(GetAssetPath("shaders"), "StaticVertexColors.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));

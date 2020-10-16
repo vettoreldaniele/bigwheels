@@ -39,6 +39,25 @@ void Application::InternalCtor()
     if (IsNull(sApplicationInstance)) {
         sApplicationInstance = this;
     }
+
+    InitializeAssetDirs();
+}
+
+void Application::InitializeAssetDirs()
+{
+    fs::path appPath = GetApplicationPath();
+    PPX_LOG_INFO("Application path: " << appPath);
+    fs::path baseDir = appPath.parent();
+    AddAssetDir(baseDir);
+    size_t n = baseDir.part_count();
+    for (size_t i = 0; i < n; ++i) {
+        fs::path assetDir = baseDir / "assets";
+        if (fs::exists(assetDir)) {
+            AddAssetDir(assetDir);
+            PPX_LOG_INFO("Added asset path: " << assetDir);
+        }
+        baseDir = baseDir.parent();
+    }
 }
 
 Result Application::InitializeGrfxDevice()
@@ -421,6 +440,85 @@ uint32_t Application::GetProcessId() const
     pid = static_cast<uint32_t>(::GetCurrentProcessId());
 #endif
     return pid;
+}
+
+fs::path Application::GetApplicationPath() const
+{
+    fs::path path;
+#if defined(PPX_LINUX) || defined(PPX_GGP)
+    char buf[PATH_MAX];
+    std::memset(buf, 0, PATH_MAX);
+    readlink("/proc/self/exe", buf, PATH_MAX);
+    path = fs::path(buf);
+#elif defined(PPX_MSW)
+    HMODULE this_win32_module = GetModuleHandleA(nullptr);
+    char buf[MAX_PATH];
+    std::memset(buf, 0, MAX_PATH);
+    GetModuleFileNameA(this_win32_module, buf, MAX_PATH);
+    path = fs::path(buf);
+#else
+#error "not implemented"
+#endif
+    return path;
+}
+
+void Application::AddAssetDir(const fs::path& path)
+{
+    auto it = Find(mAssetDirs, path);
+    if (it != std::end(mAssetDirs)) {
+        return;
+    }
+
+    if (!fs::is_directory(path)) {
+        return;
+    }
+
+    mAssetDirs.push_back(path);
+}
+
+fs::path Application::GetAssetPath(const fs::path& subPath) const
+{
+    fs::path assetPath;
+    for (auto& assetDir : mAssetDirs) {
+        fs::path path = assetDir / subPath;
+        if (fs::exists(path)) {
+            assetPath = path;
+            break;
+        }
+    }
+    return assetPath;
+}
+
+std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::string& baseName) const
+{
+    fs::path filePath = baseDir;
+    switch (mSettings.grfx.api) {
+        default: {
+            PPX_ASSERT_MSG(false, "unsupported API");
+        } break;
+
+        case grfx::API_VK_1_1:
+        case grfx::API_VK_1_2: {
+            filePath = (filePath / "spv" / baseName).append_extension(".spv");
+        } break;
+
+        case grfx::API_DX_12_0:
+        case grfx::API_DX_12_1: {
+            if (mSettings.grfx.enableDXIL) {
+                filePath = (filePath / "dxil" / baseName).append_extension(".dxil");
+            }
+            else {
+                filePath = (filePath / "dxbc" / baseName).append_extension(".dxbc");
+            }
+        } break;
+    }
+
+    if (!fs::exists(filePath)) {
+        PPX_ASSERT_MSG(false, "shader file not found: " << filePath);
+    }
+
+    std::vector<char> bytecode = fs::load_file(filePath);
+    return bytecode;
 }
 
 void Application::DrawDebugInfo()
