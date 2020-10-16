@@ -11,6 +11,9 @@ const char* gVsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\Ver
 const char* gPsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\VertexColors.ps.spv";
 #endif
 
+#define kWindowWidth  1280
+#define kWindowHeight 720
+
 class ProjApp
     : public ppx::Application
 {
@@ -47,6 +50,8 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "02_triangle_spinning";
+    settings.window.width     = kWindowWidth;
+    settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
 }
@@ -170,8 +175,8 @@ void ProjApp::Setup()
     }
 
     // Viewport and scissor rect
-    mViewport    = {0, 0, 640, 480, 0, 1};
-    mScissorRect = {0, 0, 640, 480};
+    mViewport    = {0, 0, kWindowWidth, kWindowHeight, 0, 1};
+    mScissorRect = {0, 0, kWindowWidth, kWindowHeight};
 }
 
 void ProjApp::Render()
@@ -222,6 +227,10 @@ void ProjApp::Render()
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->Draw(3, 1, 0, 0);
+
+            // Draw ImGui
+            DrawDebugInfo();
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

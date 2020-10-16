@@ -32,7 +32,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         }
     }
 
-    // Create render passes
+    // Create render passes with grfx::ATTACHMENT_LOAD_OP_CLEAR for render target 
     for (size_t i = 0; i < pCreateInfo->imageCount; ++i) {
         grfx::RenderPassCreateInfo3 rpCreateInfo = {};
         rpCreateInfo.width                       = pCreateInfo->width;
@@ -42,17 +42,40 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         rpCreateInfo.pDepthStencilImage          = mDepthStencilImages.empty() ? nullptr : mDepthStencilImages[i];
         rpCreateInfo.renderTargetClearValues[0]  = {0.0f, 0.0f, 0.0f, 0.0f};
         rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
-        rpCreateInfo.renderTargetLoadOps[0]      = {grfx::ATTACHMENT_LOAD_OP_CLEAR};
+        rpCreateInfo.renderTargetLoadOps[0]      = grfx::ATTACHMENT_LOAD_OP_CLEAR;
         rpCreateInfo.depthLoadOp                 = grfx::ATTACHMENT_LOAD_OP_CLEAR;
 
         grfx::RenderPassPtr renderPass;
         ppxres = GetDevice()->CreateRenderPass(&rpCreateInfo, &renderPass);
         if (Failed(ppxres)) {
-            PPX_ASSERT_MSG(false, "grfx::Swapchain::CreateRenderPass failed");
+            PPX_ASSERT_MSG(false, "grfx::Swapchain::CreateRenderPass(CLEAR) failed");
             return ppxres;
         }
 
-        mRenderPasses.push_back(renderPass);
+        mClearRenderPasses.push_back(renderPass);
+    }
+
+    // Create render passes with grfx::ATTACHMENT_LOAD_OP_LOAD for render target
+    for (size_t i = 0; i < pCreateInfo->imageCount; ++i) {
+        grfx::RenderPassCreateInfo3 rpCreateInfo = {};
+        rpCreateInfo.width                       = pCreateInfo->width;
+        rpCreateInfo.height                      = pCreateInfo->height;
+        rpCreateInfo.renderTargetCount           = 1;
+        rpCreateInfo.pRenderTargetImages[0]      = mColorImages[i];
+        rpCreateInfo.pDepthStencilImage          = mDepthStencilImages.empty() ? nullptr : mDepthStencilImages[i];
+        rpCreateInfo.renderTargetClearValues[0]  = {0.0f, 0.0f, 0.0f, 0.0f};
+        rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
+        rpCreateInfo.renderTargetLoadOps[0]      = grfx::ATTACHMENT_LOAD_OP_LOAD;
+        rpCreateInfo.depthLoadOp                 = grfx::ATTACHMENT_LOAD_OP_CLEAR;
+
+        grfx::RenderPassPtr renderPass;
+        ppxres = GetDevice()->CreateRenderPass(&rpCreateInfo, &renderPass);
+        if (Failed(ppxres)) {
+            PPX_ASSERT_MSG(false, "grfx::Swapchain::CreateRenderPass(LOAD) failed");
+            return ppxres;
+        }
+
+        mLoadRenderPasses.push_back(renderPass);
     }
 
     return ppx::SUCCESS;
@@ -67,12 +90,17 @@ Result Swapchain::GetImage(uint32_t imageIndex, grfx::Image** ppImage) const
     return ppx::SUCCESS;
 }
 
-Result Swapchain::GetRenderPass(uint32_t imageIndex, grfx::RenderPass** ppRenderPass) const
+Result Swapchain::GetRenderPass(uint32_t imageIndex, grfx::AttachmentLoadOp loadOp, grfx::RenderPass** ppRenderPass) const
 {
-    if (!IsIndexInRange(imageIndex, mRenderPasses)) {
+    if (!IsIndexInRange(imageIndex, mClearRenderPasses)) {
         return ppx::ERROR_OUT_OF_RANGE;
     }
-    *ppRenderPass = mRenderPasses[imageIndex];
+    if (loadOp == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
+        *ppRenderPass = mClearRenderPasses[imageIndex];
+    }
+    else {
+        *ppRenderPass = mLoadRenderPasses[imageIndex];
+    }
     return ppx::SUCCESS;
 }
 
@@ -83,10 +111,10 @@ grfx::ImagePtr Swapchain::GetImage(uint32_t imageIndex) const
     return object;
 }
 
-grfx::RenderPassPtr Swapchain::GetRenderPass(uint32_t imageIndex) const
+grfx::RenderPassPtr Swapchain::GetRenderPass(uint32_t imageIndex, grfx::AttachmentLoadOp loadOp) const
 {
     grfx::RenderPassPtr object;
-    GetRenderPass(imageIndex, &object);
+    GetRenderPass(imageIndex, loadOp, &object);
     return object;
 }
 

@@ -15,7 +15,7 @@ public:
     CommandBuffer() {}
     virtual ~CommandBuffer() {}
 
-    D3D12GraphicsCommandListPtr GetDxCommandList() const { return mCommandList; }
+    typename D3D12GraphicsCommandListPtr::InterfaceType* GetDxCommandList() const { return mCommandList.Get(); }
 
     virtual Result Begin() override;
     virtual Result End() override;

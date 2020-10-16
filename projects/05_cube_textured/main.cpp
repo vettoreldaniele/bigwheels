@@ -12,6 +12,10 @@ const char* gVsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\Tex
 const char* gPsShaderPath = "C:\\code\\hai\\BigWheels\\assets\\shaders\\spv\\Texture.ps.spv";
 #endif
 
+#define kWindowWidth  1280
+#define kWindowHeight 720
+#define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
+
 class ProjApp
     : public ppx::Application
 {
@@ -51,6 +55,8 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "05_cube_textured";
+    settings.window.width               = kWindowWidth;
+    settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = true;
@@ -238,8 +244,8 @@ void ProjApp::Setup()
     }
 
     // Viewport and scissor rect
-    mViewport    = {0, 0, 640, 480, 0, 1};
-    mScissorRect = {0, 0, 640, 480};
+    mViewport    = {0, 0, kWindowWidth, kWindowHeight, 0, 1};
+    mScissorRect = {0, 0, kWindowWidth, kWindowHeight};
 }
 
 void ProjApp::Render()
@@ -261,9 +267,9 @@ void ProjApp::Render()
     // Update uniform buffer
     {
         float    t   = GetElapsedSeconds();
-        float4x4 P   = glm::perspective(glm::radians(60.0f), 640.0f / 480.0f, 0.001f, 10000.0f);
+        float4x4 P   = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
         float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
-        float4x4 M   = glm::rotate(t/4, float3(0, 0, 1)) * glm::rotate(t/4, float3(0, 1, 0)) * glm::rotate(t/4, float3(1, 0, 0));
+        float4x4 M   = glm::rotate(t / 4, float3(0, 0, 1)) * glm::rotate(t / 4, float3(0, 1, 0)) * glm::rotate(t / 4, float3(1, 0, 0));
         float4x4 mat = P * V * M;
 
         void* pData = nullptr;
@@ -294,6 +300,10 @@ void ProjApp::Render()
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->Draw(36, 1, 0, 0);
+
+            // Draw ImGui
+            DrawDebugInfo();
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

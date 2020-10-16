@@ -5,6 +5,10 @@
 
 #include "grfx/000_grfx_config.h"
 
+#if defined(PPX_D3D12)
+struct ID3D12DescriptorHeap;
+#endif // defined(PPX_D3D12)
+
 namespace ppx {
 
 class Application;
@@ -37,7 +41,7 @@ public:
     virtual void   Render(grfx::CommandBuffer* pCommandBuffer) override;
 
 private:
-    grfx::DescriptorPoolPtr mDescriptorPool;
+    grfx::DescriptorPoolPtr mPool;
 };
 
 #if defined(PPX_D3D12)
@@ -54,6 +58,7 @@ public:
     virtual void   Render(grfx::CommandBuffer* pCommandBuffer) override;
 
 private:
+    ID3D12DescriptorHeap* mHeapCBVSRVUAV = nullptr;
 };
 #endif // defined(PPX_D3D12)
 

@@ -50,7 +50,7 @@ Result Queue::WaitIdle()
 {
     dx::Fence* pFence = ToApi(mWaitIdleFence.Get());
     UINT64     value  = pFence->GetNextSignalValue();
-    mCommandQueue->Signal(pFence->GetDxFence().Get(), value);
+    mCommandQueue->Signal(pFence->GetDxFence(), value);
     Result ppxres = pFence->Wait();
     if (Failed(ppxres)) {
         return ppxres;
@@ -65,11 +65,11 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
     }
 
     for (uint32_t i = 0; i < pSubmitInfo->commandBufferCount; ++i) {
-        mListBuffer[i] = ToApi(pSubmitInfo->ppCommandBuffers[i])->GetDxCommandList().Get();
+        mListBuffer[i] = ToApi(pSubmitInfo->ppCommandBuffers[i])->GetDxCommandList();
     }
 
     for (uint32_t i = 0; i < pSubmitInfo->waitSemaphoreCount; ++i) {
-        ID3D12Fence* pDxFence = ToApi(pSubmitInfo->ppWaitSemaphores[i])->GetDxFence().Get();
+        ID3D12Fence* pDxFence = ToApi(pSubmitInfo->ppWaitSemaphores[i])->GetDxFence();
         UINT64       value    = ToApi(pSubmitInfo->ppWaitSemaphores[i])->GetWaitForValue();
         HRESULT      hr       = mCommandQueue->Wait(pDxFence, value);
         if (FAILED(hr)) {
@@ -83,7 +83,7 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
         mListBuffer.data());
 
     for (uint32_t i = 0; i < pSubmitInfo->signalSemaphoreCount; ++i) {
-        ID3D12Fence* pDxFence = ToApi(pSubmitInfo->ppSignalSemaphores[i])->GetDxFence().Get();
+        ID3D12Fence* pDxFence = ToApi(pSubmitInfo->ppSignalSemaphores[i])->GetDxFence();
         UINT64       value    = ToApi(pSubmitInfo->ppSignalSemaphores[i])->GetNextSignalValue();
         HRESULT      hr       = mCommandQueue->Signal(pDxFence, value);
         if (FAILED(hr)) {

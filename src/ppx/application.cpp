@@ -361,8 +361,26 @@ int Application::Run(int argc, char** argv)
         DispatchRender();
 
         // Frame end
+        mFrameCount        = mFrameCount + 1;
+        mAverageFPS        = static_cast<float>(mFrameCount / mTimer.SecondsSinceStart());
         mFrameEndTime      = static_cast<float>(mTimer.MillisSinceStart());
         mPreviousFrameTime = mFrameEndTime - mFrameStartTime;
+
+        // Pace ffames - if needed
+        if (mSettings.grfx.pacedFrameRate > 0) {
+            if (mFrameCount > 0) {
+                double currentTime  = mTimer.SecondsSinceStart();
+                double pacedFPS     = 1.0 / static_cast<double>(mSettings.grfx.pacedFrameRate);
+                double expectedTime = mFirstFrameTime + (mFrameCount * pacedFPS);
+                double diff         = expectedTime - currentTime;
+                if (diff > 0) {
+                    Timer::SleepSeconds(diff);
+                }
+            }
+            else {
+                mFirstFrameTime = mTimer.SecondsSinceStart();
+            }
+        }
     }
     // ---------------------------------------------------------------------------------------------
     // Main loop [END]
@@ -441,6 +459,14 @@ void Application::DrawDebugInfo()
         }
 
         ImGui::Separator();
+
+        // Previous frame time
+        {
+            ImGui::Text("Average FPS");
+            ImGui::NextColumn();
+            ImGui::Text("%f", mAverageFPS);
+            ImGui::NextColumn();
+        }
 
         // Previous frame time
         {

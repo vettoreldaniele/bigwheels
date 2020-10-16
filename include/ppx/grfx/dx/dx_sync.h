@@ -15,7 +15,7 @@ public:
     Fence() {}
     virtual ~Fence() {}
 
-    D3D12FencePtr GetDxFence() const { return mFence; }
+    typename D3D12FencePtr::InterfaceType* GetDxFence() const { return mFence.Get(); }
 
     UINT64 GetNextSignalValue();
     UINT64 GetWaitForValue() const;
@@ -42,7 +42,7 @@ public:
     Semaphore() {}
     virtual ~Semaphore() {}
 
-    D3D12FencePtr GetDxFence() const { return mFence; }
+    typename D3D12FencePtr::InterfaceType* GetDxFence() const { return mFence.Get(); }
 
     UINT64 GetNextSignalValue();
     UINT64 GetWaitForValue() const;

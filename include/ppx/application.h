@@ -35,6 +35,9 @@ struct ApplicationSettings
         grfx::Api api         = grfx::API_UNDEFINED;
         bool      enableDebug = false;
 
+        uint32_t numFramesInFlight = 1;
+        uint32_t pacedFrameRate    = 60;
+
         struct
         {
             uint32_t gpuIndex           = 0;
@@ -84,7 +87,8 @@ protected:
 public:
     int Run(int argc, char** argv);
 
-    float GetElapsedSeconds() const;
+    uint32_t GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
+    float    GetElapsedSeconds() const;
 
     uint32_t GetProcessId() const;
 
@@ -119,9 +123,12 @@ private:
     grfx::SwapchainPtr         mSwapchain;
     std::unique_ptr<ImGuiImpl> mImGui;
 
-    float mFrameStartTime    = 0;
-    float mFrameEndTime      = 0;
-    float mPreviousFrameTime = 0;
+    uint64_t mFrameCount        = 0;
+    float    mAverageFPS        = 0;
+    float    mFrameStartTime    = 0;
+    float    mFrameEndTime      = 0;
+    float    mPreviousFrameTime = 0;
+    double   mFirstFrameTime    = 0;
 };
 
 } // namespace ppx

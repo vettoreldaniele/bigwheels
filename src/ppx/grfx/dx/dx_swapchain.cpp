@@ -56,8 +56,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     }
 
     // Present mode behavior
-    UINT syncInterval = 0;
-    UINT flags        = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    UINT flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
     // Set flag
     {
         switch (pCreateInfo->presentMode) {
@@ -66,13 +65,13 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
             } break;
 
             case grfx::PRESENT_MODE_FIFO: {
-                syncInterval = 1;
+                mSyncInterval = 1;
             } break;
             case grfx::PRESENT_MODE_MAILBOX: {
-                syncInterval = 1;
+                mSyncInterval = 0;
             } break;
             case grfx::PRESENT_MODE_IMMEDIATE: {
-                syncInterval = 0;
+                mSyncInterval = 0;
                 flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
             } break;
         }
@@ -111,7 +110,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
 
     ComPtr<IDXGISwapChain1> dxgiSwapChain;
     HRESULT                 hr = factory->CreateSwapChainForHwnd(
-        ToApi(pCreateInfo->pQueue)->GetDxQueue(),  // pDevice
+        ToApi(pCreateInfo->pQueue)->GetDxQueue(),        // pDevice
         ToApi(pCreateInfo->pSurface)->GetWindowHandle(), // hWnd
         &dxDesc,                                         // pDesc
         nullptr,                                         // pFullscreenDesc
@@ -234,7 +233,7 @@ Result Swapchain::AcquireNextImage(
     // Signal semaphore
     if (!IsNull(pSemaphore)) {
         UINT64  value = ToApi(pSemaphore)->GetNextSignalValue();
-        HRESULT hr    = mQueue->Signal(ToApi(pSemaphore)->GetDxFence().Get(), value);
+        HRESULT hr    = mQueue->Signal(ToApi(pSemaphore)->GetDxFence(), value);
         if (FAILED(hr)) {
             return ppx::ERROR_API_FAILURE;
         }
@@ -243,7 +242,7 @@ Result Swapchain::AcquireNextImage(
     // Signal fence
     if (!IsNull(pFence)) {
         UINT64  value = ToApi(pFence)->GetNextSignalValue();
-        HRESULT hr    = mQueue->Signal(ToApi(pFence)->GetDxFence().Get(), value);
+        HRESULT hr    = mQueue->Signal(ToApi(pFence)->GetDxFence(), value);
         if (FAILED(hr)) {
             return ppx::ERROR_API_FAILURE;
         }
@@ -258,7 +257,7 @@ Result Swapchain::Present(
     const grfx::Semaphore* const* ppWaitSemaphores)
 {
     for (uint32_t i = 0; i < waitSemaphoreCount; ++i) {
-        ID3D12Fence* pDxFence = ToApi(ppWaitSemaphores[i])->GetDxFence().Get();
+        ID3D12Fence* pDxFence = ToApi(ppWaitSemaphores[i])->GetDxFence();
         UINT64       value    = ToApi(ppWaitSemaphores[i])->GetWaitForValue();
         HRESULT      hr       = mQueue->Wait(pDxFence, value);
         if (FAILED(hr)) {

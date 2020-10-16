@@ -88,11 +88,11 @@ public:
     grfx::Format GetDepthFormat() const { return mCreateInfo.depthFormat; }
 
     Result GetImage(uint32_t imageIndex, grfx::Image** ppImage) const;
-    Result GetRenderPass(uint32_t imageIndex, grfx::RenderPass** ppRenderPass) const;
+    Result GetRenderPass(uint32_t imageIndex, grfx::AttachmentLoadOp loadOp, grfx::RenderPass** ppRenderPass) const;
 
     // Convenience functions - returns empty object if index is invalid
     grfx::ImagePtr      GetImage(uint32_t imageIndex) const;
-    grfx::RenderPassPtr GetRenderPass(uint32_t imageIndex) const;
+    grfx::RenderPassPtr GetRenderPass(uint32_t imageIndex, grfx::AttachmentLoadOp loadOp = grfx::ATTACHMENT_LOAD_OP_CLEAR) const;
 
     virtual Result AcquireNextImage(
         uint64_t         timeout,    // Nanoseconds
@@ -113,7 +113,8 @@ protected:
     grfx::QueuePtr                   mQueue;
     std::vector<grfx::ImagePtr>      mDepthStencilImages;
     std::vector<grfx::ImagePtr>      mColorImages;
-    std::vector<grfx::RenderPassPtr> mRenderPasses;
+    std::vector<grfx::RenderPassPtr> mClearRenderPasses;
+    std::vector<grfx::RenderPassPtr> mLoadRenderPasses;
 };
 
 } // namespace grfx
