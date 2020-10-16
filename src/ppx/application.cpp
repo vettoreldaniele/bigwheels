@@ -281,6 +281,23 @@ void Application::DispatchConfig()
     if (mSettings.window.title.empty()) {
         mSettings.window.title = mSettings.appName;
     }
+
+    // Decorate DX's API name with shader bytecode mode
+    std::stringstream ss;
+    ss << ToString(mSettings.grfx.api);
+    switch (mSettings.grfx.api) {
+        default: break;
+        case grfx::API_DX_12_0:
+        case grfx::API_DX_12_1: {
+            if (mSettings.grfx.enableDXIL) {
+                ss << " (DXIL)";
+            }
+            else {
+                ss << " (DXBC)";
+            }
+        } break;
+    }
+    mDecoratedApiName = ss.str();
 }
 
 void Application::DispatchSetup()
@@ -462,7 +479,7 @@ fs::path Application::GetApplicationPath() const
     return path;
 }
 
-void Application::AddAssetDir(const fs::path& path)
+void Application::AddAssetDir(const fs::path& path, bool insertAtFront)
 {
     auto it = Find(mAssetDirs, path);
     if (it != std::end(mAssetDirs)) {
@@ -474,6 +491,14 @@ void Application::AddAssetDir(const fs::path& path)
     }
 
     mAssetDirs.push_back(path);
+
+    if (insertAtFront) {
+        // Rotate to front
+        std::rotate(
+            std::rbegin(mAssetDirs),
+            std::rbegin(mAssetDirs) + 1, 
+            std::rend(mAssetDirs));
+    }
 }
 
 fs::path Application::GetAssetPath(const fs::path& subPath) const
@@ -544,7 +569,7 @@ void Application::DrawDebugInfo()
         {
             ImGui::Text("API");
             ImGui::NextColumn();
-            ImGui::Text("%s", ToString(mSettings.grfx.api));
+            ImGui::Text("%s", mDecoratedApiName.c_str());
             ImGui::NextColumn();
         }
 

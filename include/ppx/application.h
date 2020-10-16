@@ -92,7 +92,7 @@ public:
     uint32_t                     GetProcessId() const;
     fs::path                     GetApplicationPath() const;
     const std::vector<fs::path>& GetAssetDirs() const { return mAssetDirs; }
-    void                         AddAssetDir(const fs::path& path);
+    void                         AddAssetDir(const fs::path& path, bool insertAtFront = false);
     fs::path                     GetAssetPath(const fs::path& subPath) const;
 
     uint32_t           GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
@@ -137,6 +137,7 @@ private:
 
 private:
     ApplicationSettings        mSettings = {};
+    std::string                mDecoratedApiName;
     std::vector<fs::path>      mAssetDirs;
     Timer                      mTimer;
     void*                      mWindow  = nullptr;
