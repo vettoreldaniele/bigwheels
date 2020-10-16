@@ -17,7 +17,7 @@ struct DescriptorBinding
     uint32_t              binding         = PPX_VALUE_IGNORED;               //
     grfx::DescriptorType  type            = grfx::DESCRIPTOR_TYPE_UNDEFINED; //
     uint32_t              arrayCount      = 1;                               // WARNING: Not VkDescriptorSetLayoutBinding::descriptorCount
-    grfx::ShaderStageBits shaderVisiblity = SHADER_STAGE_ALL_GRAPHICS;       // Single value not set of flags
+    grfx::ShaderStageBits shaderVisiblity = SHADER_STAGE_ALL;                // Single value not set of flags
 
     DescriptorBinding() {}
 
@@ -25,7 +25,7 @@ struct DescriptorBinding
         uint32_t              binding_,
         grfx::DescriptorType  type_,
         uint32_t              arrayCount_      = 1,
-        grfx::ShaderStageBits shaderVisiblity_ = grfx::SHADER_STAGE_ALL_GRAPHICS)
+        grfx::ShaderStageBits shaderVisiblity_ = grfx::SHADER_STAGE_ALL)
         : binding(binding_),
           type(type_),
           arrayCount(arrayCount_),

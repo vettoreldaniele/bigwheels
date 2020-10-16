@@ -261,6 +261,7 @@ D3D12_SHADER_VISIBILITY ToD3D12ShaderVisibliity(grfx::ShaderStageBits value)
         case grfx:: SHADER_STAGE_PS           : return D3D12_SHADER_VISIBILITY_PIXEL; break;
         case grfx:: SHADER_STAGE_CS           : return D3D12_SHADER_VISIBILITY_ALL; break;
         case grfx:: SHADER_STAGE_ALL_GRAPHICS : return D3D12_SHADER_VISIBILITY_ALL; break;
+        case grfx:: SHADER_STAGE_ALL          : return D3D12_SHADER_VISIBILITY_ALL; break;       
     }
     // clang-format on
     return ppx::InvalidValue<D3D12_SHADER_VISIBILITY>();
