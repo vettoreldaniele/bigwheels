@@ -57,12 +57,12 @@ void ProjApp::Setup()
 
     // Pipeline
     {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("shaders"), "StaticVertexColors.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticVertexColors.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = LoadShader(GetAssetPath("shaders"), "StaticVertexColors.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticVertexColors.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
@@ -174,8 +174,8 @@ void ProjApp::Render()
             frame.cmd->SetScissors(1, &mScissorRect);
             frame.cmd->SetViewports(1, &mViewport);
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 0, nullptr);
-            frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
             frame.cmd->BindGraphicsPipeline(mPipeline);
+            frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
             frame.cmd->Draw(3, 1, 0, 0);
 
             // Draw ImGui

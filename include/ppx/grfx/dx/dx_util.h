@@ -18,6 +18,7 @@ D3D12_CULL_MODE                ToD3D12CullMode(grfx::CullMode value);
 D3D12_DSV_DIMENSION            ToD3D12DSVDimension(grfx::ImageViewType value);
 D3D12_FILL_MODE                ToD3D12FillMode(grfx::PolygonMode value);
 D3D12_HEAP_TYPE                ToD3D12HeapType(grfx::MemoryUsage value);
+DXGI_FORMAT                    ToD3D12IndexFormat(grfx::IndexType value);
 D3D12_LOGIC_OP                 ToD3D12LogicOp(grfx::LogicOp value);
 D3D12_PRIMITIVE_TOPOLOGY_TYPE  ToD3D12PrimitiveTopology(grfx::PrimitiveTopology value);
 D3D12_DESCRIPTOR_RANGE_TYPE    ToD3D12RangeType(grfx::DescriptorType value);

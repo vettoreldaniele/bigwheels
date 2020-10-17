@@ -120,6 +120,18 @@ D3D12_HEAP_TYPE ToD3D12HeapType(grfx::MemoryUsage value)
     return ppx::InvalidValue<D3D12_HEAP_TYPE>();
 }
 
+DXGI_FORMAT ToD3D12IndexFormat(grfx::IndexType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::INDEX_TYPE_UINT16 : return DXGI_FORMAT_R16_UINT; break;
+        case grfx::INDEX_TYPE_UINT32 : return DXGI_FORMAT_R32_UINT; break;
+    }
+    // clang-format on
+    return DXGI_FORMAT_UNKNOWN;
+}
+
 D3D12_LOGIC_OP ToD3D12LogicOp(grfx::LogicOp value)
 {
     // clang-format off

@@ -5,7 +5,7 @@
 
 // *** Graphics API Note ***
 //
-// D3D12 doen't have the following descriptor types:
+// D3D12 doesn't have the following descriptor types:
 //   DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
 //   DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
 //   DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC

@@ -481,6 +481,13 @@ void CommandBuffer::BindComputePipeline(const grfx::ComputePipeline* pPipeline)
 
 void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
 {
+    D3D12_INDEX_BUFFER_VIEW view = {};
+    view.BufferLocation          = ToApi(pView->pBuffer)->GetDxResource()->GetGPUVirtualAddress();
+    view.SizeInBytes             = static_cast<UINT>(pView->pBuffer->GetSize());
+    view.Format                  = ToD3D12IndexFormat(pView->indexType);
+    PPX_ASSERT_MSG(view.Format != DXGI_FORMAT_UNKNOWN, "unknown index  format");
+
+    mCommandList->IASetIndexBuffer(&view);
 }
 
 void CommandBuffer::BindVertexBuffers(
@@ -520,6 +527,12 @@ void CommandBuffer::DrawIndexed(
     int32_t  vertexOffset,
     uint32_t firstInstance)
 {
+    mCommandList->DrawIndexedInstanced(
+        static_cast<UINT>(indexCount),
+        static_cast<UINT>(instanceCount),
+        static_cast<UINT>(firstIndex),
+        static_cast<UINT>(vertexOffset),
+        static_cast<UINT>(firstInstance));
 }
 
 void CommandBuffer::Dispatch(
@@ -578,24 +591,6 @@ void CommandBuffer::CopyBufferToImage(
             &src,
             nullptr);
     }
-
-    /*
-    D3D12_TEXTURE_COPY_LOCATION dst = {};
-    dst.pResource                   = ToApi(pDstImage)->GetDxResource();
-    dst.Type                        = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-
-    D3D12_TEXTURE_COPY_LOCATION src = {};
-    src.pResource                   = ToApi(pSrcBuffer)->GetDxResource();
-    src.Type                        = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-
-    mCommandList->CopyTextureRegion(
-        &dst,
-        static_cast<UINT>(pCopyInfo->dstImage.x),
-        static_cast<UINT>(pCopyInfo->dstImage.y),
-        static_cast<UINT>(pCopyInfo->dstImage.z),
-        &src,
-        nullptr);
-    */
 }
 
 // -------------------------------------------------------------------------------------------------

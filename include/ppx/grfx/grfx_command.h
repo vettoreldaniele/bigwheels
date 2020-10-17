@@ -2,22 +2,22 @@
 #define ppx_grfx_command_buffer_h
 
 // *** Graphics API Note ***
-// 
+//
 // In the cosmos of game engines, there's more than one way to build
-// command buffers and track various bits that company that. 
-// 
-// Smaller engines and graphics demo may favor command buffer reuse or 
-// at least reusing the same resources in a similar order per frame. 
-// 
+// command buffers and track various bits that company that.
+//
+// Smaller engines and graphics demo may favor command buffer reuse or
+// at least reusing the same resources in a similar order per frame.
+//
 // Larger engines may have have an entire job system where available
 // command buffers are use for the next immediate task. There may
 // or may not be any affinity for command buffers and tasks.
 //
 // We're going to favor the second case - command buffers do not
 // have affinity for tasks. This means that for D3D12 we'll copy
-// descriptors from the set's CPU heaps to the command buffer's 
-// GPU visible heaps when the indGraphicsDescriptorSets or 
-// BindComputeDescriptorSets is called. This may not be the most 
+// descriptors from the set's CPU heaps to the command buffer's
+// GPU visible heaps when the indGraphicsDescriptorSets or
+// BindComputeDescriptorSets is called. This may not be the most
 // efficient way to do this but it does give us the flexiblity
 // to shape D3D12 to look like Vulkan.
 //
@@ -80,8 +80,8 @@ namespace internal {
 //! Both of heaps are set when the command buffer begins.
 //!
 //! Each time that BindGraphicsDescriptorSets or BindComputeDescriptorSets
-//! is called, the contents of each descriptor set's CBVSRVAUV and Sampler heaps 
-//! will be copied into the command buffer's respective heap. 
+//! is called, the contents of each descriptor set's CBVSRVAUV and Sampler heaps
+//! will be copied into the command buffer's respective heap.
 //!
 //! The offsets from used in the copies will be saved and used to set the
 //! root descriptor tables.
@@ -95,7 +95,7 @@ namespace internal {
 //!
 struct CommandBufferCreateInfo
 {
-    const grfx::CommandPool* pPool                      = nullptr;
+    const grfx::CommandPool* pPool                   = nullptr;
     uint32_t                 resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT;
     uint32_t                 samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT;
 };
@@ -126,6 +126,18 @@ public:
         uint32_t            arrayLayerCount,
         grfx::ResourceState beforeState,
         grfx::ResourceState afterState) = 0;
+
+    //virtual void TransitionImageLayout(
+    //    const grfx::Image*   pImage,
+    //    uint32_t             mipLevel,
+    //    uint32_t             mipLevelCount,
+    //    uint32_t             arrayLayer,
+    //    uint32_t             arrayLayerCount,
+    //    grfx::ResourceState  beforeState,
+    //    grfx::ResourceState  afterState,
+    //    const grfx::Queue*   pSrcQueue = nullptr,
+    //    const grfx::Queue*   pDstQueue = nullptr,
+    //    grfx::TransitionFlag flag      = grfx::TRANSITION_FLAG_API_REQUIRED) = 0;
 
     virtual void SetViewports(
         uint32_t              viewportCount,

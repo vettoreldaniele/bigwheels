@@ -1,5 +1,4 @@
 #include "ppx/ppx.h"
-#include "ppx/graphics_util.h"
 using namespace ppx;
 
 #if defined(USE_DX)
@@ -23,34 +22,32 @@ public:
 private:
     struct PerFrame
     {
-        ppx::grfx::CommandBufferPtr cmd;
-        ppx::grfx::SemaphorePtr     imageAcquiredSemaphore;
-        ppx::grfx::FencePtr         imageAcquiredFence;
-        ppx::grfx::SemaphorePtr     renderCompleteSemaphore;
-        ppx::grfx::FencePtr         renderCompleteFence;
+        grfx::CommandBufferPtr cmd;
+        grfx::SemaphorePtr     imageAcquiredSemaphore;
+        grfx::FencePtr         imageAcquiredFence;
+        grfx::SemaphorePtr     renderCompleteSemaphore;
+        grfx::FencePtr         renderCompleteFence;
     };
 
-    std::vector<PerFrame>             mPerFrame;
-    ppx::grfx::ShaderModulePtr        mVS;
-    ppx::grfx::ShaderModulePtr        mPS;
-    ppx::grfx::PipelineInterfacePtr   mPipelineInterface;
-    ppx::grfx::GraphicsPipelinePtr    mPipeline;
-    ppx::grfx::BufferPtr              mVertexBuffer;
-    ppx::grfx::DescriptorPoolPtr      mDescriptorPool;
-    ppx::grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
-    ppx::grfx::DescriptorSetPtr       mDescriptorSet;
-    ppx::grfx::BufferPtr              mUniformBuffer;
-    ppx::grfx::ImagePtr               mImage;
-    ppx::grfx::SamplerPtr             mSampler;
-    ppx::grfx::SampledImageViewPtr    mSampledImageView;
-    grfx::Viewport                    mViewport;
-    grfx::Rect                        mScissorRect;
-    grfx::VertexBinding               mVertexBinding;
+    std::vector<PerFrame>        mPerFrame;
+    grfx::ShaderModulePtr        mVS;
+    grfx::ShaderModulePtr        mPS;
+    grfx::PipelineInterfacePtr   mPipelineInterface;
+    grfx::GraphicsPipelinePtr    mPipeline;
+    grfx::BufferPtr              mVertexBuffer;
+    grfx::BufferPtr              mIndexBuffer;
+    grfx::DescriptorPoolPtr      mDescriptorPool;
+    grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
+    grfx::DescriptorSetPtr       mDescriptorSet;
+    grfx::BufferPtr              mUniformBuffer;
+    grfx::Viewport               mViewport;
+    grfx::Rect                   mScissorRect;
+    grfx::VertexBinding          mVertexBinding;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    settings.appName                    = "05_cube_textured";
+    settings.appName                    = "07_draw_indexed";
     settings.window.width               = kWindowWidth;
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
@@ -75,29 +72,14 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer));
     }
 
-    // Texture image, view,  and sampler
-    {
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/box_panel.jpg"), &mImage));
-
-        grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage);
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&viewCreateInfo, &mSampledImageView));
-
-        grfx::SamplerCreateInfo samplerCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
-    }
-
     // Descriptor
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
         poolCreateInfo.uniformBuffer                  = 1;
-        poolCreateInfo.sampledImage                   = 1;
-        poolCreateInfo.sampler                        = 1;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
 
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet));
@@ -109,28 +91,16 @@ void ProjApp::Setup()
         write.bufferRange           = PPX_WHOLE_SIZE;
         write.pBuffer               = mUniformBuffer;
         PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
-
-        write            = {};
-        write.binding    = 1;
-        write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView = mSampledImageView;
-        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
-
-        write          = {};
-        write.binding  = 2;
-        write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-        write.pSampler = mSampler;
-        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
     }
 
     // Pipeline
     {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
@@ -142,7 +112,7 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
 
         mVertexBinding.AppendAttribute({"POSITION", 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
-        mVertexBinding.AppendAttribute({"TEXCOORD", 1, grfx::FORMAT_R32G32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
+        mVertexBinding.AppendAttribute({"COLOR", 1, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
 
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
@@ -151,7 +121,7 @@ void ProjApp::Setup()
         gpCreateInfo.vertexInputState.bindings[0]       = mVertexBinding;
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
-        gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
+        gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
         gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
         gpCreateInfo.depthEnable                        = true;
         gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
@@ -185,48 +155,37 @@ void ProjApp::Setup()
     // Vertex buffer and geometry data
     {
         // clang-format off
-        std::vector<float> vertexData = {
-            -1.0f,-1.0f,-1.0f,   1.0f, 1.0f,  // -Z side
-             1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
-             1.0f,-1.0f,-1.0f,   0.0f, 1.0f,
-            -1.0f,-1.0f,-1.0f,   1.0f, 1.0f,
-            -1.0f, 1.0f,-1.0f,   1.0f, 0.0f,
-             1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
+        std::vector<float> vertexData = {  
+            // position          // vertex colors
+             1.0f, 1.0f,-1.0f,   1.0f, 0.0f, 0.0f,  //  0  -Z side
+             1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 0.0f,  //  1
+            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 0.0f,  //  2
+            -1.0f, 1.0f,-1.0f,   1.0f, 0.0f, 0.0f,  //  3
 
-            -1.0f, 1.0f, 1.0f,   0.0f, 0.0f,  // +Z side
-            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
-             1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
-             1.0f,-1.0f, 1.0f,   1.0f, 1.0f,
-             1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+            -1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,  //  4  +Z side
+            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f, 0.0f,  //  5
+             1.0f,-1.0f, 1.0f,   0.0f, 1.0f, 0.0f,  //  6
+             1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,  //  7
 
-            -1.0f,-1.0f,-1.0f,   0.0f, 1.0f,  // -X side
-            -1.0f,-1.0f, 1.0f,   1.0f, 1.0f,
-            -1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-            -1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-            -1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
-            -1.0f,-1.0f,-1.0f,   0.0f, 1.0f,
+            -1.0f, 1.0f,-1.0f,   0.0f, 0.0f, 1.0f,  //  8  -X side
+            -1.0f,-1.0f,-1.0f,   0.0f, 0.0f, 1.0f,  //  9
+            -1.0f,-1.0f, 1.0f,   0.0f, 0.0f, 1.0f,  // 10
+            -1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 1.0f,  // 11
 
-             1.0f, 1.0f,-1.0f,   0.0f, 1.0f,  // +X side
-             1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-             1.0f,-1.0f, 1.0f,   1.0f, 0.0f,
-             1.0f,-1.0f, 1.0f,   1.0f, 0.0f,
-             1.0f,-1.0f,-1.0f,   0.0f, 0.0f,
-             1.0f, 1.0f,-1.0f,   0.0f, 1.0f,
+             1.0f, 1.0f, 1.0f,   1.0f, 1.0f, 0.0f,  // 12  +X side
+             1.0f,-1.0f, 1.0f,   1.0f, 1.0f, 0.0f,  // 13
+             1.0f,-1.0f,-1.0f,   1.0f, 1.0f, 0.0f,  // 14
+             1.0f, 1.0f,-1.0f,   1.0f, 1.0f, 0.0f,  // 15
 
-            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f,  // -Y side
-             1.0f,-1.0f,-1.0f,   1.0f, 1.0f,
-             1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
-            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f,
-             1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
-            -1.0f,-1.0f, 1.0f,   0.0f, 0.0f,
+            -1.0f,-1.0f, 1.0f,   1.0f, 0.0f, 1.0f,  // 16  -Y side
+            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 1.0f,  // 17
+             1.0f,-1.0f,-1.0f,   1.0f, 0.0f, 1.0f,  // 18
+             1.0f,-1.0f, 1.0f,   1.0f, 0.0f, 1.0f,  // 19
 
-            -1.0f, 1.0f,-1.0f,   1.0f, 0.0f,  // +Y side
-            -1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-             1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-            -1.0f, 1.0f,-1.0f,   1.0f, 0.0f,
-             1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-             1.0f, 1.0f,-1.0f,   1.0f, 1.0f,
+            -1.0f, 1.0f,-1.0f,   0.0f, 1.0f, 1.0f,  // 20  +Y side
+            -1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 1.0f,  // 21
+             1.0f, 1.0f, 1.0f,   0.0f, 1.0f, 1.0f,  // 22
+             1.0f, 1.0f,-1.0f,   0.0f, 1.0f, 1.0f,  // 23
         };
         // clang-format on
         uint32_t dataSize = ppx::SizeInBytesU32(vertexData);
@@ -242,6 +201,44 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = ppxres = mVertexBuffer->MapMemory(0, &pAddr));
         memcpy(pAddr, vertexData.data(), dataSize);
         mVertexBuffer->UnmapMemory();
+    }
+
+    // Index buffer
+    {
+        // clang-format off
+        std::vector<uint16_t> indexData = {
+            0,  1,  2, // -Z side
+            0,  2,  3,
+
+            4,  5,  6, // +Z side
+            4,  6,  7,
+
+            8,  9, 10, // -X side
+            8, 10, 11,
+
+           12, 13, 14, // +X side
+           12, 14, 15,
+
+           16, 17, 18, // -X side
+           16, 18, 19,
+
+           20, 21, 22, // +X side
+           20, 22, 23,
+        };
+        // clang-format on
+        uint32_t dataSize = ppx::SizeInBytesU32(indexData);
+
+        grfx::BufferCreateInfo bufferCreateInfo      = {};
+        bufferCreateInfo.size                        = dataSize;
+        bufferCreateInfo.usageFlags.bits.indexBuffer = true;
+        bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
+
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mIndexBuffer));
+
+        void* pAddr = nullptr;
+        PPX_CHECKED_CALL(ppxres = ppxres = mIndexBuffer->MapMemory(0, &pAddr));
+        memcpy(pAddr, indexData.data(), dataSize);
+        mIndexBuffer->UnmapMemory();
     }
 
     // Viewport and scissor rect
@@ -270,7 +267,7 @@ void ProjApp::Render()
         float    t   = GetElapsedSeconds();
         float4x4 P   = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
         float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
-        float4x4 M   = glm::rotate(t / 4, float3(0, 0, 1)) * glm::rotate(t / 4, float3(0, 1, 0)) * glm::rotate(t / 4, float3(1, 0, 0));
+        float4x4 M   = glm::rotate(t, float3(0, 0, 1)) * glm::rotate(2 * t, float3(0, 1, 0)) * glm::rotate(t, float3(1, 0, 0));
         float4x4 mat = P * V * M;
 
         void* pData = nullptr;
@@ -297,10 +294,11 @@ void ProjApp::Render()
         {
             frame.cmd->SetScissors(1, &mScissorRect);
             frame.cmd->SetViewports(1, &mViewport);
+            frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mPipeline);
-            frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
-            frame.cmd->Draw(36, 1, 0, 0);
+            frame.cmd->BindIndexBuffer(mIndexBuffer, grfx::INDEX_TYPE_UINT16);
+            frame.cmd->DrawIndexed(36, 1, 0, 0, 0);
 
             // Draw ImGui
             DrawDebugInfo();

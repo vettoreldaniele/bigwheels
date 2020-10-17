@@ -411,6 +411,12 @@ enum TessellationDomainOrigin
     TESSELLATION_DOMAIN_ORIGIN_LOWER_LEFT = 1,
 };
 
+enum TransitionFlag
+{
+    TRANSITION_FLAG_API_REQUIRED = 1, // Indicatesa transition that must be executed by the API
+    TRANSITION_FALG_API_OPTIONAL = 2, // Idicates a transition that can be optionally ignored by the API
+};
+
 enum VendorId
 {
     VENDOR_ID_UNKNOWN = 0x0000,

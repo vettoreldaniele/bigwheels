@@ -93,7 +93,24 @@ public:
     fs::path                     GetApplicationPath() const;
     const std::vector<fs::path>& GetAssetDirs() const { return mAssetDirs; }
     void                         AddAssetDir(const fs::path& path, bool insertAtFront = false);
-    fs::path                     GetAssetPath(const fs::path& subPath) const;
+
+    // Returns the first valid subPath in the asset directories list
+    //  
+    // Example(s):
+    // 
+    //    mAssetDirs = {"/a/valid/system/path", 
+    //                  "/another/valid/system/path", 
+    //                  "/some/valid/system/path"};
+    //
+    //    GetAssetPath("file.ext") - returns the full path to file.ext if it exists
+    //      in any of the paths in mAssetDirs on the file system. 
+    //      Search starts with mAssetsDir[0].
+    //
+    //    GetAssetPath("subdir") - returns the full path to subdir if it exists
+    //      in any of the paths in mAssetDirs on the file system.
+    //      Search starts with mAssetsDir[0].
+    //
+    fs::path GetAssetPath(const fs::path& subPath) const;
 
     uint32_t           GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
     void*              GetWindow() const { return mWindow; }
@@ -106,8 +123,8 @@ public:
 
     // Loads a DXBC, DXIL, or SPV shader from baseDir
     //
-    // 'baseDir' is path to the directory that contains dxbc, dxil, and spv subdirectories
-    // 'baseName' is the filename WITHOUT the dxbc, dxil, and spv extension
+    // 'baseDir' is path to the directory that contains dxbc, dxil, and spv subdirectories.
+    // 'baseName' is the filename WITHOUT the dxbc, dxil, and spv extension.
     //
     // Example(s):
     //   LoadShader("shaders", "Texture.vs")
