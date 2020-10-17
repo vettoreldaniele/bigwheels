@@ -164,20 +164,6 @@ void GraphicsPipeline::InitializeInputLayout(
         }
     }
 
-    //for (auto& binding : mInputBindings) {
-    //    for (auto& attribute : binding.attributes) {
-    //        D3D12_INPUT_ELEMENT_DESC element = {};
-    //        element.SemanticName             = attribute.semanticName.c_str();
-    //        element.SemanticIndex            = 0;
-    //        element.Format                   = ToDxgiFormat(attribute.format);
-    //        element.InputSlot                = static_cast<UINT>(attribute.binding);
-    //        element.AlignedByteOffset        = static_cast<UINT>(attribute.offset);
-    //        element.InputSlotClass           = (attribute.inputRate == grfx::VERETX_INPUT_RATE_INSTANCE) ? D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA : D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-    //        element.InstanceDataStepRate     = (attribute.inputRate == grfx::VERETX_INPUT_RATE_INSTANCE) ? 1 : 0;
-    //        inputElements.push_back(element);
-    //    }
-    //}
-
     desc.NumElements        = static_cast<UINT>(inputElements.size());
     desc.pInputElementDescs = inputElements.data();
 }
