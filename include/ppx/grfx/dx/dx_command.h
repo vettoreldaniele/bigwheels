@@ -88,7 +88,7 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-    void FillOutBindDescriptorSetsTables(
+    void BindDescriptorSets(
         const grfx::PipelineInterface*    pInterface,
         uint32_t                          setCount,
         const grfx::DescriptorSet* const* ppSets,
