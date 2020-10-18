@@ -546,7 +546,7 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
     return bytecode;
 }
 
-void Application::DrawDebugInfo()
+void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
 {
     if (!mImGui) {
         return;
@@ -608,6 +608,11 @@ void Application::DrawDebugInfo()
         }
 
         ImGui::Columns(1);
+
+        // Draw additional elements
+        if (drawAdditionalFn) {
+            drawAdditionalFn();
+        }
     }
     ImGui::End();
 }

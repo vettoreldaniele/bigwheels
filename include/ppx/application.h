@@ -82,12 +82,16 @@ protected:
     virtual void DispatchRender();
 
     void DrawImGui(grfx::CommandBuffer* pCommandBuffer);
-    void DrawDebugInfo();
+    void DrawDebugInfo(std::function<void(void)> drawAdditionalFn = [](){});
 
 public:
     int Run(int argc, char** argv);
 
-    float GetElapsedSeconds() const;
+    uint32_t GetWindowWidth() const { return mSettings.window.width; }
+    uint32_t GetWindowHeight() const { return mSettings.window.height; }
+
+    uint64_t GetFrameCount() const { return mFrameCount; }
+    float    GetElapsedSeconds() const;
 
     uint32_t                     GetProcessId() const;
     fs::path                     GetApplicationPath() const;
@@ -95,15 +99,15 @@ public:
     void                         AddAssetDir(const fs::path& path, bool insertAtFront = false);
 
     // Returns the first valid subPath in the asset directories list
-    //  
+    //
     // Example(s):
-    // 
-    //    mAssetDirs = {"/a/valid/system/path", 
-    //                  "/another/valid/system/path", 
+    //
+    //    mAssetDirs = {"/a/valid/system/path",
+    //                  "/another/valid/system/path",
     //                  "/some/valid/system/path"};
     //
     //    GetAssetPath("file.ext") - returns the full path to file.ext if it exists
-    //      in any of the paths in mAssetDirs on the file system. 
+    //      in any of the paths in mAssetDirs on the file system.
     //      Search starts with mAssetsDir[0].
     //
     //    GetAssetPath("subdir") - returns the full path to subdir if it exists

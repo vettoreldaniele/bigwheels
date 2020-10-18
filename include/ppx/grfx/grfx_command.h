@@ -27,14 +27,29 @@
 namespace ppx {
 namespace grfx {
 
+//! @struct BufferToBufferCopyInfo
+//!
+//!
+struct BufferToBufferCopyInfo
+{
+    uint64_t size = 0;
+
+    struct srcBuffer
+    {
+        uint64_t offset = 0;
+    } srcBuffer;
+
+    struct
+    {
+        uint32_t offset = 0;
+    } dstBuffer;
+};
+
 //! @struct BufferToImageCopyInfo
 //!
 //!
 struct BufferToImageCopyInfo
 {
-    // Se: https://stackoverflow.com/a/46504718 for a good expalnation
-    // of how Vulkan's copy parameters.
-    //
     struct
     {
         uint64_t offset          = 0;
@@ -54,6 +69,32 @@ struct BufferToImageCopyInfo
         uint32_t height          = 0; // [pixels]
         uint32_t depth           = 0; // [pixels]
     } dstImage;
+};
+
+//! @struct ImageToBufferCopyInfo
+//!
+//!
+struct ImageToBufferCopyInfo
+{
+    struct
+    {
+        uint32_t mipLevel        = 0;
+        uint32_t arrayLayer      = 0; // Must be 0 for 3D images
+        uint32_t arrayLayerCount = 0; // Must be 1 for 3D images
+        uint32_t x               = 0; // [pixels]
+        uint32_t y               = 0; // [pixels]
+        uint32_t z               = 0; // [pixels]
+        uint32_t width           = 0; // [pixels]
+        uint32_t height          = 0; // [pixels]
+        uint32_t depth           = 0; // [pixels]
+    } srcImage;
+
+    struct
+    {
+        uint64_t offset          = 0;
+        uint32_t footprintWidth  = 0; // [pixels] Use 0 for tight packing
+        uint32_t footprintHeight = 0; // [pixels] Use 0 for tight packing
+    } dstBuffer;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -185,12 +226,26 @@ public:
         uint32_t groupCountY,
         uint32_t groupCountZ) = 0;
 
+    virtual void CopyBufferToBuffer(
+        const grfx::BufferToBufferCopyInfo* pCopyInfo,
+        const grfx::Buffer*                 pSrcBuffer,
+        const grfx::Buffer*                 pDstBuffer) = 0;
+
     virtual void CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,
         const grfx::Buffer*                pSrcBuffer,
         const grfx::Image*                 pDstImage) = 0;
 
+    virtual void CopyImageToBuffer(
+        const grfx::ImageToBufferCopyInfo* pCopyInfo,
+        const grfx::Image*                 pSrcImage,
+        const grfx::Buffer*                pDstBuffer) = 0;
+
     // Convenience functions
+    void SetViewports(const grfx::Viewport& viewport);
+
+    void SetScissors(const grfx::Rect& scissor);
+
     void BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType indexType, uint64_t offset = 0);
 
     void BindVertexBuffers(

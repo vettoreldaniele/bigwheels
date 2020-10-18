@@ -32,7 +32,7 @@ struct ImageCreateInfo
         uint32_t          height,
         grfx::Format      format,
         grfx::SampleCount sampleCount = grfx::SAMPLE_COUNT_1,
-        grfx::MemoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY);
+        grfx::MemoryUsage memoryUsage = grfx::MEMORY_USAGE_GPU_ONLY);
 
     // Returns a create info for sampled image and depth stencil target
     static ImageCreateInfo DepthStencilTarget(

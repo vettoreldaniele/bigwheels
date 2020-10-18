@@ -116,6 +116,11 @@ struct Rect
     int32_t  y;
     uint32_t width;
     uint32_t height;
+
+    Rect() {}
+
+    Rect(int32_t x_, int32_t y_, uint32_t width_, uint32_t height_)
+        : x(x_), y(y_), width(width_), height(height_) {}
 };
 
 struct Viewport
@@ -126,6 +131,11 @@ struct Viewport
     float height;
     float minDepth;
     float maxDepth;
+
+    Viewport() {}
+
+    Viewport(float x_, float y_, float width_, float height_, float minDepth_ = 0, float maxDepth_ = 1)
+        : x(x_), y(y_), width(width_), height(height_), minDepth(minDepth_), maxDepth(maxDepth_) {}
 };
 
 // -------------------------------------------------------------------------------------------------

@@ -365,6 +365,24 @@ void CommandBuffer::Dispatch(
     vkCmdDispatch(mCommandBuffer, groupCountX, groupCountY, groupCountZ);
 }
 
+void CommandBuffer::CopyBufferToBuffer(
+    const grfx::BufferToBufferCopyInfo* pCopyInfo,
+    const grfx::Buffer*                 pSrcBuffer,
+    const grfx::Buffer*                 pDstBuffer)
+{
+    VkBufferCopy region = {};
+    region.srcOffset    = static_cast<VkDeviceSize>(pCopyInfo->srcBuffer.offset);
+    region.dstOffset    = static_cast<VkDeviceSize>(pCopyInfo->dstBuffer.offset);
+    region.size         = static_cast<VkDeviceSize>(pCopyInfo->size);
+
+    vkCmdCopyBuffer(
+        mCommandBuffer,
+        ToApi(pSrcBuffer)->GetVkBuffer(),
+        ToApi(pDstBuffer)->GetVkBuffer(),
+        1,
+        &region);
+}
+
 void CommandBuffer::CopyBufferToImage(
     const grfx::BufferToImageCopyInfo* pCopyInfo,
     const grfx::Buffer*                pSrcBuffer,
@@ -396,6 +414,14 @@ void CommandBuffer::CopyBufferToImage(
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1,
         &region);
+}
+
+void CommandBuffer::CopyImageToBuffer(
+    const grfx::ImageToBufferCopyInfo* pCopyInfo,
+    const grfx::Image*                 pSrcImage,
+    const grfx::Buffer*                pDstBuffer)
+{
+    PPX_ASSERT_MSG(false, "not implemented");
 }
 
 // -------------------------------------------------------------------------------------------------

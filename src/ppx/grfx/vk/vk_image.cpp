@@ -99,8 +99,17 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
     mVkFormat    = ToVkFormat(pCreateInfo->format);
     mImageAspect = DetermineAspectMask(mVkFormat);
 
-    // Transition depth/stencil images from VK_IMAGE_LAYOUT_UNDEFINED to VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    if (((mImageAspect & VK_IMAGE_ASPECT_DEPTH_BIT) != 0) && IsNull(pCreateInfo->pApiObject)) {
+    if ((pCreateInfo->initialState != grfx::RESOURCE_STATE_UNDEFINED) && IsNull(pCreateInfo->pApiObject)) {
+        VkPipelineStageFlags pipelineStage = 0;
+        VkAccessFlags        accessMask    = 0;
+        VkImageLayout        layout        = VK_IMAGE_LAYOUT_UNDEFINED;
+        // Determine pipeline stage and layout from the initial state
+        Result ppxres = ToVkBarrierDst(pCreateInfo->initialState, pipelineStage, accessMask, layout);
+        if (Failed(ppxres)) {
+            PPX_ASSERT_MSG(false, "couldn't determine pipeline stage and layout from initial state");
+            return ppxres;
+        }
+
         grfx::QueuePtr grfxQueue = GetDevice()->GetAnyAvailableQueue();
         if (!grfxQueue) {
             return ppx::ERROR_FAILED;
@@ -109,15 +118,15 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         vk::Queue* pQueue = ToApi(grfxQueue.Get());
 
         VkResult vkres = pQueue->TransitionImageLayout(
-            mImage,                                           // image
-            mImageAspect,                                     // aspectMask
-            0,                                                // baseMipLevel
-            1,                                                // levelCount
-            0,                                                // baseArrayLayer
-            1,                                                // layerCount
-            VK_IMAGE_LAYOUT_UNDEFINED,                        // oldLayout
-            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, // newLayout
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);               // newPipelineStage)
+            mImage,                    // image
+            mImageAspect,              // aspectMask
+            0,                         // baseMipLevel
+            1,                         // levelCount
+            0,                         // baseArrayLayer
+            1,                         // layerCount
+            VK_IMAGE_LAYOUT_UNDEFINED, // oldLayout
+            layout,                    // newLayout
+            pipelineStage);            // newPipelineStage)
         if (vkres != VK_SUCCESS) {
             PPX_ASSERT_MSG(false, "vk::Queue::TransitionImageLayout failed: " << ToString(vkres));
             return ppx::ERROR_API_FAILURE;

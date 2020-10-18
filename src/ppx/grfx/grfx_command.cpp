@@ -4,6 +4,16 @@
 namespace ppx {
 namespace grfx {
 
+void CommandBuffer::SetViewports(const grfx::Viewport& viewport)
+{
+    SetViewports(1, &viewport);
+}
+
+void CommandBuffer::SetScissors(const grfx::Rect& scissor)
+{
+    SetScissors(1, &scissor);
+}
+
 void CommandBuffer::BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType indexType, uint64_t offset)
 {
     grfx::IndexBufferView view = {};
@@ -24,8 +34,8 @@ void CommandBuffer::BindVertexBuffers(
 
     grfx::VertexBufferView views[PPX_MAX_VERTEX_BINDINGS] = {};
     for (uint32_t i = 0; i < bufferCount; ++i) {
-        views[i].pBuffer    = ppBuffers[i];
-        views[i].stride = pStrides[i];
+        views[i].pBuffer = ppBuffers[i];
+        views[i].stride  = pStrides[i];
         if (!IsNull(pOffsets)) {
             views[i].offset = pOffsets[i];
         }

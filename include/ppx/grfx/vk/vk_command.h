@@ -78,10 +78,20 @@ public:
         uint32_t groupCountY,
         uint32_t groupCountZ) override;
 
+    virtual void CopyBufferToBuffer(
+        const grfx::BufferToBufferCopyInfo* pCopyInfo,
+        const grfx::Buffer*                 pSrcBuffer,
+        const grfx::Buffer*                 pDstBuffer) override;
+
     virtual void CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,
         const grfx::Buffer*                pSrcBuffer,
         const grfx::Image*                 pDstImage) override;
+
+    virtual void CopyImageToBuffer(
+        const grfx::ImageToBufferCopyInfo* pCopyInfo,
+        const grfx::Image*                 pSrcImage,
+        const grfx::Buffer*                pDstBuffer) override;
 
 protected:
     virtual Result CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo) override;

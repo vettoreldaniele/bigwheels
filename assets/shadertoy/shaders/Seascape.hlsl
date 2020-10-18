@@ -1,33 +1,35 @@
+float3              iMouse;
+float4              iResolution;
+float               iTime;
+float               iFrame;
+RWTexture2D<float4> outImage : register(u1);
+
+#define fract frac
+#define mix   lerp
+
 /*
  * "Seascape" by Alexander Alekseev aka TDM - 2014
  * License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
  * Contact: tdmaav@gmail.com
  */
 
-static float2 iMouse = float2(0, 0);
-static float2 iResolution = float2(0, 0);
-static float  iTime = 0;
-
-#define fract frac
-#define mix   lerp
-
-const int NUM_STEPS = 8;
-const float PI	 	= 3.141592;
-const float EPSILON	= 1e-3;
+static const int NUM_STEPS = 8;
+static const float PI	 	= 3.141592;
+static const float EPSILON	= 1e-3;
 #define EPSILON_NRM (0.1 / iResolution.x)
 #define AA
 
 // sea
-const int ITER_GEOMETRY = 3;
-const int ITER_FRAGMENT = 5;
-const float SEA_HEIGHT = 0.6;
-const float SEA_CHOPPY = 4.0;
-const float SEA_SPEED = 0.8;
-const float SEA_FREQ = 0.16;
-const float3 SEA_BASE = float3(0.0,0.09,0.18);
-const float3 SEA_WATER_COLOR = float3(0.8,0.9,0.6)*0.6;
+static const int ITER_GEOMETRY = 3;
+static const int ITER_FRAGMENT = 5;
+static const float SEA_HEIGHT = 0.6;
+static const float SEA_CHOPPY = 4.0;
+static const float SEA_SPEED = 0.8;
+static const float SEA_FREQ = 0.16;
+static const float3 SEA_BASE = float3(0.0,0.09,0.18);
+static const float3 SEA_WATER_COLOR = float3(0.8,0.9,0.6)*0.6;
 #define SEA_TIME (1.0 + iTime * SEA_SPEED)
-const float2x2 octave_m = float2x2(1.6,1.2,-1.2,1.6);
+static const float2x2 octave_m = float2x2(1.6,1.2,-1.2,1.6);
 
 // math
 float3x3 fromEuler(float3 ang) {
@@ -89,7 +91,8 @@ float map(float3 p) {
     	d = sea_octave((uv+SEA_TIME)*freq,choppy);
     	d += sea_octave((uv-SEA_TIME)*freq,choppy);
         h += d * amp;        
-    	uv *= octave_m; freq *= 1.9; amp *= 0.22;
+    	//uv = mul(uv, octave_m); freq *= 1.9; amp *= 0.22;
+        uv = mul(octave_m, uv); freq *= 1.9; amp *= 0.22;
         choppy = mix(choppy,1.0,0.2);
     }
     return p.y - h;
@@ -106,7 +109,8 @@ float map_detailed(float3 p) {
     	d = sea_octave((uv+SEA_TIME)*freq,choppy);
     	d += sea_octave((uv-SEA_TIME)*freq,choppy);
         h += d * amp;        
-    	uv *= octave_m; freq *= 1.9; amp *= 0.22;
+    	//uv = mul(uv, octave_m); freq *= 1.9; amp *= 0.22;
+        uv = mul(octave_m, uv); freq *= 1.9; amp *= 0.22;
         choppy = mix(choppy,1.0,0.2);
     }
     return p.y - h;
@@ -124,7 +128,7 @@ float3 getSeaColor(float3 p, float3 n, float3 l, float3 eye, float3 dist) {
     float atten = max(1.0 - dot(dist,dist) * 0.001, 0.0);
     color += SEA_WATER_COLOR * (p.y - SEA_HEIGHT) * 0.18 * atten;
     
-    color += float3(specular(n,l,eye,60.0));
+    color += (float3)(specular(n,l,eye,60.0));
     
     return color;
 }
@@ -170,7 +174,8 @@ float3 getPixel(in float2 coord, float time) {
     float3 ang = float3(sin(time*3.0)*0.1,sin(time)*0.2+0.3,time);    
     float3 ori = float3(0.0,3.5,time*5.0);
     float3 dir = normalize(float3(uv.xy,-2.0)); dir.z += length(uv) * 0.14;
-    dir = normalize(dir) * fromEuler(ang);
+    //dir = mul(normalize(dir), fromEuler(ang));
+    dir = mul(fromEuler(ang), normalize(dir));
     
     // tracing
     float3 p;
@@ -191,7 +196,7 @@ void mainImage( out float4 fragColor, in float2 fragCoord ) {
     float time = iTime * 0.3 + iMouse.x*0.01;
 	
 #ifdef AA
-    float3 color = float3(0.0);
+    float3 color = (float3)0.0;
     for(int i = -1; i <= 1; i++) {
         for(int j = -1; j <= 1; j++) {
         	float2 uv = fragCoord+float2(i,j)/3.0;
@@ -204,12 +209,14 @@ void mainImage( out float4 fragColor, in float2 fragCoord ) {
 #endif
     
     // post
-	fragColor = float4(pow(color,float3(0.65)), 1.0);
+	fragColor = float4(pow(color, (float3)0.65), 1.0);
 }
 
-[numthreads(1, 1, 1)]
+[numthreads(8, 8, 1)]
 void csmain(uint3 tid : SV_DispatchThreadID)
 {
     float4 outColor = (float4)0;
-    mainImage(outColor, float2(0, 0));
+    float2 fragCoord = float2(tid.x, iResolution.y - tid.y) + float2(0.5, 0.5);
+    mainImage(outColor, fragCoord);       
+    outImage[tid.xy] = outColor;
 }

@@ -6,6 +6,29 @@ namespace grfx {
 // -------------------------------------------------------------------------------------------------
 // ImageCreateInfo
 // -------------------------------------------------------------------------------------------------
+ImageCreateInfo ImageCreateInfo::SampledImage2D(
+    uint32_t          width,
+    uint32_t          height,
+    grfx::Format      format,
+    grfx::SampleCount sampleCount,
+    grfx::MemoryUsage memoryUsage)
+{
+    ImageCreateInfo ci         = {};
+    ci.type                    = grfx::IMAGE_TYPE_2D;
+    ci.width                   = width;
+    ci.height                  = height;
+    ci.depth                   = 1;
+    ci.format                  = format;
+    ci.sampleCount             = sampleCount;
+    ci.mipLevelCount           = 1;
+    ci.arrayLayerCount         = 1;
+    ci.usageFlags.bits.sampled = true;
+    ci.memoryUsage             = memoryUsage;
+    ci.initialState            = grfx::RESOURCE_STATE_SHADER_RESOURCE;
+    ci.pApiObject              = nullptr;
+    return ci;
+}
+
 ImageCreateInfo ImageCreateInfo::DepthStencilTarget(
     uint32_t          width,
     uint32_t          height,

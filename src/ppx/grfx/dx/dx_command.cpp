@@ -176,7 +176,7 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
         }
     }
 
-    // Clear depth stencil if load op is clear
+    // Clear depth/stencil if load op is clear
     if (hasDepthStencil && (pRenderPass->GetDepthStencilView()->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR)) {
         D3D12_CLEAR_FLAGS                   flags      = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
         const grfx::DepthStencilClearValue& clearValue = pBeginInfo->DSVClearValue;
@@ -464,6 +464,14 @@ void CommandBuffer::Dispatch(
         static_cast<UINT>(groupCountZ));
 }
 
+void CommandBuffer::CopyBufferToBuffer(
+    const grfx::BufferToBufferCopyInfo* pCopyInfo,
+    const grfx::Buffer*                 pSrcBuffer,
+    const grfx::Buffer*                 pDstBuffer)
+{
+    PPX_ASSERT_MSG(false, "not implemented");
+}
+
 void CommandBuffer::CopyBufferToImage(
     const grfx::BufferToImageCopyInfo* pCopyInfo,
     const grfx::Buffer*                pSrcBuffer,
@@ -509,6 +517,14 @@ void CommandBuffer::CopyBufferToImage(
             &src,
             nullptr);
     }
+}
+
+void CommandBuffer::CopyImageToBuffer(
+    const grfx::ImageToBufferCopyInfo* pCopyInfo,
+    const grfx::Image*                 pSrcImage,
+    const grfx::Buffer*                pDstBuffer)
+{
+    PPX_ASSERT_MSG(false, "not implemented");
 }
 
 // -------------------------------------------------------------------------------------------------
