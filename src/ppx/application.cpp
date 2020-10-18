@@ -443,6 +443,28 @@ int Application::Run(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
+grfx::Rect Application::GetScissor() const
+{
+    grfx::Rect rect = {};
+    rect.x          = 0;
+    rect.y          = 0;
+    rect.width      = GetWindowWidth();
+    rect.height     = GetWindowHeight();
+    return rect;
+}
+
+grfx::Viewport Application::GetViewport(float minDepth, float maxDepth) const
+{
+    grfx::Viewport viewport = {};
+    viewport.x              = 0.0f;
+    viewport.y              = 0.0f;
+    viewport.width          = static_cast<float>(GetWindowWidth());
+    viewport.height         = static_cast<float>(GetWindowHeight());
+    viewport.minDepth       = minDepth;
+    viewport.maxDepth       = maxDepth;
+    return viewport;
+}
+
 float Application::GetElapsedSeconds() const
 {
     return static_cast<float>(mTimer.SecondsSinceStart());
@@ -496,7 +518,7 @@ void Application::AddAssetDir(const fs::path& path, bool insertAtFront)
         // Rotate to front
         std::rotate(
             std::rbegin(mAssetDirs),
-            std::rbegin(mAssetDirs) + 1, 
+            std::rbegin(mAssetDirs) + 1,
             std::rend(mAssetDirs));
     }
 }

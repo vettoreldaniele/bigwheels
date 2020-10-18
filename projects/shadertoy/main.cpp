@@ -42,12 +42,10 @@ private:
     };
 
     std::vector<PerFrame>        mPerFrame;
-    grfx::VertexBinding          mFullScreenVertexBinding;
     grfx::DescriptorSetLayoutPtr mFullScreenDescriptorSetLayout;
     grfx::PipelineInterfacePtr   mFullScreenPipelineInterface;
     grfx::GraphicsPipelinePtr    mFullScreenPipeline;
     grfx::DescriptorSetPtr       mFullScreenDescriptorSet;
-    grfx::BufferPtr              mFullScreenVertexBuffer;
     grfx::ImagePtr               mOutputImage;
     grfx::SamplerPtr             mFullScreenSampler;
     grfx::SampledImageViewPtr    mFullScreenSampledImageView;
@@ -80,10 +78,6 @@ void ProjApp::Setup()
 
     // Fullscreen
     {
-        // Vertex binding
-        mFullScreenVertexBinding.AppendAttribute({"POSITION", 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
-        mFullScreenVertexBinding.AppendAttribute({"TEXCOORD", 1, grfx::FORMAT_R32G32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
-
         // Descriptor set layout
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
@@ -98,14 +92,14 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mFullScreenPipelineInterface));
 
         // Load VS bytecode
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticTexture.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         // Create VS
         grfx::ShaderModulePtr        VS;
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
         // Load PS bytecode
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticTexture.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         // Create PS
         grfx::ShaderModulePtr PS;
@@ -116,8 +110,6 @@ void ProjApp::Setup()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {PS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = 1;
-        gpCreateInfo.vertexInputState.bindings[0]       = mFullScreenVertexBinding;
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
@@ -132,35 +124,6 @@ void ProjApp::Setup()
         // Destroy VS and PS
         GetDevice()->DestroyShaderModule(VS);
         GetDevice()->DestroyShaderModule(PS);
-
-        // Vertex data
-        {
-            // clang-format off
-            std::vector<float> vertexData = {
-                // position           // tex coords
-                -1.0f,  1.0f, 0.0f,   0.0f, 0.0f,
-                -1.0f, -1.0f, 0.0f,   0.0f, 1.0f,
-                 1.0f, -1.0f, 0.0f,   1.0f, 1.0f,
-
-                -1.0f,  1.0f, 0.0f,   0.0f, 0.0f,
-                 1.0f, -1.0f, 0.0f,   1.0f, 1.0f,
-                 1.0f,  1.0f, 0.0f,   1.0f, 0.0f,
-            };
-            // clang-format on
-            uint32_t dataSize = ppx::SizeInBytesU32(vertexData);
-
-            grfx::BufferCreateInfo bufferCreateInfo       = {};
-            bufferCreateInfo.size                         = dataSize;
-            bufferCreateInfo.usageFlags.bits.vertexBuffer = true;
-            bufferCreateInfo.memoryUsage                  = grfx::MEMORY_USAGE_CPU_TO_GPU;
-
-            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mFullScreenVertexBuffer));
-
-            void* pAddr = nullptr;
-            PPX_CHECKED_CALL(ppxres = ppxres = mFullScreenVertexBuffer->MapMemory(0, &pAddr));
-            memcpy(pAddr, vertexData.data(), dataSize);
-            mFullScreenVertexBuffer->UnmapMemory();
-        }
     }
 
     // Shader toys
@@ -314,200 +277,6 @@ void ProjApp::Setup()
 
         mPerFrame.push_back(frame);
     }
-
-    /*
-    // Uniform buffer
-    {
-        grfx::BufferCreateInfo bufferCreateInfo        = {};
-        bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
-        bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
-        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer));
-    }
-
-    // Texture image, view, and sampler
-    {
-        grfx::ImageCreateInfo imageCreateInfo   = grfx::ImageCreateInfo::SampledImage2D(kWindowWidth / 2, kWindowHeight / 2, grfx::FORMAT_R8G8B8A8_UNORM);
-        imageCreateInfo.usageFlags.bits.storage = true;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateImage(&imageCreateInfo, &mImage));
-
-        grfx::SampledImageViewCreateInfo sampledViewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage);
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&sampledViewCreateInfo, &mSampledImageView));
-
-        grfx::StorageImageViewCreateInfo storageViewCreateInfo = grfx::StorageImageViewCreateInfo::GuessFromImage(mImage);
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateStorageImageView(&storageViewCreateInfo, &mStorageImageView));
-
-        grfx::SamplerCreateInfo samplerCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
-    }
-
-    // Descriptors
-    {
-        grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.uniformBuffer                  = 1;
-        poolCreateInfo.sampledImage                   = 1;
-        poolCreateInfo.sampler                        = 1;
-        poolCreateInfo.storageImage                   = 1;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
-
-        // Compute
-        {
-            grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE));
-            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mComputeDescriptorSetLayout));
-
-            PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mComputeDescriptorSetLayout, &mComputeDescriptorSet));
-
-            grfx::WriteDescriptor write = {};
-            write.binding               = 0;
-            write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            write.bufferOffset          = 0;
-            write.bufferRange           = PPX_WHOLE_SIZE;
-            write.pBuffer               = mUniformBuffer;
-            PPX_CHECKED_CALL(ppxres = mComputeDescriptorSet->UpdateDescriptors(1, &write));
-
-            write            = {};
-            write.binding    = 1;
-            write.type       = grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            write.pImageView = mStorageImageView;
-            PPX_CHECKED_CALL(ppxres = mComputeDescriptorSet->UpdateDescriptors(1, &write));
-        }
-
-        // Graphics
-        {
-            grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLER));
-            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mGraphicsDescriptorSetLayout));
-
-            PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mGraphicsDescriptorSetLayout, &mGraphicsDescriptorSet));
-
-            grfx::WriteDescriptor write = {};
-            write.binding               = 0;
-            write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            write.pImageView            = mSampledImageView;
-            PPX_CHECKED_CALL(ppxres = mGraphicsDescriptorSet->UpdateDescriptors(1, &write));
-
-            write          = {};
-            write.binding  = 1;
-            write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-            write.pSampler = mSampler;
-            PPX_CHECKED_CALL(ppxres = mGraphicsDescriptorSet->UpdateDescriptors(1, &write));
-        }
-    }
-
-    // Compute pipeline
-    {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("shadertoy/shaders"), "Fractal_Land.cs");
-        PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
-        grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mCS));
-
-        grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
-        piCreateInfo.setCount                          = 1;
-        piCreateInfo.sets[0].set                       = 0;
-        piCreateInfo.sets[0].pLayout                   = mComputeDescriptorSetLayout;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mComputePipelineInterface));
-
-        grfx::ComputePipelineCreateInfo cpCreateInfo = {};
-        cpCreateInfo.CS                              = {mCS.Get(), "csmain"};
-        cpCreateInfo.pPipelineInterface              = mComputePipelineInterface;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateComputePipeline(&cpCreateInfo, &mComputePipeline));
-    }
-
-    // Graphics pipeline
-    {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticTexture.vs");
-        PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
-        grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
-
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticTexture.ps");
-        PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
-        shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
-
-        grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
-        piCreateInfo.setCount                          = 1;
-        piCreateInfo.sets[0].set                       = 0;
-        piCreateInfo.sets[0].pLayout                   = mGraphicsDescriptorSetLayout;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mGraphicsPipelineInterface));
-
-        mVertexBinding.AppendAttribute({"POSITION", 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
-        mVertexBinding.AppendAttribute({"TEXCOORD", 1, grfx::FORMAT_R32G32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
-
-        grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
-        gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
-        gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = 1;
-        gpCreateInfo.vertexInputState.bindings[0]       = mVertexBinding;
-        gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
-        gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
-        gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
-        gpCreateInfo.depthEnable                        = false;
-        gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
-        gpCreateInfo.outputState.renderTargetCount      = 1;
-        gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
-        gpCreateInfo.pPipelineInterface                 = mGraphicsPipelineInterface;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mGraphicsPipeline));
-    }
-
-    // Per frame data
-    {
-        PerFrame frame = {};
-
-        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
-
-        grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
-
-        grfx::FenceCreateInfo fenceCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
-
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
-
-        fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
-
-        mPerFrame.push_back(frame);
-    }
-
-    // Vertex buffer and geometry data
-    {
-        // clang-format off
-        std::vector<float> vertexData = {
-            // position           // tex coords
-            -1.0f,  1.0f, 0.0f,   0.0f, 0.0f,
-            -1.0f, -1.0f, 0.0f,   0.0f, 1.0f,
-             1.0f, -1.0f, 0.0f,   1.0f, 1.0f,
-
-            -1.0f,  1.0f, 0.0f,   0.0f, 0.0f,
-             1.0f, -1.0f, 0.0f,   1.0f, 1.0f,
-             1.0f,  1.0f, 0.0f,   1.0f, 0.0f,
-        };
-        // clang-format on
-        uint32_t dataSize = ppx::SizeInBytesU32(vertexData);
-
-        grfx::BufferCreateInfo bufferCreateInfo       = {};
-        bufferCreateInfo.size                         = dataSize;
-        bufferCreateInfo.usageFlags.bits.vertexBuffer = true;
-        bufferCreateInfo.memoryUsage                  = grfx::MEMORY_USAGE_CPU_TO_GPU;
-
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mVertexBuffer));
-
-        void* pAddr = nullptr;
-        PPX_CHECKED_CALL(ppxres = ppxres = mVertexBuffer->MapMemory(0, &pAddr));
-        memcpy(pAddr, vertexData.data(), dataSize);
-        mVertexBuffer->UnmapMemory();
-    }
-
-    // Viewport and scissor rect
-    mViewport    = {0, 0, kWindowWidth, kWindowHeight, 0, 1};
-    mScissorRect = {0, 0, kWindowWidth, kWindowHeight};
- */
 }
 
 void ProjApp::Render()
@@ -570,12 +339,11 @@ void ProjApp::Render()
         frame.cmd->BeginRenderPass(&beginInfo);
         {
             // Draw texture
-            frame.cmd->SetScissors(grfx::Rect(0, 0, GetWindowWidth(), GetWindowHeight()));
-            frame.cmd->SetViewports(grfx::Viewport(0, 0, static_cast<float>(GetWindowWidth()), static_cast<float>(GetWindowHeight())));
+            frame.cmd->SetScissors(GetScissor());
+            frame.cmd->SetViewports(GetViewport());
             frame.cmd->BindGraphicsDescriptorSets(mFullScreenPipelineInterface, 1, &mFullScreenDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mFullScreenPipeline);
-            frame.cmd->BindVertexBuffers(1, &mFullScreenVertexBuffer, &mFullScreenVertexBinding.GetStride());
-            frame.cmd->Draw(6, 1, 0, 0);
+            frame.cmd->Draw(3, 1, 0, 0);
 
             // Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });

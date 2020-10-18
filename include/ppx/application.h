@@ -82,13 +82,15 @@ protected:
     virtual void DispatchRender();
 
     void DrawImGui(grfx::CommandBuffer* pCommandBuffer);
-    void DrawDebugInfo(std::function<void(void)> drawAdditionalFn = [](){});
+    void DrawDebugInfo(std::function<void(void)> drawAdditionalFn = []() {});
 
 public:
     int Run(int argc, char** argv);
 
-    uint32_t GetWindowWidth() const { return mSettings.window.width; }
-    uint32_t GetWindowHeight() const { return mSettings.window.height; }
+    uint32_t       GetWindowWidth() const { return mSettings.window.width; }
+    uint32_t       GetWindowHeight() const { return mSettings.window.height; }
+    grfx::Rect     GetScissor() const;
+    grfx::Viewport GetViewport(float minDepth = 0.0f, float maxDepth = 1.0f) const;
 
     uint64_t GetFrameCount() const { return mFrameCount; }
     float    GetElapsedSeconds() const;
