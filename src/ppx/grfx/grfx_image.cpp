@@ -99,38 +99,83 @@ grfx::ImageViewType Image::GuessImageViewType(bool isCube) const
 }
 
 // -------------------------------------------------------------------------------------------------
+// DepthStencilView
+// -------------------------------------------------------------------------------------------------
+grfx::DepthStencilViewCreateInfo DepthStencilViewCreateInfo::GuessFromImage(grfx::Image* pImage)
+{
+    grfx::DepthStencilViewCreateInfo ci = {};
+    ci.pImage                           = pImage;
+    ci.imageViewType                    = pImage->GuessImageViewType();
+    ci.format                           = pImage->GetFormat();
+    ci.mipLevel                         = 0;
+    ci.mipLevelCount                    = 1;
+    ci.arrayLayer                       = 0;
+    ci.arrayLayerCount                  = 1;
+    ci.components                       = {};
+    ci.depthLoadOp                      = ATTACHMENT_LOAD_OP_LOAD;
+    ci.depthStoreOp                     = ATTACHMENT_STORE_OP_STORE;
+    ci.stencilLoadOp                    = ATTACHMENT_LOAD_OP_LOAD;
+    ci.stencilStoreOp                   = ATTACHMENT_STORE_OP_STORE;
+    ci.ownership                        = grfx::OWNERSHIP_REFERENCE;
+    return ci;
+}
+
+// -------------------------------------------------------------------------------------------------
 // SampledImageView
 // -------------------------------------------------------------------------------------------------
-SampledImageViewCreateInfo SampledImageViewCreateInfo::GuessFromImage(grfx::Image* pImage)
+grfx::RenderTargetViewCreateInfo RenderTargetViewCreateInfo::GuessFromImage(grfx::Image* pImage)
 {
-    SampledImageViewCreateInfo ci = {};
-    ci.pImage                     = pImage;
-    ci.imageViewType              = pImage->GuessImageViewType();
-    ci.format                     = pImage->GetFormat();
-    ci.sampleCount                = pImage->GetSampleCount();
-    ci.mipLevel                   = 0;
-    ci.mipLevelCount              = pImage->GetMipLevelCount();
-    ci.arrayLayer                 = 0;
-    ci.arrayLayerCount            = pImage->GetArrayLayerCount();
-    ci.components                 = {};
+    grfx::RenderTargetViewCreateInfo ci = {};
+    ci.pImage                           = pImage;
+    ci.imageViewType                    = pImage->GuessImageViewType();
+    ci.format                           = pImage->GetFormat();
+    ci.sampleCount                      = pImage->GetSampleCount();
+    ci.mipLevel                         = 0;
+    ci.mipLevelCount                    = 1;
+    ci.arrayLayer                       = 0;
+    ci.arrayLayerCount                  = 1;
+    ci.components                       = {};
+    ci.loadOp                           = ATTACHMENT_LOAD_OP_LOAD;
+    ci.storeOp                          = ATTACHMENT_STORE_OP_STORE;
+    ci.ownership                        = grfx::OWNERSHIP_REFERENCE;
+    return ci;
+}
+
+// -------------------------------------------------------------------------------------------------
+// SampledImageView
+// -------------------------------------------------------------------------------------------------
+grfx::SampledImageViewCreateInfo SampledImageViewCreateInfo::GuessFromImage(grfx::Image* pImage)
+{
+    grfx::SampledImageViewCreateInfo ci = {};
+    ci.pImage                           = pImage;
+    ci.imageViewType                    = pImage->GuessImageViewType();
+    ci.format                           = pImage->GetFormat();
+    ci.sampleCount                      = pImage->GetSampleCount();
+    ci.mipLevel                         = 0;
+    ci.mipLevelCount                    = pImage->GetMipLevelCount();
+    ci.arrayLayer                       = 0;
+    ci.arrayLayerCount                  = pImage->GetArrayLayerCount();
+    ci.components                       = {};
+    ci.ownership                        = grfx::OWNERSHIP_REFERENCE;
     return ci;
 }
 
 // -------------------------------------------------------------------------------------------------
 // StorageImageView
 // -------------------------------------------------------------------------------------------------
-StorageImageViewCreateInfo StorageImageViewCreateInfo::GuessFromImage(grfx::Image* pImage)
+grfx::StorageImageViewCreateInfo StorageImageViewCreateInfo::GuessFromImage(grfx::Image* pImage)
 {
-    StorageImageViewCreateInfo ci = {};
-    ci.pImage                     = pImage;
-    ci.imageViewType              = pImage->GuessImageViewType();
-    ci.format                     = pImage->GetFormat();
-    ci.sampleCount                = pImage->GetSampleCount();
-    ci.mipLevel                   = 0;
-    ci.mipLevelCount              = pImage->GetMipLevelCount();
-    ci.arrayLayer                 = 0;
-    ci.arrayLayerCount            = pImage->GetArrayLayerCount();
-    ci.components                 = {};
+    grfx::StorageImageViewCreateInfo ci = {};
+    ci.pImage                           = pImage;
+    ci.imageViewType                    = pImage->GuessImageViewType();
+    ci.format                           = pImage->GetFormat();
+    ci.sampleCount                      = pImage->GetSampleCount();
+    ci.mipLevel                         = 0;
+    ci.mipLevelCount                    = pImage->GetMipLevelCount();
+    ci.arrayLayer                       = 0;
+    ci.arrayLayerCount                  = pImage->GetArrayLayerCount();
+    ci.components                       = {};
+    ci.ownership                        = grfx::OWNERSHIP_REFERENCE;
     return ci;
 }
 

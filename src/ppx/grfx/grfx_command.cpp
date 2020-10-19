@@ -1,8 +1,21 @@
 #include "ppx/grfx/grfx_command.h"
 #include "ppx/grfx/grfx_buffer.h"
+#include "ppx/grfx/grfx_draw_pass.h"
 
 namespace ppx {
 namespace grfx {
+
+void CommandBuffer::BeginRenderPass(
+    const grfx::DrawPass*           pDrawPass,
+    const grfx::DrawPassClearFlags& clearFlags)
+{
+    PPX_ASSERT_NULL_ARG(pDrawPass);
+
+    grfx::RenderPassBeginInfo beginInfo = {};
+    pDrawPass->PrepareRenderPassBeginInfo(clearFlags, &beginInfo);
+
+    BeginRenderPass(&beginInfo);
+}
 
 void CommandBuffer::SetViewports(const grfx::Viewport& viewport)
 {

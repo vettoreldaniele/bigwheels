@@ -25,6 +25,7 @@ struct ImageCreateInfo
     grfx::RenderTargetClearValue RTVClearValue   = {0, 0, 0, 0};                 // Optimized RTV clear value
     grfx::DepthStencilClearValue DSVClearValue   = {1.0f, 0xFF};                 // Optimized DSV clear value
     void*                        pApiObject      = nullptr;                      // [OPTIONAL] For external images such as swapchain images
+    grfx::Ownership              ownership       = grfx::OWNERSHIP_REFERENCE;
 
     // Returns a create info for sampled image
     static ImageCreateInfo SampledImage2D(
@@ -133,6 +134,7 @@ struct SamplerCreateInfo
     float                    minLod           = 0.0f;
     float                    maxLod           = 1.0f;
     grfx::BorderColor        borderColor      = grfx::BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+    grfx::Ownership          ownership        = grfx::OWNERSHIP_REFERENCE;
 };
 
 //! @class Sampler
@@ -165,6 +167,9 @@ struct DepthStencilViewCreateInfo
     grfx::AttachmentStoreOp depthStoreOp    = ATTACHMENT_STORE_OP_STORE;
     grfx::AttachmentLoadOp  stencilLoadOp   = ATTACHMENT_LOAD_OP_LOAD;
     grfx::AttachmentStoreOp stencilStoreOp  = ATTACHMENT_STORE_OP_STORE;
+    grfx::Ownership         ownership       = grfx::OWNERSHIP_REFERENCE;
+
+    static grfx::DepthStencilViewCreateInfo GuessFromImage(grfx::Image* pImage);
 };
 
 //! @class DepthStencilView
@@ -204,6 +209,9 @@ struct RenderTargetViewCreateInfo
     grfx::ComponentMapping  components      = {};
     grfx::AttachmentLoadOp  loadOp          = ATTACHMENT_LOAD_OP_LOAD;
     grfx::AttachmentStoreOp storeOp         = ATTACHMENT_STORE_OP_STORE;
+    grfx::Ownership         ownership       = grfx::OWNERSHIP_REFERENCE;
+
+    static grfx::RenderTargetViewCreateInfo GuessFromImage(grfx::Image* pImage);
 };
 
 //! @class RenderTargetView
@@ -240,8 +248,9 @@ struct SampledImageViewCreateInfo
     uint32_t               arrayLayer      = 0;
     uint32_t               arrayLayerCount = 0;
     grfx::ComponentMapping components      = {};
+    grfx::Ownership        ownership       = grfx::OWNERSHIP_REFERENCE;
 
-    static SampledImageViewCreateInfo GuessFromImage(grfx::Image* pImage);
+    static grfx::SampledImageViewCreateInfo GuessFromImage(grfx::Image* pImage);
 };
 
 //! @class SampledImageView
@@ -255,7 +264,9 @@ public:
     SampledImageView() {}
     virtual ~SampledImageView() {}
 
-    grfx::Image* GetImage() const { return mCreateInfo.pImage; }
+    grfx::ImagePtr    GetImage() const { return mCreateInfo.pImage; }
+    grfx::Format      GetFormat() const { return mCreateInfo.format; }
+    grfx::SampleCount GetSampleCount() const { return mCreateInfo.sampleCount; }
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -274,8 +285,9 @@ struct StorageImageViewCreateInfo
     uint32_t               arrayLayer      = 0;
     uint32_t               arrayLayerCount = 0;
     grfx::ComponentMapping components      = {};
+    grfx::Ownership        ownership       = grfx::OWNERSHIP_REFERENCE;
 
-    static StorageImageViewCreateInfo GuessFromImage(grfx::Image* pImage);
+    static grfx::StorageImageViewCreateInfo GuessFromImage(grfx::Image* pImage);
 };
 
 //! @class StorageImageView
@@ -289,7 +301,9 @@ public:
     StorageImageView() {}
     virtual ~StorageImageView() {}
 
-    grfx::Image* GetImage() const { return mCreateInfo.pImage; }
+    grfx::ImagePtr    GetImage() const { return mCreateInfo.pImage; }
+    grfx::Format      GetFormat() const { return mCreateInfo.format; }
+    grfx::SampleCount GetSampleCount() const { return mCreateInfo.sampleCount; }
 };
 
 } // namespace grfx

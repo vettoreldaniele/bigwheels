@@ -8,14 +8,14 @@ namespace vk {
 
 Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
 {
-    bool   hasDepthSencil = mDepthStencilView.object ? true : false;
+    bool   hasDepthSencil = mDepthStencilView ? true : false;
     size_t rtvCount       = CountU32(mRenderTargetViews);
 
     // Attachment descriptions
     std::vector<VkAttachmentDescription> attachmentDesc;
     {
         for (uint32_t i = 0; i < rtvCount; ++i) {
-            grfx::RenderTargetViewPtr rtv = mRenderTargetViews[i].object;
+            grfx::RenderTargetViewPtr rtv = mRenderTargetViews[i];
 
             VkAttachmentDescription desc = {};
             desc.flags                   = 0;
@@ -32,7 +32,7 @@ Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* 
         }
 
         if (hasDepthSencil) {
-            grfx::DepthStencilViewPtr dsv = mDepthStencilView.object;
+            grfx::DepthStencilViewPtr dsv = mDepthStencilView;
 
             VkAttachmentDescription desc = {};
             desc.flags                   = 0;
@@ -110,17 +110,17 @@ Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* 
 
 Result RenderPass::CreateFramebuffer(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
 {
-    bool   hasDepthSencil = mDepthStencilView.object ? true : false;
+    bool   hasDepthSencil = mDepthStencilView ? true : false;
     size_t rtvCount       = CountU32(mRenderTargetViews);
 
     std::vector<VkImageView> attachments;
     for (uint32_t i = 0; i < rtvCount; ++i) {
-        grfx::RenderTargetViewPtr rtv = mRenderTargetViews[i].object;
+        grfx::RenderTargetViewPtr rtv = mRenderTargetViews[i];
         attachments.push_back(ToApi(rtv.Get())->GetVkImageView());
     }
 
     if (hasDepthSencil) {
-        grfx::DepthStencilViewPtr dsv = mDepthStencilView.object;
+        grfx::DepthStencilViewPtr dsv = mDepthStencilView;
         attachments.push_back(ToApi(dsv.Get())->GetVkImageView());
     }
 

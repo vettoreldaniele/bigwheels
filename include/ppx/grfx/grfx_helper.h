@@ -87,6 +87,37 @@ struct ColorComponentFlags
     }
 
     static ColorComponentFlags RGBA();
+}; // -------------------------------------------------------------------------------------------------
+
+struct DrawPassClearFlags
+{
+    union
+    {
+        struct
+        {
+            bool clearRenderTargets : 1;
+            bool clearDepth         : 1;
+            bool clearStencil       : 1;
+
+        } bits;
+        uint32_t flags;
+    };
+
+    DrawPassClearFlags()
+        : flags(0) {}
+
+    DrawPassClearFlags(uint32_t flags_)
+        : flags(flags_) {}
+
+    DrawPassClearFlags& operator=(uint32_t rhs)
+    {
+        this->flags = rhs;
+    }
+
+    operator uint32_t() const
+    {
+        return flags;
+    }
 };
 
 // -------------------------------------------------------------------------------------------------

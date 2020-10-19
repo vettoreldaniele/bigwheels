@@ -15,6 +15,7 @@ struct BufferCreateInfo
     grfx::BufferUsageFlags usageFlags   = 0;
     grfx::MemoryUsage      memoryUsage  = grfx::MEMORY_USAGE_GPU_ONLY;
     grfx::ResourceState    initialState = grfx::RESOURCE_STATE_GENERAL;
+    grfx::Ownership        ownership    = grfx::OWNERSHIP_REFERENCE;
 };
 
 //! @class Buffer
@@ -64,6 +65,44 @@ struct VertexBufferView
     VertexBufferView(const grfx::Buffer* pBuffer_, uint32_t stride_, uint64_t offset_ = 0)
         : pBuffer(pBuffer_), stride(stride_), offset(offset_) {}
 };
+
+//// -------------------------------------------------------------------------------------------------
+//
+//struct IndexBufferCreateInfo
+//{
+//    grfx::IndexType indexType  = grfx::INDEX_TYPE_UINT16;
+//    uint32_t        indexCount = 0;
+//};
+//
+//class IndexBuffer
+//{
+//public:
+//    IndexBuffer() {}
+//    virtual ~IndexBuffer() {}
+//
+//private:
+//    grfx::BufferPtr       mBuffer;
+//    grfx::IndexBufferView mView = {};
+//};
+//
+//// -------------------------------------------------------------------------------------------------
+//
+//struct VertexBufferCreateInfo
+//{
+//    grfx::VertexBinding binding     = {};
+//    uint32_t            vertexCount = 0;
+//};
+//
+//class VertexBuffer
+//{
+//public:
+//    VertexBuffer() {}
+//    virtual ~VertexBuffer() {}
+//
+//private:
+//    grfx::BufferPtr mBuffer;
+//    grfx::VertexBufferView = {};
+//};
 
 } // namespace grfx
 } // namespace ppx

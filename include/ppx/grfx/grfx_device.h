@@ -5,7 +5,9 @@
 #include "ppx/grfx/grfx_buffer.h"
 #include "ppx/grfx/grfx_command.h"
 #include "ppx/grfx/grfx_descriptor.h"
+#include "ppx/grfx/grfx_draw_pass.h"
 #include "ppx/grfx/grfx_image.h"
+#include "ppx/grfx/grfx_model.h"
 #include "ppx/grfx/grfx_pipeline.h"
 #include "ppx/grfx/grfx_queue.h"
 #include "ppx/grfx/grfx_render_pass.h"
@@ -67,6 +69,10 @@ public:
     Result CreateDescriptorSetLayout(const grfx::DescriptorSetLayoutCreateInfo* pCreateInfo, grfx::DescriptorSetLayout** ppDescriptorSetLayout);
     void   DestroyDescriptorSetLayout(const grfx::DescriptorSetLayout* pDescriptorSetLayout);
 
+    Result CreateDrawPass(const grfx::DrawPassCreateInfo* pCreateInfo, grfx::DrawPass** ppDrawPass);
+    Result CreateDrawPass(const grfx::DrawPassCreateInfo2* pCreateInfo, grfx::DrawPass** ppDrawPass);
+    void   DestroyDrawPass(const grfx::DrawPass* pDrawPass);
+
     Result CreateFence(const grfx::FenceCreateInfo* pCreateInfo, grfx::Fence** ppFence);
     void   DestroyFence(const grfx::Fence* pFence);
 
@@ -76,6 +82,9 @@ public:
 
     Result CreateImage(const grfx::ImageCreateInfo* pCreateInfo, grfx::Image** ppImage);
     void   DestroyImage(const grfx::Image* pImage);
+
+    Result CreateModel(const grfx::ModelCreateInfo* pCreateInfo, grfx::Model** ppModel);
+    void   DestroyModel(const grfx::Model* pModel);
 
     Result CreatePipelineInterface(const grfx::PipelineInterfaceCreateInfo* pCreateInfo, grfx::PipelineInterface** ppPipelineInterface);
     void   DestroyPipelineInterface(const grfx::PipelineInterface* pPipelineInterface);
@@ -165,6 +174,9 @@ protected:
     virtual Result AllocateObject(grfx::ShaderProgram** ppObject)       = 0;
     virtual Result AllocateObject(grfx::StorageImageView** ppObject)    = 0;
     virtual Result AllocateObject(grfx::Swapchain** ppObject)           = 0;
+
+    virtual Result AllocateObject(grfx::DrawPass** ppObject);
+    virtual Result AllocateObject(grfx::Model** ppObject);
     virtual Result AllocateObject(grfx::Texture** ppObject);
 
     template <
@@ -195,9 +207,11 @@ protected:
     std::vector<grfx::DescriptorPoolPtr>      mDescriptorPools;
     std::vector<grfx::DescriptorSetPtr>       mDescriptorSets;
     std::vector<grfx::DescriptorSetLayoutPtr> mDescriptorSetLayouts;
+    std::vector<grfx::DrawPassPtr>            mDrawPasses;
     std::vector<grfx::FencePtr>               mFences;
     std::vector<grfx::GraphicsPipelinePtr>    mGraphicsPipelines;
     std::vector<grfx::ImagePtr>               mImages;
+    std::vector<grfx::ModelPtr>               mModels;
     std::vector<grfx::PipelineInterfacePtr>   mPipelineInterfaces;
     std::vector<grfx::RenderPassPtr>          mRenderPasses;
     std::vector<grfx::RenderTargetViewPtr>    mRenderTargetViews;

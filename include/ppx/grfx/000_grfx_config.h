@@ -20,12 +20,14 @@ class DescriptorSet;
 class DescriptorSet;
 class DescriptorSetLayout;
 class Device;
+class DrawPass;
 class Fence;
 class Gpu;
 class GraphicsPipeline;
 class Image;
 class ImageView;
 class Instance;
+class Model;
 class PipelineInterface;
 class Queue;
 class RenderPass;
@@ -61,11 +63,13 @@ using DescriptorPoolPtr      = ObjPtr<DescriptorPool>;
 using DescriptorSetPtr       = ObjPtr<DescriptorSet>;
 using DescriptorSetLayoutPtr = ObjPtr<DescriptorSetLayout>;
 using DevicePtr              = ObjPtr<Device>;
+using DrawPassPtr            = ObjPtr<DrawPass>;
 using FencePtr               = ObjPtr<Fence>;
 using GraphicsPipelinePtr    = ObjPtr<GraphicsPipeline>;
 using GpuPtr                 = ObjPtr<Gpu>;
 using ImagePtr               = ObjPtr<Image>;
 using InstancePtr            = ObjPtr<Instance>;
+using ModelPtr               = ObjPtr<Model>;
 using PipelineInterfacePtr   = ObjPtr<PipelineInterface>;
 using QueuePtr               = ObjPtr<Queue>;
 using RenderPassPtr          = ObjPtr<RenderPass>;
@@ -140,9 +144,64 @@ struct Viewport
 
 // -------------------------------------------------------------------------------------------------
 
+//! @enum Ownership
+//!
+//! The purpose of this enum is to help grfx objects manage the lifetime
+//! of their member objects. All grfx objects are created with ownership
+//! set to OWNERSHIP_REFERENCE. This means that the object lifetime is
+//! left up to either grfx::Device or grfx::Instance unless the application
+//! explicitly destroys it.
+//!
+//! If a member object's ownership is set to OWNERSHIP_EXCLUSIVE or
+//! OWNERSHIP_RESTRICTED, this means that the containing object must
+//! destroy it durnig the destruction process.
+//!
+//! If the containing object fails to destroy OWNERSHIP_EXCLUSIVE and
+//! OWNERSHIP_RESTRICTED objects, then either grfx::Device or grfx::Instance
+//! will destroy it in their destruction proces.
+//!
+//! If an object's ownership is set to OWNERSHIP_RESTRICTED then its
+//! ownership cannot be changed. Calling SetOwnership() will have no effect.
+//!
+//! Examples of objects with OWNERSHIP_EXCLUSIVE ownership:
+//!   - Draw passes and render passes have create infos where only the
+//!     format of the render target and/or depth stencil are known.
+//!     In these cases draw passes and render passes will create the
+//!     necessary backing images and views. These objects will be created
+//!     with ownership set to EXCLUSIVE. The render pass will destroy
+//!     these objects when it itself is destroyed.
+//!
+//!   - grfx::Model's buffers and textures typically have OWNERSHIP_REFERENCE
+//!     ownership. However, the application is free to change ownership
+//!     to EXCLUSIVE as it sees fit.
+//!
+//! Examples of objects with OWNERSHIP_EXCLUSIVE ownership:
+//!   - Swapchain images and render passes are always OWNERSHIP_EXCLUSIVE.
+//!
+enum Ownership
+{
+    OWNERSHIP_REFERENCE  = 0,
+    OWNERSHIP_EXCLUSIVE  = 1,
+    OWNERSHIP_RESTRICTED = 2,
+};
+
+// -------------------------------------------------------------------------------------------------
+
 template <typename CreatInfoT>
 class CreateDestroyTraits
 {
+public:
+    grfx::Ownership GetOwnership() const { return mOwnership; }
+
+    void SetOwnership(grfx::Ownership ownership)
+    {
+        // Cannot change to or from OWNERSHIP_RESTRICTED
+        if ((ownership == grfx::OWNERSHIP_RESTRICTED) || (mOwnership == grfx::OWNERSHIP_RESTRICTED)) {
+            return;
+        }
+        mOwnership = ownership;
+    }
+
 protected:
     virtual ppx::Result Create(const CreatInfoT* pCreateInfo)
     {
@@ -170,7 +229,8 @@ protected:
     friend class grfx::Device;
 
 protected:
-    CreatInfoT mCreateInfo = {};
+    CreatInfoT      mCreateInfo = {};
+    grfx::Ownership mOwnership  = grfx::OWNERSHIP_REFERENCE;
 };
 
 // -------------------------------------------------------------------------------------------------

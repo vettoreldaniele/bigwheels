@@ -241,7 +241,13 @@ public:
         const grfx::Image*                 pSrcImage,
         const grfx::Buffer*                pDstBuffer) = 0;
 
+    // ---------------------------------------------------------------------------------------------
     // Convenience functions
+    // ---------------------------------------------------------------------------------------------
+    void BeginRenderPass(
+        const grfx::DrawPass*           pDrawPass,
+        const grfx::DrawPassClearFlags& clearFlags = grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_ALL);
+
     void SetViewports(const grfx::Viewport& viewport);
 
     void SetScissors(const grfx::Rect& scissor);

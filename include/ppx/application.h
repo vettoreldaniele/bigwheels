@@ -92,9 +92,6 @@ public:
     grfx::Rect     GetScissor() const;
     grfx::Viewport GetViewport(float minDepth = 0.0f, float maxDepth = 1.0f) const;
 
-    uint64_t GetFrameCount() const { return mFrameCount; }
-    float    GetElapsedSeconds() const;
-
     uint32_t                     GetProcessId() const;
     fs::path                     GetApplicationPath() const;
     const std::vector<fs::path>& GetAssetDirs() const { return mAssetDirs; }
@@ -118,15 +115,6 @@ public:
     //
     fs::path GetAssetPath(const fs::path& subPath) const;
 
-    uint32_t           GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
-    void*              GetWindow() const { return mWindow; }
-    grfx::InstancePtr  GetInstance() const { return mInstance; }
-    grfx::DevicePtr    GetDevice() const { return mDevice; }
-    grfx::QueuePtr     GetGraphicsQueue(uint32_t index = 0) const { return GetDevice()->GetGraphicsQueue(index); }
-    grfx::QueuePtr     GetComputeQueue(uint32_t index = 0) const { return GetDevice()->GetComputeQueue(index); }
-    grfx::QueuePtr     GetTransferQueue(uint32_t index = 0) const { return GetDevice()->GetTransferQueue(index); }
-    grfx::SwapchainPtr GetSwapchain() const { return mSwapchain; }
-
     // Loads a DXBC, DXIL, or SPV shader from baseDir
     //
     // 'baseDir' is path to the directory that contains dxbc, dxil, and spv subdirectories.
@@ -144,6 +132,19 @@ public:
     //     - loads shader file: some/path/shaders/spv/Texture.vs.spv   for API_VK_1_1, API_VK_1_2
     //
     std::vector<char> LoadShader(const fs::path& baseDir, const std::string& baseName) const;
+
+    void*              GetWindow() const { return mWindow; }
+    grfx::InstancePtr  GetInstance() const { return mInstance; }
+    grfx::DevicePtr    GetDevice() const { return mDevice; }
+    grfx::QueuePtr     GetGraphicsQueue(uint32_t index = 0) const { return GetDevice()->GetGraphicsQueue(index); }
+    grfx::QueuePtr     GetComputeQueue(uint32_t index = 0) const { return GetDevice()->GetComputeQueue(index); }
+    grfx::QueuePtr     GetTransferQueue(uint32_t index = 0) const { return GetDevice()->GetTransferQueue(index); }
+    grfx::SwapchainPtr GetSwapchain() const { return mSwapchain; }
+
+    float    GetElapsedSeconds() const;
+    uint64_t GetFrameCount() const { return mFrameCount; }
+    uint32_t GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
+    uint32_t GetFrameInFlightIndex() const { return static_cast<uint32_t>(mFrameCount % mSettings.grfx.numFramesInFlight); }
 
 private:
     void   InternalCtor();

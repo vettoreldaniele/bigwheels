@@ -193,15 +193,15 @@ Result RenderPass::CreateImagesAndViewsV1(const grfx::internal::RenderPassCreate
             return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
         }
 
-        mRenderTargetViews.push_back({true, rtv});
-        mRenderTargetImages.push_back({true, rtv->GetImage()});
+        mRenderTargetViews.push_back(rtv);
+        mRenderTargetImages.push_back(rtv->GetImage());
     }
     // Copy DSV and image
     if (!IsNull(pCreateInfo->V1.pDepthStencilView)) {
         grfx::DepthStencilViewPtr dsv = pCreateInfo->V1.pDepthStencilView;
 
-        mDepthStencilView  = ExtObjPtr<grfx::DepthStencilViewPtr>{true, dsv};
-        mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, dsv->GetImage()};
+        mDepthStencilView  = dsv;
+        mDepthStencilImage = dsv->GetImage();
     }
 
     return ppx::SUCCESS;
@@ -223,6 +223,7 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
             imageCreateInfo.mipLevelCount         = 1;
             imageCreateInfo.arrayLayerCount       = 1;
             imageCreateInfo.usageFlags            = pCreateInfo->V2.renderTargetUsageFlags[i];
+            imageCreateInfo.ownership             = pCreateInfo->ownership;
 
             grfx::ImagePtr image;
             Result         ppxres = GetDevice()->CreateImage(&imageCreateInfo, &image);
@@ -231,7 +232,7 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
                 return ppxres;
             }
 
-            mRenderTargetImages.push_back({false, image});
+            mRenderTargetImages.push_back(image);
         }
 
         // DSV image
@@ -246,6 +247,7 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
             imageCreateInfo.mipLevelCount         = 1;
             imageCreateInfo.arrayLayerCount       = 1;
             imageCreateInfo.usageFlags            = pCreateInfo->V2.depthStencilUsageFlags;
+            imageCreateInfo.ownership             = pCreateInfo->ownership;
 
             grfx::ImagePtr image;
             Result         ppxres = GetDevice()->CreateImage(&imageCreateInfo, &image);
@@ -254,7 +256,7 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
                 return ppxres;
             }
 
-            mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{false, image};
+            mDepthStencilImage = image;
         }
     }
 
@@ -262,7 +264,7 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
     {
         // RTVs
         for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-            grfx::ImagePtr image = mRenderTargetImages[i].object;
+            grfx::ImagePtr image = mRenderTargetImages[i];
 
             grfx::RenderTargetViewCreateInfo rtvCreateInfo = {};
             rtvCreateInfo.pImage                           = image;
@@ -276,6 +278,7 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
             rtvCreateInfo.components                       = {};
             rtvCreateInfo.loadOp                           = pCreateInfo->renderTargetLoadOps[i];
             rtvCreateInfo.storeOp                          = pCreateInfo->renderTargetStoreOps[i];
+            rtvCreateInfo.ownership                        = pCreateInfo->ownership;
 
             grfx::RenderTargetViewPtr rtv;
             Result                    ppxres = GetDevice()->CreateRenderTargetView(&rtvCreateInfo, &rtv);
@@ -284,12 +287,12 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
                 return ppxres;
             }
 
-            mRenderTargetViews.push_back({false, rtv});
+            mRenderTargetViews.push_back(rtv);
         }
 
         // DSV
         if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
-            grfx::ImagePtr image = mDepthStencilImage.object;
+            grfx::ImagePtr image = mDepthStencilImage;
 
             grfx::DepthStencilViewCreateInfo dsvCreateInfo = {};
             dsvCreateInfo.pImage                           = image;
@@ -304,6 +307,7 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
             dsvCreateInfo.depthStoreOp                     = pCreateInfo->depthStoreOp;
             dsvCreateInfo.stencilLoadOp                    = pCreateInfo->stencilLoadOp;
             dsvCreateInfo.stencilStoreOp                   = pCreateInfo->stencilStoreOp;
+            dsvCreateInfo.ownership                        = pCreateInfo->ownership;
 
             grfx::DepthStencilViewPtr dsv;
             Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);
@@ -312,7 +316,7 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
                 return ppxres;
             }
 
-            mDepthStencilView = ExtObjPtr<grfx::DepthStencilViewPtr>{false, dsv};
+            mDepthStencilView = dsv;
         }
     }
 
@@ -331,13 +335,11 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
                 return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
             }
 
-            mRenderTargetImages.push_back({true, image});
+            mRenderTargetImages.push_back(image);
         }
         // Copy DSV image
         if (!IsNull(pCreateInfo->V3.pDepthStencilImage)) {
-            grfx::ImagePtr image = pCreateInfo->V3.pDepthStencilImage;
-
-            mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, image};
+            mDepthStencilImage = pCreateInfo->V3.pDepthStencilImage;
         }
     }
 
@@ -345,7 +347,7 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
     {
         // RTVs
         for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-            grfx::ImagePtr image = mRenderTargetImages[i].object;
+            grfx::ImagePtr image = mRenderTargetImages[i];
 
             grfx::RenderTargetViewCreateInfo rtvCreateInfo = {};
             rtvCreateInfo.pImage                           = image;
@@ -359,6 +361,7 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
             rtvCreateInfo.components                       = {};
             rtvCreateInfo.loadOp                           = pCreateInfo->renderTargetLoadOps[i];
             rtvCreateInfo.storeOp                          = pCreateInfo->renderTargetStoreOps[i];
+            rtvCreateInfo.ownership                        = pCreateInfo->ownership;
 
             grfx::RenderTargetViewPtr rtv;
             Result                    ppxres = GetDevice()->CreateRenderTargetView(&rtvCreateInfo, &rtv);
@@ -367,12 +370,12 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
                 return ppxres;
             }
 
-            mRenderTargetViews.push_back({false, rtv});
+            mRenderTargetViews.push_back(rtv);
         }
 
         // DSV
-        if (mDepthStencilImage.object) {
-            grfx::ImagePtr image = mDepthStencilImage.object;
+        if (mDepthStencilImage) {
+            grfx::ImagePtr image = mDepthStencilImage;
 
             grfx::DepthStencilViewCreateInfo dsvCreateInfo = {};
             dsvCreateInfo.pImage                           = image;
@@ -387,6 +390,7 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
             dsvCreateInfo.depthStoreOp                     = pCreateInfo->depthStoreOp;
             dsvCreateInfo.stencilLoadOp                    = pCreateInfo->stencilLoadOp;
             dsvCreateInfo.stencilStoreOp                   = pCreateInfo->stencilStoreOp;
+            dsvCreateInfo.ownership                        = pCreateInfo->ownership;
 
             grfx::DepthStencilViewPtr dsv;
             Result                    ppxres = GetDevice()->CreateDepthStencilView(&dsvCreateInfo, &dsv);
@@ -395,7 +399,7 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
                 return ppxres;
             }
 
-            mDepthStencilView = ExtObjPtr<grfx::DepthStencilViewPtr>{false, dsv};
+            mDepthStencilView = dsv;
         }
     }
 
@@ -441,28 +445,30 @@ Result RenderPass::Create(const grfx::internal::RenderPassCreateInfo* pCreateInf
 
 void RenderPass::Destroy()
 {
-    if ((mDepthStencilView.object) && (mDepthStencilView.isExternal == false)) {
-        GetDevice()->DestroyDepthStencilView(mDepthStencilView.object);
-        mDepthStencilView.object.Reset();
-    }
-
-    if (mDepthStencilImage.object && (mDepthStencilImage.isExternal == false)) {
-        GetDevice()->DestroyImage(mDepthStencilImage.object);
-        mDepthStencilImage.object.Reset();
-    }
-
     for (uint32_t i = 0; i < mCreateInfo.renderTargetCount; ++i) {
-        ExtObjPtr<grfx::RenderTargetViewPtr> rtv = mRenderTargetViews[i];
-        if ((rtv.object) && (rtv.isExternal == false)) {
-            GetDevice()->DestroyRenderTargetView(rtv.object);
-            rtv.object.Reset();
+        grfx::RenderTargetViewPtr& rtv = mRenderTargetViews[i];
+        if (rtv && (rtv->GetOwnership() != grfx::OWNERSHIP_REFERENCE)) {
+            GetDevice()->DestroyRenderTargetView(rtv);
+            rtv.Reset();
         }
+        mRenderTargetViews.clear();
 
-        ExtObjPtr<grfx::ImagePtr> image = mRenderTargetImages[i];
-        if (image.object && (image.isExternal == false)) {
-            GetDevice()->DestroyImage(image.object);
-            image.object.Reset();
+        grfx::ImagePtr& image = mRenderTargetImages[i];
+        if (image && (image->GetOwnership() != grfx::OWNERSHIP_REFERENCE)) {
+            GetDevice()->DestroyImage(image);
+            image.Reset();
         }
+        mRenderTargetImages.clear();
+    }
+
+    if (mDepthStencilView && (mDepthStencilView->GetOwnership() != grfx::OWNERSHIP_REFERENCE)) {
+        GetDevice()->DestroyDepthStencilView(mDepthStencilView);
+        mDepthStencilView.Reset();
+    }
+
+    if (mDepthStencilImage && (mDepthStencilImage->GetOwnership() != grfx::OWNERSHIP_REFERENCE)) {
+        GetDevice()->DestroyImage(mDepthStencilImage);
+        mDepthStencilImage.Reset();
     }
 
     grfx::DeviceObject<grfx::internal::RenderPassCreateInfo>::Destroy();
@@ -473,16 +479,16 @@ Result RenderPass::GetRenderTargetView(uint32_t index, grfx::RenderTargetView** 
     if (!IsIndexInRange(index, mRenderTargetViews)) {
         return ppx::ERROR_OUT_OF_RANGE;
     }
-    *ppView = mRenderTargetViews[index].object;
+    *ppView = mRenderTargetViews[index];
     return ppx::SUCCESS;
 }
 
 Result RenderPass::GetDepthStencilView(grfx::DepthStencilView** ppView) const
 {
-    if (!mDepthStencilView.object) {
+    if (!mDepthStencilView) {
         return ppx::ERROR_ELEMENT_NOT_FOUND;
     }
-    *ppView = mDepthStencilView.object;
+    *ppView = mDepthStencilView;
     return ppx::SUCCESS;
 }
 
@@ -491,16 +497,16 @@ Result RenderPass::GetRenderTargetImage(uint32_t index, grfx::Image** ppImage) c
     if (!IsIndexInRange(index, mRenderTargetImages)) {
         return ppx::ERROR_OUT_OF_RANGE;
     }
-    *ppImage = mRenderTargetImages[index].object;
+    *ppImage = mRenderTargetImages[index];
     return ppx::SUCCESS;
 }
 
 Result RenderPass::GetDepthStencilImage(grfx::Image** ppImage) const
 {
-    if (!mDepthStencilImage.object) {
+    if (!mDepthStencilImage) {
         return ppx::ERROR_ELEMENT_NOT_FOUND;
     }
-    *ppImage = mDepthStencilImage.object;
+    *ppImage = mDepthStencilImage;
     return ppx::SUCCESS;
 }
 
@@ -537,21 +543,31 @@ Result RenderPass::DisownRenderTargetView(uint32_t index, grfx::RenderTargetView
     if (IsIndexInRange(index, mRenderTargetViews)) {
         return ppx::ERROR_OUT_OF_RANGE;
     }
-    mRenderTargetViews[index].isExternal = true;
+    if (mRenderTargetViews[index]->GetOwnership() == grfx::OWNERSHIP_RESTRICTED) {
+        return ppx::ERROR_GRFX_OBJECT_OWNERSHIP_IS_RESTRICTED;
+    }
+
+    mRenderTargetViews[index]->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+
     if (!IsNull(ppView)) {
-        *ppView = mRenderTargetViews[index].object;
+        *ppView = mRenderTargetViews[index];
     }
     return ppx::SUCCESS;
 }
 
 Result RenderPass::DisownDepthStencilView(grfx::DepthStencilView** ppView)
 {
-    if (!mDepthStencilView.object) {
+    if (!mDepthStencilView) {
         return ppx::ERROR_ELEMENT_NOT_FOUND;
     }
-    mDepthStencilView.isExternal = true;
+    if (mDepthStencilView->GetOwnership() == grfx::OWNERSHIP_RESTRICTED) {
+        return ppx::ERROR_GRFX_OBJECT_OWNERSHIP_IS_RESTRICTED;
+    }
+
+    mDepthStencilView->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+
     if (!IsNull(ppView)) {
-        *ppView = mDepthStencilView.object;
+        *ppView = mDepthStencilView;
     }
     return ppx::SUCCESS;
 }
@@ -561,21 +577,32 @@ Result RenderPass::DisownRenderTargetImage(uint32_t index, grfx::Image** ppImage
     if (IsIndexInRange(index, mRenderTargetImages)) {
         return ppx::ERROR_OUT_OF_RANGE;
     }
-    mRenderTargetImages[index].isExternal = true;
+    if (mRenderTargetImages[index]->GetOwnership() == grfx::OWNERSHIP_RESTRICTED) {
+        return ppx::ERROR_GRFX_OBJECT_OWNERSHIP_IS_RESTRICTED;
+    }
+
+
+    mRenderTargetImages[index]->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+
     if (!IsNull(ppImage)) {
-        *ppImage = mRenderTargetImages[index].object;
+        *ppImage = mRenderTargetImages[index];
     }
     return ppx::SUCCESS;
 }
 
 Result RenderPass::DisownDepthStencilImage(grfx::Image** ppImage)
 {
-    if (!mDepthStencilImage.object) {
+    if (!mDepthStencilImage) {
         return ppx::ERROR_ELEMENT_NOT_FOUND;
     }
-    mDepthStencilImage.isExternal = true;
+    if (mDepthStencilImage->GetOwnership() == grfx::OWNERSHIP_RESTRICTED) {
+        return ppx::ERROR_GRFX_OBJECT_OWNERSHIP_IS_RESTRICTED;
+    }
+
+    mDepthStencilImage->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+
     if (!IsNull(ppImage)) {
-        *ppImage = mDepthStencilImage.object;
+        *ppImage = mDepthStencilImage;
     }
     return ppx::SUCCESS;
 }

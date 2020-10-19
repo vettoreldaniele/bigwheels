@@ -465,11 +465,6 @@ grfx::Viewport Application::GetViewport(float minDepth, float maxDepth) const
     return viewport;
 }
 
-float Application::GetElapsedSeconds() const
-{
-    return static_cast<float>(mTimer.SecondsSinceStart());
-}
-
 uint32_t Application::GetProcessId() const
 {
     uint32_t pid = UINT32_MAX;
@@ -566,6 +561,11 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
 
     std::vector<char> bytecode = fs::load_file(filePath);
     return bytecode;
+}
+
+float Application::GetElapsedSeconds() const
+{
+    return static_cast<float>(mTimer.SecondsSinceStart());
 }
 
 void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)

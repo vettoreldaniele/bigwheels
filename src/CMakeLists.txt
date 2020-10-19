@@ -91,6 +91,7 @@ list(
     ${INC_DIR}/ppx/application.h
     ${INC_DIR}/ppx/base_application.h
     ${INC_DIR}/ppx/bitmap.h
+    ${INC_DIR}/ppx/camera.h
     ${INC_DIR}/ppx/fs.h
     ${INC_DIR}/ppx/graphics_util.h
     ${INC_DIR}/ppx/headless_application.h
@@ -108,6 +109,7 @@ list(
     ${SRC_DIR}/ppx/application.cpp
     ${SRC_DIR}/ppx/base_application.cpp
     ${SRC_DIR}/ppx/bitmap.cpp
+    ${SRC_DIR}/ppx/camera.cpp
     ${SRC_DIR}/ppx/graphics_util.cpp
     ${SRC_DIR}/ppx/headless_application.cpp
     ${SRC_DIR}/ppx/imgui_impl.cpp
@@ -124,12 +126,14 @@ list(
     ${INC_DIR}/ppx/grfx/grfx_constants.h
     ${INC_DIR}/ppx/grfx/grfx_descriptor.h
     ${INC_DIR}/ppx/grfx/grfx_device.h
+    ${INC_DIR}/ppx/grfx/grfx_draw_pass.h
     ${INC_DIR}/ppx/grfx/grfx_enums.h
     ${INC_DIR}/ppx/grfx/grfx_format.h
     ${INC_DIR}/ppx/grfx/grfx_gpu.h
     ${INC_DIR}/ppx/grfx/grfx_helper.h
     ${INC_DIR}/ppx/grfx/grfx_image.h
     ${INC_DIR}/ppx/grfx/grfx_instance.h
+    ${INC_DIR}/ppx/grfx/grfx_model.h
     ${INC_DIR}/ppx/grfx/grfx_pipeline.h
     ${INC_DIR}/ppx/grfx/grfx_queue.h
     ${INC_DIR}/ppx/grfx/grfx_render_pass.h
@@ -146,11 +150,13 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_command.cpp
     ${SRC_DIR}/ppx/grfx/grfx_descriptor.cpp
     ${SRC_DIR}/ppx/grfx/grfx_device.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_draw_pass.cpp
     ${SRC_DIR}/ppx/grfx/grfx_format.cpp
     ${SRC_DIR}/ppx/grfx/grfx_gpu.cpp
     ${SRC_DIR}/ppx/grfx/grfx_helper.cpp
     ${SRC_DIR}/ppx/grfx/grfx_image.cpp
     ${SRC_DIR}/ppx/grfx/grfx_instance.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_model.cpp
     ${SRC_DIR}/ppx/grfx/grfx_pipeline.cpp
     ${SRC_DIR}/ppx/grfx/grfx_queue.cpp
     ${SRC_DIR}/ppx/grfx/grfx_render_pass.cpp

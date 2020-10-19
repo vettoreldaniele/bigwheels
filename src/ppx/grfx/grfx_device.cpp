@@ -133,6 +133,26 @@ void Device::DestroyAllObjects(std::vector<ObjPtr<ObjectT>>& container)
     container.clear();
 }
 
+Result Device::AllocateObject(grfx::DrawPass** ppObject)
+{
+    grfx::DrawPass* pObject = new grfx::DrawPass();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
+Result Device::AllocateObject(grfx::Model** ppObject)
+{
+    grfx::Model* pObject = new grfx::Model();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
 Result Device::AllocateObject(grfx::Texture** ppObject)
 {
     grfx::Texture* pObject = new grfx::Texture();
@@ -245,6 +265,40 @@ void Device::DestroyDescriptorSetLayout(const grfx::DescriptorSetLayout* pDescri
     DestroyObject(mDescriptorSetLayouts, pDescriptorSetLayout);
 }
 
+Result Device::CreateDrawPass(const grfx::DrawPassCreateInfo* pCreateInfo, grfx::DrawPass** ppDrawPass)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppDrawPass);
+
+    grfx::internal::DrawPassCreateInfo createInfo = grfx::internal::DrawPassCreateInfo(*pCreateInfo);
+
+    Result gxres = CreateObject(&createInfo, mDrawPasses, ppDrawPass);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+Result Device::CreateDrawPass(const grfx::DrawPassCreateInfo2* pCreateInfo, grfx::DrawPass** ppDrawPass)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppDrawPass);
+
+    grfx::internal::DrawPassCreateInfo createInfo = grfx::internal::DrawPassCreateInfo(*pCreateInfo);
+
+    Result gxres = CreateObject(&createInfo, mDrawPasses, ppDrawPass);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyDrawPass(const grfx::DrawPass* pDrawPass)
+{
+    PPX_ASSERT_NULL_ARG(pDrawPass);
+    DestroyObject(mDrawPasses, pDrawPass);
+}
+
 Result Device::CreateFence(const grfx::FenceCreateInfo* pCreateInfo, grfx::Fence** ppFence)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
@@ -309,6 +363,23 @@ void Device::DestroyImage(const grfx::Image* pImage)
 {
     PPX_ASSERT_NULL_ARG(pImage);
     DestroyObject(mImages, pImage);
+}
+
+Result Device::CreateModel(const grfx::ModelCreateInfo* pCreateInfo, grfx::Model** ppModel)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppModel);
+    Result gxres = CreateObject(pCreateInfo, mModels, ppModel);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyModel(const grfx::Model* pModel)
+{
+    PPX_ASSERT_NULL_ARG(pModel);
+    DestroyObject(mModels, pModel);
 }
 
 Result Device::CreatePipelineInterface(const grfx::PipelineInterfaceCreateInfo* pCreateInfo, grfx::PipelineInterface** ppPipelineInterface)
@@ -493,6 +564,23 @@ void Device::DestroySwapchain(const grfx::Swapchain* pSwapchain)
 {
     PPX_ASSERT_NULL_ARG(pSwapchain);
     DestroyObject(mSwapchains, pSwapchain);
+}
+
+Result Device::CreateTexture(const grfx::TextureCreateInfo* pCreateInfo, grfx::Texture** ppTexture)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppTexture);
+    Result gxres = CreateObject(pCreateInfo, mTextures, ppTexture);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyTexture(const grfx::Texture* pTexture)
+{
+    PPX_ASSERT_NULL_ARG(pTexture);
+    DestroyObject(mTextures, pTexture);
 }
 
 Result Device::AllocateCommandBuffer(

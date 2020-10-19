@@ -21,6 +21,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
     if (pCreateInfo->depthFormat != grfx::FORMAT_UNDEFINED) {
         for (uint32_t i = 0; i < pCreateInfo->imageCount; ++i) {
             grfx::ImageCreateInfo dpCreateInfo = ImageCreateInfo::DepthStencilTarget(pCreateInfo->width, pCreateInfo->height, pCreateInfo->depthFormat);
+            dpCreateInfo.ownership             = grfx::OWNERSHIP_RESTRICTED;
 
             grfx::ImagePtr depthStencilTarget;
             ppxres = GetDevice()->CreateImage(&dpCreateInfo, &depthStencilTarget);
@@ -32,7 +33,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         }
     }
 
-    // Create render passes with grfx::ATTACHMENT_LOAD_OP_CLEAR for render target 
+    // Create render passes with grfx::ATTACHMENT_LOAD_OP_CLEAR for render target
     for (size_t i = 0; i < pCreateInfo->imageCount; ++i) {
         grfx::RenderPassCreateInfo3 rpCreateInfo = {};
         rpCreateInfo.width                       = pCreateInfo->width;
@@ -44,6 +45,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
         rpCreateInfo.renderTargetLoadOps[0]      = grfx::ATTACHMENT_LOAD_OP_CLEAR;
         rpCreateInfo.depthLoadOp                 = grfx::ATTACHMENT_LOAD_OP_CLEAR;
+        rpCreateInfo.ownership                   = grfx::OWNERSHIP_RESTRICTED;
 
         grfx::RenderPassPtr renderPass;
         ppxres = GetDevice()->CreateRenderPass(&rpCreateInfo, &renderPass);
@@ -67,6 +69,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
         rpCreateInfo.renderTargetLoadOps[0]      = grfx::ATTACHMENT_LOAD_OP_LOAD;
         rpCreateInfo.depthLoadOp                 = grfx::ATTACHMENT_LOAD_OP_CLEAR;
+        rpCreateInfo.ownership                   = grfx::OWNERSHIP_RESTRICTED;
 
         grfx::RenderPassPtr renderPass;
         ppxres = GetDevice()->CreateRenderPass(&rpCreateInfo, &renderPass);

@@ -45,6 +45,8 @@
 #define PPX_MINIUM_STRUCTURED_BUFFER_SIZE       PPX_CONSTANT_BUFFER_ALIGNMENT
 // clang-format on
 
+#define PPX_MAX_MODEL_TEXTURES_IN_CREATE_INFO   16
+
 namespace ppx {
 namespace grfx {
 

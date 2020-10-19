@@ -19,13 +19,15 @@ struct RenderPassCreateInfo
     grfx::DepthStencilView*      pDepthStencilView                               = nullptr;
     grfx::RenderTargetClearValue renderTargetClearValues[PPX_MAX_RENDER_TARGETS] = {};
     grfx::DepthStencilClearValue depthStencilClearValue                          = {};
+    grfx::Ownership              ownership                                       = grfx::OWNERSHIP_REFERENCE;
 
     void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
 };
 
 //! @struct RenderPassCreateInfo2
 //!
-//! Use this version if only the format is RTVs and/or DSV.
+//! Use this version if the format(s) are know but images and
+//! views need creation.
 //!
 //! RTVs, DSV, and backing images will be created using the
 //! criteria provided in this struct.
@@ -48,6 +50,7 @@ struct RenderPassCreateInfo2
     grfx::AttachmentStoreOp      depthStoreOp                                    = grfx::ATTACHMENT_STORE_OP_STORE;
     grfx::AttachmentLoadOp       stencilLoadOp                                   = grfx::ATTACHMENT_LOAD_OP_LOAD;
     grfx::AttachmentStoreOp      stencilStoreOp                                  = grfx::ATTACHMENT_STORE_OP_STORE;
+    grfx::Ownership              ownership                                       = grfx::OWNERSHIP_REFERENCE;
 
     void SetAllRenderTargetUsageFlags(const grfx::ImageUsageFlags& flags);
     void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
@@ -75,6 +78,7 @@ struct RenderPassCreateInfo3
     grfx::AttachmentStoreOp      depthStoreOp                                    = grfx::ATTACHMENT_STORE_OP_STORE;
     grfx::AttachmentLoadOp       stencilLoadOp                                   = grfx::ATTACHMENT_LOAD_OP_LOAD;
     grfx::AttachmentStoreOp      stencilStoreOp                                  = grfx::ATTACHMENT_STORE_OP_STORE;
+    grfx::Ownership              ownership                                       = grfx::OWNERSHIP_REFERENCE;
 
     void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
     void SetAllRenderTargetLoadOp(grfx::AttachmentLoadOp op);
@@ -94,6 +98,7 @@ struct RenderPassCreateInfo
         CREATE_INFO_VERSION_3         = 3,
     };
 
+    grfx::Ownership   ownership         = grfx::OWNERSHIP_REFERENCE;
     CreateInfoVersion version           = CREATE_INFO_VERSION_UNDEFINED;
     uint32_t          width             = 0;
     uint32_t          height            = 0;
@@ -164,7 +169,7 @@ public:
     Result GetDepthStencilImage(grfx::Image** ppImage) const;
 
     //! This only applies to grfx::RenderPass objects created using grfx::RenderPassCreateInfo2.
-    //! These functions will 'isExternal' to true resulting in these objects *not* getting
+    //! These functions will set 'isExternal' to true resulting in these objects NOT getting
     //! destroyed when the encapsulating grfx::RenderPass object is destroyed.
     //!
     //! Calling these fuctions on grfx::RenderPass objects created using using grfx::RenderPassCreateInfo
@@ -192,18 +197,11 @@ private:
     Result CreateImagesAndViewsV3(const grfx::internal::RenderPassCreateInfo* pCreateInfo);
 
 protected:
-    template <typename ObjectPtrT>
-    struct ExtObjPtr
-    {
-        bool       isExternal = true;
-        ObjectPtrT object     = nullptr;
-    };
-
-    grfx::Rect                                        mRenderArea = {};
-    std::vector<ExtObjPtr<grfx::RenderTargetViewPtr>> mRenderTargetViews;
-    ExtObjPtr<grfx::DepthStencilViewPtr>              mDepthStencilView;
-    std::vector<ExtObjPtr<grfx::ImagePtr>>            mRenderTargetImages;
-    ExtObjPtr<grfx::ImagePtr>                         mDepthStencilImage;
+    grfx::Rect                             mRenderArea = {};
+    std::vector<grfx::RenderTargetViewPtr> mRenderTargetViews;
+    grfx::DepthStencilViewPtr              mDepthStencilView;
+    std::vector<grfx::ImagePtr>            mRenderTargetImages;
+    grfx::ImagePtr                         mDepthStencilImage;
 };
 
 } // namespace grfx
