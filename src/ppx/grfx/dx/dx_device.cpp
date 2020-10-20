@@ -49,7 +49,7 @@ Result Device::CreateQueues(const grfx::DeviceCreateInfo* pCreateInfo)
         D3D12CommandQueuePtr queue;
         HRESULT              hr = mDevice->CreateCommandQueue(&desc, IID_PPV_ARGS(&queue));
         if (FAILED(hr)) {
-            PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandQueue(compute) failed");
+            PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandQueue(graphics) failed");
             return ppx::ERROR_API_FAILURE;
         }
 
@@ -75,7 +75,7 @@ Result Device::CreateQueues(const grfx::DeviceCreateInfo* pCreateInfo)
         D3D12CommandQueuePtr queue;
         HRESULT              hr = mDevice->CreateCommandQueue(&desc, IID_PPV_ARGS(&queue));
         if (FAILED(hr)) {
-            PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandQueue(transfer) failed");
+            PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandQueue(compute) failed");
             return ppx::ERROR_API_FAILURE;
         }
 
@@ -101,7 +101,7 @@ Result Device::CreateQueues(const grfx::DeviceCreateInfo* pCreateInfo)
         D3D12CommandQueuePtr queue;
         HRESULT              hr = mDevice->CreateCommandQueue(&desc, IID_PPV_ARGS(&queue));
         if (FAILED(hr)) {
-            PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandQueue(copy) failed");
+            PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandQueue(copy/trasfer) failed");
             return ppx::ERROR_API_FAILURE;
         }
 
