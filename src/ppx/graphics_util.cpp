@@ -5,42 +5,9 @@
 #include "ppx/grfx/grfx_device.h"
 #include "ppx/grfx/grfx_image.h"
 #include "ppx/grfx/grfx_queue.h"
+#include "ppx/grfx/grfx_scope.h"
 
 namespace ppx {
-
-struct ScopeKeeper
-{
-    grfx::QueuePtr                      queue;
-    std::vector<grfx::BufferPtr>        buffers;
-    std::vector<grfx::CommandBufferPtr> commandBuffers;
-    std::vector<grfx::ImagePtr>         images;
-
-    ScopeKeeper(const grfx::QueuePtr& queue_)
-        : queue(queue_) {}
-
-    ~ScopeKeeper()
-    {
-        if (!queue) {
-            Result ppxres = queue->WaitIdle();
-            if (ppxres == ppx::SUCCESS) {
-                PPX_ASSERT_MSG(false, "ScopeKeeper queue wait idle failed");
-                return;
-            }
-        }
-
-        for (auto& elem : commandBuffers) {
-            queue->DestroyCommandBuffer(elem);
-        }
-
-        for (auto& elem : buffers) {
-            queue->GetDevice()->DestroyBuffer(elem);
-        }
-
-        for (auto& elem : images) {
-            queue->GetDevice()->DestroyImage(elem);
-        }
-    }
-};
 
 Result CreateTextureFromFile(
     grfx::Queue*                 pQueue,
@@ -58,10 +25,10 @@ Result CreateTextureFromFile(
         return ppxres;
     }
 
-    ScopeKeeper keeper(pQueue);
+    grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
     // Create staging buffer
-    grfx::BufferPtr buffer;
+    grfx::BufferPtr stagingBuffer;
     {
         uint64_t bitmapFootprintSize = bitmap.GetFootprintSize();
 
@@ -70,24 +37,24 @@ Result CreateTextureFromFile(
         ci.usageFlags.bits.transferSrc = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
-        ppxres = pQueue->GetDevice()->CreateBuffer(&ci, &buffer);
+        ppxres = pQueue->GetDevice()->CreateBuffer(&ci, &stagingBuffer);
         if (Failed(ppxres)) {
             return ppxres;
         }
-        keeper.buffers.push_back(buffer);
+        SCOPED_DESTROYER.AddObject(stagingBuffer);
 
         // Map and copy to staging buffer
         void* pBufferAddress = nullptr;
-        ppxres               = buffer->MapMemory(0, &pBufferAddress);
+        ppxres               = stagingBuffer->MapMemory(0, &pBufferAddress);
         if (Failed(ppxres)) {
             return ppxres;
         }
         std::memcpy(pBufferAddress, bitmap.GetData(), bitmapFootprintSize);
-        buffer->UnmapMemory();
+        stagingBuffer->UnmapMemory();
     }
 
-    // Create image
-    grfx::ImagePtr image;
+    // Create target image
+    grfx::ImagePtr targetImage;
     {
         grfx::ImageCreateInfo ci       = {};
         ci.type                        = grfx::IMAGE_TYPE_2D;
@@ -104,69 +71,145 @@ Result CreateTextureFromFile(
 
         ci.usageFlags.flags |= additionalImageUsage.flags;
 
-        ppxres = pQueue->GetDevice()->CreateImage(&ci, &image);
+        ppxres = pQueue->GetDevice()->CreateImage(&ci, &targetImage);
         if (Failed(ppxres)) {
             return ppxres;
         }
-        keeper.images.push_back(image);
+        SCOPED_DESTROYER.AddObject(targetImage);
     }
 
-    grfx::CommandBufferPtr cmdBuf;
-    ppxres = pQueue->CreateCommandBuffer(&cmdBuf);
+    // Copy info
+    grfx::BufferToImageCopyInfo copyInfo = {};
+    copyInfo.srcBuffer.offset            = 0;
+    copyInfo.srcBuffer.footprintWidth    = bitmap.GetWidth();
+    copyInfo.srcBuffer.footprintHeight   = bitmap.GetHeight();
+    copyInfo.dstImage.mipLevel           = 0;
+    copyInfo.dstImage.arrayLayer         = 0;
+    copyInfo.dstImage.arrayLayerCount    = 1;
+    copyInfo.dstImage.x                  = 0;
+    copyInfo.dstImage.y                  = 0;
+    copyInfo.dstImage.z                  = 0;
+    copyInfo.dstImage.width              = bitmap.GetWidth();
+    copyInfo.dstImage.height             = bitmap.GetHeight();
+    copyInfo.dstImage.depth              = 1;
+
+    // Copy to GPU image
+    ppxres = pQueue->CopyBufferToImage(
+        &copyInfo,
+        stagingBuffer,
+        targetImage,
+        PPX_ALL_SUBRESOURCES,
+        grfx::RESOURCE_STATE_UNDEFINED,
+        grfx::RESOURCE_STATE_SHADER_RESOURCE);
     if (Failed(ppxres)) {
         return ppxres;
     }
-    keeper.commandBuffers.push_back(cmdBuf);
 
-    ppxres = cmdBuf->Begin();
-    if (Failed(ppxres)) {
-        return ppxres;
-    }
+    // Change ownership to reference so object doesn't get destroyed
+    targetImage->SetOwnership(grfx::OWNERSHIP_REFERENCE);
 
-    // Build command
+    // Assign output
+    *ppImage = targetImage;
+
+    return ppx::SUCCESS;
+}
+
+Result CreateModelFromGeometry(
+    grfx::Queue*    pQueue,
+    const Geometry* pGeometry,
+    grfx::Model**   ppModel)
+{
+    PPX_ASSERT_NULL_ARG(pQueue);
+    PPX_ASSERT_NULL_ARG(pGeometry);
+    PPX_ASSERT_NULL_ARG(ppModel);
+
+    grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
+
+    // Create staging buffer
+    grfx::BufferPtr stagingBuffer;
     {
-        cmdBuf->TransitionImageLayout(image, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_COPY_DST);
+        uint32_t biggestBufferSize = pGeometry->GetBiggestBufferSize();
 
-        grfx::BufferToImageCopyInfo copyInfo = {};
-        copyInfo.srcBuffer.offset            = 0;
-        copyInfo.srcBuffer.footprintWidth    = bitmap.GetWidth();
-        copyInfo.srcBuffer.footprintHeight   = bitmap.GetHeight();
-        copyInfo.dstImage.mipLevel           = 0;
-        copyInfo.dstImage.arrayLayer         = 0;
-        copyInfo.dstImage.arrayLayerCount    = 1;
-        copyInfo.dstImage.x                  = 0;
-        copyInfo.dstImage.y                  = 0;
-        copyInfo.dstImage.z                  = 0;
-        copyInfo.dstImage.width              = bitmap.GetWidth();
-        copyInfo.dstImage.height             = bitmap.GetHeight();
-        copyInfo.dstImage.depth              = 1;
+        grfx::BufferCreateInfo ci      = {};
+        ci.size                        = biggestBufferSize;
+        ci.usageFlags.bits.transferSrc = true;
+        ci.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
-        cmdBuf->CopyBufferToImage(&copyInfo, buffer, image);
-
-        cmdBuf->TransitionImageLayout(image, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_SHADER_RESOURCE);
+        Result ppxres = pQueue->GetDevice()->CreateBuffer(&ci, &stagingBuffer);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(stagingBuffer);
     }
 
-    ppxres = cmdBuf->End();
-    if (Failed(ppxres)) {
-        return ppxres;
+    // Create target model
+    grfx::ModelPtr targetModel;
+    {
+        grfx::ModelCreateInfo ci = grfx::ModelCreateInfo(*pGeometry);
+
+        Result ppxres = pQueue->GetDevice()->CreateModel(&ci, &targetModel);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(targetModel);
     }
 
-    grfx::SubmitInfo submit;
-    submit.commandBufferCount = 1;
-    submit.ppCommandBuffers   = &cmdBuf;
+    // Copy geometry data to model
+    {
+        // Copy info
+        grfx::BufferToBufferCopyInfo copyInfo = {};
 
-    ppxres = pQueue->Submit(&submit);
-    if (Failed(ppxres)) {
-        return ppxres;
+        // Index buffer
+        if (pGeometry->GetIndexType() != grfx::INDEX_TYPE_UNDEFINED) {
+            const Geometry::Buffer* pGeoBuffer = pGeometry->GetIndexBuffer();
+            PPX_ASSERT_NULL_ARG(pGeoBuffer);
+
+            uint32_t geoBufferSize = pGeoBuffer->GetSize();
+
+            Result ppxres = stagingBuffer->CopyFromSource(geoBufferSize, pGeoBuffer->GetData());
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+
+            copyInfo.size = geoBufferSize;
+
+            // Copy to GPU buffer
+            ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetModel->GetIndexBuffer());
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+        }
+
+        // Vertex buffers
+        uint32_t vertexBufferCount = pGeometry->GetVertexBufferCount();
+        for (uint32_t i = 0; i < vertexBufferCount; ++i) {
+            const Geometry::Buffer* pGeoBuffer = pGeometry->GetVertxBuffer(i);
+            PPX_ASSERT_NULL_ARG(pGeoBuffer);
+
+            uint32_t geoBufferSize = pGeoBuffer->GetSize();
+
+            Result ppxres = stagingBuffer->CopyFromSource(geoBufferSize, pGeoBuffer->GetData());
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+
+            copyInfo.size = geoBufferSize;
+
+            grfx::BufferPtr targetBuffer = targetModel->GetVertexBuffer(i);
+
+            // Copy to GPU buffer
+            ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetBuffer);
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+        }
     }
 
-    ppxres = pQueue->WaitIdle();
-    if (Failed(ppxres)) {
-        return ppxres;
-    }
+    // Change ownership to reference so object doesn't get destroyed
+    targetModel->SetOwnership(grfx::OWNERSHIP_REFERENCE);
 
-    keeper.images.clear();
-    *ppImage = image;
+    // Assign output
+    *ppModel = targetModel;
 
     return ppx::SUCCESS;
 }

@@ -45,6 +45,14 @@ uint32_t CountU32(const std::vector<T>& container)
 }
 
 template <typename T>
+T* DataPtr(std::vector<T>& container)
+{
+    T* ptr = container.empty() ? nullptr : container.data();
+    return ptr;
+}
+
+
+template <typename T>
 const T* DataPtr(const std::vector<T>& container)
 {
     const T* ptr = container.empty() ? nullptr : container.data();

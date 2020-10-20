@@ -25,5 +25,27 @@ Result Buffer::Create(const grfx::BufferCreateInfo* pCreateInfo)
     return ppx::SUCCESS;
 }
 
+Result Buffer::CopyFromSource(uint32_t dataSize, const void* pData)
+{
+    if (dataSize > GetSize()) {
+        return ppx::ERROR_LIMIT_EXCEEDED;
+    }
+
+    // Map
+    void*  pBufferAddress = nullptr;
+    Result ppxres         = MapMemory(0, &pBufferAddress);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Copy
+    std::memcpy(pBufferAddress,pData, dataSize);
+
+    // Unmap
+    UnmapMemory();
+
+    return ppx::SUCCESS;
+}
+
 } // namespace grfx
 } // namespace ppx

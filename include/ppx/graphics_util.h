@@ -4,6 +4,7 @@
 #include "ppx/grfx/grfx_image.h"
 #include "ppx/grfx/grfx_queue.h"
 #include "ppx/fs.h"
+#include "ppx/geometry.h"
 
 namespace ppx {
 
@@ -12,6 +13,11 @@ Result CreateTextureFromFile(
     const fs::path&              path,
     grfx::Image**                ppImage,
     const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
+
+Result CreateModelFromGeometry(
+    grfx::Queue*    pQueue,
+    const Geometry* pGeometry,
+    grfx::Model**   ppMode);
 
 } // namespace ppx
 

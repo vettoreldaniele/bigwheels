@@ -3,6 +3,7 @@
 
 #include "ppx/000_config.h"
 #include "ppx/fs.h"
+#include "ppx/geometry.h"
 #include "ppx/platform.h"
 #include "ppx/grfx/grfx_instance.h"
 

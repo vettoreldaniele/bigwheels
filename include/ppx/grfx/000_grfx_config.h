@@ -187,8 +187,7 @@ enum Ownership
 
 // -------------------------------------------------------------------------------------------------
 
-template <typename CreatInfoT>
-class CreateDestroyTraits
+class OwnershipTrait
 {
 public:
     grfx::Ownership GetOwnership() const { return mOwnership; }
@@ -202,6 +201,14 @@ public:
         mOwnership = ownership;
     }
 
+private:
+    grfx::Ownership mOwnership  = grfx::OWNERSHIP_REFERENCE;
+};
+
+template <typename CreatInfoT>
+class CreateDestroyTraits
+    : public OwnershipTrait
+{
 protected:
     virtual ppx::Result Create(const CreatInfoT* pCreateInfo)
     {
@@ -230,7 +237,6 @@ protected:
 
 protected:
     CreatInfoT      mCreateInfo = {};
-    grfx::Ownership mOwnership  = grfx::OWNERSHIP_REFERENCE;
 };
 
 // -------------------------------------------------------------------------------------------------

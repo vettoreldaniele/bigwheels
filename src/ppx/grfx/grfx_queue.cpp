@@ -1,5 +1,6 @@
 #include "ppx/grfx/grfx_queue.h"
 #include "ppx/grfx/grfx_device.h"
+#include "ppx/grfx/grfx_scope.h"
 
 namespace ppx {
 namespace grfx {
@@ -48,6 +49,112 @@ void Queue::DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)
 
     GetDevice()->FreeCommandBuffer(set.commandBuffer);
     GetDevice()->DestroyCommandPool(set.commandPool);
+}
+
+Result Queue::CopyBufferToBuffer(
+    const grfx::BufferToBufferCopyInfo* pCopyInfo,
+    const grfx::Buffer*                 pSrcBuffer,
+    const grfx::Buffer*                 pDstBuffer)
+{
+    grfx::ScopeDestroyer SCOPED_DESTROYER(GetDevice());
+
+    // Create command buffer
+    grfx::CommandBufferPtr cmd;
+    Result                 ppxres = CreateCommandBuffer(&cmd);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+    SCOPED_DESTROYER.AddObject(this, cmd);
+
+    // Build command buffer
+    {
+        ppxres = cmd->Begin();
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+
+        cmd->CopyBufferToBuffer(pCopyInfo, pSrcBuffer, pDstBuffer);
+
+        ppxres = cmd->End();
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    // Submit command buffer
+    grfx::SubmitInfo submit;
+    submit.commandBufferCount = 1;
+    submit.ppCommandBuffers   = &cmd;
+    //
+    ppxres = Submit(&submit);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Wait work completion
+    ppxres = WaitIdle();
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result Queue::CopyBufferToImage(
+    const grfx::BufferToImageCopyInfo* pCopyInfo,
+    const grfx::Buffer*                pSrcBuffer,
+    const grfx::Image*                 pDstImage,
+    uint32_t                           mipLevel,
+    uint32_t                           mipLevelCount,
+    uint32_t                           arrayLayer,
+    uint32_t                           arrayLayerCount,
+    grfx::ResourceState                stateBefore,
+    grfx::ResourceState                stateAfter)
+{
+    grfx::ScopeDestroyer SCOPED_DESTROYER(GetDevice());
+
+    // Create command buffer
+    grfx::CommandBufferPtr cmd;
+    Result                 ppxres = CreateCommandBuffer(&cmd);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+    SCOPED_DESTROYER.AddObject(this, cmd);
+
+    // Build command buffer
+    {
+        ppxres = cmd->Begin();
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+
+        cmd->TransitionImageLayout(pDstImage, PPX_ALL_SUBRESOURCES, stateBefore, grfx::RESOURCE_STATE_COPY_DST);
+        cmd->CopyBufferToImage(pCopyInfo, pSrcBuffer, pDstImage);
+        cmd->TransitionImageLayout(pDstImage, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_COPY_DST, stateAfter);
+
+        ppxres = cmd->End();
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    // Submit command buffer
+    grfx::SubmitInfo submit;
+    submit.commandBufferCount = 1;
+    submit.ppCommandBuffers   = &cmd;
+    //
+    ppxres = Submit(&submit);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Wait work completion
+    ppxres = WaitIdle();
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
 }
 
 } // namespace grfx

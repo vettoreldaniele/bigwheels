@@ -23,6 +23,11 @@ void Device::Destroy()
     DestroyAllObjects(mComputeQueues);
     DestroyAllObjects(mTransferQueues);
 
+    // Destroy helper objects first
+    DestroyAllObjects(mDrawPasses);
+    DestroyAllObjects(mModels);
+    DestroyAllObjects(mTextures);
+
     DestroyAllObjects(mBuffers);
     DestroyAllObjects(mCommandBuffers);
     DestroyAllObjects(mCommandPools);

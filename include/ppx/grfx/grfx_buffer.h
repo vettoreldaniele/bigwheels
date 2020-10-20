@@ -33,6 +33,8 @@ public:
     virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) = 0;
     virtual void   UnmapMemory()                                      = 0;
 
+    Result CopyFromSource(uint32_t dataSize, const void* pData);
+
 private:
     virtual Result Create(const grfx::BufferCreateInfo* pCreateInfo) override;
     friend class grfx::Device;

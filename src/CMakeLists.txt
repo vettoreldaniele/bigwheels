@@ -93,6 +93,7 @@ list(
     ${INC_DIR}/ppx/bitmap.h
     ${INC_DIR}/ppx/camera.h
     ${INC_DIR}/ppx/fs.h
+    ${INC_DIR}/ppx/geometry.h
     ${INC_DIR}/ppx/graphics_util.h
     ${INC_DIR}/ppx/headless_application.h
     ${INC_DIR}/ppx/imgui_impl.h
@@ -110,6 +111,7 @@ list(
     ${SRC_DIR}/ppx/base_application.cpp
     ${SRC_DIR}/ppx/bitmap.cpp
     ${SRC_DIR}/ppx/camera.cpp
+    ${SRC_DIR}/ppx/geometry.cpp
     ${SRC_DIR}/ppx/graphics_util.cpp
     ${SRC_DIR}/ppx/headless_application.cpp
     ${SRC_DIR}/ppx/imgui_impl.cpp
@@ -137,6 +139,7 @@ list(
     ${INC_DIR}/ppx/grfx/grfx_pipeline.h
     ${INC_DIR}/ppx/grfx/grfx_queue.h
     ${INC_DIR}/ppx/grfx/grfx_render_pass.h
+    ${INC_DIR}/ppx/grfx/grfx_scope.h
     ${INC_DIR}/ppx/grfx/grfx_shader.h
     ${INC_DIR}/ppx/grfx/grfx_swapchain.h
     ${INC_DIR}/ppx/grfx/grfx_sync.h
@@ -160,6 +163,7 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_pipeline.cpp
     ${SRC_DIR}/ppx/grfx/grfx_queue.cpp
     ${SRC_DIR}/ppx/grfx/grfx_render_pass.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_scope.cpp
     ${SRC_DIR}/ppx/grfx/grfx_shader.cpp
     ${SRC_DIR}/ppx/grfx/grfx_swapchain.cpp
     ${SRC_DIR}/ppx/grfx/grfx_sync.cpp

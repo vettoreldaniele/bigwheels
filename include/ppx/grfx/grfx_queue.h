@@ -2,6 +2,7 @@
 #define ppx_grfx_queue_h
 
 #include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_command.h"
 
 namespace ppx {
 namespace grfx {
@@ -53,6 +54,24 @@ public:
         uint32_t              resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT,
         uint32_t              samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT);
     void DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);
+
+    // In place copy of buffer to buffer
+    Result CopyBufferToBuffer(
+        const grfx::BufferToBufferCopyInfo* pCopyInfo,
+        const grfx::Buffer*                 pSrcBuffer,
+        const grfx::Buffer*                 pDstBuffer);
+
+    // In pace copy of buffer to image
+    Result CopyBufferToImage(
+        const grfx::BufferToImageCopyInfo* pCopyInfo,
+        const grfx::Buffer*                pSrcBuffer,
+        const grfx::Image*                 pDstImage,
+        uint32_t                           mipLevel, 
+        uint32_t                           mipLevelCount,
+        uint32_t                           arrayLayer,
+        uint32_t                           arrayLayerCount,
+        grfx::ResourceState                stateBefore,
+        grfx::ResourceState                stateAfter);
 
 private:
     struct CommandSet

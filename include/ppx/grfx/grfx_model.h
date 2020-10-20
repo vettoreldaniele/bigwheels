@@ -4,6 +4,7 @@
 #include "ppx/grfx/000_grfx_config.h"
 #include "ppx/grfx/grfx_buffer.h"
 #include "ppx/grfx/grfx_texture.h"
+#include "ppx/geometry.h"
 
 namespace ppx {
 namespace grfx {
@@ -17,12 +18,15 @@ struct ModelCreateInfo
     // If pIndexBuffer is NOT NULL:
     //   - Create parameters are ignored
     //
+    //! indexType
+    //!   - use UNDEFINED to indicate there's not index data
+    //
     // Usage flags:
     //   - grfx::BUFFER_USAGE_INDEX_BUFFER is always set
     //   - grfx::BUFFER_USAGE_TRANSFER_DST is always set
     //
     grfx::Buffer*          pIndexBuffer           = nullptr;
-    grfx::IndexType        indexType              = grfx::INDEX_TYPE_UINT16;
+    grfx::IndexType        indexType              = grfx::INDEX_TYPE_UNDEFINED;
     uint64_t               indexBufferSize        = 0;
     grfx::BufferUsageFlags indexBufferUsageFlags  = {};
     grfx::MemoryUsage      indexBufferMemoryUsage = grfx::MEMORY_USAGE_GPU_ONLY;
@@ -78,6 +82,10 @@ struct ModelCreateInfo
         grfx::RenderTargetClearValue RTVClearValue   = {0, 0, 0, 0}; // Optimized RTV clear value
         grfx::DepthStencilClearValue DSVClearValue   = {1.0f, 0xFF}; // Optimized DSV clear value
     } textures[PPX_MAX_MODEL_TEXTURES_IN_CREATE_INFO];
+
+
+    ModelCreateInfo() {}
+    ModelCreateInfo(const ppx::Geometry& geometry);
 };
 
 //! @class Model

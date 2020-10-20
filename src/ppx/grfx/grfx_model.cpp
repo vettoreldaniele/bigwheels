@@ -4,6 +4,26 @@
 namespace ppx {
 namespace grfx {
 
+// -------------------------------------------------------------------------------------------------
+// Model
+// -------------------------------------------------------------------------------------------------
+ModelCreateInfo::ModelCreateInfo(const ppx::Geometry& geometry)
+{
+    if (geometry.GetIndexType() != grfx::INDEX_TYPE_UNDEFINED) {
+        this->indexType       = geometry.GetIndexType();
+        this->indexBufferSize = geometry.GetIndexBuffer()->GetSize();
+    }
+
+    this->vertexBufferCount = geometry.GetVertexBufferCount();
+    for (uint32_t i = 0; i < this->vertexBufferCount; ++i) {
+        this->vertexBuffers[i].binding = *geometry.GetVertexBinding(i);
+        this->vertexBuffers[i].size    = geometry.GetVertxBuffer(i)->GetSize();
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+// Model
+// -------------------------------------------------------------------------------------------------
 Result Model::CreateApiObjects(const grfx::ModelCreateInfo* pCreateInfo)
 {
     mIndexType   = pCreateInfo->indexType;
@@ -41,17 +61,11 @@ Result Model::CreateApiObjects(const grfx::ModelCreateInfo* pCreateInfo)
                 bufferCreateInfo.memoryUsage                  = pCreateInfo->vertexBuffers[i].memoryUsage;
                 bufferCreateInfo.ownership                    = grfx::OWNERSHIP_EXCLUSIVE;
 
-                grfx::BufferPtr buffer;
-                Result          ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &buffer);
+                Result ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mVertexBuffers[i].buffer);
                 if (Failed(ppxres)) {
-                    PPX_ASSERT_MSG(false, "create model index buffer failed i=" << i);
+                    PPX_ASSERT_MSG(false, "create model vertex buffer failed i=" << i);
                     return ppxres;
                 }
-
-                VertexBuffer entry = {};
-                entry.binding      = pCreateInfo->vertexBuffers[i].binding;
-                entry.buffer       = buffer;
-                mVertexBuffers.push_back(entry);
             }
             else {
                 mVertexBuffers[i].buffer->SetOwnership(grfx::OWNERSHIP_REFERENCE);
@@ -89,7 +103,7 @@ Result Model::CreateApiObjects(const grfx::ModelCreateInfo* pCreateInfo)
                 textureCreateInfo.ownership                   = grfx::OWNERSHIP_EXCLUSIVE;
 
                 grfx::TexturePtr texture;
-                Result ppxres = GetDevice()->CreateTexture(&textureCreateInfo, &texture);
+                Result           ppxres = GetDevice()->CreateTexture(&textureCreateInfo, &texture);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "create model index buffer failed");
                     return ppxres;
@@ -103,11 +117,31 @@ Result Model::CreateApiObjects(const grfx::ModelCreateInfo* pCreateInfo)
         }
     }
 
-    return ppx::ERROR_FAILED;
+    return ppx::SUCCESS;
 }
 
 void Model::DestroyApiObjects()
 {
+    if (mIndexBuffer) {
+        GetDevice()->DestroyBuffer(mIndexBuffer);
+        mIndexBuffer.Reset();
+    }
+
+    for (auto& elem : mVertexBuffers) {
+        if (elem.buffer) {
+            GetDevice()->DestroyBuffer(elem.buffer);
+            elem.buffer.Reset();
+        }
+    }
+    mVertexBuffers.clear();
+
+    for (auto& elem : mTextures) {
+        if (elem) {
+            GetDevice()->DestroyTexture(elem);
+            elem.Reset();
+        }
+    }
+    mTextures.clear();
 }
 
 void Model::CheckedDestroy(grfx::Buffer* pBuffer)
