@@ -71,9 +71,9 @@ void ProjApp::SetupEntity(const GeometryCreateInfo& createInfo, Entity* pEntity)
 {
     Result ppxres = ppx::SUCCESS;
 
-    Geometry cube;
-    PPX_CHECKED_CALL(ppxres = Geometry::CreateFromOBJ(createInfo, GetAssetPath("basic/models/material_sphere.obj"), &cube));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &cube, &pEntity->model));
+    Geometry objGeo;
+    PPX_CHECKED_CALL(ppxres = Geometry::CreateFromOBJ(createInfo, GetAssetPath("basic/models/material_sphere.obj"), &objGeo));
+    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &objGeo, &pEntity->model));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
