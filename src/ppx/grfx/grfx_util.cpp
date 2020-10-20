@@ -75,6 +75,18 @@ const char* ToString(grfx::VertexSemantic value)
     return "";
 }
 
+uint32_t IndexTypeSize(grfx::IndexType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::INDEX_TYPE_UINT16: return sizeof(uint16_t); break;
+        case grfx::INDEX_TYPE_UINT32: return sizeof(uint32_t); break;
+    }
+    // clang-format on
+    return 0;
+}
+
 grfx::Format VertexSemanticFormat(grfx::VertexSemantic value)
 {
     // clang-format off

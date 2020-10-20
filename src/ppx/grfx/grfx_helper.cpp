@@ -1,4 +1,5 @@
 #include "ppx/grfx/grfx_helper.h"
+#include "ppx/util.h"
 
 namespace ppx {
 namespace grfx {
@@ -24,6 +25,14 @@ ImageUsageFlags ImageUsageFlags::SampledImage()
 // -------------------------------------------------------------------------------------------------
 // VertexBinding
 // -------------------------------------------------------------------------------------------------
+void VertexBinding::SetBinding(uint32_t binding)
+{
+    mBinding = binding;
+    for (auto& elem : mAttributes) {
+        elem.binding = binding;
+    }
+}
+
 bool VertexBinding::GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const
 {
     if (index >= mAttributes.size()) {
@@ -31,6 +40,20 @@ bool VertexBinding::GetAttribute(uint32_t index, const grfx::VertexAttribute** p
     }
     *ppAttribute = &mAttributes[index];
     return true;
+}
+
+uint32_t VertexBinding::GetAttributeIndex(grfx::VertexSemantic semantic) const
+{
+    auto it = FindIf(
+        mAttributes,
+        [semantic](const grfx::VertexAttribute& elem) -> bool {
+            bool isMatch = (elem.semantic == semantic);
+            return isMatch;});
+    if (it == std::end(mAttributes)) {
+        return PPX_VALUE_IGNORED;
+    }
+    uint32_t index = static_cast<uint32_t>(std::distance(std::begin(mAttributes), it));
+    return index;
 }
 
 void VertexBinding::AppendAttribute(const grfx::VertexAttribute& attribute)

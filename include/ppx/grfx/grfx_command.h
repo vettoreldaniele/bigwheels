@@ -210,16 +210,16 @@ public:
 
     virtual void Draw(
         uint32_t vertexCount,
-        uint32_t instanceCount,
-        uint32_t firstVertex,
-        uint32_t firstInstance) = 0;
+        uint32_t instanceCount = 1,
+        uint32_t firstVertex   = 0,
+        uint32_t firstInstance = 0) = 0;
 
     virtual void DrawIndexed(
         uint32_t indexCount,
-        uint32_t instanceCount,
-        uint32_t firstIndex,
-        int32_t  vertexOffset,
-        uint32_t firstInstance) = 0;
+        uint32_t instanceCount = 1,
+        uint32_t firstIndex    = 0,
+        int32_t  vertexOffset  = 0,
+        uint32_t firstInstance = 0) = 0;
 
     virtual void Dispatch(
         uint32_t groupCountX,
@@ -254,11 +254,15 @@ public:
 
     void BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType indexType, uint64_t offset = 0);
 
+    void BindIndexBuffer(const grfx::Model* pModel, uint64_t offset = 0);
+
     void BindVertexBuffers(
         uint32_t                   bufferCount,
         const grfx::Buffer* const* ppBuffers,
         const uint32_t*            pStrides,
         const uint64_t*            pOffsets = nullptr);
+
+    void BindVertexBuffers(const grfx::Model* pModel, const uint64_t* pOffsets = nullptr);
 };
 
 // -------------------------------------------------------------------------------------------------

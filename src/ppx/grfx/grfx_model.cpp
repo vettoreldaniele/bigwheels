@@ -29,18 +29,21 @@ Result Model::CreateApiObjects(const grfx::ModelCreateInfo* pCreateInfo)
     mIndexType   = pCreateInfo->indexType;
     mIndexBuffer = pCreateInfo->pIndexBuffer;
     if (!mIndexBuffer) {
-        grfx::BufferCreateInfo bufferCreateInfo      = {};
-        bufferCreateInfo.size                        = pCreateInfo->indexBufferSize;
-        bufferCreateInfo.usageFlags                  = pCreateInfo->indexBufferUsageFlags;
-        bufferCreateInfo.usageFlags.bits.indexBuffer = true;
-        bufferCreateInfo.usageFlags.bits.transferDst = true;
-        bufferCreateInfo.memoryUsage                 = pCreateInfo->indexBufferMemoryUsage;
-        bufferCreateInfo.ownership                   = grfx::OWNERSHIP_EXCLUSIVE;
+        // Only create index buffer if index type is defined
+        if (mIndexType != grfx::INDEX_TYPE_UNDEFINED) {
+            grfx::BufferCreateInfo bufferCreateInfo      = {};
+            bufferCreateInfo.size                        = pCreateInfo->indexBufferSize;
+            bufferCreateInfo.usageFlags                  = pCreateInfo->indexBufferUsageFlags;
+            bufferCreateInfo.usageFlags.bits.indexBuffer = true;
+            bufferCreateInfo.usageFlags.bits.transferDst = true;
+            bufferCreateInfo.memoryUsage                 = pCreateInfo->indexBufferMemoryUsage;
+            bufferCreateInfo.ownership                   = grfx::OWNERSHIP_EXCLUSIVE;
 
-        Result ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mIndexBuffer);
-        if (Failed(ppxres)) {
-            PPX_ASSERT_MSG(false, "create model index buffer failed");
-            return ppxres;
+            Result ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mIndexBuffer);
+            if (Failed(ppxres)) {
+                PPX_ASSERT_MSG(false, "create model index buffer failed");
+                return ppxres;
+            }
         }
     }
     else {
@@ -142,6 +145,37 @@ void Model::DestroyApiObjects()
         }
     }
     mTextures.clear();
+}
+
+uint32_t Model::GetIndexCount() const
+{
+    uint32_t indexCount  = 0;
+    uint32_t elementSize = grfx::IndexTypeSize(mIndexType);
+    if (mIndexBuffer && (elementSize > 0)) {
+        uint64_t bufferSize = mIndexBuffer->GetSize();
+        indexCount          = static_cast<uint32_t>(bufferSize / elementSize);
+    }
+    return indexCount;
+}
+
+uint32_t Model::GetVertexCount() const
+{
+    uint32_t       vertexCount = 0;
+    uint32_t       bufferIndex = PPX_VALUE_IGNORED;
+    const uint32_t bufferCount = CountU32(mVertexBuffers);
+    for (uint32_t i = 0; i < bufferCount; ++i) {
+        uint32_t attrIndex = mVertexBuffers[i].binding.GetAttributeIndex(grfx::VERTEX_SEMANTIC_POSITION);
+        if (attrIndex != PPX_VALUE_IGNORED) {
+            bufferIndex = i;
+            break;
+        }
+    }
+    if ((bufferIndex != PPX_VALUE_IGNORED) && mVertexBuffers[bufferIndex].buffer) {
+        uint32_t elementSize = mVertexBuffers[bufferIndex].binding.GetStride();
+        uint64_t bufferSize  = mVertexBuffers[bufferIndex].buffer->GetSize();
+        vertexCount = static_cast<uint32_t>(bufferSize / elementSize);
+    }
+    return vertexCount;
 }
 
 void Model::CheckedDestroy(grfx::Buffer* pBuffer)

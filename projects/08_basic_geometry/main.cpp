@@ -30,19 +30,30 @@ private:
         grfx::FencePtr         renderCompleteFence;
     };
 
+    struct Entity
+    {
+        grfx::ModelPtr         model;
+        grfx::DescriptorSetPtr descriptorSet;
+        grfx::BufferPtr        uniformBuffer;
+    };
+
     std::vector<PerFrame>        mPerFrame;
     grfx::ShaderModulePtr        mVS;
     grfx::ShaderModulePtr        mPS;
     grfx::PipelineInterfacePtr   mPipelineInterface;
-    grfx::GraphicsPipelinePtr    mPipeline;
     grfx::DescriptorPoolPtr      mDescriptorPool;
     grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
-    grfx::DescriptorSetPtr       mDescriptorSet;
-    grfx::BufferPtr              mUniformBuffer;
-    grfx::Viewport               mViewport;
-    grfx::Rect                   mScissorRect;
-    grfx::VertexBinding          mVertexBinding;
-    grfx::ModelPtr               mModel;
+    grfx::GraphicsPipelinePtr    mInterleavedPipeline;
+    Entity                       mInterleavedU16;
+    Entity                       mInterleavedU32;
+    Entity                       mInterleaved;
+    grfx::GraphicsPipelinePtr    mPlanarPipeline;
+    Entity                       mPlanarU16;
+    Entity                       mPlanarU32;
+    Entity                       mPlanar;
+
+private:
+    void SetupEntity(const GeometryCreateInfo& createInfo, Entity* pEntity);
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -58,42 +69,57 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #endif
 }
 
+void ProjApp::SetupEntity(const GeometryCreateInfo& createInfo, Entity* pEntity)
+{
+    Result ppxres = ppx::SUCCESS;
+
+    Geometry cube;
+    PPX_CHECKED_CALL(ppxres = Geometry::CreateCube(createInfo, &cube));
+    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &cube, &pEntity->model));
+
+    grfx::BufferCreateInfo bufferCreateInfo        = {};
+    bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
+    bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
+    bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &pEntity->uniformBuffer));
+
+    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &pEntity->descriptorSet));
+
+    grfx::WriteDescriptor write = {};
+    write.binding               = 0;
+    write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    write.bufferOffset          = 0;
+    write.bufferRange           = PPX_WHOLE_SIZE;
+    write.pBuffer               = pEntity->uniformBuffer;
+    PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
+}
+
 void ProjApp::Setup()
 {
     Result ppxres = ppx::SUCCESS;
 
-    // Uniform buffer
-    {
-        grfx::BufferCreateInfo bufferCreateInfo        = {};
-        bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
-        bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
-        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer));
-    }
-
-    // Descriptor
+    // Descriptor stuff
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.uniformBuffer                  = 1;
+        poolCreateInfo.uniformBuffer                  = 6;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
-
-        PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet));
-
-        grfx::WriteDescriptor write = {};
-        write.binding               = 0;
-        write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        write.bufferOffset          = 0;
-        write.bufferRange           = PPX_WHOLE_SIZE;
-        write.pBuffer               = mUniformBuffer;
-        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
     }
 
-    // Pipeline
+    // Entities
+    {
+        SetupEntity(GeometryCreateInfo::InterleavedU16().AddColor(), &mInterleavedU16);
+        SetupEntity(GeometryCreateInfo::InterleavedU32().AddColor(), &mInterleavedU32);
+        SetupEntity(GeometryCreateInfo::Interleaved().AddColor(), &mInterleaved);
+        SetupEntity(GeometryCreateInfo::PlanarU16().AddColor(), &mPlanarU16);
+        SetupEntity(GeometryCreateInfo::PlanarU32().AddColor(), &mPlanarU32);
+        SetupEntity(GeometryCreateInfo::Planar().AddColor(), &mPlanar);
+    }
+
+    // Pipelines
     {
         std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
@@ -111,14 +137,11 @@ void ProjApp::Setup()
         piCreateInfo.sets[0].pLayout                   = mDescriptorSetLayout;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
 
-        mVertexBinding.AppendAttribute({"POSITION", 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
-        mVertexBinding.AppendAttribute({"COLOR", 1, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
-
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = 1;
-        gpCreateInfo.vertexInputState.bindings[0]       = mVertexBinding;
+        gpCreateInfo.vertexInputState.bindingCount      = mInterleavedU16.model->GetVertexBufferCount();
+        gpCreateInfo.vertexInputState.bindings[0]       = *mInterleavedU16.model->GetVertexBinding(0);
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -129,7 +152,15 @@ void ProjApp::Setup()
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
         gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
         gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPipeline));
+
+        // Interleaved pipeline
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mInterleavedPipeline));
+
+        // Planar pipeline
+        gpCreateInfo.vertexInputState.bindingCount = mPlanarU16.model->GetVertexBufferCount();
+        gpCreateInfo.vertexInputState.bindings[0]  = *mPlanarU16.model->GetVertexBinding(0);
+        gpCreateInfo.vertexInputState.bindings[1]  = *mPlanarU16.model->GetVertexBinding(1);
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPlanarPipeline));
     }
 
     // Per frame data
@@ -151,19 +182,6 @@ void ProjApp::Setup()
 
         mPerFrame.push_back(frame);
     }
-
-    // Geometry data
-    {
-        GeometryCreateInfo ci = GeometryCreateInfo::InterleavedU16().AddPosition().AddColor();
-
-        Geometry cube;
-        PPX_CHECKED_CALL(ppxres = Geometry::CreateCube(ci, &cube));
-        PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &cube, &mModel));
-    }
-
-    // Viewport and scissor rect
-    mViewport    = {0, 0, kWindowWidth, kWindowHeight, 0, 1};
-    mScissorRect = {0, 0, kWindowWidth, kWindowHeight};
 }
 
 void ProjApp::Render()
@@ -184,16 +202,34 @@ void ProjApp::Render()
 
     // Update uniform buffer
     {
-        float    t   = GetElapsedSeconds();
-        float4x4 P   = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
-        float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
-        float4x4 M   = glm::rotate(t, float3(0, 0, 1)) * glm::rotate(2 * t, float3(0, 1, 0)) * glm::rotate(t, float3(1, 0, 0));
-        float4x4 mat = P * V * M;
+        float    t = GetElapsedSeconds();
+        float4x4 P = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
+        float4x4 V = glm::lookAt(float3(0, 0, 8), float3(0, 0, 0), float3(0, 1, 0));
+        float4x4 M = glm::rotate(t, float3(0, 0, 1)) * glm::rotate(2 * t, float3(0, 1, 0)) * glm::rotate(t, float3(1, 0, 0));
 
-        void* pData = nullptr;
-        PPX_CHECKED_CALL(ppxres = mUniformBuffer->MapMemory(0, &pData));
-        memcpy(pData, &mat, sizeof(mat));
-        mUniformBuffer->UnmapMemory();
+        float4x4 T   = glm::translate(float3(-4, 2, 0));
+        float4x4 mat = P * V * T * M;
+        mInterleavedU16.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+
+        T   = glm::translate(float3(0, 2, 0));
+        mat = P * V * T * M;
+        mInterleavedU32.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+
+        T   = glm::translate(float3(4, 2, 0));
+        mat = P * V * T * M;
+        mInterleaved.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+
+        T   = glm::translate(float3(-4, -2, 0));
+        mat = P * V * T * M;
+        mPlanarU16.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+
+        T   = glm::translate(float3(0, -2, 0));
+        mat = P * V * T * M;
+        mPlanarU32.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+
+        T   = glm::translate(float3(4, -2, 0));
+        mat = P * V * T * M;
+        mPlanar.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
     }
 
     // Build command buffer
@@ -212,21 +248,64 @@ void ProjApp::Render()
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);
         {
-            frame.cmd->SetScissors(1, &mScissorRect);
-            frame.cmd->SetViewports(1, &mViewport);
+            frame.cmd->SetScissors(GetScissor());
+            frame.cmd->SetViewports(GetViewport());
+
+            // Interleaved pipeline
+            frame.cmd->BindGraphicsPipeline(mInterleavedPipeline);
+
+            // Interleaved U16
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleavedU16.descriptorSet);
+            frame.cmd->BindIndexBuffer(mInterleavedU16.model);
+            frame.cmd->BindVertexBuffers(mInterleavedU16.model);
+            frame.cmd->DrawIndexed(mInterleavedU16.model->GetIndexCount());
+
+            // Interleaved U32
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleavedU32.descriptorSet);
+            frame.cmd->BindIndexBuffer(mInterleavedU32.model);
+            frame.cmd->BindVertexBuffers(mInterleavedU32.model);
+            frame.cmd->DrawIndexed(mInterleavedU32.model->GetIndexCount());
+
+            // Interleaved 
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleaved.descriptorSet);
+            frame.cmd->BindVertexBuffers(mInterleaved.model);
+            frame.cmd->Draw(mInterleaved.model->GetVertexCount());
+
+            // -------------------------------------------------------------------------------------
+
+            // Planar pipeline
+            frame.cmd->BindGraphicsPipeline(mPlanarPipeline);
+
+            // Planar U16
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanarU16.descriptorSet);
+            frame.cmd->BindIndexBuffer(mPlanarU16.model);
+            frame.cmd->BindVertexBuffers(mPlanarU16.model);
+            frame.cmd->DrawIndexed(mPlanarU16.model->GetIndexCount());
+
+            // Planar U32
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanarU32.descriptorSet);
+            frame.cmd->BindIndexBuffer(mPlanarU32.model);
+            frame.cmd->BindVertexBuffers(mPlanarU32.model);
+            frame.cmd->DrawIndexed(mPlanarU32.model->GetIndexCount());
+
+            // Planar 
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanar.descriptorSet);
+            frame.cmd->BindVertexBuffers(mPlanar.model);
+            frame.cmd->Draw(mPlanar.model->GetVertexCount());
+
             //frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
 
-            grfx::BufferPtr vertexBuffer = mModel->GetVertexBuffer(0);
-            uint32_t        stride       = mModel->GetVertexBinding(0)->GetStride();
-
-            frame.cmd->BindVertexBuffers(1, &vertexBuffer, &stride);
-            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
-            frame.cmd->BindGraphicsPipeline(mPipeline);
-
-            //frame.cmd->BindIndexBuffer(mIndexBuffer, grfx::INDEX_TYPE_UINT16);
-
-            frame.cmd->BindIndexBuffer(mModel->GetIndexBuffer(), mModel->GetIndexType());
-            frame.cmd->DrawIndexed(36, 1, 0, 0, 0);
+            //grfx::BufferPtr vertexBuffer = mModel->GetVertexBuffer(0);
+            //uint32_t        stride       = mModel->GetVertexBinding(0)->GetStride();
+            //
+            //frame.cmd->BindVertexBuffers(1, &vertexBuffer, &stride);
+            //frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
+            //frame.cmd->BindGraphicsPipeline(mPipeline);
+            //
+            ////frame.cmd->BindIndexBuffer(mIndexBuffer, grfx::INDEX_TYPE_UINT16);
+            //
+            //frame.cmd->BindIndexBuffer(mModel->GetIndexBuffer(), mModel->GetIndexType());
+            //frame.cmd->DrawIndexed(36, 1, 0, 0, 0);
 
             // Draw ImGui
             DrawDebugInfo();

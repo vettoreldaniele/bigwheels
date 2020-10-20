@@ -311,6 +311,9 @@ void CommandBuffer::BindComputePipeline(const grfx::ComputePipeline* pPipeline)
 
 void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
 {
+    PPX_ASSERT_NULL_ARG(pView);
+    PPX_ASSERT_NULL_ARG(pView->pBuffer);
+
     vkCmdBindIndexBuffer(
         mCommandBuffer,
         ToApi(pView->pBuffer)->GetVkBuffer(),
@@ -320,6 +323,7 @@ void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
 
 void CommandBuffer::BindVertexBuffers(uint32_t viewCount, const grfx::VertexBufferView* pViews)
 {
+    PPX_ASSERT_NULL_ARG(pViews);
     PPX_ASSERT_MSG(viewCount < PPX_MAX_VERTEX_BINDINGS, "viewCount exceeds PPX_MAX_VERTEX_ATTRIBUTES");
 
     VkBuffer     buffers[PPX_MAX_RENDER_TARGETS] = {VK_NULL_HANDLE};

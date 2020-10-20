@@ -231,10 +231,12 @@ public:
     ~VertexBinding() {}
 
     uint32_t              GetBinding() const { return mBinding; }
+    void                  SetBinding(uint32_t binding);
     const uint32_t&       GetStride() const { return mStride; }
     grfx::VertexInputRate GetInputRate() const { return mInputRate; }
     uint32_t              GetAttributeCount() const { return static_cast<uint32_t>(mAttributes.size()); }
     bool                  GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const;
+    uint32_t              GetAttributeIndex(grfx::VertexSemantic semantic) const;
     void                  AppendAttribute(const grfx::VertexAttribute& attribute);
 
     VertexBinding& operator+=(const grfx::VertexAttribute& rhs);

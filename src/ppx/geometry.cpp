@@ -13,7 +13,7 @@ GeometryCreateInfo GeometryCreateInfo::InterleavedU16()
     GeometryCreateInfo ci = {};
     ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
     ci.indexType          = grfx::INDEX_TYPE_UINT16;
-    ci.vertexBindingCount = 1;
+    ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
     ci.AddPosition();
     return ci;
 }
@@ -23,7 +23,7 @@ GeometryCreateInfo GeometryCreateInfo::InterleavedU32()
     GeometryCreateInfo ci = {};
     ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
     ci.indexType          = grfx::INDEX_TYPE_UINT32;
-    ci.vertexBindingCount = 1;
+    ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
     ci.AddPosition();
     return ci;
 }
@@ -42,6 +42,25 @@ GeometryCreateInfo GeometryCreateInfo::PlanarU32()
     GeometryCreateInfo ci = {};
     ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
     ci.indexType          = grfx::INDEX_TYPE_UINT32;
+    ci.AddPosition();
+    return ci;
+}
+
+GeometryCreateInfo GeometryCreateInfo::Interleaved()
+{
+    GeometryCreateInfo ci = {};
+    ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
+    ci.indexType          = grfx::INDEX_TYPE_UNDEFINED;
+    ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
+    ci.AddPosition();
+    return ci;
+}
+
+GeometryCreateInfo GeometryCreateInfo::Planar()
+{
+    GeometryCreateInfo ci = {};
+    ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
+    ci.indexType          = grfx::INDEX_TYPE_UNDEFINED;
     ci.AddPosition();
     return ci;
 }
@@ -87,8 +106,8 @@ GeometryCreateInfo& GeometryCreateInfo::AddAttribute(grfx::VertexSemantic semant
         else if (attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
             PPX_ASSERT_MSG(vertexBindingCount < PPX_MAX_VERTEX_BINDINGS, "max vertex bindings exceeded");
 
-            attribute.binding = vertexBindingCount;
             vertexBindings[vertexBindingCount].AppendAttribute(attribute);
+            vertexBindings[vertexBindingCount].SetBinding(vertexBindingCount);
             vertexBindingCount += 1;
         }
     }
@@ -147,16 +166,11 @@ uint32_t Geometry::Buffer::GetElementCount() const
 Result Geometry::InternalCtor()
 {
     if (mCreateInfo.indexType != grfx::INDEX_TYPE_UNDEFINED) {
-        uint32_t elementSize = 0;
-        if (mCreateInfo.indexType == grfx::INDEX_TYPE_UINT16) {
-            elementSize = sizeof(uint16_t);
-        }
-        else if (mCreateInfo.indexType == grfx::INDEX_TYPE_UINT32) {
-            elementSize = sizeof(uint32_t);
-        }
-        else {
+        uint32_t elementSize = grfx::IndexTypeSize(mCreateInfo.indexType);
+
+        if (elementSize == 0) {
             // Shouldn't occur unless there's corruption
-            PPX_ASSERT_MSG(false, "invalid index type");
+            PPX_ASSERT_MSG(false, "could not determine index type size");
             return ppx::ERROR_FAILED;
         }
 
@@ -326,7 +340,7 @@ uint32_t Geometry::AppendVertexInterleaved(const VertexData& vtx)
     uint32_t bytesWritten = (endSize - startSize);
     PPX_ASSERT_MSG((bytesWritten == mVertexBuffers[0].GetElementSize()), "size of vertex data written does not match buffer's element size");
 
-    uint32_t n = mVertexBuffers[0].GetElementCount();
+    uint32_t n = mVertexBuffers[0].GetElementCount() - 1;
     return n;
 }
 
@@ -378,7 +392,7 @@ uint32_t Geometry::AppendPosition(const float3& value)
     if (mPositionBufferIndex != PPX_VALUE_IGNORED) {
         mVertexBuffers[mPositionBufferIndex].Append(value);
 
-        uint32_t n = mVertexBuffers[mPositionBufferIndex].GetElementCount();
+        uint32_t n = mVertexBuffers[mPositionBufferIndex].GetElementCount() - 1;
         return n;
     }
 
@@ -490,15 +504,6 @@ Result Geometry::CreateCube(const ppx::GeometryCreateInfo& createInfo, ppx::Geom
     };
     // clang-format on
 
-    size_t dataSize    = (vertexData.size() * sizeof(float));
-    size_t elemSize    = sizeof(Geometry::VertexData);
-    size_t numVertices = dataSize / elemSize;
-    for (size_t i = 0; i < numVertices; ++i) {
-        const char*                 pData   = reinterpret_cast<const char*>(vertexData.data());
-        const Geometry::VertexData* pVertex = reinterpret_cast<const Geometry::VertexData*>(pData + i * elemSize);
-        pGeometry->AppendVertexData(*pVertex);
-    }
-
     // clang-format off
     std::vector<uint16_t> indexData = {
         0,  1,  2, // -Z side
@@ -521,12 +526,41 @@ Result Geometry::CreateCube(const ppx::GeometryCreateInfo& createInfo, ppx::Geom
     };
     // clang-format on
 
-    size_t numTris = indexData.size() / 3;
-    for (size_t i = 0; i < numTris; ++i) {
-        uint16_t vtx0 = indexData[3 * i + 0];
-        uint16_t vtx1 = indexData[3 * i + 1];
-        uint16_t vtx2 = indexData[3 * i + 2];
-        pGeometry->AppendIndicesTriangle(vtx0, vtx1, vtx2);
+    // Size info and data pointer
+    const size_t vertexDataSize    = (vertexData.size() * sizeof(float));
+    const size_t vertexElementSize = sizeof(Geometry::VertexData);
+    const char*  pVertexData       = reinterpret_cast<const char*>(vertexData.data());
+
+    // Geometry WITHOUT index data
+    if (createInfo.indexType == grfx::INDEX_TYPE_UNDEFINED) {
+        // Itereate through the triange data in the index data and add
+        // corresponding vertex data
+        //
+        for (size_t i = 0; i < indexData.size(); ++i) {
+            uint32_t triVertexIndex = indexData[i];
+            const Geometry::VertexData* pVertex = reinterpret_cast<const Geometry::VertexData*>(pVertexData + triVertexIndex * vertexElementSize);
+            pGeometry->AppendVertexData(*pVertex);
+        }
+    }
+    //
+    // Geometry WITH index data
+    //
+    else {
+        // Vertex data
+        size_t numVertices = vertexDataSize / vertexElementSize;
+        for (size_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex) {
+            const Geometry::VertexData* pVertex = reinterpret_cast<const Geometry::VertexData*>(pVertexData + vertexIndex * vertexElementSize);
+            pGeometry->AppendVertexData(*pVertex);
+        }
+
+        // Index data
+        size_t numTris = indexData.size() / 3;
+        for (size_t i = 0; i < numTris; ++i) {
+            uint16_t vtx0 = indexData[3 * i + 0];
+            uint16_t vtx1 = indexData[3 * i + 1];
+            uint16_t vtx2 = indexData[3 * i + 2];
+            pGeometry->AppendIndicesTriangle(vtx0, vtx1, vtx2);
+        }
     }
 
     return ppx::SUCCESS;

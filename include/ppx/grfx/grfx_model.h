@@ -83,14 +83,16 @@ struct ModelCreateInfo
         grfx::DepthStencilClearValue DSVClearValue   = {1.0f, 0xFF}; // Optimized DSV clear value
     } textures[PPX_MAX_MODEL_TEXTURES_IN_CREATE_INFO];
 
-
     ModelCreateInfo() {}
     ModelCreateInfo(const ppx::Geometry& geometry);
 };
 
 //! @class Model
 //!
-//!
+//! WARNING: Do not use or reference any vertex binding data in \b mCreateInfo
+//!          since both the vertex buffer count and vertex binding information
+//!          can change via SetVertex*() or AddVertex*().
+//! 
 class Model
     : public grfx::DeviceObject<grfx::ModelCreateInfo>
 {
@@ -103,10 +105,12 @@ public:
     //
     grfx::IndexType            GetIndexType() const { return mIndexType; }
     grfx::BufferPtr            GetIndexBuffer() const { return mIndexBuffer; }
+    uint32_t                   GetIndexCount() const; // Returns index buffer size divided by index type size
     uint32_t                   GetVertexBufferCount() const { return CountU32(mVertexBuffers); }
     grfx::VertexBinding*       GetVertexBinding(uint32_t index);
     const grfx::VertexBinding* GetVertexBinding(uint32_t index) const;
     grfx::BufferPtr            GetVertexBuffer(uint32_t index) const;
+    uint32_t                   GetVertexCount() const; // Returns size of which ever buffer is in divided by the its stride size
     uint32_t                   GetTextureCount() const { return CountU32(mTextures); }
     grfx::TexturePtr           GetTexture(uint32_t index) const;
 

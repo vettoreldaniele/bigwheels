@@ -34,12 +34,18 @@ struct GeometryCreateInfo
     grfx::VertexBinding     vertexBindings[PPX_MAX_VERTEX_BINDINGS] = {};
     grfx::PrimitiveTopology primtiveTopolgy                         = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-    // Creates a starter create info objects with a position vertex attribute.
+    // Creates a create info objects with a UINT16 or UINT32 index
+    // type and position vertex attribute.
     //
     static GeometryCreateInfo InterleavedU16();
     static GeometryCreateInfo InterleavedU32();
     static GeometryCreateInfo PlanarU16();
     static GeometryCreateInfo PlanarU32();
+
+    // Create a create info with a position vertex attribute.
+    //
+    static GeometryCreateInfo Interleaved();
+    static GeometryCreateInfo Planar();
 
     // NOTE: Vertex input locations (Vulkan) are based on the order of
     //       when the attribute is added.
@@ -52,9 +58,9 @@ struct GeometryCreateInfo
     //         AddTexCoord(); // location = 2
     //         AddTangent();  // location = 3
     //
-    // WARNING: Changing the attribute layout and messing with the vertex
-    //          binding after and in between calling these functions 
-    //          can result in undefined behavior.
+    // WARNING: Changing the attribute layout, index type, or messing 
+    //          with the vertex bindings after or in between calling 
+    //          these functions can result in undefined behavior.
     //
     GeometryCreateInfo& AddPosition(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
     GeometryCreateInfo& AddNormal(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
