@@ -293,20 +293,6 @@ void ProjApp::Render()
             frame.cmd->BindVertexBuffers(mPlanar.model);
             frame.cmd->Draw(mPlanar.model->GetVertexCount());
 
-            //frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
-
-            //grfx::BufferPtr vertexBuffer = mModel->GetVertexBuffer(0);
-            //uint32_t        stride       = mModel->GetVertexBinding(0)->GetStride();
-            //
-            //frame.cmd->BindVertexBuffers(1, &vertexBuffer, &stride);
-            //frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
-            //frame.cmd->BindGraphicsPipeline(mPipeline);
-            //
-            ////frame.cmd->BindIndexBuffer(mIndexBuffer, grfx::INDEX_TYPE_UINT16);
-            //
-            //frame.cmd->BindIndexBuffer(mModel->GetIndexBuffer(), mModel->GetIndexType());
-            //frame.cmd->DrawIndexed(36, 1, 0, 0, 0);
-
             // Draw ImGui
             DrawDebugInfo();
             DrawImGui(frame.cmd);
