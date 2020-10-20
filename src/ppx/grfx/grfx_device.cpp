@@ -32,6 +32,7 @@ void Device::Destroy()
     DestroyAllObjects(mCommandBuffers);
     DestroyAllObjects(mCommandPools);
     DestroyAllObjects(mComputePipelines);
+    DestroyAllObjects(mDepthStencilViews);
     DestroyAllObjects(mDescriptorSets); // Descriptor sets need to be destroyed before pools
     DestroyAllObjects(mDescriptorPools);
     DestroyAllObjects(mDescriptorSetLayouts);

@@ -107,6 +107,7 @@ public:
 
 protected:
     virtual Result Create(const grfx::SwapchainCreateInfo* pCreateInfo) override;
+    virtual void   Destroy();
     friend class grfx::Device;
 
 protected:

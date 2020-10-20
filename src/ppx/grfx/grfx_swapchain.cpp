@@ -84,6 +84,39 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
     return ppx::SUCCESS;
 }
 
+void Swapchain::Destroy()
+{
+    grfx::DeviceObject<grfx::SwapchainCreateInfo>::Destroy();
+
+    for (auto& elem : mDepthStencilImages) {
+        if (elem) {
+            GetDevice()->DestroyImage(elem);
+        }
+    }
+    mDepthStencilImages.clear();
+
+    for (auto& elem : mColorImages) {
+        if (elem) {
+            GetDevice()->DestroyImage(elem);
+        }
+    }
+    mColorImages.clear();
+
+    for (auto& elem : mClearRenderPasses) {
+        if (elem) {
+            GetDevice()->DestroyRenderPass(elem);
+        }
+    }
+    mClearRenderPasses.clear();
+
+    for (auto& elem : mLoadRenderPasses) {
+        if (elem) {
+            GetDevice()->DestroyRenderPass(elem);
+        }
+    }
+    mLoadRenderPasses.clear();
+}
+
 Result Swapchain::GetImage(uint32_t imageIndex, grfx::Image** ppImage) const
 {
     if (!IsIndexInRange(imageIndex, mColorImages)) {

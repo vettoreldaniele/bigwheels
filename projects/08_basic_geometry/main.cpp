@@ -156,9 +156,9 @@ void ProjApp::Setup()
     {
         GeometryCreateInfo ci = GeometryCreateInfo::InterleavedU16().AddPosition().AddColor();
 
-        Geometry geo;
-        PPX_CHECKED_CALL(ppxres = Geometry::CreateCube(ci, &geo));
-        PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mModel));
+        Geometry cube;
+        PPX_CHECKED_CALL(ppxres = Geometry::CreateCube(ci, &cube));
+        PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &cube, &mModel));
     }
 
     // Viewport and scissor rect
