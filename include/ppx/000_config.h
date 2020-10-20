@@ -16,6 +16,7 @@
 // clang-format on
 
 #include <algorithm>
+#include <functional>
 #include <cassert>
 #include <string>
 #include <vector>

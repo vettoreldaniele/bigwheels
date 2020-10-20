@@ -138,6 +138,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         {
             HRESULT hr = D3D12CreateDevice(pAdapter, featureLevel, IID_PPV_ARGS(&device));
             if (FAILED(hr)) {
+                PPX_ASSERT_MSG(false, "D3D12CreateDevice failed: couldn't create temp device for SM 6.0 support query");
                 return ppx::ERROR_API_FAILURE;
             }
         }
@@ -150,11 +151,13 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
             &featureData,
             sizeof(featureData));
         if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "ID3D12Device::CheckFeatureSupport failed");
             return ppx::ERROR_API_FAILURE;
         }
 
         // Bail if SM 6.0 isn't supported
         if (featureData.HighestShaderModel != D3D_SHADER_MODEL_6_0) {
+            PPX_ASSERT_MSG(false, "D3D12 SM 6.0 not supported");
             return ppx::ERROR_REQUIRED_FEATURE_UNAVAILABLE;
         }
 
@@ -169,6 +172,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
         hr = D3D12EnableExperimentalFeatures(1, experimentalFeatures, nullptr, nullptr);
         if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "D3D12EnableExperimentalFeatures failed: couldn't turn on SM 6.0 support - is the system in Developer Mode?");
             return ppx::ERROR_API_FAILURE;
         }
     }
