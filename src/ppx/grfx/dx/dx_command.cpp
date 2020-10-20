@@ -469,7 +469,12 @@ void CommandBuffer::CopyBufferToBuffer(
     const grfx::Buffer*                 pSrcBuffer,
     const grfx::Buffer*                 pDstBuffer)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    mCommandList->CopyBufferRegion(
+        ToApi(pDstBuffer)->GetDxResource(),
+        static_cast<UINT64>(pCopyInfo->dstBuffer.offset),
+        ToApi(pSrcBuffer)->GetDxResource(),
+        static_cast<UINT64>(pCopyInfo->srcBuffer.offset),
+        static_cast<UINT64>(pCopyInfo->size));
 }
 
 void CommandBuffer::CopyBufferToImage(

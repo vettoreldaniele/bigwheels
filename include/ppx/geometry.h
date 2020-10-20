@@ -211,6 +211,7 @@ public:
 
     // Geometry creators
     static Result CreateCube(const ppx::GeometryCreateInfo& createInfo, ppx::Geometry* pGeometry);
+    static Result CreateFromOBJ(const ppx::GeometryCreateInfo& createInfo, const char* path, ppx::Geometry* pGeometry);
 
 private:
     uint32_t AppendVertexInterleaved(const VertexData& vtx);

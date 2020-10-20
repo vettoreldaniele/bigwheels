@@ -1,5 +1,8 @@
 #include "ppx/geometry.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+
 #define NOT_INTERLEAVED_MSG "cannot append interleaved data if attribute layout is not interleaved"
 #define NOT_PLANAR_MSG      "cannot append planar data if attribute layout is not planar"
 
@@ -531,14 +534,16 @@ Result Geometry::CreateCube(const ppx::GeometryCreateInfo& createInfo, ppx::Geom
     const size_t vertexElementSize = sizeof(Geometry::VertexData);
     const char*  pVertexData       = reinterpret_cast<const char*>(vertexData.data());
 
+    //
     // Geometry WITHOUT index data
+    //
     if (createInfo.indexType == grfx::INDEX_TYPE_UNDEFINED) {
         // Itereate through the triange data in the index data and add
         // corresponding vertex data
         //
         for (size_t i = 0; i < indexData.size(); ++i) {
-            uint32_t triVertexIndex = indexData[i];
-            const Geometry::VertexData* pVertex = reinterpret_cast<const Geometry::VertexData*>(pVertexData + triVertexIndex * vertexElementSize);
+            uint32_t                    triVertexIndex = indexData[i];
+            const Geometry::VertexData* pVertex        = reinterpret_cast<const Geometry::VertexData*>(pVertexData + triVertexIndex * vertexElementSize);
             pGeometry->AppendVertexData(*pVertex);
         }
     }
@@ -560,6 +565,145 @@ Result Geometry::CreateCube(const ppx::GeometryCreateInfo& createInfo, ppx::Geom
             uint16_t vtx1 = indexData[3 * i + 1];
             uint16_t vtx2 = indexData[3 * i + 2];
             pGeometry->AppendIndicesTriangle(vtx0, vtx1, vtx2);
+        }
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result Geometry::CreateFromOBJ(const ppx::GeometryCreateInfo& createInfo, const char* path, ppx::Geometry* pGeometry)
+{
+    PPX_ASSERT_NULL_ARG(pGeometry);
+
+    const std::vector<float3> colors = {
+        {1.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f},
+        {1.0f, 1.0f, 0.0f},
+        {1.0f, 0.0f, 1.0f},
+        {0.0f, 1.0f, 1.0f},
+        {1.0f, 1.0f, 1.0f},
+    };
+
+    tinyobj::attrib_t                attrib;
+    std::vector<tinyobj::shape_t>    shapes;
+    std::vector<tinyobj::material_t> materials;
+
+    std::string warn;
+    std::string err;
+    bool        loaded = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path, nullptr, true);
+
+    if (!loaded || !err.empty()) {
+        return ppx::ERROR_GEOMETRY_FILE_LOAD_FAILED;
+    }
+
+    size_t numShapes = shapes.size();
+    if (numShapes == 0) {
+        return ppx::ERROR_GEOMETRY_FILE_NO_DATA;
+    }
+
+    // Create storage geometry
+    Result ppxres = Geometry::Create(createInfo, pGeometry);
+    if (Failed(ppxres)) {
+        PPX_ASSERT_MSG(false, "failed creating geometry");
+        return ppxres;
+    }
+
+    // Build geometry
+    for (size_t shapeIdx = 0; shapeIdx < numShapes; ++shapeIdx) {
+        const tinyobj::shape_t& shape = shapes[shapeIdx];
+        const tinyobj::mesh_t&  mesh  = shape.mesh;
+
+        size_t numTriangles = mesh.indices.size() / 3;
+        for (size_t triIdx = 0; triIdx < numTriangles; ++triIdx) {
+            size_t triVtxIdx0 = triIdx * 3 + 0;
+            size_t triVtxIdx1 = triIdx * 3 + 1;
+            size_t triVtxIdx2 = triIdx * 3 + 2;
+
+            // Index data
+            const tinyobj::index_t& dataIdx0 = mesh.indices[triVtxIdx0];
+            const tinyobj::index_t& dataIdx1 = mesh.indices[triVtxIdx1];
+            const tinyobj::index_t& dataIdx2 = mesh.indices[triVtxIdx2];
+
+            // Vertex data
+            Geometry::VertexData vtx0 = {};
+            Geometry::VertexData vtx1 = {};
+            Geometry::VertexData vtx2 = {};
+
+            // Pick a face color
+            float3 faceColor = colors[triIdx % colors.size()];
+            vtx0.color       = faceColor;
+            vtx1.color       = faceColor;
+            vtx2.color       = faceColor;
+
+            // Vertex positions
+            {
+                int i0        = 3 * dataIdx0.vertex_index + 0;
+                int i1        = 3 * dataIdx0.vertex_index + 1;
+                int i2        = 3 * dataIdx0.vertex_index + 2;
+                vtx0.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
+
+                i0            = 3 * dataIdx1.vertex_index + 0;
+                i1            = 3 * dataIdx1.vertex_index + 1;
+                i2            = 3 * dataIdx1.vertex_index + 2;
+                vtx1.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
+
+                i0            = 3 * dataIdx2.vertex_index + 0;
+                i1            = 3 * dataIdx2.vertex_index + 1;
+                i2            = 3 * dataIdx2.vertex_index + 2;
+                vtx2.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
+            }
+
+            // Normals
+            if ((dataIdx0.normal_index != -1) && (dataIdx1.normal_index != -1) && (dataIdx2.normal_index != -1)) {
+                int i0      = 3 * dataIdx0.normal_index + 0;
+                int i1      = 3 * dataIdx0.normal_index + 1;
+                int i2      = 3 * dataIdx0.normal_index + 2;
+                vtx0.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
+
+                i0          = 3 * dataIdx1.normal_index + 0;
+                i1          = 3 * dataIdx1.normal_index + 1;
+                i2          = 3 * dataIdx1.normal_index + 2;
+                vtx1.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
+
+                i0          = 3 * dataIdx2.normal_index + 0;
+                i1          = 3 * dataIdx2.normal_index + 1;
+                i2          = 3 * dataIdx2.normal_index + 2;
+                vtx2.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
+            }
+
+            // Texture coordinates
+            if ((dataIdx0.texcoord_index != -1) && (dataIdx1.texcoord_index != -1) && (dataIdx2.texcoord_index != -1)) {
+                int i0        = 2 * dataIdx0.texcoord_index + 0;
+                int i1        = 2 * dataIdx0.texcoord_index + 1;
+                vtx0.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
+
+                i0            = 2 * dataIdx1.texcoord_index + 0;
+                i1            = 2 * dataIdx1.texcoord_index + 1;
+                vtx1.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
+
+                i0            = 2 * dataIdx2.texcoord_index + 0;
+                i1            = 2 * dataIdx2.texcoord_index + 1;
+                vtx2.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
+            }
+
+            //
+            // Geometry WITHOUT index data
+            //
+            if (createInfo.indexType == grfx::INDEX_TYPE_UNDEFINED) {
+                pGeometry->AppendVertexData(vtx0);
+                pGeometry->AppendVertexData(vtx1);
+                pGeometry->AppendVertexData(vtx2);
+            }
+            //
+            // Geometry WITH index data
+            //
+            else {
+                uint32_t vtxi0 = pGeometry->AppendVertexData(vtx0);
+                uint32_t vtxi1 = pGeometry->AppendVertexData(vtx1);
+                uint32_t vtxi2 = pGeometry->AppendVertexData(vtx2);
+                pGeometry->AppendIndicesTriangle(vtxi0, vtxi1, vtxi2);
+            }
         }
     }
 

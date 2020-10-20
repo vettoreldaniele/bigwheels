@@ -117,5 +117,6 @@ add_subdirectory(05_cube_textured)
 add_subdirectory(06_compute_fill)
 add_subdirectory(07_draw_indexed)
 add_subdirectory(08_basic_geometry)
+add_subdirectory(09_obj_geometry)
 add_subdirectory(shadertoy)
 
