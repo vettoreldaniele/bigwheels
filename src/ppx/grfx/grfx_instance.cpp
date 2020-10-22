@@ -109,6 +109,9 @@ void Instance::DestroyObject(ContainerT& container, const ObjectT* pObject)
     RemoveElement(object, container);
     // Destroy internal objects
     object->Destroy();
+    // Delete allocation
+    ObjectT* ptr = object.Get();
+    delete ptr;
 }
 
 template <typename ObjectT>
@@ -120,6 +123,9 @@ void Instance::DestroyAllObjects(std::vector<ObjPtr<ObjectT>>& container)
         ObjPtr<ObjectT> object = container[i];
         // Call destroy
         object->Destroy();
+        // Delete allocation
+        ObjectT* ptr = object.Get();
+        delete ptr;
     }
     // Clear container
     container.clear();
@@ -250,7 +256,11 @@ void DestroyInstance(const grfx::Instance* pInstance)
         PPX_ASSERT_MSG(sInstance.Get() != pInstance, "Invalid argument value for pInstance");
         return;
     }
+    // Destroy internal objects
     sInstance->Destroy();
+    // Delete allocation
+    grfx::Instance* ptr = sInstance.Get();
+    // Reset static var
     sInstance.Reset();
 }
 

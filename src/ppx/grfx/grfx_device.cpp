@@ -123,6 +123,9 @@ void Device::DestroyObject(ContainerT& container, const ObjectT* pObject)
     RemoveElement(object, container);
     // Destroy internal objects
     object->Destroy();
+    // Delete allocation
+    ObjectT* ptr = object.Get();
+    delete ptr;
 }
 
 template <typename ObjectT>
@@ -132,8 +135,11 @@ void Device::DestroyAllObjects(std::vector<ObjPtr<ObjectT>>& container)
     for (size_t i = 0; i < n; ++i) {
         // Get object pointer
         ObjPtr<ObjectT> object = container[i];
-        // Call destroy
+        // Destroy internal objects
         object->Destroy();
+        // Delete allocation
+        ObjectT* ptr = object.Get();
+        delete ptr;
     }
     // Clear container
     container.clear();
