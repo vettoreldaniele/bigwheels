@@ -239,6 +239,7 @@ enum ImageType
     IMAGE_TYPE_1D        = 1,
     IMAGE_TYPE_2D        = 2,
     IMAGE_TYPE_3D        = 3,
+    IMAGE_TYPE_CUBE      = 6,
 };
 
 enum ImageUsageFlagBits

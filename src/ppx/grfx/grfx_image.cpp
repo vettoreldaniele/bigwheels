@@ -77,6 +77,21 @@ ImageCreateInfo ImageCreateInfo::RenderTarget2D(
 // -------------------------------------------------------------------------------------------------
 // Image
 // -------------------------------------------------------------------------------------------------
+Result Image::Create(const grfx::ImageCreateInfo* pCreateInfo)
+{
+    if ((pCreateInfo->type == grfx::IMAGE_TYPE_CUBE) && (pCreateInfo->arrayLayerCount != 6)) {
+        PPX_ASSERT_MSG(false, "arrayLayerCount must be 6 if type is IMAGE_TYPE_CUBE");
+        return ppx::ERROR_INVALID_CREATE_ARGUMENT;
+    }
+
+    Result ppxres = grfx::DeviceObject<grfx::ImageCreateInfo>::Create(pCreateInfo);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+    
+    return ppx::SUCCESS;
+}
+
 grfx::ImageViewType Image::GuessImageViewType(bool isCube) const
 {
     const uint32_t arrayLayerCount = GetArrayLayerCount();
@@ -89,8 +104,9 @@ grfx::ImageViewType Image::GuessImageViewType(bool isCube) const
         // clang-format off
         switch (mCreateInfo.type) {
             default: break;
-            case grfx::IMAGE_TYPE_1D : return (arrayLayerCount > 1) ? grfx::IMAGE_VIEW_TYPE_1D_ARRAY : grfx::IMAGE_VIEW_TYPE_1D; break;
-            case grfx::IMAGE_TYPE_2D : return (arrayLayerCount > 1) ? grfx::IMAGE_VIEW_TYPE_2D_ARRAY : grfx::IMAGE_VIEW_TYPE_2D; break;
+            case grfx::IMAGE_TYPE_1D   : return (arrayLayerCount > 1) ? grfx::IMAGE_VIEW_TYPE_1D_ARRAY   : grfx::IMAGE_VIEW_TYPE_1D; break;
+            case grfx::IMAGE_TYPE_2D   : return (arrayLayerCount > 1) ? grfx::IMAGE_VIEW_TYPE_2D_ARRAY   : grfx::IMAGE_VIEW_TYPE_2D; break;
+            case grfx::IMAGE_TYPE_CUBE : return (arrayLayerCount > 6) ? grfx::IMAGE_VIEW_TYPE_CUBE_ARRAY : grfx::IMAGE_VIEW_TYPE_CUBE; break;
         }
         // clang-format on
     }

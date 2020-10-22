@@ -53,6 +53,8 @@ public:
     uint64_t       GetFootprintSize() const;
 
     Result Resize(uint32_t width, uint32_t height);
+    Result Resize(uint32_t widht, uint32_t height, Bitmap* pBitmap) const;
+    Result CopyTo(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Bitmap* pBitmap) const;
 
     static uint32_t ChannelSize(Bitmap::Format value);
     static uint32_t ChannelCount(Bitmap::Format value);

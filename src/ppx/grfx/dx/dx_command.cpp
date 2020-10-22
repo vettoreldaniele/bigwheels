@@ -504,15 +504,22 @@ void CommandBuffer::CopyBufferToImage(
         UINT64 rowSizeInBytes  = 0;
         UINT64 totalBytes      = 0;
 
+        // Grab the format
         device->GetCopyableFootprints(
             &resouceDesc,
             dst.SubresourceIndex,
             numSubresources,
-            static_cast<UINT64>(pCopyInfo->srcBuffer.offset),
+            static_cast<UINT64>(pCopyInfo->srcBuffer.footprintOffset),
             &src.PlacedFootprint,
             &numRows,
             &rowSizeInBytes,
             &totalBytes);
+
+        src.PlacedFootprint.Offset             = static_cast<UINT64>(pCopyInfo->srcBuffer.footprintOffset);
+        src.PlacedFootprint.Footprint.Width    = static_cast<UINT>(pCopyInfo->srcBuffer.footprintWidth);
+        src.PlacedFootprint.Footprint.Height   = static_cast<UINT>(pCopyInfo->srcBuffer.footprintHeight);
+        src.PlacedFootprint.Footprint.Depth    = static_cast<UINT>(pCopyInfo->srcBuffer.footprintDepth);
+        src.PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(pCopyInfo->srcBuffer.imageRowStride);
 
         mCommandList->CopyTextureRegion(
             &dst,

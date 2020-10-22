@@ -397,9 +397,9 @@ void CommandBuffer::CopyBufferToImage(
     PPX_ASSERT_NULL_ARG(pDstImage);
 
     VkBufferImageCopy region               = {};
-    region.bufferOffset                    = static_cast<VkDeviceSize>(pCopyInfo->srcBuffer.offset);
-    region.bufferRowLength                 = pCopyInfo->srcBuffer.footprintWidth;
-    region.bufferImageHeight               = pCopyInfo->srcBuffer.footprintHeight;
+    region.bufferOffset                    = static_cast<VkDeviceSize>(pCopyInfo->srcBuffer.footprintOffset);
+    region.bufferRowLength                 = pCopyInfo->srcBuffer.imageWidth;
+    region.bufferImageHeight               = pCopyInfo->srcBuffer.imageHeight;
     region.imageSubresource.aspectMask     = ToApi(pDstImage)->GetVkImageAspectFlags();
     region.imageSubresource.mipLevel       = pCopyInfo->dstImage.mipLevel;
     region.imageSubresource.baseArrayLayer = pCopyInfo->dstImage.arrayLayer;

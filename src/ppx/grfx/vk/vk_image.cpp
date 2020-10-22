@@ -20,6 +20,9 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
             extent.depth      = pCreateInfo->depth;
 
             VkImageCreateFlags createFlags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+            if (pCreateInfo->type == grfx::IMAGE_TYPE_CUBE) {
+                createFlags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+            }
 
             VkImageCreateInfo vkci     = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
             vkci.flags                 = createFlags;

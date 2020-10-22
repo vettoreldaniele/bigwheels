@@ -52,9 +52,13 @@ struct BufferToImageCopyInfo
 {
     struct
     {
-        uint64_t offset          = 0;
-        uint32_t footprintWidth  = 0; // [pixels] Use 0 for tight packing
-        uint32_t footprintHeight = 0; // [pixels] Use 0 for tight packing
+        uint32_t imageWidth      = 0; // [pixels]
+        uint32_t imageHeight     = 0; // [pixels]
+        uint32_t imageRowStride  = 0; // [bytes]
+        uint64_t footprintOffset = 0; // [bytes]
+        uint32_t footprintWidth  = 0; // [pixels]
+        uint32_t footprintHeight = 0; // [pixels]
+        uint32_t footprintDepth  = 0; // [pixels]
     } srcBuffer;
 
     struct

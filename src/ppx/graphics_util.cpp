@@ -25,6 +25,7 @@ Result CreateTextureFromFile(
         return ppxres;
     }
 
+    // Scoped destroy
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
     // Create staging buffer
@@ -80,9 +81,13 @@ Result CreateTextureFromFile(
 
     // Copy info
     grfx::BufferToImageCopyInfo copyInfo = {};
-    copyInfo.srcBuffer.offset            = 0;
+    copyInfo.srcBuffer.imageWidth        = bitmap.GetWidth();
+    copyInfo.srcBuffer.imageHeight       = bitmap.GetHeight();
+    copyInfo.srcBuffer.imageRowStride    = bitmap.GetRowStride();
+    copyInfo.srcBuffer.footprintOffset   = 0;
     copyInfo.srcBuffer.footprintWidth    = bitmap.GetWidth();
     copyInfo.srcBuffer.footprintHeight   = bitmap.GetHeight();
+    copyInfo.srcBuffer.footprintDepth    = 1;
     copyInfo.dstImage.mipLevel           = 0;
     copyInfo.dstImage.arrayLayer         = 0;
     copyInfo.dstImage.arrayLayerCount    = 1;
@@ -103,6 +108,209 @@ Result CreateTextureFromFile(
         grfx::RESOURCE_STATE_SHADER_RESOURCE);
     if (Failed(ppxres)) {
         return ppxres;
+    }
+
+    // Change ownership to reference so object doesn't get destroyed
+    targetImage->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+
+    // Assign output
+    *ppImage = targetImage;
+
+    return ppx::SUCCESS;
+}
+
+struct SubImage
+{
+    uint32_t width        = 0;
+    uint32_t height       = 0;
+    uint32_t bufferOffset = 0;
+};
+
+SubImage CalcSubimageCrossHorizontalLeft(uint32_t subImageIndex, uint32_t imageWidth, uint32_t imageHeight, grfx::Format format)
+{
+    uint32_t cellPixelsX = imageWidth / 4;
+    uint32_t cellPixelsY = imageHeight / 3;
+    uint32_t cellX       = 0;
+    uint32_t cellY       = 0;
+    switch (subImageIndex) {
+        default: break;
+
+        case 0: {
+            cellX = 1;
+            cellY = 0;
+        } break;
+
+        case 1: {
+            cellX = 0;
+            cellY = 1;
+        } break;
+
+        case 2: {
+            cellX = 1;
+            cellY = 1;
+        } break;
+
+        case 3: {
+            cellX = 2;
+            cellY = 1;
+        } break;
+
+        case 4: {
+            cellX = 3;
+            cellY = 1;
+        } break;
+
+        case 5: {
+            cellX = 1;
+            cellY = 2;
+
+        } break;
+    }
+
+    uint32_t pixelStride  = grfx::FormatSize(format);
+    uint32_t pixelOffsetX = cellX * cellPixelsX * pixelStride;
+    uint32_t pixelOffsetY = cellY * cellPixelsY * imageWidth * pixelStride;
+
+    SubImage subImage     = {};
+    subImage.width        = cellPixelsX;
+    subImage.height       = cellPixelsY;
+    subImage.bufferOffset = pixelOffsetX + pixelOffsetY;
+
+    return subImage;
+}
+
+Result CreateCubeMapFromFile(
+    grfx::Queue*                  pQueue,
+    const fs::path&               path,
+    const ppx::CubeMapCreateInfo* pCreateInfo,
+    grfx::Image**                 ppImage,
+    const grfx::ImageUsageFlags&  additionalImageUsage)
+{
+    PPX_ASSERT_NULL_ARG(pQueue);
+    PPX_ASSERT_NULL_ARG(ppImage);
+
+    // Load bitmap
+    Bitmap bitmap;
+    Result ppxres = Bitmap::LoadFile(path, &bitmap);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Scoped destroy
+    grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
+
+    // Create staging buffer
+    grfx::BufferPtr stagingBuffer;
+    {
+        uint64_t bitmapFootprintSize = bitmap.GetFootprintSize();
+
+        grfx::BufferCreateInfo ci      = {};
+        ci.size                        = bitmapFootprintSize;
+        ci.usageFlags.bits.transferSrc = true;
+        ci.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
+
+        ppxres = pQueue->GetDevice()->CreateBuffer(&ci, &stagingBuffer);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(stagingBuffer);
+
+        // Map and copy to staging buffer
+        void* pBufferAddress = nullptr;
+        ppxres               = stagingBuffer->MapMemory(0, &pBufferAddress);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        std::memcpy(pBufferAddress, bitmap.GetData(), bitmapFootprintSize);
+        stagingBuffer->UnmapMemory();
+    }
+
+    // Target format
+    grfx::Format targetFormat = grfx::FORMAT_R8G8B8A8_UNORM;
+
+    // Calculate subImage to use for target image dimensions
+    SubImage tmpSubImage = CalcSubimageCrossHorizontalLeft(0, bitmap.GetWidth(), bitmap.GetHeight(), targetFormat);
+
+    // Create target image
+    grfx::ImagePtr targetImage;
+    {
+        grfx::ImageCreateInfo ci       = {};
+        ci.type                        = grfx::IMAGE_TYPE_CUBE;
+        ci.width                       = tmpSubImage.width;
+        ci.height                      = tmpSubImage.height;
+        ci.depth                       = 1;
+        ci.format                      = targetFormat;
+        ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
+        ci.mipLevelCount               = 1;
+        ci.arrayLayerCount             = 6;
+        ci.usageFlags.bits.transferDst = true;
+        ci.usageFlags.bits.sampled     = true;
+        ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
+
+        ci.usageFlags.flags |= additionalImageUsage.flags;
+
+        ppxres = pQueue->GetDevice()->CreateImage(&ci, &targetImage);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(targetImage);
+    }
+
+    // Copy to GPU image
+    //
+    // @TODO: pack copies
+    //
+    {
+        uint32_t faces[6] = {
+            pCreateInfo->posX,
+            pCreateInfo->negX,
+            pCreateInfo->posY,
+            pCreateInfo->negY,
+            pCreateInfo->posZ,
+            pCreateInfo->negZ,
+        };
+
+        // Vulkan doesn't seem to mind transtioning a resource from
+        // UNDEFINED to SHADER_READ but D3D12 does...so we'll save
+        // the before state after the first transition so it matches.
+        //
+        grfx::ResourceState beforeState = grfx::RESOURCE_STATE_UNDEFINED;
+        for (uint32_t arrayLayer = 0; arrayLayer < 6; ++arrayLayer) {
+            uint32_t subImageIndex = faces[arrayLayer];
+            SubImage subImage      = CalcSubimageCrossHorizontalLeft(subImageIndex, bitmap.GetWidth(), bitmap.GetHeight(), targetFormat);
+
+            // Copy info
+            grfx::BufferToImageCopyInfo copyInfo = {};
+            copyInfo.srcBuffer.imageWidth        = bitmap.GetWidth();
+            copyInfo.srcBuffer.imageHeight       = bitmap.GetHeight();
+            copyInfo.srcBuffer.imageRowStride    = bitmap.GetRowStride();
+            copyInfo.srcBuffer.footprintOffset   = subImage.bufferOffset;
+            copyInfo.srcBuffer.footprintWidth    = subImage.width;
+            copyInfo.srcBuffer.footprintHeight   = subImage.height;
+            copyInfo.srcBuffer.footprintDepth    = 1;
+            copyInfo.dstImage.mipLevel           = 0;
+            copyInfo.dstImage.arrayLayer         = arrayLayer;
+            copyInfo.dstImage.arrayLayerCount    = 1;
+            copyInfo.dstImage.x                  = 0;
+            copyInfo.dstImage.y                  = 0;
+            copyInfo.dstImage.z                  = 0;
+            copyInfo.dstImage.width              = subImage.width;
+            copyInfo.dstImage.height             = subImage.width;
+            copyInfo.dstImage.depth              = 1;
+
+            ppxres = pQueue->CopyBufferToImage(
+                &copyInfo,
+                stagingBuffer,
+                targetImage,
+                PPX_ALL_SUBRESOURCES,
+                beforeState,
+                grfx::RESOURCE_STATE_SHADER_RESOURCE);
+            if (Failed(ppxres)) {
+                return ppxres;
+            }
+
+            beforeState = grfx::RESOURCE_STATE_SHADER_RESOURCE;
+        }
     }
 
     // Change ownership to reference so object doesn't get destroyed

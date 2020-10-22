@@ -210,7 +210,7 @@ public:
     void     AppendBitangent(const float3& value);
 
     // Geometry creators
-    static Result CreateCube(const ppx::GeometryCreateInfo& createInfo, ppx::Geometry* pGeometry);
+    static Result CreateCube(const ppx::GeometryCreateInfo& createInfo, const float3& size, ppx::Geometry* pGeometry);
     static Result CreateFromOBJ(const ppx::GeometryCreateInfo& createInfo, const char* path, ppx::Geometry* pGeometry);
 
 private:

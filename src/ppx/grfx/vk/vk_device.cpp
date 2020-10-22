@@ -123,7 +123,6 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         mExtensions.push_back(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
     }
 
-
     // Add additional extensions and uniquify
     AppendElements(pCreateInfo->vulkanExtensions, mExtensions);
     Unique(mExtensions);
@@ -134,9 +133,11 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
 Result Device::ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhysicalDeviceFeatures& features)
 {
     // Default device faetures
-    features                    = {};
-    features.geometryShader     = VK_TRUE;
-    features.tessellationShader = VK_TRUE;
+    features                     = {};
+    features.fullDrawIndexUint32 = VK_TRUE;
+    features.imageCubeArray      = VK_TRUE;
+    features.geometryShader      = VK_TRUE;
+    features.tessellationShader  = VK_TRUE;
 
     // Select between default or custom features
     if (!IsNull(pCreateInfo->pVulkanDeviceFeatures)) {
