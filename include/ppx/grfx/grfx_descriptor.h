@@ -38,7 +38,7 @@ struct WriteDescriptor
     uint32_t               arrayIndex   = 0;
     grfx::DescriptorType   type         = grfx::DESCRIPTOR_TYPE_UNDEFINED;
     uint32_t               bufferOffset = 0;
-    uint64_t               bufferRange  = PPX_WHOLE_SIZE;
+    uint64_t               bufferRange  = 0;
     const grfx::Buffer*    pBuffer      = nullptr;
     const grfx::ImageView* pImageView   = nullptr;
     const grfx::Sampler*   pSampler     = nullptr;
