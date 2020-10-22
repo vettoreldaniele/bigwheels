@@ -514,7 +514,7 @@ void CommandBuffer::CopyBufferToImage(
             &numRows,
             &rowSizeInBytes,
             &totalBytes);
-
+        // Replace the values in case the footprint is a submimage
         src.PlacedFootprint.Offset             = static_cast<UINT64>(pCopyInfo->srcBuffer.footprintOffset);
         src.PlacedFootprint.Footprint.Width    = static_cast<UINT>(pCopyInfo->srcBuffer.footprintWidth);
         src.PlacedFootprint.Footprint.Height   = static_cast<UINT>(pCopyInfo->srcBuffer.footprintHeight);
