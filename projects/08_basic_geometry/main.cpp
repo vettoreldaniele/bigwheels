@@ -74,7 +74,7 @@ void ProjApp::SetupEntity(const GeometryCreateInfo& createInfo, Entity* pEntity)
     Result ppxres = ppx::SUCCESS;
 
     Geometry cube;
-    PPX_CHECKED_CALL(ppxres = Geometry::CreateCube(createInfo, &cube));
+    PPX_CHECKED_CALL(ppxres = Geometry::CreateCube(createInfo, float3(2, 2, 2), &cube));
     PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &cube, &pEntity->model));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
