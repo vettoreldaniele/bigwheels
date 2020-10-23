@@ -8,6 +8,11 @@ namespace dx {
 // -------------------------------------------------------------------------------------------------
 // Image
 // -------------------------------------------------------------------------------------------------
+Image::~Image()
+{
+
+}
+
 Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
 {
     // NOTE: D3D12 does not support mapping of texture resources without the
@@ -89,10 +94,18 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
 }
 
 void Image::DestroyApiObjects()
-{
-    if (mResource && IsNull(mCreateInfo.pApiObject)) {
-        mResource.Reset();
+{    
+    // Reset if resource isn't external
+    if (IsNull(mCreateInfo.pApiObject)) {
+        if (mResource) {
+            mResource.Reset();
+        }
     }
+    else {
+        // Deatch if the resource is external
+        mResource.Detach();
+    }
+
 
     if (mAllocation) {
         mAllocation->Release();

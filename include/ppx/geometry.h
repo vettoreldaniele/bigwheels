@@ -1,8 +1,7 @@
 #ifndef ppx_geometry_h
 #define ppx_geometry_h
 
-#include "ppx/000_config.h"
-#include "ppx/000_math_config.h"
+#include "ppx/mesh.h"
 #include "ppx/grfx/000_grfx_config.h"
 
 namespace ppx {
@@ -58,8 +57,8 @@ struct GeometryCreateInfo
     //         AddTexCoord(); // location = 2
     //         AddTangent();  // location = 3
     //
-    // WARNING: Changing the attribute layout, index type, or messing 
-    //          with the vertex bindings after or in between calling 
+    // WARNING: Changing the attribute layout, index type, or messing
+    //          with the vertex bindings after or in between calling
     //          these functions can result in undefined behavior.
     //
     GeometryCreateInfo& AddPosition(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
@@ -93,8 +92,8 @@ public:
     //!     is 2 bytes. Dividing the value of GetSize() by 2 will
     //!     return the element count, i.e. the number of indices.
     //!
-    //! There's two different ways to use Buffer. Mixing them will most 
-    //! likely lead to undefined behavior. 
+    //! There's two different ways to use Buffer. Mixing them will most
+    //! likely lead to undefined behavior.
     //!
     //! Use #1:
     //!   - Create a buffer object with type and element size
@@ -154,6 +153,10 @@ private:
 
 public:
     static Result Create(const GeometryCreateInfo& createInfo, Geometry* pGeometry);
+    static Result Create(
+        const GeometryCreateInfo& createInfo,
+        const TriMesh&            mesh,
+        Geometry*                 pGeometry);
 
     grfx::IndexType            GetIndexType() const { return mCreateInfo.indexType; }
     const Geometry::Buffer*    GetIndexBuffer() const { return &mIndexBuffer; }
@@ -161,38 +164,22 @@ public:
     const Geometry::Buffer*    GetVertxBuffer(uint32_t index) const;
     const grfx::VertexBinding* GetVertexBinding(uint32_t index) const;
     uint32_t                   GetBiggestBufferSize() const;
-    
+
     // Appends triangle vertex indices to index buffer
     //
     // Will cast to uint16_t if geometry index type is UINT16.
-    // NOOP if index type is UNDEFINED (geometry does not have index data). 
+    // NOOP if index type is UNDEFINED (geometry does not have index data).
     //
     void AppendIndicesTriangle(uint32_t vtx0, uint32_t vtx1, uint32_t vtx2);
 
-    //! @struct VertexData
-    //!
-    //!
-    struct VertexData
-    {
-        float3 position;
-        float3 normal;
-        float3 color;
-        float2 texCoord;
-        float3 tangent;
-        float3 bitangent;
-    };
-
     // Append multiple attributes at once
     //
-    uint32_t AppendVertexData(const ppx::Geometry::VertexData& vtx);
+    uint32_t AppendVertexData(const VertexData& vtx);
 
-    // Appends triangle vertex data and vertex indices (if present)
+    // Appends triangle vertex data and indices (if present)
     //
     //
-    void AppendTriangle(
-        const ppx::Geometry::VertexData& vtx0,
-        const ppx::Geometry::VertexData& vtx1,
-        const ppx::Geometry::VertexData& vtx2);
+    void AppendTriangle(const VertexData& vtx0, const VertexData& vtx1, const VertexData& vtx2);
 
     // Append individual attributes
     //
@@ -208,10 +195,6 @@ public:
     void     AppendTexCoord(const float2& value);
     void     AppendTangent(const float3& value);
     void     AppendBitangent(const float3& value);
-
-    // Geometry creators
-    static Result CreateCube(const ppx::GeometryCreateInfo& createInfo, const float3& size, ppx::Geometry* pGeometry);
-    static Result CreateFromOBJ(const ppx::GeometryCreateInfo& createInfo, const char* path, ppx::Geometry* pGeometry);
 
 private:
     uint32_t AppendVertexInterleaved(const VertexData& vtx);

@@ -57,8 +57,7 @@ private:
     float                          mRotX = 0;
 
 private:
-    void SetupSkyBox(const GeometryCreateInfo& createInfo, Entity* pEntity);
-    void SetupReflector(const GeometryCreateInfo& createInfo, Entity* pEntity);
+    void SetupEntity(const TriMesh& mesh, const GeometryCreateInfo& createInfo, Entity* pEntity);
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -74,51 +73,13 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #endif
 }
 
-void ProjApp::SetupSkyBox(const GeometryCreateInfo& createInfo, Entity* pEntity)
+void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryCreateInfo& createInfo, Entity* pEntity)
 {
     Result ppxres = ppx::SUCCESS;
 
-    Geometry cube;
-    PPX_CHECKED_CALL(ppxres = Geometry::CreateCube(createInfo, float3(8, 8, 8), &cube));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &cube, &pEntity->model));
-
-    grfx::BufferCreateInfo bufferCreateInfo        = {};
-    bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
-    bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
-    bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &pEntity->uniformBuffer));
-
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &pEntity->descriptorSet));
-
-    grfx::WriteDescriptor write = {};
-    write.binding               = 0;
-    write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    write.bufferOffset          = 0;
-    write.bufferRange           = PPX_WHOLE_SIZE;
-    write.pBuffer               = pEntity->uniformBuffer;
-    PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
-
-    write            = {};
-    write.binding    = 1;
-    write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-    write.pImageView = mCubeMapImageView;
-    PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
-
-    write          = {};
-    write.binding  = 2;
-    write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-    write.pSampler = mCubeMapSampler;
-    PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
-}
-
-void ProjApp::SetupReflector(const GeometryCreateInfo& createInfo, Entity* pEntity)
-{
-    Result ppxres = ppx::SUCCESS;
-
-    Geometry objGeo;
-    PPX_CHECKED_CALL(ppxres = Geometry::CreateFromOBJ(createInfo, GetAssetPath("basic/models/material_sphere.obj"), &objGeo));
-    //PPX_CHECKED_CALL(ppxres = Geometry::CreateCube(createInfo, float3(1, 1, 1), &objGeo));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &objGeo, &pEntity->model));
+    Geometry geo;
+    PPX_CHECKED_CALL(ppxres = Geometry::Create(createInfo, mesh, &geo));
+    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
@@ -190,8 +151,11 @@ void ProjApp::Setup()
 
     // Entities
     {
-        SetupSkyBox(GeometryCreateInfo::InterleavedU16().AddColor(), &mSkyBox);
-        SetupReflector(GeometryCreateInfo::InterleavedU16().AddNormal(), &mReflector);
+        TriMesh mesh = TriMesh::CreateCube(float3(8, 8, 8));
+        SetupEntity(mesh, GeometryCreateInfo::InterleavedU16().AddColor(), &mSkyBox);
+
+        mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMesh::Options().EnableNormals());
+        SetupEntity(mesh, GeometryCreateInfo::InterleavedU16().AddNormal(), &mReflector);
     }
 
     // Sky box pipeline

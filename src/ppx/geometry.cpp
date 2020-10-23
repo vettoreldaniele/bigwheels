@@ -1,7 +1,7 @@
 #include "ppx/geometry.h"
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
+//#define TINYOBJLOADER_IMPLEMENTATION
+//#include "tiny_obj_loader.h"
 
 #define NOT_INTERLEAVED_MSG "cannot append interleaved data if attribute layout is not interleaved"
 #define NOT_PLANAR_MSG      "cannot append planar data if attribute layout is not planar"
@@ -271,6 +271,150 @@ Result Geometry::Create(const GeometryCreateInfo& createInfo, Geometry* pGeometr
     return ppx::SUCCESS;
 }
 
+Result Geometry::Create(
+    const GeometryCreateInfo& createInfo,
+    const TriMesh&            mesh,
+    Geometry*                 pGeometry)
+{
+    // Create geometry
+    Result ppxres = Geometry::Create(createInfo, pGeometry);
+    if (Failed(ppxres)) {
+        PPX_ASSERT_MSG(false, "failed creating geometry");
+        return ppxres;
+    }
+
+    //
+    // Target geometry WITHOUT index data
+    //
+    if (createInfo.indexType == grfx::INDEX_TYPE_UNDEFINED) {
+        // Mesh has index data
+        if (mesh.GetIndexType() != grfx::INDEX_TYPE_UNDEFINED) {
+            // Iterate through the meshes triangles and add vertex data for each triangle vertex
+            uint32_t triCount = mesh.GetCountTriangles();
+            for (uint32_t triIndex = 0; triIndex < triCount; ++triIndex) {
+                uint32_t vtxIndex0 = PPX_VALUE_IGNORED;
+                uint32_t vtxIndex1 = PPX_VALUE_IGNORED;
+                uint32_t vtxIndex2 = PPX_VALUE_IGNORED;
+                ppxres             = mesh.GetTriangle(triIndex, vtxIndex0, vtxIndex1, vtxIndex2);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting triangle indices at triIndex=" << triIndex);
+                    return ppxres;
+                }
+
+                // First vertex
+                VertexData vertexData0 = {};
+                ppxres                 = mesh.GetVertexData(vtxIndex0, &vertexData0);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex0=" << vtxIndex0);
+                    return ppxres;
+                }
+                // Second vertex
+                VertexData vertexData1 = {};
+                ppxres                 = mesh.GetVertexData(vtxIndex1, &vertexData1);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex1=" << vtxIndex1);
+                    return ppxres;
+                }
+                // Third vertex
+                VertexData vertexData2 = {};
+                ppxres                 = mesh.GetVertexData(vtxIndex2, &vertexData2);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex2=" << vtxIndex2);
+                    return ppxres;
+                }
+
+                pGeometry->AppendVertexData(vertexData0);
+                pGeometry->AppendVertexData(vertexData1);
+                pGeometry->AppendVertexData(vertexData2);
+            }
+        }
+        // Mesh does not have index data
+        else {
+            // Iterate through the meshes vertx data and add it to the geometry
+            uint32_t vertexCount = mesh.GetCountPositions();
+            for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
+                VertexData vertexData = {};
+                ppxres                = mesh.GetVertexData(vertexIndex, &vertexData);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vertexIndex=" << vertexIndex);
+                    return ppxres;
+                }
+                pGeometry->AppendVertexData(vertexData);
+            }
+        }
+    }
+    //
+    // Target geometry WITH index data
+    //
+    else {
+        // Mesh has index data
+        if (mesh.GetIndexType() != grfx::INDEX_TYPE_UNDEFINED) {
+            // Iterate the meshes triangles and add the vertex indices
+            uint32_t triCount = mesh.GetCountTriangles();
+            for (uint32_t triIndex = 0; triIndex < triCount; ++triIndex) {
+                uint32_t v0     = PPX_VALUE_IGNORED;
+                uint32_t v1     = PPX_VALUE_IGNORED;
+                uint32_t v2     = PPX_VALUE_IGNORED;
+                Result   ppxres = mesh.GetTriangle(triIndex, v0, v1, v2);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "couldn't get triangle at triIndex=" << triIndex);
+                    return ppxres;
+                }
+                pGeometry->AppendIndicesTriangle(v0, v1, v2);
+            }
+
+            // Iterate through the meshes vertx data and add it to the geometry
+            uint32_t vertexCount = mesh.GetCountPositions();
+            for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
+                VertexData vertexData = {};
+                ppxres                = mesh.GetVertexData(vertexIndex, &vertexData);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vertexIndex=" << vertexIndex);
+                    return ppxres;
+                }
+                pGeometry->AppendVertexData(vertexData);
+            }
+        }
+        // Mesh does not have index data
+        else {
+            // Use every 3 vertices as a triangle and add each as an indexed triangle
+            uint32_t triCount = mesh.GetCountPositions() / 3;
+            for (uint32_t triIndex = 0; triIndex < triCount; ++triIndex) {
+                uint32_t vtxIndex0 = 3 * triIndex + 0;
+                uint32_t vtxIndex1 = 3 * triIndex + 1;
+                uint32_t vtxIndex2 = 3 * triIndex + 2;
+
+                // First vertex
+                VertexData vertexData0 = {};
+                ppxres                 = mesh.GetVertexData(vtxIndex0, &vertexData0);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex0=" << vtxIndex0);
+                    return ppxres;
+                }
+                // Second vertex
+                VertexData vertexData1 = {};
+                ppxres                 = mesh.GetVertexData(vtxIndex1, &vertexData1);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex1=" << vtxIndex1);
+                    return ppxres;
+                }
+                // Third vertex
+                VertexData vertexData2 = {};
+                ppxres                 = mesh.GetVertexData(vtxIndex2, &vertexData2);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex2=" << vtxIndex2);
+                    return ppxres;
+                }
+
+                // Will append indices if geometry has index buffer
+                pGeometry->AppendTriangle(vertexData0, vertexData1, vertexData2);
+            }
+        }
+    }
+
+    return ppx::SUCCESS;
+}
+
 const Geometry::Buffer* Geometry::GetVertxBuffer(uint32_t index) const
 {
     const Geometry::Buffer* pBuffer = nullptr;
@@ -343,7 +487,7 @@ uint32_t Geometry::AppendVertexInterleaved(const VertexData& vtx)
     uint32_t bytesWritten = (endSize - startSize);
     PPX_ASSERT_MSG((bytesWritten == mVertexBuffers[0].GetElementSize()), "size of vertex data written does not match buffer's element size");
 
-    uint32_t n = mVertexBuffers[0].GetElementCount() - 1;
+    uint32_t n = mVertexBuffers[0].GetElementCount();
     return n;
 }
 
@@ -368,20 +512,13 @@ uint32_t Geometry::AppendVertexData(const VertexData& vtx)
     return n;
 }
 
-void Geometry::AppendTriangle(
-    const ppx::Geometry::VertexData& vtx0,
-    const ppx::Geometry::VertexData& vtx1,
-    const ppx::Geometry::VertexData& vtx2)
+void Geometry::AppendTriangle(const VertexData& vtx0, const VertexData& vtx1, const VertexData& vtx2)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
-        PPX_ASSERT_MSG(false, NOT_INTERLEAVED_MSG);
-        return;
-    }
+    uint32_t n0 = AppendVertexData(vtx0) - 1;
+    uint32_t n1 = AppendVertexData(vtx1) - 1;
+    uint32_t n2 = AppendVertexData(vtx2) - 1;
 
-    uint32_t n0 = AppendVertexData(vtx0);
-    uint32_t n1 = AppendVertexData(vtx0);
-    uint32_t n2 = AppendVertexData(vtx1);
-
+    // Will only append indices if geometry has an index buffer
     AppendIndicesTriangle(n0, n1, n2);
 }
 
@@ -395,7 +532,7 @@ uint32_t Geometry::AppendPosition(const float3& value)
     if (mPositionBufferIndex != PPX_VALUE_IGNORED) {
         mVertexBuffers[mPositionBufferIndex].Append(value);
 
-        uint32_t n = mVertexBuffers[mPositionBufferIndex].GetElementCount() - 1;
+        uint32_t n = mVertexBuffers[mPositionBufferIndex].GetElementCount();
         return n;
     }
 
@@ -460,258 +597,6 @@ void Geometry::AppendBitangent(const float3& value)
     if (mBitangentBufferIndex != PPX_VALUE_IGNORED) {
         mVertexBuffers[mBitangentBufferIndex].Append(value);
     }
-}
-
-Result Geometry::CreateCube(const ppx::GeometryCreateInfo& createInfo, const float3& size, ppx::Geometry* pGeometry)
-{
-    PPX_ASSERT_NULL_ARG(pGeometry);
-
-    Result ppxres = Geometry::Create(createInfo, pGeometry);
-    if (Failed(ppxres)) {
-        PPX_ASSERT_MSG(false, "failed creating geometry");
-        return ppxres;
-    }
-
-    float hx = size.x / 2.0f;
-    float hy = size.y / 2.0f;
-    float hz = size.z / 2.0f;
-
-    // clang-format off
-    std::vector<float> vertexData = {  
-        // position      // normal           // vertex colors    // texcoords  // tangents         // bitangents
-         hx,  hy, -hz,   0.0f, 0.0f,-1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  0  -Z side
-         hx, -hy, -hz,   0.0f, 0.0f,-1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  1
-        -hx, -hy, -hz,   0.0f, 0.0f,-1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  2
-        -hx,  hy, -hz,   0.0f, 0.0f,-1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  3
-
-        -hx,  hy,  hz,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  4  +Z side
-        -hx, -hy,  hz,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  5
-         hx, -hy,  hz,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  6
-         hx,  hy,  hz,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  7
-
-        -hx,  hy, -hz,  -1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  8  -X side
-        -hx, -hy, -hz,  -1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  9
-        -hx, -hy,  hz,  -1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 10
-        -hx,  hy,  hz,  -1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 11
-
-         hx,  hy,  hz,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 12  +X side
-         hx, -hy,  hz,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 13
-         hx, -hy, -hz,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 14
-         hx,  hy, -hz,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 15
-
-        -hx, -hy,  hz,   0.0f,-1.0f, 0.0f,   1.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 16  -Y side
-        -hx, -hy, -hz,   0.0f,-1.0f, 0.0f,   1.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 17
-         hx, -hy, -hz,   0.0f,-1.0f, 0.0f,   1.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 18
-         hx, -hy,  hz,   0.0f,-1.0f, 0.0f,   1.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 19
-
-        -hx,  hy, -hz,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 20  +Y side
-        -hx,  hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 21
-         hx,  hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 22
-         hx,  hy, -hz,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 23
-    };
-    // clang-format on
-
-    // clang-format off
-    std::vector<uint16_t> indexData = {
-        0,  1,  2, // -Z side
-        0,  2,  3,
-
-        4,  5,  6, // +Z side
-        4,  6,  7,
-
-        8,  9, 10, // -X side
-        8, 10, 11,
-
-        12, 13, 14, // +X side
-        12, 14, 15,
-
-        16, 17, 18, // -X side
-        16, 18, 19,
-
-        20, 21, 22, // +X side
-        20, 22, 23,
-    };
-    // clang-format on
-
-    // Size info and data pointer
-    const size_t vertexDataSize    = (vertexData.size() * sizeof(float));
-    const size_t vertexElementSize = sizeof(Geometry::VertexData);
-    const char*  pVertexData       = reinterpret_cast<const char*>(vertexData.data());
-
-    //
-    // Geometry WITHOUT index data
-    //
-    if (createInfo.indexType == grfx::INDEX_TYPE_UNDEFINED) {
-        // Itereate through the triange data in the index data and add
-        // corresponding vertex data
-        //
-        for (size_t i = 0; i < indexData.size(); ++i) {
-            uint32_t                    triVertexIndex = indexData[i];
-            const Geometry::VertexData* pVertex        = reinterpret_cast<const Geometry::VertexData*>(pVertexData + triVertexIndex * vertexElementSize);
-            pGeometry->AppendVertexData(*pVertex);
-        }
-    }
-    //
-    // Geometry WITH index data
-    //
-    else {
-        // Vertex data
-        size_t numVertices = vertexDataSize / vertexElementSize;
-        for (size_t vertexIndex = 0; vertexIndex < numVertices; ++vertexIndex) {
-            const Geometry::VertexData* pVertex = reinterpret_cast<const Geometry::VertexData*>(pVertexData + vertexIndex * vertexElementSize);
-            pGeometry->AppendVertexData(*pVertex);
-        }
-
-        // Index data
-        size_t numTris = indexData.size() / 3;
-        for (size_t i = 0; i < numTris; ++i) {
-            uint16_t vtx0 = indexData[3 * i + 0];
-            uint16_t vtx1 = indexData[3 * i + 1];
-            uint16_t vtx2 = indexData[3 * i + 2];
-            pGeometry->AppendIndicesTriangle(vtx0, vtx1, vtx2);
-        }
-    }
-
-    return ppx::SUCCESS;
-}
-
-Result Geometry::CreateFromOBJ(const ppx::GeometryCreateInfo& createInfo, const char* path, ppx::Geometry* pGeometry)
-{
-    PPX_ASSERT_NULL_ARG(pGeometry);
-
-    const std::vector<float3> colors = {
-        {1.0f, 0.0f, 0.0f},
-        {0.0f, 1.0f, 0.0f},
-        {0.0f, 0.0f, 1.0f},
-        {1.0f, 1.0f, 0.0f},
-        {1.0f, 0.0f, 1.0f},
-        {0.0f, 1.0f, 1.0f},
-        {1.0f, 1.0f, 1.0f},
-    };
-
-    tinyobj::attrib_t                attrib;
-    std::vector<tinyobj::shape_t>    shapes;
-    std::vector<tinyobj::material_t> materials;
-
-    std::string warn;
-    std::string err;
-    bool        loaded = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path, nullptr, true);
-
-    if (!loaded || !err.empty()) {
-        return ppx::ERROR_GEOMETRY_FILE_LOAD_FAILED;
-    }
-
-    size_t numShapes = shapes.size();
-    if (numShapes == 0) {
-        return ppx::ERROR_GEOMETRY_FILE_NO_DATA;
-    }
-
-    // Create storage geometry
-    Result ppxres = Geometry::Create(createInfo, pGeometry);
-    if (Failed(ppxres)) {
-        PPX_ASSERT_MSG(false, "failed creating geometry");
-        return ppxres;
-    }
-
-    // Build geometry
-    for (size_t shapeIdx = 0; shapeIdx < numShapes; ++shapeIdx) {
-        const tinyobj::shape_t& shape = shapes[shapeIdx];
-        const tinyobj::mesh_t&  mesh  = shape.mesh;
-
-        size_t numTriangles = mesh.indices.size() / 3;
-        for (size_t triIdx = 0; triIdx < numTriangles; ++triIdx) {
-            size_t triVtxIdx0 = triIdx * 3 + 0;
-            size_t triVtxIdx1 = triIdx * 3 + 1;
-            size_t triVtxIdx2 = triIdx * 3 + 2;
-
-            // Index data
-            const tinyobj::index_t& dataIdx0 = mesh.indices[triVtxIdx0];
-            const tinyobj::index_t& dataIdx1 = mesh.indices[triVtxIdx1];
-            const tinyobj::index_t& dataIdx2 = mesh.indices[triVtxIdx2];
-
-            // Vertex data
-            Geometry::VertexData vtx0 = {};
-            Geometry::VertexData vtx1 = {};
-            Geometry::VertexData vtx2 = {};
-
-            // Pick a face color
-            float3 faceColor = colors[triIdx % colors.size()];
-            vtx0.color       = faceColor;
-            vtx1.color       = faceColor;
-            vtx2.color       = faceColor;
-
-            // Vertex positions
-            {
-                int i0        = 3 * dataIdx0.vertex_index + 0;
-                int i1        = 3 * dataIdx0.vertex_index + 1;
-                int i2        = 3 * dataIdx0.vertex_index + 2;
-                vtx0.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
-
-                i0            = 3 * dataIdx1.vertex_index + 0;
-                i1            = 3 * dataIdx1.vertex_index + 1;
-                i2            = 3 * dataIdx1.vertex_index + 2;
-                vtx1.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
-
-                i0            = 3 * dataIdx2.vertex_index + 0;
-                i1            = 3 * dataIdx2.vertex_index + 1;
-                i2            = 3 * dataIdx2.vertex_index + 2;
-                vtx2.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
-            }
-
-            // Normals
-            if ((dataIdx0.normal_index != -1) && (dataIdx1.normal_index != -1) && (dataIdx2.normal_index != -1)) {
-                int i0      = 3 * dataIdx0.normal_index + 0;
-                int i1      = 3 * dataIdx0.normal_index + 1;
-                int i2      = 3 * dataIdx0.normal_index + 2;
-                vtx0.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
-
-                i0          = 3 * dataIdx1.normal_index + 0;
-                i1          = 3 * dataIdx1.normal_index + 1;
-                i2          = 3 * dataIdx1.normal_index + 2;
-                vtx1.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
-
-                i0          = 3 * dataIdx2.normal_index + 0;
-                i1          = 3 * dataIdx2.normal_index + 1;
-                i2          = 3 * dataIdx2.normal_index + 2;
-                vtx2.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
-            }
-
-            // Texture coordinates
-            if ((dataIdx0.texcoord_index != -1) && (dataIdx1.texcoord_index != -1) && (dataIdx2.texcoord_index != -1)) {
-                int i0        = 2 * dataIdx0.texcoord_index + 0;
-                int i1        = 2 * dataIdx0.texcoord_index + 1;
-                vtx0.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
-
-                i0            = 2 * dataIdx1.texcoord_index + 0;
-                i1            = 2 * dataIdx1.texcoord_index + 1;
-                vtx1.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
-
-                i0            = 2 * dataIdx2.texcoord_index + 0;
-                i1            = 2 * dataIdx2.texcoord_index + 1;
-                vtx2.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
-            }
-
-            //
-            // Geometry WITHOUT index data
-            //
-            if (createInfo.indexType == grfx::INDEX_TYPE_UNDEFINED) {
-                pGeometry->AppendVertexData(vtx0);
-                pGeometry->AppendVertexData(vtx1);
-                pGeometry->AppendVertexData(vtx2);
-            }
-            //
-            // Geometry WITH index data
-            //
-            else {
-                uint32_t vtxi0 = pGeometry->AppendVertexData(vtx0);
-                uint32_t vtxi1 = pGeometry->AppendVertexData(vtx1);
-                uint32_t vtxi2 = pGeometry->AppendVertexData(vtx2);
-                pGeometry->AppendIndicesTriangle(vtxi0, vtxi1, vtxi2);
-            }
-        }
-    }
-
-    return ppx::SUCCESS;
 }
 
 } // namespace ppx

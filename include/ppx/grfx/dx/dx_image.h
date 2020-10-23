@@ -14,7 +14,7 @@ class Image
 {
 public:
     Image() {}
-    virtual ~Image() {}
+    virtual ~Image();
 
     typename D3D12ResourcePtr::InterfaceType* GetDxResource() const { return mResource.Get(); }
 

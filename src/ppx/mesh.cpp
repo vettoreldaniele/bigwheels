@@ -1,0 +1,761 @@
+#include "ppx/mesh.h"
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+
+namespace ppx {
+
+TriMesh::TriMesh()
+{
+}
+
+TriMesh::TriMesh(grfx::IndexType indexType)
+    : mIndexType(indexType)
+{
+}
+
+TriMesh::TriMesh(TriMeshAttributeDim texCoordDim)
+    : mTexCoordDim(texCoordDim)
+{
+}
+
+TriMesh::TriMesh(grfx::IndexType indexType, TriMeshAttributeDim texCoordDim)
+    : mIndexType(indexType), mTexCoordDim(texCoordDim)
+{
+}
+
+TriMesh::~TriMesh()
+{
+}
+
+uint32_t TriMesh::GetCountTriangles() const
+{
+    uint32_t count = 0;
+    if (mIndexType != grfx::INDEX_TYPE_UNDEFINED) {
+        count = CountU32(mIndices) / 3;
+    }
+    else {
+        count = CountU32(mPositions) / 3;
+    }
+    return count;
+}
+
+uint32_t TriMesh::GetCountIndices() const
+{
+    uint32_t indexSize = grfx::IndexTypeSize(mIndexType);
+    if (indexSize == 0) {
+        return 0;
+    }
+
+    uint32_t count = CountU32(mIndices) / indexSize;
+    return count;
+}
+
+uint32_t TriMesh::GetCountPositions() const
+{
+    uint32_t count = CountU32(mPositions);
+    return count;
+}
+
+uint32_t TriMesh::GetCountColors() const
+{
+    uint32_t count = CountU32(mColors);
+    return count;
+}
+
+uint32_t TriMesh::GetCountNormals() const
+{
+    uint32_t count = CountU32(mNormals);
+    return count;
+}
+
+uint32_t TriMesh::GetCountTexCoords() const
+{
+    if (mTexCoordDim == TRI_MESH_ATTRIBUTE_DIM_2) {
+        uint32_t count = CountU32(mTexCoords) / 2;
+        return count;
+    }
+    else if (mTexCoordDim == TRI_MESH_ATTRIBUTE_DIM_3) {
+        uint32_t count = CountU32(mTexCoords) / 3;
+        return count;
+    }
+    else if (mTexCoordDim == TRI_MESH_ATTRIBUTE_DIM_4) {
+        uint32_t count = CountU32(mTexCoords) / 4;
+        return count;
+    }
+    return 0;
+}
+
+uint32_t TriMesh::GetCountTangents() const
+{
+    uint32_t count = CountU32(mTangents);
+    return count;
+}
+
+uint32_t TriMesh::GetCountBitangents() const
+{
+    uint32_t count = CountU32(mBitangents);
+    return count;
+}
+
+uint64_t TriMesh::GetDataSizeIndices() const
+{
+    uint64_t size = static_cast<uint64_t>(mIndices.size());
+    return size;
+}
+
+uint64_t TriMesh::GetDataSizePositions() const
+{
+    uint64_t size = static_cast<uint64_t>(mPositions.size() * sizeof(float3));
+    return size;
+}
+
+uint64_t TriMesh::GetDataSizeColors() const
+{
+    uint64_t size = static_cast<uint64_t>(mColors.size() * sizeof(float3));
+    return size;
+}
+
+uint64_t TriMesh::GetDataSizeNormalls() const
+{
+    uint64_t size = static_cast<uint64_t>(mNormals.size() * sizeof(float3));
+    return size;
+}
+
+uint64_t TriMesh::GetDataSizeTexCoords() const
+{
+    uint64_t size = static_cast<uint64_t>(mTexCoords.size() * sizeof(float));
+    return size;
+}
+
+uint64_t TriMesh::GetDataSizeTangents() const
+{
+    uint64_t size = static_cast<uint64_t>(mTangents.size() * sizeof(float3));
+    return size;
+}
+
+uint64_t TriMesh::GetDataSizeBitangents() const
+{
+    uint64_t size = static_cast<uint64_t>(mBitangents.size() * sizeof(float3));
+    return size;
+}
+
+const uint16_t* TriMesh::GetDataIndicesU16(uint32_t index) const
+{
+    if (mIndexType != grfx::INDEX_TYPE_UINT16) {
+        return nullptr;
+    }
+    uint32_t count = GetCountIndices();
+    if (index >= count) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(uint16_t) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mIndices.data()) + offset;
+    return reinterpret_cast<const uint16_t*>(ptr);
+}
+
+const uint32_t* TriMesh::GetDataIndicesU32(uint32_t index) const
+{
+    if (mIndexType != grfx::INDEX_TYPE_UINT32) {
+        return nullptr;
+    }
+    uint32_t count = GetCountIndices();
+    if (index >= count) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(uint32_t) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mIndices.data()) + offset;
+    return reinterpret_cast<const uint32_t*>(ptr);
+}
+
+const float3* TriMesh::GetDataPositions(uint32_t index) const
+{
+    if (index >= mPositions.size()) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(float3) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mPositions.data()) + offset;
+    return reinterpret_cast<const float3*>(ptr);
+}
+
+const float3* TriMesh::GetDataColors(uint32_t index) const
+{
+    if (index >= mColors.size()) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(float3) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mColors.data()) + offset;
+    return reinterpret_cast<const float3*>(ptr);
+}
+
+const float3* TriMesh::GetDataNormalls(uint32_t index) const
+{
+    if (index >= mNormals.size()) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(float3) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mNormals.data()) + offset;
+    return reinterpret_cast<const float3*>(ptr);
+}
+
+const float2* TriMesh::GetDataTexCoords2(uint32_t index) const
+{
+    if (mTexCoordDim != TRI_MESH_ATTRIBUTE_DIM_2) {
+        return nullptr;
+    }
+    uint32_t count = GetCountTexCoords();
+    if (index >= count) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(float2) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mTexCoords.data()) + offset;
+    return reinterpret_cast<const float2*>(ptr);
+}
+
+const float3* TriMesh::GetDataTexCoords3(uint32_t index) const
+{
+    if (mTexCoordDim != TRI_MESH_ATTRIBUTE_DIM_3) {
+        return nullptr;
+    }
+    uint32_t count = GetCountTexCoords();
+    if (index >= count) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(float3) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mTexCoords.data()) + offset;
+    return reinterpret_cast<const float3*>(ptr);
+}
+
+const float4* TriMesh::GetDataTexCoords4(uint32_t index) const
+{
+    if (mTexCoordDim != TRI_MESH_ATTRIBUTE_DIM_4) {
+        return nullptr;
+    }
+    uint32_t count = GetCountTexCoords();
+    if (index >= count) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(float4) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mTexCoords.data()) + offset;
+    return reinterpret_cast<const float4*>(ptr);
+}
+
+const float3* TriMesh::GetDataTangents(uint32_t index) const
+{
+    if (index >= mTangents.size()) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(float3) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mTangents.data()) + offset;
+    return reinterpret_cast<const float3*>(ptr);
+}
+
+const float3* TriMesh::GetDataBitangents(uint32_t index) const
+{
+    if (index >= mBitangents.size()) {
+        return nullptr;
+    }
+    size_t      offset = sizeof(float3) * index;
+    const char* ptr    = reinterpret_cast<const char*>(mBitangents.data()) + offset;
+    return reinterpret_cast<const float3*>(ptr);
+}
+
+void TriMesh::AppendIndexU16(uint16_t value)
+{
+    const uint8_t* pBytes = reinterpret_cast<const uint8_t*>(&value);
+    mIndices.push_back(pBytes[0]);
+    mIndices.push_back(pBytes[1]);
+}
+
+void TriMesh::AppendIndexU32(uint32_t value)
+{
+    const uint8_t* pBytes = reinterpret_cast<const uint8_t*>(&value);
+    mIndices.push_back(pBytes[0]);
+    mIndices.push_back(pBytes[1]);
+    mIndices.push_back(pBytes[2]);
+    mIndices.push_back(pBytes[3]);
+}
+
+uint32_t TriMesh::AppendTriangle(uint32_t v0, uint32_t v1, uint32_t v2)
+{
+    if (mIndexType == grfx::INDEX_TYPE_UINT16) {
+        mIndices.reserve(mIndices.size() + 3 * sizeof(uint16_t));
+        AppendIndexU16(static_cast<uint16_t>(v0));
+        AppendIndexU16(static_cast<uint16_t>(v1));
+        AppendIndexU16(static_cast<uint16_t>(v2));
+    }
+    else if (mIndexType == grfx::INDEX_TYPE_UINT16) {
+        mIndices.reserve(mIndices.size() + 3 * sizeof(uint32_t));
+        AppendIndexU32(v0);
+        AppendIndexU32(v1);
+        AppendIndexU32(v2);
+    }
+    else {
+        PPX_ASSERT_MSG(false, "unknown index type");
+        return 0;
+    }
+    uint32_t count = GetCountTriangles();
+    return count;
+}
+
+uint32_t TriMesh::AppendPosition(const float3& value)
+{
+    mPositions.push_back(value);
+    uint32_t count = GetCountPositions();
+    return count;
+}
+
+uint32_t TriMesh::AppendColor(const float3& value)
+{
+    mColors.push_back(value);
+    uint32_t count = GetCountColors();
+    return count;
+}
+
+uint32_t TriMesh::AppendTexCoord(const float2& value)
+{
+    if (mTexCoordDim != TRI_MESH_ATTRIBUTE_DIM_2) {
+        PPX_ASSERT_MSG(false, "unknown tex coord dim");
+        return 0;
+    }
+    mTexCoords.resize(mTexCoords.size() + 2);
+    mTexCoords.push_back(value.x);
+    mTexCoords.push_back(value.y);
+    uint32_t count = GetCountTexCoords();
+    return count;
+}
+
+uint32_t TriMesh::AppendTexCoord(const float3& value)
+{
+    if (mTexCoordDim != TRI_MESH_ATTRIBUTE_DIM_3) {
+        PPX_ASSERT_MSG(false, "unknown tex coord dim");
+        return 0;
+    }
+    mTexCoords.resize(mTexCoords.size() + 3);
+    mTexCoords.push_back(value.x);
+    mTexCoords.push_back(value.y);
+    mTexCoords.push_back(value.z);
+    uint32_t count = GetCountTexCoords();
+    return count;
+}
+
+uint32_t TriMesh::AppendTexCoord(const float4& value)
+{
+    if (mTexCoordDim != TRI_MESH_ATTRIBUTE_DIM_4) {
+        PPX_ASSERT_MSG(false, "unknown tex coord dim");
+        return 0;
+    }
+    mTexCoords.resize(mTexCoords.size() + 3);
+    mTexCoords.push_back(value.x);
+    mTexCoords.push_back(value.y);
+    mTexCoords.push_back(value.z);
+    mTexCoords.push_back(value.w);
+    uint32_t count = GetCountTexCoords();
+    return count;
+}
+
+uint32_t TriMesh::AppendNormal(const float3& value)
+{
+    mNormals.push_back(value);
+    uint32_t count = GetCountNormals();
+    return count;
+}
+
+uint32_t TriMesh::AppendTangent(const float3& value)
+{
+    mTangents.push_back(value);
+    uint32_t count = GetCountTangents();
+    return count;
+}
+
+uint32_t TriMesh::AppendBitangent(const float3& value)
+{
+    mBitangents.push_back(value);
+    uint32_t count = GetCountBitangents();
+    return count;
+}
+
+Result TriMesh::GetTriangle(uint32_t triIndex, uint32_t& v0, uint32_t& v1, uint32_t& v2) const
+{
+    if (mIndexType == grfx::INDEX_TYPE_UNDEFINED) {
+        return ppx::ERROR_NO_INDEX_DATA;
+    }
+
+    uint32_t triCount = GetCountTriangles();
+    if (triIndex >= triCount) {
+        return ppx::ERROR_OUT_OF_RANGE;
+    }
+
+    uint32_t offset = 3 * triIndex;
+    v0              = mIndices[offset + 0];
+    v1              = mIndices[offset + 1];
+    v2              = mIndices[offset + 2];
+
+    return ppx::SUCCESS;
+}
+
+Result TriMesh::GetVertexData(uint32_t vtxIndex, VertexData* pVertexData) const
+{
+    uint32_t vertexCount = GetCountPositions();
+    if (vtxIndex >= vertexCount) {
+        return ppx::ERROR_OUT_OF_RANGE;
+    }
+
+    const float3* pPosition  = GetDataPositions(vtxIndex);
+    const float3* pColor     = GetDataColors(vtxIndex);
+    const float3* pNormal    = GetDataNormalls(vtxIndex);
+    const float2* pTexCoord  = GetDataTexCoords2(vtxIndex);
+    const float3* pTangent   = GetDataTangents(vtxIndex);
+    const float3* pBitangent = GetDataBitangents(vtxIndex);
+
+    pVertexData->position = *pPosition;
+
+    if (!IsNull(pColor)) {
+        pVertexData->color = *pColor;
+    }
+
+    if (!IsNull(pNormal)) {
+        pVertexData->normal = *pNormal;
+    }
+
+    if (!IsNull(pTexCoord)) {
+        pVertexData->texCoord = *pTexCoord;
+    }
+
+    if (!IsNull(pTangent)) {
+        pVertexData->tangent = *pTangent;
+    }
+    if (!IsNull(pBitangent)) {
+        pVertexData->bitangent = *pBitangent;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void TriMesh::AppendIndexAndVertexData(
+    std::vector<uint32_t>&    indexData,
+    const std::vector<float>& vertexData,
+    const uint32_t            expectedVertexCount,
+    const TriMesh::Options&   options,
+    TriMesh&                  mesh)
+{
+    grfx::IndexType     indexType   = options.mIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+
+    // Verify expected vertex count
+    size_t vertexCount = (vertexData.size() * sizeof(float)) / sizeof(VertexData);
+    PPX_ASSERT_MSG(vertexCount == expectedVertexCount, "unexpected vertex count");
+
+    // Get base pointer to vertex data
+    const char* pData = reinterpret_cast<const char*>(vertexData.data());
+
+    if (indexType != grfx::INDEX_TYPE_UNDEFINED) {
+        for (size_t i = 0; i < vertexCount; ++i) {
+            const VertexData* pVertexData = reinterpret_cast<const VertexData*>(pData + (i * sizeof(VertexData)));
+
+            mesh.AppendPosition(pVertexData->position);
+
+            if (options.mColors) {
+                mesh.AppendColor(pVertexData->color);
+            }
+
+            if (options.mNormals) {
+                mesh.AppendNormal(pVertexData->normal);
+            }
+
+            if (options.mTexCoords) {
+                mesh.AppendTexCoord(pVertexData->texCoord);
+            }
+
+            if (options.mTangents) {
+                mesh.AppendTangent(pVertexData->tangent);
+                mesh.AppendBitangent(pVertexData->bitangent);
+            }
+        }
+
+        for (size_t i = 0; i < indexData.size() / 3; ++i) {
+            uint32_t v0 = indexData[3 * i + 0];
+            uint32_t v1 = indexData[3 * i + 1];
+            uint32_t v2 = indexData[3 * i + 2];
+            mesh.AppendTriangle(v0, v1, v2);
+        }
+    }
+    else {
+        for (size_t i = 0; i < indexData.size(); ++i) {
+            uint32_t          vi          = indexData[i];
+            const VertexData* pVertexData = reinterpret_cast<const VertexData*>(pData + (vi * sizeof(VertexData)));
+
+            mesh.AppendPosition(pVertexData->position);
+
+            if (options.mColors) {
+                mesh.AppendColor(pVertexData->color);
+            }
+
+            if (options.mNormals) {
+                mesh.AppendNormal(pVertexData->normal);
+            }
+
+            if (options.mTexCoords) {
+                mesh.AppendTexCoord(pVertexData->texCoord);
+            }
+
+            if (options.mTangents) {
+                mesh.AppendTangent(pVertexData->tangent);
+                mesh.AppendBitangent(pVertexData->bitangent);
+            }
+        }
+    }
+}
+
+TriMesh TriMesh::CreatePlane(const float2& size, const TriMesh::Options& options)
+{
+    float hx = size.x / 2.0f;
+    float hz = size.y / 2.0f;
+    // clang-format off
+    std::vector<float> vertexData = {
+        // position       // vertex color     // normal           // texcoord   // tangent          // bitangent
+        -hx, 0.0f, -hz,   0.7f, 0.7f, 0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,
+        -hx, 0.0f,  hz,   0.7f, 0.7f, 0.7f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,
+         hx, 0.0f,  hz,   0.7f, 0.7f, 0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,
+         hx, 0.0f, -hz,   0.7f, 0.7f, 0.7f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,
+    };
+
+    std::vector<uint32_t> indexData = {
+        0, 1, 2,
+        0, 2, 3
+    };
+    // clang-format on
+
+    grfx::IndexType     indexType   = options.mIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    TriMesh             mesh        = TriMesh(indexType, texCoordDim);
+
+    AppendIndexAndVertexData(indexData, vertexData, 4, options, mesh);
+
+    return mesh;
+}
+
+TriMesh TriMesh::CreateCube(const float3& size, const TriMesh::Options& options)
+{
+    float hx = size.x / 2.0f;
+    float hy = size.y / 2.0f;
+    float hz = size.z / 2.0f;
+
+    // clang-format off
+    std::vector<float> vertexData = {  
+        // position      // vertex colors    // normal           // texcoords  // tangents         // bitangents
+         hx,  hy, -hz,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  0  -Z side
+         hx, -hy, -hz,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  1
+        -hx, -hy, -hz,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  2
+        -hx,  hy, -hz,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  3
+
+        -hx,  hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  4  +Z side
+        -hx, -hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  5
+         hx, -hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  6
+         hx,  hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  7
+
+        -hx,  hy, -hz,  -0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  8  -X side
+        -hx, -hy, -hz,  -0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  9
+        -hx, -hy,  hz,  -0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 10
+        -hx,  hy,  hz,  -0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 11
+
+         hx,  hy,  hz,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 12  +X side
+         hx, -hy,  hz,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 13
+         hx, -hy, -hz,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 14
+         hx,  hy, -hz,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 15
+
+        -hx, -hy,  hz,   1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 16  -Y side
+        -hx, -hy, -hz,   1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 17
+         hx, -hy, -hz,   1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 18
+         hx, -hy,  hz,   1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 19
+
+        -hx,  hy, -hz,   0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 20  +Y side
+        -hx,  hy,  hz,   0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 21
+         hx,  hy,  hz,   0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 22
+         hx,  hy, -hz,   0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 23
+    };
+
+    std::vector<uint32_t> indexData = {
+        0,  1,  2, // -Z side
+        0,  2,  3,
+
+        4,  5,  6, // +Z side
+        4,  6,  7,
+
+        8,  9, 10, // -X side
+        8, 10, 11,
+
+        12, 13, 14, // +X side
+        12, 14, 15,
+
+        16, 17, 18, // -X side
+        16, 18, 19,
+
+        20, 21, 22, // +X side
+        20, 22, 23,
+    };
+    // clang-format on
+
+    grfx::IndexType     indexType   = options.mIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    TriMesh             mesh        = TriMesh(indexType, texCoordDim);
+
+    AppendIndexAndVertexData(indexData, vertexData, 24, options, mesh);
+
+    return mesh;
+}
+
+TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& options)
+{
+    grfx::IndexType     indexType   = options.mIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    TriMesh             mesh        = TriMesh(indexType, texCoordDim);
+
+    const std::vector<float3> colors = {
+        {1.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f},
+        {1.0f, 1.0f, 0.0f},
+        {1.0f, 0.0f, 1.0f},
+        {0.0f, 1.0f, 1.0f},
+        {1.0f, 1.0f, 1.0f},
+    };
+
+    tinyobj::attrib_t                attrib;
+    std::vector<tinyobj::shape_t>    shapes;
+    std::vector<tinyobj::material_t> materials;
+
+    std::string warn;
+    std::string err;
+    bool        loaded = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path, nullptr, true);
+
+    if (!loaded || !err.empty()) {
+        PPX_ASSERT_MSG(false, "OBj load failed for path=" << path.c_str());
+        return mesh;
+    }
+
+    size_t numShapes = shapes.size();
+    if (numShapes == 0) {
+        PPX_ASSERT_MSG(false, "no shapes found");
+        return mesh;
+    }
+
+    // Build geometry
+    for (size_t shapeIdx = 0; shapeIdx < numShapes; ++shapeIdx) {
+        const tinyobj::shape_t& shape = shapes[shapeIdx];
+        const tinyobj::mesh_t&  shapeMesh  = shape.mesh;
+
+        size_t numTriangles = shapeMesh.indices.size() / 3;
+        for (size_t triIdx = 0; triIdx < numTriangles; ++triIdx) {
+            size_t triVtxIdx0 = triIdx * 3 + 0;
+            size_t triVtxIdx1 = triIdx * 3 + 1;
+            size_t triVtxIdx2 = triIdx * 3 + 2;
+
+            // Index data
+            const tinyobj::index_t& dataIdx0 = shapeMesh.indices[triVtxIdx0];
+            const tinyobj::index_t& dataIdx1 = shapeMesh.indices[triVtxIdx1];
+            const tinyobj::index_t& dataIdx2 = shapeMesh.indices[triVtxIdx2];
+
+            // Vertex data
+            VertexData vtx0 = {};
+            VertexData vtx1 = {};
+            VertexData vtx2 = {};
+
+            // Pick a face color
+            float3 faceColor = colors[triIdx % colors.size()];
+            vtx0.color       = faceColor;
+            vtx1.color       = faceColor;
+            vtx2.color       = faceColor;
+
+            // Vertex positions
+            {
+                int i0        = 3 * dataIdx0.vertex_index + 0;
+                int i1        = 3 * dataIdx0.vertex_index + 1;
+                int i2        = 3 * dataIdx0.vertex_index + 2;
+                vtx0.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
+
+                i0            = 3 * dataIdx1.vertex_index + 0;
+                i1            = 3 * dataIdx1.vertex_index + 1;
+                i2            = 3 * dataIdx1.vertex_index + 2;
+                vtx1.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
+
+                i0            = 3 * dataIdx2.vertex_index + 0;
+                i1            = 3 * dataIdx2.vertex_index + 1;
+                i2            = 3 * dataIdx2.vertex_index + 2;
+                vtx2.position = float3(attrib.vertices[i0], attrib.vertices[i1], attrib.vertices[i2]);
+            }
+
+            // Normals
+            if ((dataIdx0.normal_index != -1) && (dataIdx1.normal_index != -1) && (dataIdx2.normal_index != -1)) {
+                int i0      = 3 * dataIdx0.normal_index + 0;
+                int i1      = 3 * dataIdx0.normal_index + 1;
+                int i2      = 3 * dataIdx0.normal_index + 2;
+                vtx0.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
+
+                i0          = 3 * dataIdx1.normal_index + 0;
+                i1          = 3 * dataIdx1.normal_index + 1;
+                i2          = 3 * dataIdx1.normal_index + 2;
+                vtx1.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
+
+                i0          = 3 * dataIdx2.normal_index + 0;
+                i1          = 3 * dataIdx2.normal_index + 1;
+                i2          = 3 * dataIdx2.normal_index + 2;
+                vtx2.normal = float3(attrib.normals[i0], attrib.normals[i1], attrib.normals[i2]);
+            }
+
+            // Texture coordinates
+            if ((dataIdx0.texcoord_index != -1) && (dataIdx1.texcoord_index != -1) && (dataIdx2.texcoord_index != -1)) {
+                int i0        = 2 * dataIdx0.texcoord_index + 0;
+                int i1        = 2 * dataIdx0.texcoord_index + 1;
+                vtx0.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
+
+                i0            = 2 * dataIdx1.texcoord_index + 0;
+                i1            = 2 * dataIdx1.texcoord_index + 1;
+                vtx1.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
+
+                i0            = 2 * dataIdx2.texcoord_index + 0;
+                i1            = 2 * dataIdx2.texcoord_index + 1;
+                vtx2.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
+            }
+
+            uint32_t triVtx0 = mesh.AppendPosition(vtx0.position) - 1;
+            uint32_t triVtx1 = mesh.AppendPosition(vtx1.position) - 1;
+            uint32_t triVtx2 = mesh.AppendPosition(vtx2.position) - 1;
+
+            if (options.mColors) {
+                mesh.AppendColor(vtx0.color);
+                mesh.AppendColor(vtx1.color);
+                mesh.AppendColor(vtx2.color);
+            }
+
+            if (options.mNormals) {
+                mesh.AppendNormal(vtx0.normal);
+                mesh.AppendNormal(vtx1.normal);
+                mesh.AppendNormal(vtx2.normal);
+            }
+
+            if (options.mTexCoords) {
+                mesh.AppendTexCoord(vtx0.texCoord);
+                mesh.AppendTexCoord(vtx1.texCoord);
+                mesh.AppendTexCoord(vtx2.texCoord);
+            }
+
+            if (options.mTangents) {
+                mesh.AppendTangent(vtx0.tangent);
+                mesh.AppendTangent(vtx1.tangent);
+                mesh.AppendTangent(vtx2.tangent);
+                mesh.AppendBitangent(vtx0.bitangent);
+                mesh.AppendBitangent(vtx1.bitangent);
+                mesh.AppendBitangent(vtx2.bitangent);
+            }
+
+            if (indexType != grfx::INDEX_TYPE_UNDEFINED) {
+                mesh.AppendTriangle(triVtx0, triVtx1, triVtx2);
+            }
+        }
+    }
+
+    return mesh;
+}
+
+} // namespace ppx
