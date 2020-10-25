@@ -10,7 +10,6 @@ namespace dx {
 // -------------------------------------------------------------------------------------------------
 Image::~Image()
 {
-
 }
 
 Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
@@ -94,7 +93,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
 }
 
 void Image::DestroyApiObjects()
-{    
+{
     // Reset if resource isn't external
     if (IsNull(mCreateInfo.pApiObject)) {
         if (mResource) {
@@ -105,7 +104,6 @@ void Image::DestroyApiObjects()
         // Deatch if the resource is external
         mResource.Detach();
     }
-
 
     if (mAllocation) {
         mAllocation->Release();
@@ -129,7 +127,10 @@ void Image::UnmapMemory()
 // -------------------------------------------------------------------------------------------------
 Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
 {
-    mDesc.Filter         = D3D12_FILTER_MIN_MAG_MIP_POINT; // minFilter, maxFilter, mipmapMode are all NEAREST
+    // minFilter, maxFilter, mipmapMode are all NEAREST
+    D3D12_FILTER filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT : D3D12_FILTER_MIN_MAG_MIP_POINT;
+
+    mDesc.Filter         = D3D12_FILTER_MIN_MAG_MIP_POINT;
     mDesc.AddressU       = ToD3D12TextureAddressMode(pCreateInfo->addressModeU);
     mDesc.AddressV       = ToD3D12TextureAddressMode(pCreateInfo->addressModeV);
     mDesc.AddressW       = ToD3D12TextureAddressMode(pCreateInfo->addressModeW);
@@ -155,19 +156,19 @@ Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
             // Use linear interpolation for magnification
             // Use point sampling for mip-level sampling
             if ((pCreateInfo->minFilter == grfx::FILTER_NEAREST) || (pCreateInfo->minFilter == grfx::FILTER_LINEAR)) {
-                mDesc.Filter = D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT : D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
             }
             // Use linear interpolation for minification
             // Use point sampling for magnification
             // Use point sampling for mip-level sampling
             else if ((pCreateInfo->minFilter == grfx::FILTER_LINEAR) || (pCreateInfo->minFilter == grfx::FILTER_NEAREST)) {
-                mDesc.Filter = D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT : D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
             }
             // Use linear interpolation for minification
             // Use linear interpolation for magnification
             // Use point sampling for mip-level sampling
             else if ((pCreateInfo->minFilter == grfx::FILTER_LINEAR) || (pCreateInfo->minFilter == grfx::FILTER_LINEAR)) {
-                mDesc.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT : D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
             }
         }
         else if (pCreateInfo->mipmapMode == SAMPLER_MIPMAP_MODE_LINEAR) {
@@ -175,25 +176,25 @@ Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
             // Use point sampling for magnification
             // Use linear interpolation for mip-level sampling
             if ((pCreateInfo->minFilter == grfx::FILTER_NEAREST) || (pCreateInfo->minFilter == grfx::FILTER_NEAREST)) {
-                mDesc.Filter = D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
             }
             // Use point sampling for minification
             // Use linear interpolation for magnification
             // Use linear interpolation for magnification mip-level sampling
             else if ((pCreateInfo->minFilter == grfx::FILTER_NEAREST) || (pCreateInfo->minFilter == grfx::FILTER_LINEAR)) {
-                mDesc.Filter = D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR : D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR;
             }
             // Use linear interpolation for minification
             // Use point sampling for magnification
             // Use linear interpolation for mip-level sampling
             else if ((pCreateInfo->minFilter == grfx::FILTER_LINEAR) || (pCreateInfo->minFilter == grfx::FILTER_NEAREST)) {
-                mDesc.Filter = D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
             }
             // Use linear interpolation for minification
             // Use linear interpolation for magnification
             // Use linear interpolation for mip-level sampling
             else if ((pCreateInfo->minFilter == grfx::FILTER_LINEAR) || (pCreateInfo->minFilter == grfx::FILTER_LINEAR)) {
-                mDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D12_FILTER_MIN_MAG_MIP_LINEAR;
             }
         }
     }
@@ -346,14 +347,14 @@ Result SampledImageView::CreateApiObjects(const grfx::SampledImageViewCreateInfo
     D3D12_SHADER_COMPONENT_MAPPING src2 = ToD3D12ShaderComponentMapping(pCreateInfo->components.b, D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_2);
     D3D12_SHADER_COMPONENT_MAPPING src3 = ToD3D12ShaderComponentMapping(pCreateInfo->components.a, D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_3);
 
-    // Intial format 
+    // Intial format
     DXGI_FORMAT format = ToDxgiFormat(pCreateInfo->format);
 
     // D3D12 doesn't allow the usage of D32_FLOAT in SRV so we'll need to readjust it
     if (format == DXGI_FORMAT_D32_FLOAT) {
         format = DXGI_FORMAT_R32_FLOAT;
-    }        
-    
+    }
+
     mDesc.Format                  = format;
     mDesc.ViewDimension           = ToD3D12SRVDimension(pCreateInfo->imageViewType, pCreateInfo->arrayLayerCount);
     mDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(src0, src1, src2, src3);

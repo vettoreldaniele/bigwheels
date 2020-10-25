@@ -11,11 +11,13 @@ struct SceneData
     
     float4   LightPosition;             // Light's position
     float4x4 LightViewProjectionMatrix; // Light's view projection matrix
+    
+    uint4    UsePCF; // Enable/disable PCF
 };
 
 ConstantBuffer<SceneData> Scene              : register(b0);
 Texture2D                 ShadowDepthTexture : register(t1);
-SamplerState              ShadowDepthSampler : register(s2);
+SamplerComparisonState    ShadowDepthSampler : register(s2);
 
 struct VSOutput {
     float4 PositionWS : POSITION;
@@ -48,31 +50,55 @@ VSOutput vsmain(
 	return result;
 }
 
+#define PCF_SIZE 16
+
+float ShadowPCF(float2 uv, float lightDepth)
+{
+    float2 dim = (float2)0;
+    ShadowDepthTexture.GetDimensions(dim.x, dim.y);
+    float2 invDim = 1.0 / dim;
+    
+    float sum = 0.0;
+    for (uint y = 0; y < PCF_SIZE; ++y) {
+        for (uint x = 0; x < PCF_SIZE; ++x) {
+            float2 offset = (float2(x, y) - (float2(PCF_SIZE, PCF_SIZE) / 2.0f)) * invDim;
+            sum += ShadowDepthTexture.SampleCmpLevelZero(ShadowDepthSampler, uv + offset, lightDepth).r;  
+        }    
+    }
+      
+    sum = sum / (PCF_SIZE * PCF_SIZE);
+    return sum;
+}
+
 float4 psmain(VSOutput input) : SV_TARGET
 {
-    float shadow = 0;
-    float bias   = 0.002;    
+    // Lower values may introduce artifacts
+    const float bias = 0.0015;
 
-    // Calculate shadow
-    float2 shadowTexCoord = (float2)0;
-    shadowTexCoord.x =  input.PositionLS.x / input.PositionLS.w / 2.0 + 0.5;
-    shadowTexCoord.y = -input.PositionLS.y / input.PositionLS.w / 2.0 + 0.5;
+    // Position in light space
+    float4 positionLS = input.PositionLS;
+
+    // Complete projection into NDC
+    positionLS.xyz = positionLS.xyz / positionLS.w;
     
-    bool isInBoundsX = (shadowTexCoord.x >= 0) && (shadowTexCoord.x < 1);
-    bool isInBoundsY = (shadowTexCoord.y >= 0) && (shadowTexCoord.y < 1);
-    if (isInBoundsX && isInBoundsY) {
-        // Read depth value from shadow texture
-        float shadowDepth = ShadowDepthTexture.Sample(ShadowDepthSampler, shadowTexCoord).r;
-        
-        // Calculate depth from light's perspective
-        float lightDepth = input.PositionLS.z / input.PositionLS.w;
-        
-        // Adjust for bias
-        lightDepth -= bias;
-        
-        if (shadowDepth < lightDepth) {
-            shadow = 0.5;
-        }        
+    // Readjust to [0, 1] for texture sampling
+    positionLS.x =  positionLS.x / 2.0 + 0.5;
+    positionLS.y = -positionLS.y / 2.0 + 0.5;
+    
+    // Calculate depth in light space
+    float depth = positionLS.z - bias;
+
+    // Assume 
+    float shadowFactor = 1;
+
+    bool isInBoundsX = (positionLS.x >= 0) && (positionLS.x < 1);
+    bool isInBoundsY = (positionLS.y >= 0) && (positionLS.y < 1);
+    bool isInBoundsZ = (positionLS.z >= 0) && (positionLS.z < 1);
+    if (isInBoundsX && isInBoundsY && isInBoundsZ) {
+        shadowFactor = ShadowDepthTexture.SampleCmpLevelZero(ShadowDepthSampler, positionLS.xy, depth);
+        if (Scene.UsePCF.x) {
+            shadowFactor = ShadowPCF(positionLS.xy, depth);
+        }
     }
 
     // Calculate diffuse lighting
@@ -81,7 +107,7 @@ float4 psmain(VSOutput input) : SV_TARGET
     float  diffuse = saturate(dot(N, L));
     
     // Final output color
-    float  ambient = Scene.Ambient.x;       
-    float3 Co       = (diffuse + ambient) * (1.0 - shadow) * input.Color;
+    float  ambient = Scene.Ambient.x;   
+    float3 Co       = (diffuse * shadowFactor + ambient)  * input.Color;
 	return float4(Co, 1);
 }

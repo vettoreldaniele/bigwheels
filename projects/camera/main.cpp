@@ -13,6 +13,8 @@ grfx::Api kApi = grfx::API_VK_1_1;
 #define kWindowHeight 720
 #define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
 
+#define kShadowMapSize 1024
+
 class ProjApp
     : public ppx::Application
 {
@@ -70,6 +72,7 @@ private:
     Entity                       mLight;
     float3                       mLightPosition = float3(0, 5, 5);
     PerspCamera                  mLightCamera;
+    bool                         mUsePCF = false;
 
 private:
     void SetupEntity(
@@ -281,8 +284,8 @@ void ProjApp::Setup()
     // Shadow render pass
     {
         grfx::RenderPassCreateInfo2 createInfo                        = {};
-        createInfo.width                                              = 1024;
-        createInfo.height                                             = 1024;
+        createInfo.width                                              = kShadowMapSize;
+        createInfo.height                                             = kShadowMapSize;
         createInfo.depthStencilFormat                                 = grfx::FORMAT_D32_FLOAT;
         createInfo.depthStencilUsageFlags.bits.depthStencilAttachment = true;
         createInfo.depthStencilUsageFlags.bits.sampled                = true;
@@ -303,6 +306,9 @@ void ProjApp::Setup()
         samplerCreateInfo.addressModeU            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
         samplerCreateInfo.addressModeV            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
         samplerCreateInfo.addressModeW            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerCreateInfo.compareEnable           = true;
+        samplerCreateInfo.compareOp               = grfx::COMPARE_OP_LESS_OR_EQUAL;
+        samplerCreateInfo.borderColor             = grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mShadowSampler));
 
         grfx::WriteDescriptor writes[2] = {};
@@ -461,6 +467,7 @@ void ProjApp::Render()
             float4x4 CameraViewProjectionMatrix; // Camera's view projection matrix
             float4   LightPosition;              // Light's position
             float4x4 LightViewProjectionMatrix;  // Light's view projection matrix
+            uint4    UsePCF;                     // Enable/disable PCF
         };
 
         Scene scene                      = {};
@@ -470,6 +477,7 @@ void ProjApp::Render()
         scene.CameraViewProjectionMatrix = mCamera.GetViewProjectionMatrix();
         scene.LightPosition              = float4(mLightPosition, 0);
         scene.LightViewProjectionMatrix  = mLightCamera.GetViewProjectionMatrix();
+        scene.UsePCF                     = uint4(mUsePCF);
 
         pEntity->drawUniformBuffer->CopyFromSource(sizeof(scene), &scene);
 
@@ -570,6 +578,9 @@ void ProjApp::Render()
 
 void ProjApp::DrawGui()
 {
+    ImGui::Separator();
+
+    ImGui::Checkbox("Use PCF Shadows", &mUsePCF);
 }
 
 int main(int argc, char** argv)

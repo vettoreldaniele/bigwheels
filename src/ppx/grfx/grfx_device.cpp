@@ -28,6 +28,9 @@ void Device::Destroy()
     DestroyAllObjects(mModels);
     DestroyAllObjects(mTextures);
 
+    // Destroy render passes before images and views
+    DestroyAllObjects(mRenderPasses);
+
     DestroyAllObjects(mBuffers);
     DestroyAllObjects(mCommandBuffers);
     DestroyAllObjects(mCommandPools);
@@ -40,7 +43,6 @@ void Device::Destroy()
     DestroyAllObjects(mImages);
     DestroyAllObjects(mGraphicsPipelines);
     DestroyAllObjects(mPipelineInterfaces);
-    DestroyAllObjects(mRenderPasses);
     DestroyAllObjects(mRenderTargetViews);
     DestroyAllObjects(mSampledImageViews);
     DestroyAllObjects(mSamplers);
