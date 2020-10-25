@@ -142,6 +142,12 @@ RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo2& ob
     this->depthStoreOp   = obj.depthStoreOp;
     this->stencilLoadOp  = obj.stencilLoadOp;
     this->stencilStoreOp = obj.stencilStoreOp;
+
+    // Initial states
+    for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
+        this->V2.renderTargetInitialStates[i] = obj.renderTargetInitialStates[i];
+    }
+    this->V2.depthStencilInitialState = obj.depthStencilInitialState;
 }
 
 RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo3& obj)
@@ -213,6 +219,11 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
     {
         // RTV images
         for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
+            grfx::ResourceState initialState = grfx::RESOURCE_STATE_RENDER_TARGET;
+            if (pCreateInfo->V2.renderTargetInitialStates[i] != grfx::RESOURCE_STATE_UNDEFINED) {
+                initialState = pCreateInfo->V2.renderTargetInitialStates[i];
+            }
+
             grfx::ImageCreateInfo imageCreateInfo = {};
             imageCreateInfo.type                  = grfx::IMAGE_TYPE_2D;
             imageCreateInfo.width                 = pCreateInfo->width;
@@ -223,6 +234,9 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
             imageCreateInfo.mipLevelCount         = 1;
             imageCreateInfo.arrayLayerCount       = 1;
             imageCreateInfo.usageFlags            = pCreateInfo->V2.renderTargetUsageFlags[i];
+            imageCreateInfo.memoryUsage           = grfx::MEMORY_USAGE_GPU_ONLY;
+            imageCreateInfo.initialState          = grfx::RESOURCE_STATE_RENDER_TARGET;
+            imageCreateInfo.RTVClearValue         = pCreateInfo->renderTargetClearValues[i];
             imageCreateInfo.ownership             = pCreateInfo->ownership;
 
             grfx::ImagePtr image;
@@ -237,6 +251,11 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
 
         // DSV image
         if (pCreateInfo->V2.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
+            grfx::ResourceState initialState = grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE;
+            if (pCreateInfo->V2.depthStencilInitialState != grfx::RESOURCE_STATE_UNDEFINED) {
+                initialState = pCreateInfo->V2.depthStencilInitialState;
+            }
+
             grfx::ImageCreateInfo imageCreateInfo = {};
             imageCreateInfo.type                  = grfx::IMAGE_TYPE_2D;
             imageCreateInfo.width                 = pCreateInfo->width;
@@ -247,6 +266,9 @@ Result RenderPass::CreateImagesAndViewsV2(const grfx::internal::RenderPassCreate
             imageCreateInfo.mipLevelCount         = 1;
             imageCreateInfo.arrayLayerCount       = 1;
             imageCreateInfo.usageFlags            = pCreateInfo->V2.depthStencilUsageFlags;
+            imageCreateInfo.memoryUsage           = grfx::MEMORY_USAGE_GPU_ONLY;
+            imageCreateInfo.initialState          = initialState;
+            imageCreateInfo.DSVClearValue         = pCreateInfo->depthStencilClearValue;
             imageCreateInfo.ownership             = pCreateInfo->ownership;
 
             grfx::ImagePtr image;
@@ -409,6 +431,7 @@ Result RenderPass::CreateImagesAndViewsV3(const grfx::internal::RenderPassCreate
 Result RenderPass::Create(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
 {
     mRenderArea = {0, 0, pCreateInfo->width, pCreateInfo->height};
+    mViewport   = {0.0f, 0.0f, static_cast<float>(pCreateInfo->width), static_cast<float>(pCreateInfo->height), 0.0f, 1.0f};
 
     switch (pCreateInfo->version) {
         default: return ppx::ERROR_INVALID_CREATE_ARGUMENT; break;

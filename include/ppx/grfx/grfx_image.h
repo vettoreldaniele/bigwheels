@@ -60,16 +60,18 @@ public:
     Image() {}
     virtual ~Image() {}
 
-    grfx::ImageType              GetType() const { return mCreateInfo.type; }
-    uint32_t                     GetWidth() const { return mCreateInfo.width; }
-    uint32_t                     GetHeight() const { return mCreateInfo.height; }
-    uint32_t                     GetDepth() const { return mCreateInfo.depth; }
-    grfx::Format                 GetFormat() const { return mCreateInfo.format; }
-    grfx::SampleCount            GetSampleCount() const { return mCreateInfo.sampleCount; }
-    uint32_t                     GetMipLevelCount() const { return mCreateInfo.mipLevelCount; }
-    uint32_t                     GetArrayLayerCount() const { return mCreateInfo.arrayLayerCount; }
-    const grfx::ImageUsageFlags& GetUsageFlags() const { return mCreateInfo.usageFlags; }
-    grfx::MemoryUsage            GetMemoryUsage() const { return mCreateInfo.memoryUsage; }
+    grfx::ImageType                     GetType() const { return mCreateInfo.type; }
+    uint32_t                            GetWidth() const { return mCreateInfo.width; }
+    uint32_t                            GetHeight() const { return mCreateInfo.height; }
+    uint32_t                            GetDepth() const { return mCreateInfo.depth; }
+    grfx::Format                        GetFormat() const { return mCreateInfo.format; }
+    grfx::SampleCount                   GetSampleCount() const { return mCreateInfo.sampleCount; }
+    uint32_t                            GetMipLevelCount() const { return mCreateInfo.mipLevelCount; }
+    uint32_t                            GetArrayLayerCount() const { return mCreateInfo.arrayLayerCount; }
+    const grfx::ImageUsageFlags&        GetUsageFlags() const { return mCreateInfo.usageFlags; }
+    grfx::MemoryUsage                   GetMemoryUsage() const { return mCreateInfo.memoryUsage; }
+    const grfx::RenderTargetClearValue& GetRTVClearValue() const { return mCreateInfo.RTVClearValue; }
+    const grfx::DepthStencilClearValue& GetDSVClearValue() const { return mCreateInfo.DSVClearValue; }
 
     // Convenience functions
     grfx::ImageViewType GuessImageViewType(bool isCube = false) const;

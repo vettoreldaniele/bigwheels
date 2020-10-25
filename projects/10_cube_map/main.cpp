@@ -154,7 +154,7 @@ void ProjApp::Setup()
         TriMesh mesh = TriMesh::CreateCube(float3(8, 8, 8));
         SetupEntity(mesh, GeometryCreateInfo::InterleavedU16().AddColor(), &mSkyBox);
 
-        mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMesh::Options().EnableNormals());
+        mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMesh::Options().Normals());
         SetupEntity(mesh, GeometryCreateInfo::InterleavedU16().AddNormal(), &mReflector);
     }
 

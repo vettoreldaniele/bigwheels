@@ -32,7 +32,9 @@ uint32_t TriMesh::GetCountTriangles() const
 {
     uint32_t count = 0;
     if (mIndexType != grfx::INDEX_TYPE_UNDEFINED) {
-        count = CountU32(mIndices) / 3;
+        uint32_t elementSize  = grfx::IndexTypeSize(mIndexType);
+        uint32_t elementCount = CountU32(mIndices) / elementSize;
+        count                 = elementCount / 3;
     }
     else {
         count = CountU32(mPositions) / 3;
@@ -284,7 +286,7 @@ uint32_t TriMesh::AppendTriangle(uint32_t v0, uint32_t v1, uint32_t v2)
         AppendIndexU16(static_cast<uint16_t>(v1));
         AppendIndexU16(static_cast<uint16_t>(v2));
     }
-    else if (mIndexType == grfx::INDEX_TYPE_UINT16) {
+    else if (mIndexType == grfx::INDEX_TYPE_UINT32) {
         mIndices.reserve(mIndices.size() + 3 * sizeof(uint32_t));
         AppendIndexU32(v0);
         AppendIndexU32(v1);
@@ -386,10 +388,23 @@ Result TriMesh::GetTriangle(uint32_t triIndex, uint32_t& v0, uint32_t& v1, uint3
         return ppx::ERROR_OUT_OF_RANGE;
     }
 
-    uint32_t offset = 3 * triIndex;
-    v0              = mIndices[offset + 0];
-    v1              = mIndices[offset + 1];
-    v2              = mIndices[offset + 2];
+    const uint8_t* pData       = mIndices.data();
+    uint32_t       elementSize = grfx::IndexTypeSize(mIndexType);
+
+    if (mIndexType == grfx::INDEX_TYPE_UINT16) {
+        size_t          offset     = 3 * triIndex * elementSize;
+        const uint16_t* pIndexData = reinterpret_cast<const uint16_t*>(pData + offset);
+        v0                         = static_cast<uint32_t>(pIndexData[0]);
+        v1                         = static_cast<uint32_t>(pIndexData[1]);
+        v2                         = static_cast<uint32_t>(pIndexData[2]);
+    }
+    else if (mIndexType == grfx::INDEX_TYPE_UINT32) {
+        size_t          offset     = 3 * triIndex * elementSize;
+        const uint32_t* pIndexData = reinterpret_cast<const uint32_t*>(pData + offset);
+        v0                         = static_cast<uint32_t>(pIndexData[0]);
+        v1                         = static_cast<uint32_t>(pIndexData[1]);
+        v2                         = static_cast<uint32_t>(pIndexData[2]);
+    }
 
     return ppx::SUCCESS;
 }
@@ -439,8 +454,8 @@ void TriMesh::AppendIndexAndVertexData(
     const TriMesh::Options&   options,
     TriMesh&                  mesh)
 {
-    grfx::IndexType     indexType   = options.mIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
-    TriMeshAttributeDim texCoordDim = options.mTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
 
     // Verify expected vertex count
     size_t vertexCount = (vertexData.size() * sizeof(float)) / sizeof(VertexData);
@@ -455,28 +470,30 @@ void TriMesh::AppendIndexAndVertexData(
 
             mesh.AppendPosition(pVertexData->position);
 
-            if (options.mColors) {
-                mesh.AppendColor(pVertexData->color);
+            if (options.mEnableVertexColors || options.mEnableObjectColor) {
+                float3 color = options.mEnableObjectColor ? options.mObjectColor : pVertexData->color;
+                mesh.AppendColor(color);
             }
 
-            if (options.mNormals) {
+            if (options.mEnableNormals) {
                 mesh.AppendNormal(pVertexData->normal);
             }
 
-            if (options.mTexCoords) {
+            if (options.mEnableTexCoords) {
                 mesh.AppendTexCoord(pVertexData->texCoord);
             }
 
-            if (options.mTangents) {
+            if (options.mEnableTangents) {
                 mesh.AppendTangent(pVertexData->tangent);
                 mesh.AppendBitangent(pVertexData->bitangent);
             }
         }
 
-        for (size_t i = 0; i < indexData.size() / 3; ++i) {
-            uint32_t v0 = indexData[3 * i + 0];
-            uint32_t v1 = indexData[3 * i + 1];
-            uint32_t v2 = indexData[3 * i + 2];
+        size_t triCount = indexData.size() / 3;
+        for (size_t triIndex = 0; triIndex < triCount; ++triIndex) {
+            uint32_t v0 = indexData[3 * triIndex + 0];
+            uint32_t v1 = indexData[3 * triIndex + 1];
+            uint32_t v2 = indexData[3 * triIndex + 2];
             mesh.AppendTriangle(v0, v1, v2);
         }
     }
@@ -487,19 +504,19 @@ void TriMesh::AppendIndexAndVertexData(
 
             mesh.AppendPosition(pVertexData->position);
 
-            if (options.mColors) {
+            if (options.mEnableVertexColors) {
                 mesh.AppendColor(pVertexData->color);
             }
 
-            if (options.mNormals) {
+            if (options.mEnableNormals) {
                 mesh.AppendNormal(pVertexData->normal);
             }
 
-            if (options.mTexCoords) {
+            if (options.mEnableTexCoords) {
                 mesh.AppendTexCoord(pVertexData->texCoord);
             }
 
-            if (options.mTangents) {
+            if (options.mEnableTangents) {
                 mesh.AppendTangent(pVertexData->tangent);
                 mesh.AppendBitangent(pVertexData->bitangent);
             }
@@ -526,8 +543,8 @@ TriMesh TriMesh::CreatePlane(const float2& size, const TriMesh::Options& options
     };
     // clang-format on
 
-    grfx::IndexType     indexType   = options.mIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
-    TriMeshAttributeDim texCoordDim = options.mTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
     TriMesh             mesh        = TriMesh(indexType, texCoordDim);
 
     AppendIndexAndVertexData(indexData, vertexData, 4, options, mesh);
@@ -596,8 +613,8 @@ TriMesh TriMesh::CreateCube(const float3& size, const TriMesh::Options& options)
     };
     // clang-format on
 
-    grfx::IndexType     indexType   = options.mIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
-    TriMeshAttributeDim texCoordDim = options.mTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
     TriMesh             mesh        = TriMesh(indexType, texCoordDim);
 
     AppendIndexAndVertexData(indexData, vertexData, 24, options, mesh);
@@ -607,8 +624,8 @@ TriMesh TriMesh::CreateCube(const float3& size, const TriMesh::Options& options)
 
 TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& options)
 {
-    grfx::IndexType     indexType   = options.mIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
-    TriMeshAttributeDim texCoordDim = options.mTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
     TriMesh             mesh        = TriMesh(indexType, texCoordDim);
 
     const std::vector<float3> colors = {
@@ -642,8 +659,8 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
 
     // Build geometry
     for (size_t shapeIdx = 0; shapeIdx < numShapes; ++shapeIdx) {
-        const tinyobj::shape_t& shape = shapes[shapeIdx];
-        const tinyobj::mesh_t&  shapeMesh  = shape.mesh;
+        const tinyobj::shape_t& shape     = shapes[shapeIdx];
+        const tinyobj::mesh_t&  shapeMesh = shape.mesh;
 
         size_t numTriangles = shapeMesh.indices.size() / 3;
         for (size_t triIdx = 0; triIdx < numTriangles; ++triIdx) {
@@ -722,25 +739,30 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
             uint32_t triVtx1 = mesh.AppendPosition(vtx1.position) - 1;
             uint32_t triVtx2 = mesh.AppendPosition(vtx2.position) - 1;
 
-            if (options.mColors) {
+            if (options.mEnableVertexColors || options.mEnableObjectColor) {
+                if (options.mEnableObjectColor) {
+                    vtx0.color = options.mObjectColor;
+                    vtx1.color = options.mObjectColor;
+                    vtx2.color = options.mObjectColor;
+                }
                 mesh.AppendColor(vtx0.color);
                 mesh.AppendColor(vtx1.color);
                 mesh.AppendColor(vtx2.color);
             }
 
-            if (options.mNormals) {
+            if (options.mEnableNormals) {
                 mesh.AppendNormal(vtx0.normal);
                 mesh.AppendNormal(vtx1.normal);
                 mesh.AppendNormal(vtx2.normal);
             }
 
-            if (options.mTexCoords) {
+            if (options.mEnableTexCoords) {
                 mesh.AppendTexCoord(vtx0.texCoord);
                 mesh.AppendTexCoord(vtx1.texCoord);
                 mesh.AppendTexCoord(vtx2.texCoord);
             }
 
-            if (options.mTangents) {
+            if (options.mEnableTangents) {
                 mesh.AppendTangent(vtx0.tangent);
                 mesh.AppendTangent(vtx1.tangent);
                 mesh.AppendTangent(vtx2.tangent);

@@ -89,6 +89,7 @@ public:
 
     uint32_t       GetWindowWidth() const { return mSettings.window.width; }
     uint32_t       GetWindowHeight() const { return mSettings.window.height; }
+    float          GetWindowAspect() const { return static_cast<float>(mSettings.window.width) / static_cast<float>(mSettings.window.height); }
     grfx::Rect     GetScissor() const;
     grfx::Viewport GetViewport(float minDepth = 0.0f, float maxDepth = 1.0f) const;
 

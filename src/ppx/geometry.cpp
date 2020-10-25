@@ -415,6 +415,39 @@ Result Geometry::Create(
     return ppx::SUCCESS;
 }
 
+Result Geometry::Create(const TriMesh& mesh, Geometry* pGeomtry)
+{
+    GeometryCreateInfo createInfo = {};
+    createInfo.attributeLayout    = ppx::GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
+    createInfo.indexType          = mesh.GetIndexType();
+    createInfo.primtiveTopolgy    = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+    createInfo.AddPosition();
+
+    if (mesh.HasColors()) {
+        createInfo.AddColor();
+    }
+    if (mesh.HasNormals()) {
+        createInfo.AddNormal();
+    }
+    if (mesh.HasTexCoords()) {
+        createInfo.AddTexCoord();
+    }
+    if (mesh.HasTangents()) {
+        createInfo.AddTangent();
+    }
+    if (mesh.HasBitangents()) {
+        createInfo.AddBitangent();
+    }
+
+    Result ppxres = Create(createInfo, mesh, pGeomtry);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
 const Geometry::Buffer* Geometry::GetVertxBuffer(uint32_t index) const
 {
     const Geometry::Buffer* pBuffer = nullptr;

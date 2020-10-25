@@ -248,6 +248,8 @@ public:
     // ---------------------------------------------------------------------------------------------
     // Convenience functions
     // ---------------------------------------------------------------------------------------------
+    void BeginRenderPass(const grfx::RenderPass* pRenderPass);
+
     void BeginRenderPass(
         const grfx::DrawPass*           pDrawPass,
         const grfx::DrawPassClearFlags& clearFlags = grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_ALL);

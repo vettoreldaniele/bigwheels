@@ -664,7 +664,7 @@ VkShaderStageFlags ToVkShaderStageFlags(const grfx::ShaderStageFlags& value)
     if (value.bits.HS) flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
     if (value.bits.DS) flags |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
     if (value.bits.GS) flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
-    if (value.bits.DS) flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+    if (value.bits.PS) flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
     if (value.bits.CS) flags |= VK_SHADER_STAGE_COMPUTE_BIT;
     // clang-format on
     return flags;

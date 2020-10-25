@@ -152,11 +152,17 @@ private:
     Result InternalCtor();
 
 public:
+    // Create object using parameters from createInfo
     static Result Create(const GeometryCreateInfo& createInfo, Geometry* pGeometry);
+
+    // Create object using parameters from createInfo using data from mesh
     static Result Create(
         const GeometryCreateInfo& createInfo,
         const TriMesh&            mesh,
         Geometry*                 pGeometry);
+
+    // Create object with a create info derived from mesh
+    static Result Create(const TriMesh& mesh, Geometry* pGeomtry);
 
     grfx::IndexType            GetIndexType() const { return mCreateInfo.indexType; }
     const Geometry::Buffer*    GetIndexBuffer() const { return &mIndexBuffer; }

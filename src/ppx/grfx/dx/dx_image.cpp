@@ -346,7 +346,15 @@ Result SampledImageView::CreateApiObjects(const grfx::SampledImageViewCreateInfo
     D3D12_SHADER_COMPONENT_MAPPING src2 = ToD3D12ShaderComponentMapping(pCreateInfo->components.b, D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_2);
     D3D12_SHADER_COMPONENT_MAPPING src3 = ToD3D12ShaderComponentMapping(pCreateInfo->components.a, D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_3);
 
-    mDesc.Format                  = ToDxgiFormat(pCreateInfo->format);
+    // Intial format 
+    DXGI_FORMAT format = ToDxgiFormat(pCreateInfo->format);
+
+    // D3D12 doesn't allow the usage of D32_FLOAT in SRV so we'll need to readjust it
+    if (format == DXGI_FORMAT_D32_FLOAT) {
+        format = DXGI_FORMAT_R32_FLOAT;
+    }        
+    
+    mDesc.Format                  = format;
     mDesc.ViewDimension           = ToD3D12SRVDimension(pCreateInfo->imageViewType, pCreateInfo->arrayLayerCount);
     mDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(src0, src1, src2, src3);
     if (pCreateInfo->arrayLayerCount > 1) {

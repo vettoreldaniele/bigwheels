@@ -109,7 +109,7 @@ void ProjApp::Setup()
 
     // Entities
     {
-        TriMesh mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMesh::Options().EnableColors());
+        TriMesh mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMesh::Options().VertexColors());
         SetupEntity(mesh, GeometryCreateInfo::InterleavedU32().AddColor(), &mInterleavedU32);
         SetupEntity(mesh, GeometryCreateInfo::Interleaved().AddColor(), &mInterleaved);
         SetupEntity(mesh, GeometryCreateInfo::PlanarU32().AddColor(), &mPlanarU32);

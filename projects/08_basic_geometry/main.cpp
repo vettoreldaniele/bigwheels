@@ -111,7 +111,7 @@ void ProjApp::Setup()
 
     // Entities
     {
-        TriMesh mesh = TriMesh::CreateCube(float3(2, 2, 2), TriMesh::Options().EnableColors());
+        TriMesh mesh = TriMesh::CreateCube(float3(2, 2, 2), TriMesh::Options().VertexColors());
         SetupEntity(mesh, GeometryCreateInfo::InterleavedU16().AddColor(), &mInterleavedU16);
         SetupEntity(mesh, GeometryCreateInfo::InterleavedU32().AddColor(), &mInterleavedU32);
         SetupEntity(mesh, GeometryCreateInfo::Interleaved().AddColor(), &mInterleaved);

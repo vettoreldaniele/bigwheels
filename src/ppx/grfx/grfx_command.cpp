@@ -1,10 +1,34 @@
 #include "ppx/grfx/grfx_command.h"
 #include "ppx/grfx/grfx_buffer.h"
 #include "ppx/grfx/grfx_draw_pass.h"
+#include "ppx/grfx/grfx_image.h"
 #include "ppx/grfx/grfx_model.h"
+#include "ppx/grfx/grfx_render_pass.h"
 
 namespace ppx {
 namespace grfx {
+
+void CommandBuffer::BeginRenderPass(const grfx::RenderPass* pRenderPass)
+{
+    PPX_ASSERT_NULL_ARG(pRenderPass);
+
+    grfx::RenderPassBeginInfo beginInfo = {};
+    beginInfo.pRenderPass               = pRenderPass;
+    beginInfo.renderArea                = pRenderPass->GetRenderArea();
+
+    beginInfo.RTVClearCount = pRenderPass->GetRenderTargetCount();
+    for (uint32_t i = 0; i < beginInfo.RTVClearCount; ++i) {
+        grfx::ImagePtr  rtvImage = pRenderPass->GetRenderTargetImage(i);
+        beginInfo.RTVClearValues[i] = rtvImage->GetRTVClearValue();
+    }
+
+    grfx::ImagePtr dsvImage = pRenderPass->GetDepthStencilImage();
+    if (dsvImage) {
+        beginInfo.DSVClearValue = dsvImage->GetDSVClearValue();
+    }
+
+    BeginRenderPass(&beginInfo);
+}
 
 void CommandBuffer::BeginRenderPass(
     const grfx::DrawPass*           pDrawPass,

@@ -34,23 +34,25 @@ struct RenderPassCreateInfo
 //!
 struct RenderPassCreateInfo2
 {
-    uint32_t                     width                                           = 0;
-    uint32_t                     height                                          = 0;
-    grfx::SampleCount            sampleCount                                     = grfx::SAMPLE_COUNT_1;
-    uint32_t                     renderTargetCount                               = 0;
-    grfx::Format                 renderTargetFormats[PPX_MAX_RENDER_TARGETS]     = {};
-    grfx::Format                 depthStencilFormat                              = grfx::FORMAT_UNDEFINED;
-    grfx::ImageUsageFlags        renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS]  = {};
-    grfx::ImageUsageFlags        depthStencilUsageFlags                          = {};
-    grfx::RenderTargetClearValue renderTargetClearValues[PPX_MAX_RENDER_TARGETS] = {};
-    grfx::DepthStencilClearValue depthStencilClearValue                          = {};
-    grfx::AttachmentLoadOp       renderTargetLoadOps[PPX_MAX_RENDER_TARGETS]     = {grfx::ATTACHMENT_LOAD_OP_LOAD};
-    grfx::AttachmentStoreOp      renderTargetStoreOps[PPX_MAX_RENDER_TARGETS]    = {grfx::ATTACHMENT_STORE_OP_STORE};
-    grfx::AttachmentLoadOp       depthLoadOp                                     = grfx::ATTACHMENT_LOAD_OP_LOAD;
-    grfx::AttachmentStoreOp      depthStoreOp                                    = grfx::ATTACHMENT_STORE_OP_STORE;
-    grfx::AttachmentLoadOp       stencilLoadOp                                   = grfx::ATTACHMENT_LOAD_OP_LOAD;
-    grfx::AttachmentStoreOp      stencilStoreOp                                  = grfx::ATTACHMENT_STORE_OP_STORE;
-    grfx::Ownership              ownership                                       = grfx::OWNERSHIP_REFERENCE;
+    uint32_t                     width                                             = 0;
+    uint32_t                     height                                            = 0;
+    grfx::SampleCount            sampleCount                                       = grfx::SAMPLE_COUNT_1;
+    uint32_t                     renderTargetCount                                 = 0;
+    grfx::Format                 renderTargetFormats[PPX_MAX_RENDER_TARGETS]       = {};
+    grfx::Format                 depthStencilFormat                                = grfx::FORMAT_UNDEFINED;
+    grfx::ImageUsageFlags        renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS]    = {};
+    grfx::ImageUsageFlags        depthStencilUsageFlags                            = {};
+    grfx::RenderTargetClearValue renderTargetClearValues[PPX_MAX_RENDER_TARGETS]   = {};
+    grfx::DepthStencilClearValue depthStencilClearValue                            = {};
+    grfx::AttachmentLoadOp       renderTargetLoadOps[PPX_MAX_RENDER_TARGETS]       = {grfx::ATTACHMENT_LOAD_OP_LOAD};
+    grfx::AttachmentStoreOp      renderTargetStoreOps[PPX_MAX_RENDER_TARGETS]      = {grfx::ATTACHMENT_STORE_OP_STORE};
+    grfx::AttachmentLoadOp       depthLoadOp                                       = grfx::ATTACHMENT_LOAD_OP_LOAD;
+    grfx::AttachmentStoreOp      depthStoreOp                                      = grfx::ATTACHMENT_STORE_OP_STORE;
+    grfx::AttachmentLoadOp       stencilLoadOp                                     = grfx::ATTACHMENT_LOAD_OP_LOAD;
+    grfx::AttachmentStoreOp      stencilStoreOp                                    = grfx::ATTACHMENT_STORE_OP_STORE;
+    grfx::ResourceState          renderTargetInitialStates[PPX_MAX_RENDER_TARGETS] = {grfx::RESOURCE_STATE_UNDEFINED};
+    grfx::ResourceState          depthStencilInitialState                          = grfx::RESOURCE_STATE_UNDEFINED;
+    grfx::Ownership              ownership                                         = grfx::OWNERSHIP_REFERENCE;
 
     void SetAllRenderTargetUsageFlags(const grfx::ImageUsageFlags& flags);
     void SetAllRenderTargetClearValue(const grfx::RenderTargetClearValue& value);
@@ -114,11 +116,13 @@ struct RenderPassCreateInfo
     // Data unique to grfx::RenderPassCreateInfo2
     struct
     {
-        grfx::SampleCount     sampleCount                                    = grfx::SAMPLE_COUNT_1;
-        grfx::Format          renderTargetFormats[PPX_MAX_RENDER_TARGETS]    = {};
-        grfx::Format          depthStencilFormat                             = grfx::FORMAT_UNDEFINED;
-        grfx::ImageUsageFlags renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS] = {};
-        grfx::ImageUsageFlags depthStencilUsageFlags                         = {};
+        grfx::SampleCount     sampleCount                                       = grfx::SAMPLE_COUNT_1;
+        grfx::Format          renderTargetFormats[PPX_MAX_RENDER_TARGETS]       = {};
+        grfx::Format          depthStencilFormat                                = grfx::FORMAT_UNDEFINED;
+        grfx::ImageUsageFlags renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS]    = {};
+        grfx::ImageUsageFlags depthStencilUsageFlags                            = {};
+        grfx::ResourceState   renderTargetInitialStates[PPX_MAX_RENDER_TARGETS] = {grfx::RESOURCE_STATE_UNDEFINED};
+        grfx::ResourceState   depthStencilInitialState                          = grfx::RESOURCE_STATE_UNDEFINED;
     } V2;
 
     // Data unique to grfx::RenderPassCreateInfo3
@@ -158,7 +162,9 @@ public:
     RenderPass() {}
     virtual ~RenderPass() {}
 
-    const grfx::Rect& GetRenderArea() const { return mRenderArea; }
+    const grfx::Rect&     GetRenderArea() const { return mRenderArea; }
+    const grfx::Rect&     GetScissor() const { return mRenderArea; }
+    const grfx::Viewport& GetViewport() const { return mViewport; }
 
     uint32_t GetRenderTargetCount() const { return mCreateInfo.renderTargetCount; }
 
@@ -198,6 +204,7 @@ private:
 
 protected:
     grfx::Rect                             mRenderArea = {};
+    grfx::Viewport                         mViewport   = {};
     std::vector<grfx::RenderTargetViewPtr> mRenderTargetViews;
     grfx::DepthStencilViewPtr              mDepthStencilView;
     std::vector<grfx::ImagePtr>            mRenderTargetImages;

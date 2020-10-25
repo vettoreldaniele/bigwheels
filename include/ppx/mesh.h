@@ -44,23 +44,27 @@ public:
         Options() {}
         ~Options() {}
         // clang-format off
-        //! Sets indices creation flag
-        Options& EnableIndices(bool value = true) { mIndices = value; return *this; }
-        //! Sets vertex color creation flag
-        Options& EnableColors(bool value = true) { mColors = value; return *this; }
-        //! Sets normals creation flag
-        Options& EnableNormals(bool value = true) { mNormals = value; return *this; }
-        //! Sets texture coordinates creation flag, most geometry will have 2-dimensional texture coordinates
-        Options& EnableTexCoords(bool value = true) { mTexCoords = value; return *this; }
-        //! Sets tangent and bitangent creation flag
-        Options& EnableTangents(bool value = true) { mTangents = value; return *this; }
+        //! Enable/disable indices
+        Options& Indices(bool value = true) { mEnableIndices = value; return *this; }
+        //! Enable/disable vertex colors
+        Options& VertexColors(bool value = true) { mEnableVertexColors = value; return *this; }
+        //! Enable/disable normals
+        Options& Normals(bool value = true) { mEnableNormals = value; return *this; }
+        //! Enable/disable texture coordinates, most geometry will have 2-dimensional texture coordinates
+        Options& TexCoords(bool value = true) { mEnableTexCoords = value; return *this; }
+        //! Enable/disable tangent and bitangent creation flag
+        Options& EnableTangents(bool value = true) { mEnableTangents = value; return *this; }
+        //! Set and/or enable/disable object color, object color will override vertex colors
+        Options& ObjectColor(const float3& color, bool enable = true) { mObjectColor = color; mEnableObjectColor = enable; return *this;}
         // clang-format on
     private:
-        bool mIndices   = false;
-        bool mColors    = false;
-        bool mNormals   = false;
-        bool mTexCoords = false;
-        bool mTangents  = false;
+        bool   mEnableIndices      = false;
+        bool   mEnableVertexColors = false;
+        bool   mEnableNormals      = false;
+        bool   mEnableTexCoords    = false;
+        bool   mEnableTangents     = false;
+        bool   mEnableObjectColor  = false;
+        float3 mObjectColor        = float3(0.7f);
         friend class TriMesh;
     };
 
@@ -72,6 +76,12 @@ public:
 
     grfx::IndexType     GetIndexType() const { return mIndexType; }
     TriMeshAttributeDim GetTexCoordDim() const { return mTexCoordDim; }
+
+    bool HasColors() const { return GetCountColors() > 0; }
+    bool HasNormals() const { return GetCountNormals() > 0; }
+    bool HasTexCoords() const { return GetCountTexCoords() > 0; }
+    bool HasTangents() const { return GetCountTangents() > 0; }
+    bool HasBitangents() const { return GetCountBitangents() > 0; }
 
     uint32_t GetCountTriangles() const;
     uint32_t GetCountIndices() const;
