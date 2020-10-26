@@ -320,7 +320,7 @@ uint32_t TriMesh::AppendTexCoord(const float2& value)
         PPX_ASSERT_MSG(false, "unknown tex coord dim");
         return 0;
     }
-    mTexCoords.resize(mTexCoords.size() + 2);
+    mTexCoords.reserve(mTexCoords.size() + 2);
     mTexCoords.push_back(value.x);
     mTexCoords.push_back(value.y);
     uint32_t count = GetCountTexCoords();
@@ -333,7 +333,7 @@ uint32_t TriMesh::AppendTexCoord(const float3& value)
         PPX_ASSERT_MSG(false, "unknown tex coord dim");
         return 0;
     }
-    mTexCoords.resize(mTexCoords.size() + 3);
+    mTexCoords.reserve(mTexCoords.size() + 3);
     mTexCoords.push_back(value.x);
     mTexCoords.push_back(value.y);
     mTexCoords.push_back(value.z);
@@ -347,7 +347,7 @@ uint32_t TriMesh::AppendTexCoord(const float4& value)
         PPX_ASSERT_MSG(false, "unknown tex coord dim");
         return 0;
     }
-    mTexCoords.resize(mTexCoords.size() + 3);
+    mTexCoords.reserve(mTexCoords.size() + 3);
     mTexCoords.push_back(value.x);
     mTexCoords.push_back(value.y);
     mTexCoords.push_back(value.z);
@@ -419,7 +419,9 @@ Result TriMesh::GetVertexData(uint32_t vtxIndex, VertexData* pVertexData) const
     const float3* pPosition  = GetDataPositions(vtxIndex);
     const float3* pColor     = GetDataColors(vtxIndex);
     const float3* pNormal    = GetDataNormalls(vtxIndex);
-    const float2* pTexCoord  = GetDataTexCoords2(vtxIndex);
+    const float2* pTexCoord2 = GetDataTexCoords2(vtxIndex);
+    const float3* pTexCoord3 = GetDataTexCoords3(vtxIndex);
+    const float4* pTexCoord4 = GetDataTexCoords4(vtxIndex);
     const float3* pTangent   = GetDataTangents(vtxIndex);
     const float3* pBitangent = GetDataBitangents(vtxIndex);
 
@@ -433,8 +435,8 @@ Result TriMesh::GetVertexData(uint32_t vtxIndex, VertexData* pVertexData) const
         pVertexData->normal = *pNormal;
     }
 
-    if (!IsNull(pTexCoord)) {
-        pVertexData->texCoord = *pTexCoord;
+    if (!IsNull(pTexCoord2)) {
+        pVertexData->texCoord = *pTexCoord2;
     }
 
     if (!IsNull(pTangent)) {
@@ -560,36 +562,36 @@ TriMesh TriMesh::CreateCube(const float3& size, const TriMesh::Options& options)
 
     // clang-format off
     std::vector<float> vertexData = {  
-        // position      // vertex colors    // normal           // texcoords  // tangents         // bitangents
-         hx,  hy, -hz,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  0  -Z side
-         hx, -hy, -hz,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  1
-        -hx, -hy, -hz,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  2
-        -hx,  hy, -hz,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  3
-
-        -hx,  hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  4  +Z side
-        -hx, -hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  5
-         hx, -hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  6
-         hx,  hy,  hz,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  7
-
-        -hx,  hy, -hz,  -0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  8  -X side
-        -hx, -hy, -hz,  -0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  //  9
-        -hx, -hy,  hz,  -0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 10
-        -hx,  hy,  hz,  -0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 11
-
-         hx,  hy,  hz,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 12  +X side
-         hx, -hy,  hz,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 13
-         hx, -hy, -hz,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 14
-         hx,  hy, -hz,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 15
-
-        -hx, -hy,  hz,   1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 16  -Y side
-        -hx, -hy, -hz,   1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 17
-         hx, -hy, -hz,   1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 18
-         hx, -hy,  hz,   1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 19
-
-        -hx,  hy, -hz,   0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 20  +Y side
-        -hx,  hy,  hz,   0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 21
-         hx,  hy,  hz,   0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 22
-         hx,  hy, -hz,   0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 0.0f, 0.0f,  // 23
+        // position      // vertex colors    // normal           // texcoords   // tangents         // bitangents
+         hx,  hy, -hz,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 0.0f,  -1.0f, 0.0f, 0.0f,   0.0f,-1.0f, 0.0f,  //  0  -Z side
+         hx, -hy, -hz,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,   0.0f,-1.0f, 0.0f,  //  1
+        -hx, -hy, -hz,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   1.0f, 1.0f,  -1.0f, 0.0f, 0.0f,   0.0f,-1.0f, 0.0f,  //  2
+        -hx,  hy, -hz,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   1.0f, 0.0f,  -1.0f, 0.0f, 0.0f,   0.0f,-1.0f, 0.0f,  //  3
+                                                                                
+        -hx,  hy,  hz,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f,-1.0f, 0.0f,  //  4  +Z side
+        -hx, -hy,  hz,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f,-1.0f, 0.0f,  //  5
+         hx, -hy,  hz,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f,-1.0f, 0.0f,  //  6
+         hx,  hy,  hz,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f,-1.0f, 0.0f,  //  7
+                                                                                
+        -hx,  hy, -hz,   -0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,  //  8  -X side
+        -hx, -hy, -hz,   -0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,   0.0f, 1.0f,   0.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,  //  9
+        -hx, -hy,  hz,   -0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   0.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,  // 10
+        -hx,  hy,  hz,   -0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,  // 11
+                                                                                
+         hx,  hy,  hz,    1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f,-1.0f, 0.0f,  // 12  +X side
+         hx, -hy,  hz,    1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,   0.0f, 0.0f,-1.0f,   0.0f,-1.0f, 0.0f,  // 13
+         hx, -hy, -hz,    1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   0.0f, 0.0f,-1.0f,   0.0f,-1.0f, 0.0f,  // 14
+         hx,  hy, -hz,    1.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f,-1.0f,   0.0f,-1.0f, 0.0f,  // 15
+                                                                                
+        -hx, -hy,  hz,    1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,  // 16  -Y side
+        -hx, -hy, -hz,    1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,  // 17
+         hx, -hy, -hz,    1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   1.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,  // 18
+         hx, -hy,  hz,    1.0f, 0.0f, 1.0f,   0.0f,-1.0f, 0.0f,   1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,-1.0f,  // 19
+                                                                                
+        -hx,  hy, -hz,    0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,  // 20  +Y side
+        -hx,  hy,  hz,    0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,  // 21
+         hx,  hy,  hz,    0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,  // 22
+         hx,  hy, -hz,    0.0f, 1.0f, 1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,  // 23
     };
 
     std::vector<uint32_t> indexData = {

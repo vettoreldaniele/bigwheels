@@ -53,7 +53,7 @@ public:
         //! Enable/disable texture coordinates, most geometry will have 2-dimensional texture coordinates
         Options& TexCoords(bool value = true) { mEnableTexCoords = value; return *this; }
         //! Enable/disable tangent and bitangent creation flag
-        Options& EnableTangents(bool value = true) { mEnableTangents = value; return *this; }
+        Options& Tangents(bool value = true) { mEnableTangents = value; return *this; }
         //! Set and/or enable/disable object color, object color will override vertex colors
         Options& ObjectColor(const float3& color, bool enable = true) { mObjectColor = color; mEnableObjectColor = enable; return *this;}
         // clang-format on
