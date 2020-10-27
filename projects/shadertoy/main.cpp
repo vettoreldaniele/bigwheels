@@ -183,6 +183,10 @@ void ProjApp::Setup()
         float    scale  = std::max<float>(0.1f, std::min<float>(1.0f, kShaderToyRenderScale));
         uint32_t width  = static_cast<uint32_t>(GetWindowWidth() * scale);
         uint32_t height = static_cast<uint32_t>(GetWindowHeight() * scale);
+#if defined(PPX_GGP)
+        width  = 1280;
+        height = 720;
+#endif
 
         grfx::ImageCreateInfo imageCreateInfo   = grfx::ImageCreateInfo::SampledImage2D(width, height, grfx::FORMAT_R8G8B8A8_UNORM);
         imageCreateInfo.usageFlags.bits.storage = true;

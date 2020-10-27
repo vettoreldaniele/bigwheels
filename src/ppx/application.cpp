@@ -2,6 +2,7 @@
 #include "examples/imgui_impl_glfw.h"
 
 #include <map>
+#include <unordered_map>
 
 #if defined(PPX_LINUX_XCB)
 #include <X11/Xlib-xcb.h>
@@ -551,6 +552,17 @@ void Application::InitializeAssetDirs()
     }
 }
 
+
+Result Application::InitializePlatform()
+{
+    int res = glfwInit();
+    if (res != GLFW_TRUE) {
+        PPX_ASSERT_MSG(false, "glfwInit failed");
+        return ppx::ERROR_GLFW_INIT_FAILED;
+    }
+    return ppx::SUCCESS;
+}
+
 Result Application::InitializeGrfxDevice()
 {
     // Instance
@@ -747,12 +759,6 @@ void Application::ShutdownGrfx()
 
 Result Application::CreatePlatformWindow()
 {
-    int res = glfwInit();
-    if (res != GLFW_TRUE) {
-        PPX_ASSERT_MSG(false, "glfwInit failed");
-        return ppx::ERROR_GLFW_INIT_FAILED;
-    }
-
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, mSettings.window.resizable ? GLFW_TRUE : GLFW_FALSE);
 
@@ -940,12 +946,18 @@ int Application::Run(int argc, char** argv)
     if (this != sApplicationInstance) {
         return false;
     }
+    
+    // Initialize the platform
+    Result ppxres = InitializePlatform();
+    if (Failed(ppxres)) {
+        return EXIT_FAILURE;
+    }
 
     // Call config
     DispatchConfig();
 
     // Create graphics instance
-    Result ppxres = InitializeGrfxDevice();
+    ppxres = InitializeGrfxDevice();
     if (Failed(ppxres)) {
         return EXIT_FAILURE;
     }

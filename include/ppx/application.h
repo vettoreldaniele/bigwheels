@@ -335,6 +335,7 @@ public:
 private:
     void   InternalCtor();
     void   InitializeAssetDirs();
+    Result InitializePlatform();
     Result InitializeGrfxDevice();
     Result InitializeGrfxSurface();
     Result InitializeImGui();

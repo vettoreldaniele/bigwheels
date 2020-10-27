@@ -451,6 +451,14 @@ endif()
 if (PPX_VULKAN)
     # GGP
     if (PPX_GGP)
+        # Link directories
+        target_link_directories(${PROJECT_NAME} 
+            PUBLIC ${VULKAN_LIBRARY_DIR}
+        )
+        # Link libraries
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC vulkan
+        ) 
     #Linux
     elseif (PPX_LINUX)
         # Link directories
@@ -465,7 +473,7 @@ if (PPX_VULKAN)
         # Link properties
         set_target_properties(${PROJECT_NAME}
             PROPERTIES OUTPUT_NAME PPX
-                        LINKER_LANGUAGE CXX
+                       LINKER_LANGUAGE CXX
         )
         # Link libraries
         target_link_libraries(${PROJECT_NAME} 
