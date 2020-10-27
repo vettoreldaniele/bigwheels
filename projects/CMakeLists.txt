@@ -120,6 +120,7 @@ add_subdirectory(08_basic_geometry)
 add_subdirectory(09_obj_geometry)
 add_subdirectory(10_cube_map)
 add_subdirectory(camera)
+add_subdirectory(input)
 add_subdirectory(normal_map)
 add_subdirectory(shadertoy)
 
