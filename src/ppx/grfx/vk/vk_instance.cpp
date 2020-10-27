@@ -244,6 +244,9 @@ Result Instance::EnumerateAndCreateeGpus()
                     PPX_ASSERT_MSG(false, "Failed creating GPU object using " << deviceProperties.deviceName);
                     return ppxres;
                 }
+                PPX_LOG_INFO("   " << "graphics queue count : " << tmpGpu->GetGraphicsQueueCount());
+                PPX_LOG_INFO("   " << "compute  queue count : " << tmpGpu->GetComputeQueueCount());
+                PPX_LOG_INFO("   " << "transfer queue count : " << tmpGpu->GetTransferQueueCount());
             }
         }
     }

@@ -1,5 +1,13 @@
 #include "ppx/application.h"
 
+#if defined(PPX_LINUX_XCB)
+#include <X11/Xlib-xcb.h> 
+#elif defined(PPX_LINUX_XLIB)
+#error "Xlib not implemented"
+#elif defined(PPX_LINUX_WAYLAND)
+#error "Wayland not implemented"
+#endif
+
 namespace ppx {
 
 const char*    kDefaultAppName      = "PPX Application";
@@ -98,11 +106,16 @@ Result Application::InitializeGrfxDevice()
 
         grfx::DeviceCreateInfo ci = {};
         ci.pGpu                   = gpu;
-        ci.graphicsQueueCount     = 1;
-        ci.computeQueueCount      = 1;
-        ci.transferQueueCount     = 1;
+        ci.graphicsQueueCount     = mSettings.grfx.device.graphicsQueueCount;
+        ci.computeQueueCount      = mSettings.grfx.device.computeQueueCount;
+        ci.transferQueueCount     = mSettings.grfx.device.transferQueueCount;
         ci.vulkanExtensions       = {};
         ci.pVulkanDeviceFeatures  = nullptr;
+
+        PPX_LOG_INFO("Creating application graphics device using " << gpu->GetDeviceName());
+        PPX_LOG_INFO("   requested graphics queue count : " << mSettings.grfx.device.graphicsQueueCount);
+        PPX_LOG_INFO("   requested compute  queue count : " << mSettings.grfx.device.computeQueueCount);
+        PPX_LOG_INFO("   requested transfer queue count : " << mSettings.grfx.device.transferQueueCount);
 
         ppxres = mInstance->CreateDevice(&ci, &mDevice);
         if (Failed(ppxres)) {
@@ -124,7 +137,7 @@ Result Application::InitializeGrfxSurface()
         // Nothing to do
 #elif defined(PPX_LINUX_XCB)
         ci.connection = XGetXCBConnection(glfwGetX11Display());
-        ci.window     = glfwGetX11Window(m_window);
+        ci.window     = glfwGetX11Window(static_cast<GLFWwindow*>(mWindow));
 #elif defined(PPX_LINUX_XLIB)
 #error "Xlib not implemented"
 #elif defined(PPX_LINUX_WAYLAND)
@@ -143,6 +156,15 @@ Result Application::InitializeGrfxSurface()
 
     // Swapchain
     {
+        PPX_LOG_INFO("Creating application swapchain");
+        PPX_LOG_INFO("   " << "image count : " << mSettings.grfx.swapchain.imageCount);
+
+        const uint32_t surfaceMinImageCount = mSurface->GetMinImageCount();
+        if (mSettings.grfx.swapchain.imageCount < surfaceMinImageCount) {
+            PPX_LOG_WARN("readjusting swapchain's image count from "  << mSettings.grfx.swapchain.imageCount << " to " << surfaceMinImageCount <<" because the surface requires it");
+            mSettings.grfx.swapchain.imageCount = surfaceMinImageCount;
+        }
+
         grfx::SwapchainCreateInfo ci = {};
         ci.pQueue                    = mDevice->GetGraphicsQueue();
         ci.pSurface                  = mSurface;
@@ -609,7 +631,7 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
         {
             ImGui::Text("Frame Count");
             ImGui::NextColumn();
-            ImGui::Text("%d", mFrameCount);
+            ImGui::Text("%lu", mFrameCount);
             ImGui::NextColumn();
         }
 

@@ -19,17 +19,17 @@ Result Surface::CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo)
     vkci.streamDescriptor                       = GgpStreamDescriptorConstants::kGgpPrimaryStreamDescriptor;
 
     VkResult vkres = vkCreateStreamDescriptorSurfaceGGP(
-        ToApi(GetInstance())->GetInstance(),
+        ToApi(GetInstance())->GetVkInstance(),
         &vkci,
         nullptr,
         &mSurface);
 #elif defined(PPX_LINUX_XCB)
-    VkWaylandSurfaceCreateInfoKHR vkci = {VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR};
-    vkci.connection                    = pCreateInfo->connection;
-    vkci.window                        = pCreateInfo->window;
+    VkXcbSurfaceCreateInfoKHR vkci = {VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR};
+    vkci.connection                = pCreateInfo->connection;
+    vkci.window                    = pCreateInfo->window;
 
     VkResult vkres = vkCreateXcbSurfaceKHR(
-        ToApi(GetInstance())->GetInstance(),
+        ToApi(GetInstance())->GetVkInstance(),
         &vkci,
         nullptr,
         &mSurface);
@@ -63,6 +63,9 @@ Result Surface::CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_INFO("Vulkan swapchain surface info");
+    PPX_LOG_INFO("   " << "minImageCount : " << mCapabilities.minImageCount);
+    PPX_LOG_INFO("   " << "maxImageCount : " << mCapabilities.maxImageCount);
 
     // Surface formats
     {
@@ -101,6 +104,11 @@ Result Surface::CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo)
                 mPresentableQueueFamilies.push_back(queueFamilyIndex);
             }
         }
+        
+        if (mPresentableQueueFamilies.empty()) {
+            PPX_ASSERT_MSG(false, "no presentable queue family found");
+            return ppx::ERROR_API_FAILURE;
+        }
     }
 
     // Present modes
@@ -109,7 +117,7 @@ Result Surface::CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo)
 
         vkres = vkGetPhysicalDeviceSurfacePresentModesKHR(pGpu->GetVkGpu(), mSurface, &count, nullptr);
         if (vkres != VK_SUCCESS) {
-            PPX_ASSERT_MSG(false, "vkGetPhysicalDeviceSurfaceSupportKHR(0) failed: " << ToString(vkres));
+            PPX_ASSERT_MSG(false, "vkGetPhysicalDeviceSurfacePresentModesKHR(0) failed: " << ToString(vkres));
             return ppx::ERROR_API_FAILURE;
         }
 
@@ -118,7 +126,7 @@ Result Surface::CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo)
 
             vkres = vkGetPhysicalDeviceSurfacePresentModesKHR(pGpu->GetVkGpu(), mSurface, &count, mPresentModes.data());
             if (vkres != VK_SUCCESS) {
-                PPX_ASSERT_MSG(false, "vkGetPhysicalDeviceSurfaceSupportKHR(1) failed: " << ToString(vkres));
+                PPX_ASSERT_MSG(false, "vkGetPhysicalDeviceSurfacePresentModesKHR(1) failed: " << ToString(vkres));
                 return ppx::ERROR_API_FAILURE;
             }
         }
@@ -138,6 +146,11 @@ void Surface::DestroyApiObjects()
     }
 }
 
+uint32_t Surface::GetMinImageCount() const
+{
+    return mCapabilities.minImageCount;
+}
+
 // -------------------------------------------------------------------------------------------------
 // Swapchain
 // -------------------------------------------------------------------------------------------------
@@ -145,11 +158,26 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
 {
     // Surface capabilities check
     {
+        bool isImageCountValid = false;
         const VkSurfaceCapabilitiesKHR& caps = ToApi(pCreateInfo->pSurface)->GetCapabilities();
-        if ((pCreateInfo->imageCount < caps.minImageCount) || (pCreateInfo->imageCount > caps.maxImageCount)) {
+        if (caps.maxImageCount > 0) {
+            bool isInBoundsMin = (pCreateInfo->imageCount >= caps.minImageCount);
+            bool isInBoundsMax = (pCreateInfo->imageCount <= caps.maxImageCount);
+            isImageCountValid  = isInBoundsMin && isInBoundsMax;
+        }
+        else {
+            isImageCountValid = (pCreateInfo->imageCount >= caps.minImageCount);
+        }
+        if (!isImageCountValid) {
             PPX_ASSERT_MSG(false, "Invalid swapchain image count");
             return ppx::ERROR_INVALID_CREATE_ARGUMENT;
         }
+
+        //if (
+        //if ((pCreateInfo->imageCount < caps.minImageCount) || (pCreateInfo->imageCount > caps.maxImageCount)) {
+        //    PPX_ASSERT_MSG(false, "Invalid swapchain image count");
+        //    return ppx::ERROR_INVALID_CREATE_ARGUMENT;
+        //}
     }
 
     // Surface format
@@ -316,12 +344,22 @@ Result Swapchain::AcquireNextImage(
     grfx::Fence*     pFence,
     uint32_t*        pImageIndex)
 {
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    if (!IsNull(pSemaphore)) {
+        semaphore = ToApi(pSemaphore)->GetVkSemaphore();
+    }
+
+    VkFence fence = VK_NULL_HANDLE;
+    if (!IsNull(pFence)) {
+        fence = ToApi(pFence)->GetVkFence();
+    }
+
     VkResult vkres = vkAcquireNextImageKHR(
         ToApi(GetDevice())->GetVkDevice(),
         mSwapchain,
         timeout,
-        IsNull(pSemaphore) ? VK_NULL_HANDLE : ToApi(pSemaphore)->GetVkSemaphore(),
-        IsNull(pFence) ? VK_NULL_HANDLE : ToApi(pFence)->GetVkFence(),
+        semaphore,
+        fence,
         pImageIndex);
 
     // Handle failure cases

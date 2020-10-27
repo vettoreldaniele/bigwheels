@@ -17,6 +17,8 @@ public:
 
     HWND GetWindowHandle() const { return mWindowHandle; }
 
+    virtual uint32_t GetMinImageCount() const override { return 1; }
+
 protected:
     virtual Result CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;

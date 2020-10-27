@@ -15,7 +15,7 @@ if (PPX_VULKAN)
                 set(VULKAN_INCLUDE_DIR "${GGP_SYSROOT_PATH}/usr/local/include")
             else()
                 if (DEFINED ENV{VULKAN_SDK})
-                    set(VULKAN_INCLUDE_DIR "$ENV{VULKAN_SDK}/x86_64/include")
+                    set(VULKAN_INCLUDE_DIR "$ENV{VULKAN_SDK}/include")
                 endif()
             endif()
         elseif (APPLE OR WIN32)
@@ -32,7 +32,7 @@ if (PPX_VULKAN)
                 set(VULKAN_LIBRARY_DIR "${GGP_SYSROOT_PATH}/usr/local/lib")
             else()
                 if (DEFINED ENV{VULKAN_SDK})
-                    set(VULKAN_LIBRARY_DIR "$ENV{VULKAN_SDK}/x86_64/lib")
+                    set(VULKAN_LIBRARY_DIR "$ENV{VULKAN_SDK}/lib")
                 endif()
             endif()
         elseif (APPLE OR WIN32)
@@ -55,6 +55,22 @@ if (PPX_VULKAN)
     message("Found Vulkan: ${VULKAN_DIR}")
     message("  Vulkan include directory: ${VULKAN_INCLUDE_DIR}")
     message("  Vulkan library directory: ${VULKAN_LIBRARY_DIR}")
+endif()
+
+# ------------------------------------------------------------------------------
+# Vulkan Linux surface flags
+# ------------------------------------------------------------------------------
+#
+# Defaults to XCB if nothing is specified
+#
+if (PPX_LINUX_XCB)
+    set(PPX_LINUX_VULKAN_SURFACE "PPX_LINUX_XCB")
+elseif(PPX_LINUX_XLIB)
+    set(PPX_LINUX_VULKAN_SURFACE "PPX_LINUX_XLIB")
+elseif(PPX_LINUX_WAYLAND)
+    set(PPX_LINUX_VULKAN_SURFACE "PPX_LINUX_WAYLAND")
+else()
+    set(PPX_LINUX_VULKAN_SURFACE "PPX_LINUX_XCB")
 endif()
 
 # ------------------------------------------------------------------------------
@@ -314,7 +330,7 @@ add_library(
     ${IMGUI_SOURCE_FILES}
 )
 
-if (${PPX_LINUX} OR ${PPX_GGP})
+if (PPX_LINUX OR PPX_GGP)
     set_target_properties(
         ${PROJECT_NAME} PROPERTIES PREFIX "lib"
     )
@@ -347,8 +363,8 @@ endif()
 if (PPX_VULKAN)
     target_include_directories(
         ${PROJECT_NAME}
-        PRIVATE ${VULKAN_INCLUDE_DIR}
-                ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src
+        PRIVATE ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src
+        PUBLIC  ${VULKAN_INCLUDE_DIR}
     )
 endif()
 
@@ -360,6 +376,10 @@ set_target_properties(
 # ------------------------------------------------------------------------------
 # Compile definitions
 # ------------------------------------------------------------------------------
+target_compile_definitions(
+    ${PROJECT_NAME}
+    PUBLIC  GLFW_INCLUDE_NONE
+)
 
 if (PPX_GGP)
     target_compile_definitions(
@@ -399,17 +419,17 @@ if (PPX_VULKAN)
     if (PPX_GGP)
         target_compile_definitions(
             ${PROJECT_NAME}
-            PRIVATE VK_USE_PLATFORM_GGP
+            PRIVATE
         )
     elseif (PPX_LINUX)
         target_compile_definitions(
             ${PROJECT_NAME}
-            PRIVATE VK_USE_PLATFORM_XCB_KHR
+            PUBLIC ${PPX_LINUX_VULKAN_SURFACE}
         )
     elseif (PPX_MSW)
         target_compile_definitions(
             ${PROJECT_NAME}
-            PRIVATE VK_USE_PLATFORM_WIN32_KHR
+            PRIVATE
         )
     endif()
 endif()

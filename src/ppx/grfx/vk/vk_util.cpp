@@ -27,11 +27,9 @@ const char* ToString(VkResult value)
         case VK_ERROR_TOO_MANY_OBJECTS                             : return "VK_ERROR_TOO_MANY_OBJECTS"; break;
         case VK_ERROR_FORMAT_NOT_SUPPORTED                         : return "VK_ERROR_FORMAT_NOT_SUPPORTED"; break;
         case VK_ERROR_FRAGMENTED_POOL                              : return "VK_ERROR_FRAGMENTED_POOL"; break;
-        case VK_ERROR_UNKNOWN                                      : return "VK_ERROR_UNKNOWN"; break;
         case VK_ERROR_OUT_OF_POOL_MEMORY                           : return "VK_ERROR_OUT_OF_POOL_MEMORY"; break;
         case VK_ERROR_INVALID_EXTERNAL_HANDLE                      : return "VK_ERROR_INVALID_EXTERNAL_HANDLE"; break;
         case VK_ERROR_FRAGMENTATION                                : return "VK_ERROR_FRAGMENTATION"; break;
-        case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS               : return "VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS"; break;
         case VK_ERROR_SURFACE_LOST_KHR                             : return "VK_ERROR_SURFACE_LOST_KHR"; break;
         case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR                     : return "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR"; break;
         case VK_SUBOPTIMAL_KHR                                     : return "VK_SUBOPTIMAL_KHR"; break;
@@ -39,15 +37,19 @@ const char* ToString(VkResult value)
         case VK_ERROR_INCOMPATIBLE_DISPLAY_KHR                     : return "VK_ERROR_INCOMPATIBLE_DISPLAY_KHR"; break;
         case VK_ERROR_VALIDATION_FAILED_EXT                        : return "VK_ERROR_VALIDATION_FAILED_EXT"; break;
         case VK_ERROR_INVALID_SHADER_NV                            : return "VK_ERROR_INVALID_SHADER_NV"; break;
-        case VK_ERROR_INCOMPATIBLE_VERSION_KHR                     : return "VK_ERROR_INCOMPATIBLE_VERSION_KHR"; break;
         case VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT : return "VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT"; break;
         case VK_ERROR_NOT_PERMITTED_EXT                            : return "VK_ERROR_NOT_PERMITTED_EXT"; break;
         case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT          : return "VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT"; break;
+#if PPX_VULKAN_VERSION >= VK_MAKE_VERSION(1, 2, 0)
+        case VK_ERROR_UNKNOWN                                      : return "VK_ERROR_UNKNOWN"; break;
+        case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS               : return "VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS"; break;
+        case VK_ERROR_INCOMPATIBLE_VERSION_KHR                     : return "VK_ERROR_INCOMPATIBLE_VERSION_KHR"; break;
         case VK_THREAD_IDLE_KHR                                    : return "VK_THREAD_IDLE_KHR"; break;
         case VK_THREAD_DONE_KHR                                    : return "VK_THREAD_DONE_KHR"; break;
         case VK_OPERATION_DEFERRED_KHR                             : return "VK_OPERATION_DEFERRED_KHR"; break;
         case VK_OPERATION_NOT_DEFERRED_KHR                         : return "VK_OPERATION_NOT_DEFERRED_KHR"; break;
         case VK_PIPELINE_COMPILE_REQUIRED_EXT                      : return "VK_PIPELINE_COMPILE_REQUIRED_EXT"; break;
+#endif // PPX_VULKAN_VERSION >= VK_MAKE_VERSION(1, 2, 0)
     }
     // clang-format on
     return "<unknown VkResult value>";

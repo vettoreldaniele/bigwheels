@@ -342,11 +342,11 @@ const typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(const GrfxTypeT* pGrfx
     return pApiObject;
 }
 
-template <typename GrfxTypeT>
-typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(ObjPtr<GrfxTypeT>& pGrfxObject)
+template <typename GrfxTypePtrT>
+typename ApiObjectLookUp<typename GrfxTypePtrT::object_type>::ApiType* ToApi(GrfxTypePtrT pGrfxObjectPtr)
 {
-    using ApiType       = typename ApiObjectLookUp<GrfxTypeT>::ApiType;
-    ApiType* pApiObject = static_cast<ApiType*>(pGrfxObject.Get());
+    using ApiType       = typename ApiObjectLookUp<typename GrfxTypePtrT::object_type>::ApiType;
+    ApiType* pApiObject = static_cast<ApiType*>(pGrfxObjectPtr.Get());
     return pApiObject;
 }
 

@@ -54,6 +54,8 @@ class Surface
 public:
     Surface() {}
     virtual ~Surface() {}
+
+    virtual uint32_t GetMinImageCount() const = 0;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -107,7 +109,7 @@ public:
 
 protected:
     virtual Result Create(const grfx::SwapchainCreateInfo* pCreateInfo) override;
-    virtual void   Destroy();
+    virtual void   Destroy() override;
     friend class grfx::Device;
 
 protected:

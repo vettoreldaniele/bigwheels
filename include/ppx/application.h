@@ -7,9 +7,13 @@
 #include "ppx/timer.h"
 
 // clang-format off
+#if ! defined(GLFW_INCLUDE_NONE)
+#   define GLFW_INCLUDE_NONE
+#endif
 #include <GLFW/glfw3.h>
+
 #if defined(PPX_LINUX)
-#   define GLFW_EXPOSE_NATIVE_X11
+#   define GLFW_EXPOSE_NATIVE_X11 
 #elif defined(PPX_MSW)
 #   define GLFW_EXPOSE_NATIVE_WIN32
 #endif
@@ -42,8 +46,8 @@ struct ApplicationSettings
         {
             uint32_t gpuIndex           = 0;
             uint32_t graphicsQueueCount = 1;
-            uint32_t computeQueueCount  = 1;
-            uint32_t transferQueueCount = 1;
+            uint32_t computeQueueCount  = 0;
+            uint32_t transferQueueCount = 0;
         } device;
 
         struct

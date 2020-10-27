@@ -92,7 +92,7 @@ RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo& obj
     this->height  = obj.height;
 
     // Views
-    this->renderTargetCount = this->renderTargetCount;
+    this->renderTargetCount = obj.renderTargetCount;
     for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
         this->V1.pRenderTargetViews[i] = obj.pRenderTargetViews[i];
     }

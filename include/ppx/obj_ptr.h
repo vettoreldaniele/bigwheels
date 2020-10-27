@@ -38,6 +38,8 @@ template <typename ObjectT>
 class ObjPtr
 {
 public:
+    using object_type = ObjectT;
+
     ObjPtr(ObjectT* ptr = nullptr)
         : mPtr(ptr) {}
 

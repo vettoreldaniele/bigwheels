@@ -46,6 +46,7 @@ struct BufferUsageFlags
     BufferUsageFlags& operator=(uint32_t rhs)
     {
         this->flags = rhs;
+        return *this;
     }
 
     operator uint32_t() const
@@ -79,6 +80,7 @@ struct ColorComponentFlags
     ColorComponentFlags& operator=(uint32_t rhs)
     {
         this->flags = rhs;
+        return *this;
     }
 
     operator uint32_t() const
@@ -112,6 +114,7 @@ struct DrawPassClearFlags
     DrawPassClearFlags& operator=(uint32_t rhs)
     {
         this->flags = rhs;
+        return *this;
     }
 
     operator uint32_t() const
@@ -151,6 +154,7 @@ struct ImageUsageFlags
     ImageUsageFlags& operator=(uint32_t rhs)
     {
         this->flags = rhs;
+        return *this;
     }
 
     operator uint32_t() const
@@ -197,6 +201,7 @@ struct ShaderStageFlags
     ShaderStageFlags& operator=(uint32_t rhs)
     {
         this->flags = rhs;
+        return *this;
     }
 
     operator uint32_t() const

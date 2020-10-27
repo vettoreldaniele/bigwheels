@@ -1,8 +1,10 @@
 #include "ppx/grfx/grfx_instance.h"
 #include "ppx/grfx/grfx_device.h"
 #include "ppx/grfx/grfx_gpu.h"
-#include "ppx/grfx/dx/dx_instance.h"
 #include "ppx/grfx/vk/vk_instance.h"
+#if defined(PPX_D3D12)
+#include "ppx/grfx/dx/dx_instance.h"
+#endif // defined(PPX_D3D12)
 
 namespace ppx {
 namespace grfx {
@@ -219,6 +221,7 @@ Result CreateInstance(const grfx::InstanceCreateInfo* pCreateInfo, grfx::Instanc
             return ppx::ERROR_UNSUPPORTED_API;
         } break;
 
+#if defined(PPX_D3D12)
         case grfx::API_DX_12_0:
         case grfx::API_DX_12_1: {
             pObject = new dx::Instance();
@@ -226,6 +229,7 @@ Result CreateInstance(const grfx::InstanceCreateInfo* pCreateInfo, grfx::Instanc
                 return ppx::ERROR_ALLOCATION_FAILED;
             }
         } break;
+#endif // defiend(PPX_D3D12)
 
         case grfx::API_VK_1_1:
         case grfx::API_VK_1_2: {

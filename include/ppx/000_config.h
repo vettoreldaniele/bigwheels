@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <functional>
 #include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -25,10 +27,11 @@
 #include "ppx/log.h"
 #include "ppx/util.h"
 
+// clang-format off
 #define PPX_STRINGIFY_(x)   #x
 #define PPX_STRINGIFY(x)    PPX_STRINGIFY_(x)
 #define PPX_LINE            PPX_STRINGIFY(__LINE__)
-#define PPX_SOURCE_LOCATION __FUNCTION__##" @ "##__FILE__##":"##PPX_LINE
+#define PPX_SOURCE_LOCATION __FUNCTION__ << " @ " __FILE__ ":" PPX_LINE
 #define PPX_VAR_VALUE(var)  #var << ":" << var
 #define PPX_ENDL            std::endl
 
@@ -41,13 +44,12 @@
 
 #define PPX_ASSERT_NULL_ARG(ARG)                             \
     if ((ARG) == nullptr) {                                  \
-        PPX_LOG_ERROR(#ARG##"is NULL"                        \
+        PPX_LOG_ERROR(#ARG " is NULL"                        \
                       << " "                                 \
                       << "(" << PPX_SOURCE_LOCATION << ")"); \
         assert(false);                                       \
     }
 
-// clang-format off
 #define PPX_CHECKED_CALL(EXPR)                                                         \
     {                                                                                  \
         ppx::Result ppx_checked_result_0xdeadbeef = EXPR;                              \

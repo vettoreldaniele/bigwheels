@@ -91,11 +91,17 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
     vksi.signalSemaphoreCount = CountU32(signalSemaphores);
     vksi.pSignalSemaphores    = DataPtr(signalSemaphores);
 
+    // Fence
+    VkFence fence = VK_NULL_HANDLE;
+    if (!IsNull(pSubmitInfo->pFence)) {
+        fence = ToApi(pSubmitInfo->pFence)->GetVkFence();
+    }
+
     VkResult vkres = vkQueueSubmit(
         mQueue,
         1,
         &vksi,
-        IsNull(pSubmitInfo->pFence) ? VK_NULL_HANDLE : ToApi(pSubmitInfo->pFence)->GetVkFence());
+        fence);
     if (vkres != VK_SUCCESS) {
         return ppx::ERROR_API_FAILURE;
     }

@@ -7,11 +7,7 @@
 #       define VK_USE_PLATFORM_GGP
 #   endif
 #elif defined(PPX_LINUX)
-#   if defined(PPX_LINUX_WAYLAND)
-#       if ! defined(VK_USE_PLATFORM_WAYLAND_KHR)
-#           define VK_USE_PLATFORM_WAYLAND_KHR
-#       endif
-#   elif defined(PPX_LINUX_XCB)
+#   if defined(PPX_LINUX_XCB)
 #       if ! defined(VK_USE_PLATFORM_XCB_KHR)
 #           define VK_USE_PLATFORM_XCB_KHR
 #       endif
@@ -19,7 +15,11 @@
 #       if ! defined(VK_USE_PLATFORM_XLIB_KHR)
 #           define VK_USE_PLATFORM_XLIB_KHR
 #       endif
-    #endif
+#   elif defined(PPX_LINUX_WAYLAND)
+#       if ! defined(VK_USE_PLATFORM_WAYLAND_KHR)
+#           define VK_USE_PLATFORM_WAYLAND_KHR
+#       endif
+#   endif
 #elif defined(PPX_MSW)
 #   if ! defined(VK_USE_PLATFORM_WIN32_KHR)
 #       define VK_USE_PLATFORM_WIN32_KHR
@@ -28,6 +28,21 @@
 // clang-format on
 #include <vulkan/vulkan.h>
 #include "vk_mem_alloc.h"
+
+//
+// If VK_HEADER_VERSION_COMPLETE isn't defined then platform is Vulkan 1.1.
+//
+#if defined(VK_HEADER_VERSION_COMPLETE)
+#   define PPX_VULKAN_VERSION VK_MAKE_VERSION(1, 2, 0)
+#else
+#   define PPX_VULKAN_VERSION VK_MAKE_VERSION(1, 1, 0)
+#endif // defined(VK_HEADER_VERSION_COMPLETE)
+
+#if PPX_VULKAN_VERSION < VK_MAKE_VERSION(1, 2, 0)
+#   define VK_ERROR_FRAGMENTATION                           VK_ERROR_FRAGMENTATION_EXT
+#   define VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT  VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT
+#   define VK_BUFFER_USAGE_RAY_TRACING_BIT_KHR              VK_BUFFER_USAGE_RAY_TRACING_BIT_NV
+#endif
 
 #define VK_LAYER_KHRONOS_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
 
