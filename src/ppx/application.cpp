@@ -640,14 +640,23 @@ Result Application::InitializeGrfxSurface()
     // Swapchain
     {
         PPX_LOG_INFO("Creating application swapchain");
-        PPX_LOG_INFO("   "
-                     << "image count : " << mSettings.grfx.swapchain.imageCount);
+        PPX_LOG_INFO("   image count : " << mSettings.grfx.swapchain.imageCount);
 
         const uint32_t surfaceMinImageCount = mSurface->GetMinImageCount();
         if (mSettings.grfx.swapchain.imageCount < surfaceMinImageCount) {
-            PPX_LOG_WARN("readjusting swapchain's image count from " << mSettings.grfx.swapchain.imageCount << " to " << surfaceMinImageCount << " because the surface requires it");
+            PPX_LOG_WARN("readjusting swapchain's image count from " << mSettings.grfx.swapchain.imageCount << " to " << surfaceMinImageCount << " to match surface requirements");
             mSettings.grfx.swapchain.imageCount = surfaceMinImageCount;
         }
+
+#if defined(PPX_GGP)
+        const uint32_t surfaceMinImageWidth  = mSurface->GetMinImageWidth();
+        const uint32_t surfaceMinImageHeight = mSurface->GetMinImageHeight();
+        if ((surfaceMinImageWidth > mSettings.window.width) || (surfaceMinImageHeight > mSettings.window.height)) {
+            PPX_LOG_WARN("readjusting swapchain/window size from " << mSettings.window.width << "x" << mSettings.window.height << " to " << surfaceMinImageWidth << "x" << surfaceMinImageHeight << " to match surface requirements");
+            mSettings.window.width  = surfaceMinImageWidth;
+            mSettings.window.height = surfaceMinImageHeight;
+        }
+#endif
 
         grfx::SwapchainCreateInfo ci = {};
         ci.pQueue                    = mDevice->GetGraphicsQueue();
@@ -1245,7 +1254,7 @@ const char* GetKeyCodeString(KeyCode code)
     if ((code < KEY_RANGE_FIRST) || (code >= KEY_RANGE_LAST)) {
         return sKeyCodeString[0];
     }
-    return sKeyCodeString[static_cast<uint32_t>(code)];    
+    return sKeyCodeString[static_cast<uint32_t>(code)];
 }
 
 } // namespace ppx

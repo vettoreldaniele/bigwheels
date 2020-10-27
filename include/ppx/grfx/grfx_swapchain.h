@@ -55,7 +55,9 @@ public:
     Surface() {}
     virtual ~Surface() {}
 
-    virtual uint32_t GetMinImageCount() const = 0;
+    virtual uint32_t GetMinImageWidth() const  = 0;
+    virtual uint32_t GetMinImageHeight() const = 0;
+    virtual uint32_t GetMinImageCount() const  = 0;
 };
 
 // -------------------------------------------------------------------------------------------------

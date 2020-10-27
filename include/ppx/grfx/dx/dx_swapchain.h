@@ -17,6 +17,8 @@ public:
 
     HWND GetWindowHandle() const { return mWindowHandle; }
 
+    virtual uint32_t GetMinImageWidth() const override { return 0; }
+    virtual uint32_t GetMinImageHeight() const override { return 0; }
     virtual uint32_t GetMinImageCount() const override { return 1; }
 
 protected:

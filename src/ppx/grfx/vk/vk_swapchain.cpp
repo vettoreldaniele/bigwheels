@@ -146,6 +146,16 @@ void Surface::DestroyApiObjects()
     }
 }
 
+uint32_t Surface::GetMinImageWidth() const
+{
+    return mCapabilities.minImageExtent.width;
+}
+
+uint32_t Surface::GetMinImageHeight() const
+{
+    return mCapabilities.minImageExtent.height;
+}
+
 uint32_t Surface::GetMinImageCount() const
 {
     return mCapabilities.minImageCount;

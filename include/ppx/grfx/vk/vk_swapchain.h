@@ -23,6 +23,8 @@ public:
     const VkSurfaceCapabilitiesKHR&       GetCapabilities() const { return mCapabilities; }
     const std::vector<VkSurfaceFormatKHR> GetSurfaceFormats() const { return mSurfaceFormats; }
 
+    virtual uint32_t GetMinImageWidth() const override;
+    virtual uint32_t GetMinImageHeight() const override;
     virtual uint32_t GetMinImageCount() const override;
 
 protected:
