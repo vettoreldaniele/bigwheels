@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(07_draw_indexed)
+project(13_normal_map)
 
 list(APPEND HLSL_FILES
-    "${PPX_DIR}/assets/basic/shaders/VertexColors.hlsl"
+    "${PPX_DIR}/assets/basic/shaders/NormalMap.hlsl"
 )
 
 foreach(HLSL_PATH ${HLSL_FILES})

@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 project(BigWheels)
 
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+include(ShaderCompile)
+
 # Detect GGP
 if (GGP_TOOLCHAIN_PATH)
     set(GGP TRUE)

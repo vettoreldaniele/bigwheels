@@ -5,10 +5,20 @@ project(projects)
 function(add_vk_sample name is_gui)
     set (api_tag "vk")
     set (target_name "${api_tag}_${name}")
+    set (additional_files "${ARGV2}")
+
+    foreach(filepath ${additional_files})
+        get_filename_component(ext ${filepath} EXT)
+        if ("${ext}" STREQUAL ".hlsl")
+            list(APPEND shader_files ${filepath})
+        endif()
+    endforeach()
+    source_group("Shaders" FILES ${shader_files})
 
     add_executable(
         ${target_name}
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${additional_files}
     )
 
     set_target_properties(
@@ -40,10 +50,20 @@ function(add_dx_sample name is_gui)
     if (PPX_D3D12)
         set (api_tag "dx")
         set (target_name "${api_tag}_${name}")
+        set (additional_files "${ARGV2}")
+
+        foreach(filepath ${additional_files})
+            get_filename_component(ext ${filepath} EXT)
+            if ("${ext}" STREQUAL ".hlsl")
+                list(APPEND shader_files ${filepath})
+            endif()
+        endforeach()
+        source_group("Shaders" FILES ${shader_files})
 
         add_executable(
             ${target_name}
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+            ${additional_files}
         )
 
         set_target_properties(
@@ -76,10 +96,20 @@ function(add_dxil_sample name is_gui)
     if (PPX_D3D12)
         set (api_tag "dxil")
         set (target_name "${api_tag}_${name}")
+        set (additional_files "${ARGV2}")
+
+        foreach(filepath ${additional_files})
+            get_filename_component(ext ${filepath} EXT)
+            if ("${ext}" STREQUAL ".hlsl")
+                list(APPEND shader_files ${filepath})
+            endif()
+        endforeach()
+        source_group("Shaders" FILES ${shader_files})
 
         add_executable(
             ${target_name}
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+            ${additional_files}
         )
 
         set_target_properties(
@@ -108,7 +138,7 @@ function(add_dxil_sample name is_gui)
     endif()
 endfunction()
 
-add_subdirectory(00_ppx_info)
+#add_subdirectory(00_ppx_info)
 add_subdirectory(01_triangle)
 add_subdirectory(02_triangle_spinning)
 add_subdirectory(03_square_textured)
@@ -119,8 +149,8 @@ add_subdirectory(07_draw_indexed)
 add_subdirectory(08_basic_geometry)
 add_subdirectory(09_obj_geometry)
 add_subdirectory(10_cube_map)
-add_subdirectory(camera)
-add_subdirectory(input)
-add_subdirectory(normal_map)
+add_subdirectory(12_camera)
+add_subdirectory(13_normal_map)
+add_subdirectory(14_input)
 add_subdirectory(shadertoy)
 
