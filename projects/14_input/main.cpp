@@ -16,8 +16,8 @@ class ProjApp
 public:
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
-    virtual void KeyDown(KeyCode key) override;
-    virtual void KeyUp(KeyCode key) override;
+    virtual void KeyDown(ppx::KeyCode key) override;
+    virtual void KeyUp(ppx::KeyCode key) override;
     virtual void MouseMove(int32_t x, int32_t y, uint32_t buttons) override;
     virtual void MouseDown(int32_t x, int32_t y, uint32_t buttons) override;
     virtual void MouseUp(int32_t x, int32_t y, uint32_t buttons) override;
@@ -80,13 +80,13 @@ void ProjApp::Setup()
     }
 }
 
-void ProjApp::KeyDown(KeyCode key)
+void ProjApp::KeyDown(ppx::KeyCode key)
 {
     mKeyStates[key].down     = true;
     mKeyStates[key].timeDown = GetElapsedSeconds();
 }
 
-void ProjApp::KeyUp(KeyCode key)
+void ProjApp::KeyUp(ppx::KeyCode key)
 {
     mKeyStates[key].down     = false;
     mKeyStates[key].timeDown = FLT_MAX;
@@ -204,7 +204,7 @@ void ProjApp::DrawGui()
             const KeyState& state         = mKeyStates[i];
             float           timeSinceDown = std::max(0.0f, currentTime - state.timeDown);
 
-            ImGui::Text("%s", GetKeyCodeString(static_cast<KeyCode>(i)));
+            ImGui::Text("%s", GetKeyCodeString(static_cast<ppx::KeyCode>(i)));
             ImGui::NextColumn();
             ImGui::Text(state.down ? "DOWN" : "UP");
             ImGui::NextColumn();

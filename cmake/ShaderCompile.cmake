@@ -5,12 +5,19 @@ message("Adding shader compile functions for HLSL shaders")
 if (NOT DXC_PATH)
     # Look for it in Vulkan SDK
     if (PPX_LINUX)
-        message("yandex")
+        set(VK_SDK_DXC "$ENV{VULKAN_SDK}/bin/dxc")
+        message("Looking for dxc at ${VK_SDK_DXC}")
+        if (EXISTS "${VK_SDK_DXC}")
+            message("   dxc found at ${VK_SDK_DXC}")
+            set (DXC_PATH "${VK_SDK_DXC}")
+        else()
+            message("   dxc not found at ${VK_SDK_DXC}")
+        endif()
     elseif(PPX_GGP OR PPX_MSW)
         set(VK_SDK_DXC "$ENV{VULKAN_SDK}\\Bin\\dxc.exe")
         message("Looking for dxc.exe at ${VK_SDK_DXC}")
         if (EXISTS "${VK_SDK_DXC}")
-            message("   dxc.exe ound at ${VK_SDK_DXC}")
+            message("   dxc.exe found at ${VK_SDK_DXC}")
             set (DXC_PATH "${VK_SDK_DXC}")
         else()
             message("   dxc.exe not found at ${VK_SDK_DXC}")
@@ -26,6 +33,14 @@ set(FXC_PATH "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\${CMAKE_VS_WINDOWS
 
 message("DXC_PATH: ${DXC_PATH}")
 message("FXC_PATH: ${FXC_PATH}")
+
+function(CompileShaderMakeOutputDir OUTPUT_FILE)
+    get_filename_component(PARENT_DIR ${OUTPUT_FILE} DIRECTORY)
+    if (NOT EXISTS "${PARENT_DIR}")
+        file(MAKE_DIRECTORY "${PARENT_DIR}")
+        message("Created shader binary output directory: ${PARENT_DIR}")
+    endif()
+endfunction()
 
 # @fn compile_vs_ps - Compiles an HLSL file with VS and PS to DXBC, DXIL, and SPV
 #   
@@ -67,6 +82,13 @@ function(CompileShaderVSPS)
     set(dxbc_ps_file ${OUTPUT_DIR}/dxbc/${ps_file})    
 
     if (PPX_VULKAN AND PPX_D3D12)
+        CompileShaderMakeOutputDir(${spv_vs_file})
+        CompileShaderMakeOutputDir(${spv_ps_file})
+        CompileShaderMakeOutputDir(${dxil_vs_file}) 
+        CompileShaderMakeOutputDir(${dxil_ps_file})
+        CompileShaderMakeOutputDir(${dxbc_vs_file})
+        CompileShaderMakeOutputDir(${dxbc_ps_file})
+
         add_custom_command(
             # Compile to SPV
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
@@ -86,9 +108,6 @@ function(CompileShaderVSPS)
             COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${dxbc_ps_file}"
             COMMAND ${FXC_PATH} -T ps_5_1 -E psmain -Fo ${dxbc_ps_file} ${HLSL_PATH}
             
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_vs_file}
                    ${spv_ps_file} 
@@ -100,6 +119,9 @@ function(CompileShaderVSPS)
             COMMENT "------ Compiling VSPS Shader(s) ------"        
         )
     else()
+        CompileShaderMakeOutputDir(${spv_vs_file})
+        CompileShaderMakeOutputDir(${spv_ps_file})
+
         add_custom_command(
             # Compile to SPV
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
@@ -107,9 +129,6 @@ function(CompileShaderVSPS)
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling PS ${HLSL_PATH} to ${spv_ps_file}"
             COMMAND ${DXC_PATH} -T ps_6_0 -spirv -E psmain -Fo ${spv_ps_file} ${HLSL_PATH}
                        
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_vs_file}
                    ${spv_ps_file} 
@@ -140,6 +159,10 @@ function(CompileShaderCS)
     set(dxbc_cs_file ${OUTPUT_DIR}/dxbc/${cs_file})
 
     if (PPX_VULKAN AND PPX_D3D12)
+        CompileShaderMakeOutputDir(${spv_cs_file})
+        CompileShaderMakeOutputDir(${dxil_cs_file}) 
+        CompileShaderMakeOutputDir(${dxbc_cs_file})
+
         add_custom_command(
             # Compile to SPV
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_cs_file}"
@@ -153,9 +176,6 @@ function(CompileShaderCS)
             COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc_cs_file}"
             COMMAND ${FXC_PATH} -T cs_5_1 -E csmain -Fo ${dxbc_cs_file} ${HLSL_PATH}
             
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_cs_file}
                    ${dxil_cs_file} 
@@ -164,13 +184,12 @@ function(CompileShaderCS)
             COMMENT "------ Compiling CS Shader(s) ------"        
         )
     else()
+        CompileShaderMakeOutputDir(${spv_cs_file})
+
         add_custom_command(
             # Compile to SPV
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_cs_file}"
             COMMAND ${DXC_PATH} -T cs_6_0 -spirv -E csmain -Fo ${spv_cs_file} ${HLSL_PATH}
-            
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            COMMAND ${CMAKE_COMMAND} -E echo ""
             
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_cs_file}
@@ -201,6 +220,10 @@ function(CompileShaderVS)
     set(dxbc_vs_file ${OUTPUT_DIR}/dxbc/${vs_file})
 
     if (PPX_VULKAN AND PPX_D3D12)
+        CompileShaderMakeOutputDir(${spv_vs_file})
+        CompileShaderMakeOutputDir(${dxil_vs_file}) 
+        CompileShaderMakeOutputDir(${dxbc_vs_file})
+
         add_custom_command(
             # Compile to SPV
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
@@ -214,9 +237,6 @@ function(CompileShaderVS)
             COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc_vs_file}"
             COMMAND ${FXC_PATH} -T vs_5_1 -E vsmain -Fo ${dxbc_vs_file} ${HLSL_PATH}
             
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_vs_file}
                    ${dxil_vs_file} 
@@ -225,15 +245,13 @@ function(CompileShaderVS)
             COMMENT "------ Compiling VS (depth only) Shader(s) ------"        
         )        
     else()
+        CompileShaderMakeOutputDir(${spv_vs_file})
+
         add_custom_command(
             # Compile to SPV
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
             COMMAND ${DXC_PATH} -T vs_6_0 -spirv -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH}
-            
            
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            COMMAND ${CMAKE_COMMAND} -E echo ""
-            
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_vs_file}
             WORKING_DIRECTORY ${WORKING_DIR}
