@@ -31,7 +31,7 @@ Open `BigWheels.sln` and build
 
 # Shader Compilation
 ## DXC
-The build system will look for `dxc.exe` in the Vulkan SDK bin directory. 
+The build system will look for `dxc.exe` or `dxc` in the Vulkan SDK bin directory. 
 
 To use a custom DXC executable use the following:
 ```
