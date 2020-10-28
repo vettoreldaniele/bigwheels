@@ -5,7 +5,7 @@ git clone --recursive git@github.com:chaoticbob/BigWheels.git
 cd BigWheels
 mkdir build-ggp
 cd build-ggp
-cmake
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" ..
 ```
 Open `BigWheels.sln` and build
 
