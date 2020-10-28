@@ -36,6 +36,8 @@ Open `BigWheels.sln` and build
 Built binaries are written to `BigWheels\bin`.
 
 # Shader Compilation
+Shader binaries are generated during project build. For GGP and Linux only SPIR-V binaries are generated. For Windows DXBC, DXIL, and SPIR-V binaries are generated.
+
 ## DXC
 The build system will look for `dxc.exe` or `dxc` in the Vulkan SDK bin directory. 
 
