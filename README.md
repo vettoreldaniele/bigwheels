@@ -1,12 +1,16 @@
+
 # Requirements
  * GGP
    * Visual Studio 2019 Professional
+   * GGP SDK
+   * Latest Vulkan SDK
  * Linux
    * Visual Studio Code or CLI
+   * Latest Vulkan SDK
  * Windows
    * Visual Studio 2019 Professaion or Visual Studio Code
- * Latest Vulkan SDK
- * Recent version of Windows SDK
+   * Latest Vulkan SDK
+   * Recent version of Windows SDK
 
 # Build Instructions
 ## GGP
