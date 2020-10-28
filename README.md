@@ -9,6 +9,8 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP 
 ```
 Open `BigWheels.sln` and build
 
+Built binaries are written to `BigWheels\bin`.
+
 ## Linux
 ```
 git clone --recursive git@github.com:chaoticbob/BigWheels.git
@@ -18,8 +20,10 @@ cd build-make
 cmake ..
 make -j <# CPUs to use>
 ```
-## Windows 
 
+Built binaries are written to `BigWheels\bin`.
+
+## Windows 
 ```
 git clone --recursive git@github.com:chaoticbob/BigWheels.git
 cd BigWheels
@@ -28,6 +32,8 @@ cd build-vs2019
 cmake -G "Visual Studio 16 2019" -A x64 ..
 ```
 Open `BigWheels.sln` and build
+
+Built binaries are written to `BigWheels\bin`.
 
 # Shader Compilation
 ## DXC
