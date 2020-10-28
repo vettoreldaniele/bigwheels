@@ -1,14 +1,10 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
+cmake_policy(SET CMP0054 NEW)
+
 project(BigWheels)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-include(ShaderCompile)
-
-# Detect GGP
-if (GGP_TOOLCHAIN_PATH)
-    set(GGP TRUE)
-endif()
 
 # Detect Linux
 if(UNIX AND NOT APPLE)
@@ -65,6 +61,12 @@ endif()
 
 message("Graphics API D3D12  : ${PPX_D3D12_MSG}")
 message("Graphics API Vulkan : ${PPX_VULKAN_MSG}")
+
+# ------------------------------------------------------------------------------
+# Add shader compile functions - needs to come after platform and API config
+# ------------------------------------------------------------------------------
+
+include(ShaderCompile)
 
 # ------------------------------------------------------------------------------
 # Configure C++ flags
