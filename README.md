@@ -11,7 +11,7 @@ Open `BigWheels.sln` and build
 
 Built binaries are written to `BigWheels\bin`.
 
-***NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the executable in the Vulkan SDK directory.  
+**NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the executable in the Vulkan SDK directory.  
 
 ## Linux
 ```
