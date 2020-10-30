@@ -7,7 +7,9 @@
 #include "ppx/grfx/grfx_device.h"
 #include "ppx/grfx/grfx_image.h"
 #include "ppx/grfx/grfx_queue.h"
+#include "ppx/grfx/grfx_util.h"
 #include "ppx/grfx/grfx_scope.h"
+#include "gli/gli.hpp"
 
 namespace ppx {
 namespace grfx_util {
@@ -35,6 +37,15 @@ grfx::Format ToGrfxFormat(Bitmap::Format value)
         case Bitmap::FORMAT_RGBA_FLOAT  : return grfx::FORMAT_R32G32B32A32_FLOAT; break;
     }
     // clang-format on
+    return grfx::FORMAT_UNDEFINED;
+}
+
+grfx::Format ToGrfxFormat(gli::format value)
+{
+    switch (value) {
+        case gli::FORMAT_RGBA_DXT5_UNORM_BLOCK16:
+            return grfx::FORMAT_BC3_UNORM;
+    }
     return grfx::FORMAT_UNDEFINED;
 }
 
@@ -212,6 +223,150 @@ Result CreateImageFromBitmap(
     return ppx::SUCCESS;
 }
 
+bool IsDDSFile(const fs::path& path)
+{
+    return (std::strstr(path.c_str(), ".dds") > 0 || std::strstr(path.c_str(), ".ktx") > 0);
+}
+
+Result CreateImageFromCompressedImage(
+    grfx::Queue*        pQueue,
+    const gli::texture& image,
+    grfx::Image**       ppImage,
+    const ImageOptions& options)
+{
+    Result ppxres;
+
+    PPX_LOG_INFO("Target type: " << grfx::ToString(image.target()) << "\n");
+    PPX_LOG_INFO("Format: " << grfx::ToString(image.format()) << "\n");
+    PPX_LOG_INFO("Swizzles: " << image.swizzles()[0] << ", " << image.swizzles()[1] << ", " << image.swizzles()[2] << ", " << image.swizzles()[3] << "\n");
+    PPX_LOG_INFO("Layer information:\n"
+                 << "\tBase layer: " << image.base_layer() << "\n"
+                 << "\tMax layer: " << image.max_layer() << "\n"
+                 << "\t# of layers: " << image.layers() << "\n");
+    PPX_LOG_INFO("Face information:\n"
+                 << "\tBase face: " << image.base_face() << "\n"
+                 << "\tMax face: " << image.max_face() << "\n"
+                 << "\t# of faces: " << image.faces() << "\n");
+    PPX_LOG_INFO("Level information:\n"
+                 << "\tBase level: " << image.base_level() << "\n"
+                 << "\tMax level: " << image.max_level() << "\n"
+                 << "\t# of levels: " << image.levels() << "\n");
+    PPX_LOG_INFO("Image extents by level:\n");
+    for (gli::texture::size_type level = 0; level < image.levels(); level++) {
+        PPX_LOG_INFO("\textent(level == " << level << "): [" << image.extent(level)[0] << ", " << image.extent(level)[1] << ", " << image.extent(level)[2] << "]\n");
+    }
+    PPX_LOG_INFO("Total image size (bytes): " << image.size() << "\n");
+    PPX_LOG_INFO("Image size by level:\n");
+    for (gli::texture::size_type i = 0; i < image.levels(); i++) {
+        PPX_LOG_INFO("\tsize(level == " << i << "): " << image.size(i) << "\n");
+    }
+    PPX_LOG_INFO("Image data pointer: " << image.data() << "\n");
+
+    PPX_ASSERT_MSG((image.target() == gli::TARGET_2D), "Expecting a 2D DDS image.");
+
+    // Scoped destroy
+    grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
+
+    uint64_t image_width  = image.extent(0)[0];
+    uint64_t image_height = image.extent(0)[1];
+    uint64_t rowStride    = image_width * 4;
+
+    // Create staging buffer
+    grfx::BufferPtr stagingBuffer;
+    {
+        PPX_LOG_INFO("Storage size for image: " << image.size() << " bytes\n");
+        PPX_LOG_INFO("Is image compressed: " << (gli::is_compressed(image.format()) ? "YES" : "NO"));
+
+        grfx::BufferCreateInfo ci      = {};
+        ci.size                        = static_cast<uint64_t>(image.size()); // bitmapFootprintSize;
+        ci.usageFlags.bits.transferSrc = true;
+        ci.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
+
+        ppxres = pQueue->GetDevice()->CreateBuffer(&ci, &stagingBuffer);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(stagingBuffer);
+
+        // Map and copy to staging buffer
+        void* pBufferAddress = nullptr;
+        ppxres               = stagingBuffer->MapMemory(0, &pBufferAddress);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+
+        const char* pSrc = static_cast<const char*>(image.data());
+        char*       pDst = static_cast<char*>(pBufferAddress);
+        memcpy(pDst, pSrc, image.size());
+
+        stagingBuffer->UnmapMemory();
+    }
+
+    // Create target image
+    grfx::ImagePtr targetImage;
+    {
+        grfx::ImageCreateInfo ci       = {};
+        ci.type                        = grfx::IMAGE_TYPE_2D;
+        ci.width                       = image_width;
+        ci.height                      = image_height;
+        ci.depth                       = 1;
+        ci.format                      = ToGrfxFormat(image.format());
+        ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
+        ci.mipLevelCount               = 1;
+        ci.arrayLayerCount             = 1;
+        ci.usageFlags.bits.transferDst = true;
+        ci.usageFlags.bits.sampled     = true;
+        ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
+
+        ci.usageFlags.flags |= options.mAdditionalUsage;
+
+        ppxres = pQueue->GetDevice()->CreateImage(&ci, &targetImage);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(targetImage);
+    }
+
+    // Copy info
+    grfx::BufferToImageCopyInfo copyInfo = {};
+    copyInfo.srcBuffer.imageWidth        = image_width;
+    copyInfo.srcBuffer.imageHeight       = image_height;
+    copyInfo.srcBuffer.imageRowStride    = rowStride;
+    copyInfo.srcBuffer.footprintOffset   = 0;
+    copyInfo.srcBuffer.footprintWidth    = image_width;
+    copyInfo.srcBuffer.footprintHeight   = image_height;
+    copyInfo.srcBuffer.footprintDepth    = 1;
+    copyInfo.dstImage.mipLevel           = 0;
+    copyInfo.dstImage.arrayLayer         = 0;
+    copyInfo.dstImage.arrayLayerCount    = 1;
+    copyInfo.dstImage.x                  = 0;
+    copyInfo.dstImage.y                  = 0;
+    copyInfo.dstImage.z                  = 0;
+    copyInfo.dstImage.width              = image_width;
+    copyInfo.dstImage.height             = image_height;
+    copyInfo.dstImage.depth              = 1;
+
+    // Copy to GPU image
+    ppxres = pQueue->CopyBufferToImage(
+        &copyInfo,
+        stagingBuffer,
+        targetImage,
+        PPX_ALL_SUBRESOURCES,
+        grfx::RESOURCE_STATE_UNDEFINED,
+        grfx::RESOURCE_STATE_SHADER_RESOURCE);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Change ownership to reference so object doesn't get destroyed
+    targetImage->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+
+    // Assign output
+    *ppImage = targetImage;
+
+    return ppx::SUCCESS;
+}
+
 // -------------------------------------------------------------------------------------------------
 
 Result CreateImageFromFile(
@@ -227,21 +382,41 @@ Result CreateImageFromFile(
     PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
     double fnStartTime = timer.SecondsSinceStart();
 
-    // Load bitmap
-    Bitmap bitmap;
-    Result ppxres = Bitmap::LoadFile(path, &bitmap);
-    if (Failed(ppxres)) {
-        return ppxres;
-    }
+    Result ppxres;
+    if (Bitmap::IsBitmapFile(path)) {
+        // Load bitmap
+        Bitmap bitmap;
+        ppxres = Bitmap::LoadFile(path, &bitmap);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
 
-    ppxres = CreateImageFromBitmap(pQueue, &bitmap, ppImage, options);
-    if (Failed(ppxres)) {
-        return ppxres;
+        ppxres = CreateImageFromBitmap(pQueue, &bitmap, ppImage, options);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+    else if (IsDDSFile(path)) {
+        // Generate a bitmap out of a DDS
+        gli::texture image = gli::load(path.c_str());
+        if (image.empty()) {
+            return Result::ERROR_IMAGE_FILE_LOAD_FAILED;
+        }
+        PPX_LOG_INFO("Successfully loaded compressed image: " << path);
+        ppxres = CreateImageFromCompressedImage(pQueue, image, ppImage, options);
+    }
+    else {
+        ppxres = Result::ERROR_IMAGE_FILE_LOAD_FAILED;
     }
 
     double fnEndTime = timer.SecondsSinceStart();
     float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);
-    PPX_LOG_INFO("Created image from image file: " << path << " (" << FloatString(fnElapsed) << " seconds)");
+    if (ppxres == Result::SUCCESS) {
+        PPX_LOG_INFO("Created image from image file: " << path << " (" << FloatString(fnElapsed) << " seconds)");
+    }
+    else {
+        PPX_LOG_INFO("Failed to create image from image file: " << path);
+    }
 
     return ppx::SUCCESS;
 }

@@ -555,6 +555,9 @@ DXGI_FORMAT ToDxgiFormat(grfx::Format value)
 
         // 11-bit R, 11-bit G, 10-bit B packed
         case FORMAT_R11G11B10_FLOAT          : return DXGI_FORMAT_R11G11B10_FLOAT; break;
+
+        // Compressed images
+        case FORMAT_BC3_UNORM                : return DXGI_FORMAT_BC3_UNORM; break;
     }
     // clang-format on
 

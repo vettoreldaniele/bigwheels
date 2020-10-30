@@ -97,6 +97,7 @@ public:
 
     static Result GetFileProperties(const fs::path& path, uint32_t* pWidth, uint32_t* pHeight, Bitmap::Format* pFormat);
     static Result LoadFile(const fs::path& path, Bitmap* pBitmap);
+    static bool   IsBitmapFile(const fs::path& path);
 
     // ---------------------------------------------------------------------------------------------
 

@@ -117,6 +117,9 @@ enum Format
 
     // 11-bit R, 11-bit G, 10-bit B packed
     FORMAT_R11G11B10_FLOAT,
+
+    // Compressed formats
+    FORMAT_BC3_UNORM,
 };
 
 uint32_t FormatSize(grfx::Format format);

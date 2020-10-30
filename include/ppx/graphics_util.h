@@ -7,6 +7,7 @@
 #include "ppx/bitmap.h"
 #include "ppx/fs.h"
 #include "ppx/geometry.h"
+#include "gli/gli.hpp"
 
 namespace ppx {
 namespace grfx_util {
@@ -29,6 +30,12 @@ private:
     friend Result CreateImageFromBitmap(
         grfx::Queue*        pQueue,
         const Bitmap*       pBitmap,
+        grfx::Image**       ppImage,
+        const ImageOptions& options);
+
+    friend Result CreateImageFromCompressedImage(
+        grfx::Queue*        pQueue,
+        const gli::texture& image,
         grfx::Image**       ppImage,
         const ImageOptions& options);
 

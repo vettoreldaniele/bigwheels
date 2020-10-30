@@ -469,6 +469,9 @@ VkFormat ToVkFormat(grfx::Format value)
 
         // 11-bit R, 11-bit G, 10-bit B packed
         case FORMAT_R11G11B10_FLOAT    : return VK_FORMAT_B10G11R11_UFLOAT_PACK32; break;
+
+        // Compressed images
+        case FORMAT_BC3_UNORM          : return VK_FORMAT_BC3_UNORM_BLOCK; break;
     }
     // clang-format on
 
