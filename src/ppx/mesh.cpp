@@ -659,6 +659,34 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
         return mesh;
     }
 
+    //// Check to see if data can be indexed
+    //bool indexable = true;
+    //for (size_t shapeIdx = 0; shapeIdx < numShapes; ++shapeIdx) {
+    //    const tinyobj::shape_t& shape     = shapes[shapeIdx];
+    //    const tinyobj::mesh_t&  shapeMesh = shape.mesh;
+    //
+    //    size_t numTriangles = shapeMesh.indices.size() / 3;
+    //    for (size_t triIdx = 0; triIdx < numTriangles; ++triIdx) {
+    //        size_t triVtxIdx0 = triIdx * 3 + 0;
+    //        size_t triVtxIdx1 = triIdx * 3 + 1;
+    //        size_t triVtxIdx2 = triIdx * 3 + 2;
+    //
+    //        // Index data
+    //        const tinyobj::index_t& dataIdx0 = shapeMesh.indices[triVtxIdx0];
+    //        const tinyobj::index_t& dataIdx1 = shapeMesh.indices[triVtxIdx1];
+    //        const tinyobj::index_t& dataIdx2 = shapeMesh.indices[triVtxIdx2];
+    //
+    //        bool sameIdx0 = (dataIdx0.vertex_index == dataIdx0.normal_index) && (dataIdx0.normal_index == dataIdx0.texcoord_index);
+    //        bool sameIdx1 = (dataIdx1.vertex_index == dataIdx1.normal_index) && (dataIdx1.normal_index == dataIdx1.texcoord_index);
+    //        bool sameIdx2 = (dataIdx2.vertex_index == dataIdx2.normal_index) && (dataIdx2.normal_index == dataIdx2.texcoord_index);
+    //        bool same     = sameIdx0 && sameIdx1 && sameIdx2;
+    //        if (!same) {
+    //           indexable = false;
+    //           break;
+    //        }
+    //    }
+    //}
+
     // Build geometry
     for (size_t shapeIdx = 0; shapeIdx < numShapes; ++shapeIdx) {
         const tinyobj::shape_t& shape     = shapes[shapeIdx];
@@ -765,12 +793,30 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
             }
 
             if (options.mEnableTangents) {
-                mesh.AppendTangent(vtx0.tangent);
-                mesh.AppendTangent(vtx1.tangent);
-                mesh.AppendTangent(vtx2.tangent);
-                mesh.AppendBitangent(vtx0.bitangent);
-                mesh.AppendBitangent(vtx1.bitangent);
-                mesh.AppendBitangent(vtx2.bitangent);
+                float3 edge1 = vtx1.position - vtx0.position;
+                float3 edge2 = vtx2.position - vtx0.position;
+                float2 duv1  = vtx1.texCoord - vtx0.texCoord;
+                float2 duv2  = vtx2.texCoord - vtx0.texCoord;
+                float  r     = 1.0f / (duv1.x * duv2.y - duv1.y * duv2.x);
+
+                float3 tangent = float3(
+                    ((edge1.x * duv2.y) - (edge2.x * duv1.y)) * r,
+                    ((edge1.y * duv2.y) - (edge2.y * duv1.y)) * r,
+                    ((edge1.z * duv2.y) - (edge2.z * duv1.y)) * r);
+
+                float3 bitangent = float3(
+                    ((edge1.x * duv2.x) - (edge2.x * duv1.x)) * r,
+                    ((edge1.y * duv2.x) - (edge2.y * duv1.x)) * r,
+                    ((edge1.z * duv2.x) - (edge2.z * duv1.x)) * r);
+
+                tangent = glm::normalize(tangent - vtx0.normal * glm::dot(vtx0.normal, tangent));
+
+                mesh.AppendTangent(tangent);
+                mesh.AppendTangent(tangent);
+                mesh.AppendTangent(tangent);
+                mesh.AppendBitangent(bitangent);
+                mesh.AppendBitangent(bitangent);
+                mesh.AppendBitangent(bitangent);
             }
 
             if (indexType != grfx::INDEX_TYPE_UNDEFINED) {
@@ -778,6 +824,19 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
             }
         }
     }
+
+    //if (options.mEnableTangents) {
+    //    size_t numPositions  = mesh.mPositions.size();
+    //    size_t numNormals    = mesh.mNormals.size();
+    //    size_t numTangents   = mesh.mTangents.size();
+    //    size_t numBitangents = mesh.mBitangents.size();
+    //    PPX_ASSERT_MSG(numPositions == numNormals == numTangents == numBitangents, "misaligned data for tangent calculation");
+    //
+    //    for (size_t i = 0; i < numPositions; ++i) {
+    //        const float3& T = mesh.mTangents[i];
+    //        const float3& B = mesh.mBitangents[i];
+    //    }
+    //}
 
     return mesh;
 }

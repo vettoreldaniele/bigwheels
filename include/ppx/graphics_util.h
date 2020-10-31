@@ -3,6 +3,7 @@
 
 #include "ppx/grfx/grfx_image.h"
 #include "ppx/grfx/grfx_queue.h"
+#include "ppx/grfx/grfx_texture.h"
 #include "ppx/fs.h"
 #include "ppx/geometry.h"
 
@@ -162,6 +163,15 @@ Result CreateTextureFromFile(
     grfx::Queue*                 pQueue,
     const fs::path&              path,
     grfx::Image**                ppImage,
+    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
+
+//! @fn CreateTextureFromFile
+//!
+//!
+Result CreateTextureFromFile(
+    grfx::Queue*                 pQueue,
+    const fs::path&              path,
+    grfx::Texture**              ppTexture,
     const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
 
 //! @fn CreateCubeMapFromFile

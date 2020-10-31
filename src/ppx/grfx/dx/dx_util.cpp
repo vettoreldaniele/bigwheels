@@ -184,7 +184,8 @@ D3D12_DESCRIPTOR_RANGE_TYPE ToD3D12RangeType(grfx::DescriptorType value)
         } break;
 
         case grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-        case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: {
+        case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+        case grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER: {
             return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
         } break;
 

@@ -119,6 +119,126 @@ Result CreateTextureFromFile(
     return ppx::SUCCESS;
 }
 
+Result CreateTextureFromFile(
+    grfx::Queue*                 pQueue,
+    const fs::path&              path,
+    grfx::Texture**              ppTexture,
+    const grfx::ImageUsageFlags& additionalImageUsage)
+{
+    PPX_ASSERT_NULL_ARG(pQueue);
+    PPX_ASSERT_NULL_ARG(ppTexture);
+
+    // Load bitmap
+    Bitmap bitmap;
+    Result ppxres = Bitmap::LoadFile(path, &bitmap);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Scoped destroy
+    grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
+
+    // Create staging buffer
+    grfx::BufferPtr stagingBuffer;
+    {
+        uint64_t bitmapFootprintSize = bitmap.GetFootprintSize();
+
+        grfx::BufferCreateInfo ci      = {};
+        ci.size                        = bitmapFootprintSize;
+        ci.usageFlags.bits.transferSrc = true;
+        ci.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
+
+        ppxres = pQueue->GetDevice()->CreateBuffer(&ci, &stagingBuffer);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(stagingBuffer);
+
+        // Map and copy to staging buffer
+        void* pBufferAddress = nullptr;
+        ppxres               = stagingBuffer->MapMemory(0, &pBufferAddress);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        std::memcpy(pBufferAddress, bitmap.GetData(), bitmapFootprintSize);
+        stagingBuffer->UnmapMemory();
+    }
+
+    // Create target texture
+    grfx::TexturePtr targetTexture;
+    {
+        grfx::TextureCreateInfo ci     = {};
+        ci.pImage                      = nullptr;
+        ci.imageType                   = grfx::IMAGE_TYPE_2D;
+        ci.width                       = bitmap.GetWidth();
+        ci.height                      = bitmap.GetHeight();
+        ci.depth                       = 1;
+        ci.imageFormat                 = grfx::FORMAT_R8G8B8A8_UNORM;
+        ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
+        ci.mipLevelCount               = 1;
+        ci.arrayLayerCount             = 1;
+        ci.usageFlags.bits.transferDst = true;
+        ci.usageFlags.bits.sampled     = true;
+        ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
+        ci.initialState                = grfx::RESOURCE_STATE_GENERAL; 
+        ci.RTVClearValue               = {0, 0, 0, 0};
+        ci.DSVClearValue               = {1.0f, 0xFF};
+        ci.sampledImageViewType        = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
+        ci.sampledImageViewFormat      = grfx::FORMAT_UNDEFINED;
+        ci.renderTargetViewFormat      = grfx::FORMAT_UNDEFINED;
+        ci.depthStencilViewFormat      = grfx::FORMAT_UNDEFINED;
+        ci.storageImageViewFormat      = grfx::FORMAT_UNDEFINED;
+        ci.ownership                   = grfx::OWNERSHIP_REFERENCE;
+
+        ci.usageFlags.flags |= additionalImageUsage.flags;
+
+        ppxres = pQueue->GetDevice()->CreateTexture(&ci, &targetTexture);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(targetTexture);
+    }
+
+    // Copy info
+    grfx::BufferToImageCopyInfo copyInfo = {};
+    copyInfo.srcBuffer.imageWidth        = bitmap.GetWidth();
+    copyInfo.srcBuffer.imageHeight       = bitmap.GetHeight();
+    copyInfo.srcBuffer.imageRowStride    = bitmap.GetRowStride();
+    copyInfo.srcBuffer.footprintOffset   = 0;
+    copyInfo.srcBuffer.footprintWidth    = bitmap.GetWidth();
+    copyInfo.srcBuffer.footprintHeight   = bitmap.GetHeight();
+    copyInfo.srcBuffer.footprintDepth    = 1;
+    copyInfo.dstImage.mipLevel           = 0;
+    copyInfo.dstImage.arrayLayer         = 0;
+    copyInfo.dstImage.arrayLayerCount    = 1;
+    copyInfo.dstImage.x                  = 0;
+    copyInfo.dstImage.y                  = 0;
+    copyInfo.dstImage.z                  = 0;
+    copyInfo.dstImage.width              = bitmap.GetWidth();
+    copyInfo.dstImage.height             = bitmap.GetHeight();
+    copyInfo.dstImage.depth              = 1;
+
+    // Copy to GPU image
+    ppxres = pQueue->CopyBufferToImage(
+        &copyInfo,
+        stagingBuffer,
+        targetTexture->GetImage(),
+        PPX_ALL_SUBRESOURCES,
+        grfx::RESOURCE_STATE_UNDEFINED,
+        grfx::RESOURCE_STATE_SHADER_RESOURCE);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Change ownership to reference so object doesn't get destroyed
+    targetTexture->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+
+    // Assign output
+    *ppTexture = targetTexture;
+
+    return ppx::SUCCESS;
+}
+
 struct SubImage
 {
     uint32_t width        = 0;

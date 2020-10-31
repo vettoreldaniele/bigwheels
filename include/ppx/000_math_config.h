@@ -73,6 +73,103 @@ using double4x3 = glm::dmat4x3;
 using double4x4 = glm::dmat4x4;
 // clang-format on
 
+#define PRAGMA(X)             _Pragma(#X)
+#define PPX_HLSL_PACK_BEGIN() PRAGMA(pack(push, 1))
+#define PPX_HLSL_PACK_END()   PRAGMA(pack(pop))
+
+PPX_HLSL_PACK_BEGIN();
+
+struct float2x2_aligned
+{
+    float4 v0;
+    float2 v1;
+
+    float2x2_aligned() {}
+
+    float2x2_aligned(const float2x2& m)
+        : v0(m[0], 0, 0), v1(m[1]) {}
+
+    float2x2_aligned& operator=(const float2x2& rhs)
+    {
+        v0 = float4(rhs[0], 0, 0);
+        v1 = rhs[1];
+        return *this;
+    }
+
+    operator float2x2() const
+    {
+        float2x2 m;
+        m[0] = float2(v0);
+        m[1] = float2(v1);
+        return m;
+    }
+};
+
+struct float3x3_aligned
+{
+    float4 v0;
+    float4 v1;
+    float3 v2;
+
+    float3x3_aligned() {}
+
+    float3x3_aligned(const float3x3& m)
+        : v0(m[0], 0), v1(m[1], 0), v2(m[2]) {}
+
+    float3x3_aligned& operator=(const float3x3& rhs)
+    {
+        v0 = float4(rhs[0], 0);
+        v1 = float4(rhs[1], 0);
+        v2 = rhs[2];
+        return *this;
+    }
+
+    operator float3x3() const
+    {
+        float3x3 m;
+        m[0] = float3(v0);
+        m[1] = float3(v1);
+        m[2] = v2;
+        return m;
+    }
+};
+
+template <typename T, size_t Size>
+union hlsl_type
+{
+    T       value;
+    uint8_t padded[Size];
+
+    hlsl_type& operator=(const T& rhs)
+    {
+        value = rhs;
+        return *this;
+    }
+};
+
+// clang-format off
+template <size_t Size> using hlsl_float  = hlsl_type<float, Size>;
+template <size_t Size> using hlsl_float2 = hlsl_type<float2, Size>;
+template <size_t Size> using hlsl_float3 = hlsl_type<float3, Size>;
+template <size_t Size> using hlsl_float4 = hlsl_type<float4, Size>;
+
+template <size_t Size> using hlsl_float2x2 = hlsl_type<float2x2_aligned, Size>;
+template <size_t Size> using hlsl_float3x3 = hlsl_type<float3x3_aligned, Size>;
+template <size_t Size> using hlsl_float4x4 = hlsl_type<float4x4, Size>;
+
+template <size_t Size> using hlsl_int  = hlsl_type<int, Size>;
+template <size_t Size> using hlsl_int2 = hlsl_type<int2, Size>;
+template <size_t Size> using hlsl_int3 = hlsl_type<int3, Size>;
+template <size_t Size> using hlsl_int4 = hlsl_type<int4, Size>;
+
+template <size_t Size> using hlsl_uint  = hlsl_type<uint, Size>;
+template <size_t Size> using hlsl_uint2 = hlsl_type<uint2, Size>;
+template <size_t Size> using hlsl_uint3 = hlsl_type<uint3, Size>;
+template <size_t Size> using hlsl_uint4 = hlsl_type<uint4, Size>;
+// clang-format on
+
+PPX_HLSL_PACK_END();
+
 } // namespace ppx
 
 #endif // ppx_math_config_h

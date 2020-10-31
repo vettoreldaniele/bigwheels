@@ -98,6 +98,8 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         mExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
+    mExtensions.push_back(VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME);
+
     // Add Vulkan 1.1 extensions:
     //   - VK_EXT_descriptor_indexing (promoted to core in 1.2)
     //   - VK_KHR_timeline_semaphore (promoted to core in 1.2)

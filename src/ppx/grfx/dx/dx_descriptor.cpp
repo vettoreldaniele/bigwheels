@@ -283,9 +283,22 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
             } break;
 
             case grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER: {
+                D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
+                desc.Format                          = DXGI_FORMAT_UNKNOWN;
+                desc.ViewDimension                   = D3D12_SRV_DIMENSION_BUFFER;
+                desc.Shader4ComponentMapping         = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+                desc.Buffer.FirstElement             = 0;
+                desc.Buffer.NumElements              = static_cast<UINT>(srcWrite.structuredElementCount);
+                desc.Buffer.StructureByteStride      = static_cast<UINT>(srcWrite.structuredElementStride);
+                desc.Buffer.Flags                    = D3D12_BUFFER_SRV_FLAG_NONE;
+
+                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeSampler * srcWrite.arrayIndex);
+                D3D12_CPU_DESCRIPTOR_HANDLE handle = D3D12_CPU_DESCRIPTOR_HANDLE{ptr};
+
+                device->CreateShaderResourceView(ToApi(srcWrite.pBuffer)->GetDxResource(), &desc, handle);
             } break;
 
-            case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER:{
+            case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER: {
             } break;
 
             case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:

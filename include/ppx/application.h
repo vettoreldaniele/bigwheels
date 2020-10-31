@@ -328,7 +328,7 @@ public:
     float    GetElapsedSeconds() const;
     uint64_t GetFrameCount() const { return mFrameCount; }
     uint32_t GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
-    uint32_t GetFrameInFlightIndex() const { return static_cast<uint32_t>(mFrameCount % mSettings.grfx.numFramesInFlight); }
+    uint32_t GetInFlightFrameIndex() const { return static_cast<uint32_t>(mFrameCount % mSettings.grfx.numFramesInFlight); }
 
     const KeyState& GetKeyState(KeyCode code) const;
 

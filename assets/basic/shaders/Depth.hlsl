@@ -17,4 +17,4 @@ VSOutput vsmain(float4 Position : POSITION)
 	return result;
 }
 
-
+

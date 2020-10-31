@@ -33,7 +33,7 @@ Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* 
         1,
         &vkci,
         nullptr,
-        &mPipeline);
+        &mPhongPipeline);
     if (vkres != VK_SUCCESS) {
         PPX_ASSERT_MSG(false, "vkCreateComputePipelines failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
@@ -44,9 +44,9 @@ Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* 
 
 void ComputePipeline::DestroyApiObjects()
 {
-    if (mPipeline) {
-        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPipeline, nullptr);
-        mPipeline.Reset();
+    if (mPhongPipeline) {
+        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPhongPipeline, nullptr);
+        mPhongPipeline.Reset();
     }
 }
 
@@ -510,7 +510,7 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
         1,
         &vkci,
         nullptr,
-        &mPipeline);
+        &mPhongPipeline);
     // Destroy transient render pass
     if (renderPass != VK_NULL_HANDLE) {
         vkDestroyRenderPass(
@@ -530,9 +530,9 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
 
 void GraphicsPipeline::DestroyApiObjects()
 {
-    if (mPipeline) {
-        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPipeline, nullptr);
-        mPipeline.Reset();
+    if (mPhongPipeline) {
+        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPhongPipeline, nullptr);
+        mPhongPipeline.Reset();
     }
 }
 

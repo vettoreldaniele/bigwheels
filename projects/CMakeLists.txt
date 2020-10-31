@@ -9,11 +9,11 @@ function(add_vk_sample name is_gui)
 
     foreach(filepath ${additional_files})
         get_filename_component(ext ${filepath} EXT)
-        if ("${ext}" STREQUAL ".hlsl")
+        if (("${ext}" STREQUAL ".hlsl") OR ("${ext}" STREQUAL ".hlsli"))
             list(APPEND shader_files ${filepath})
         endif()
     endforeach()
-    source_group("Shaders" FILES ${shader_files})
+    source_group("Shader Files" FILES ${shader_files})
 
     add_executable(
         ${target_name}
@@ -29,6 +29,7 @@ function(add_vk_sample name is_gui)
     target_include_directories(
         ${target_name}
         PUBLIC ${PPX_DIR}/include
+               ${PPX_DIR}/projects/common   
     )
     
     target_compile_definitions(${target_name} PRIVATE USE_VK)
@@ -54,11 +55,11 @@ function(add_dx_sample name is_gui)
 
         foreach(filepath ${additional_files})
             get_filename_component(ext ${filepath} EXT)
-            if ("${ext}" STREQUAL ".hlsl")
+            if (("${ext}" STREQUAL ".hlsl") OR ("${ext}" STREQUAL ".hlsli"))
                 list(APPEND shader_files ${filepath})
             endif()
         endforeach()
-        source_group("Shaders" FILES ${shader_files})
+        source_group("Shader Files" FILES ${shader_files})
 
         add_executable(
             ${target_name}
@@ -74,6 +75,7 @@ function(add_dx_sample name is_gui)
         target_include_directories(
             ${target_name}
             PUBLIC ${PPX_DIR}/include
+                   ${PPX_DIR}/projects/common   
         )
         
         target_compile_definitions(${target_name} PRIVATE USE_DX)        
@@ -100,11 +102,11 @@ function(add_dxil_sample name is_gui)
 
         foreach(filepath ${additional_files})
             get_filename_component(ext ${filepath} EXT)
-            if ("${ext}" STREQUAL ".hlsl")
+            if (("${ext}" STREQUAL ".hlsl") OR ("${ext}" STREQUAL ".hlsli"))
                 list(APPEND shader_files ${filepath})
             endif()
         endforeach()
-        source_group("Shaders" FILES ${shader_files})
+        source_group("Shader Files" FILES ${shader_files})
 
         add_executable(
             ${target_name}
@@ -120,6 +122,7 @@ function(add_dxil_sample name is_gui)
         target_include_directories(
             ${target_name}
             PUBLIC ${PPX_DIR}/include
+                   ${PPX_DIR}/projects/common   
         )
         
         target_compile_definitions(${target_name} PRIVATE USE_DX USE_DXIL)        
@@ -152,5 +155,6 @@ add_subdirectory(10_cube_map)
 add_subdirectory(12_camera)
 add_subdirectory(13_normal_map)
 add_subdirectory(14_input)
+add_subdirectory(15_basic_material)
 add_subdirectory(shadertoy)
 

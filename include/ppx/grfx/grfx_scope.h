@@ -15,6 +15,7 @@ public:
     Result AddObject(grfx::Image* pObject);
     Result AddObject(grfx::Buffer* pObject);
     Result AddObject(grfx::Model* pObject);
+    Result AddObject(grfx::Texture* pObject);
     Result AddObject(grfx::Queue* pParent, grfx::CommandBuffer* pObject);
 
 private:
@@ -22,6 +23,7 @@ private:
     std::vector<grfx::ImagePtr>                                    mImages;
     std::vector<grfx::BufferPtr>                                   mBuffers;
     std::vector<grfx::ModelPtr>                                    mModels;
+    std::vector<grfx::TexturePtr>                                  mTextures;
     std::vector<std::pair<grfx::QueuePtr, grfx::CommandBufferPtr>> mTransientCommandBuffers;
 };
 

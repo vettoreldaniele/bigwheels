@@ -37,6 +37,13 @@ ScopeDestroyer::~ScopeDestroyer()
     }
     mModels.clear();
 
+    for (auto& object : mTextures) {
+        if (object->GetOwnership() == grfx::OWNERSHIP_EXCLUSIVE) {
+            mDevice->DestroyTexture(object);
+        }
+    }
+    mTextures.clear();
+
     for (auto& object : mTransientCommandBuffers) {
         if (object.second->GetOwnership() == grfx::OWNERSHIP_EXCLUSIVE) {
             object.first->DestroyCommandBuffer(object.second);
@@ -86,6 +93,21 @@ Result ScopeDestroyer::AddObject(grfx::Model* pObject)
     }
     pObject->SetOwnership(grfx::OWNERSHIP_EXCLUSIVE);
     mModels.push_back(pObject);
+    return ppx::SUCCESS;
+}
+
+Result ScopeDestroyer::AddObject(grfx::Texture* pObject)
+{
+    if (IsNull(pObject)) {
+        PPX_ASSERT_MSG(false, NULL_ARGUMENT_MSG);
+        return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    }
+    if (pObject->GetOwnership() != grfx::OWNERSHIP_REFERENCE) {
+        PPX_ASSERT_MSG(false, WRONG_OWNERSHIP_MSG);
+        return ppx::ERROR_GRFX_INVALID_OWNERSHIP;
+    }
+    pObject->SetOwnership(grfx::OWNERSHIP_EXCLUSIVE);
+    mTextures.push_back(pObject);
     return ppx::SUCCESS;
 }
 

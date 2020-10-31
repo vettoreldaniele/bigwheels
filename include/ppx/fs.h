@@ -59,7 +59,7 @@ public:
 
   path(const path& p) { 
     m_cached = p.m_cached;
-    m_dirty = p.m_dirty;
+    mDirty = p.mDirty;
     m_has_root = p.m_has_root; 
     m_parts = p.m_parts; 
   }
@@ -90,7 +90,7 @@ public:
   path& operator=(const path& rhs) { 
     if (this != &rhs) { 
       m_cached = rhs.m_cached;
-      m_dirty = rhs.m_dirty; 
+      mDirty = rhs.mDirty; 
       m_has_root = rhs.m_has_root; 
       m_parts = rhs.m_parts; 
     } 
@@ -174,7 +174,7 @@ public:
     if ((! r.is_root()) && (! r.m_parts.empty())) { 
       r.m_parts.pop_back(); 
     }
-    r.m_dirty = true; 
+    r.mDirty = true; 
     r.update_cache();
     return r; 
   }
@@ -193,7 +193,7 @@ public:
     fs::path r = *this; 
     if (!r.m_parts.empty()) {
       r.m_parts.back().append(ext);
-      r.m_dirty = true;
+      r.mDirty = true;
       r.update_cache();
     }
     return r;
@@ -281,7 +281,7 @@ private:
     // Clear everything if this is a reset
     if (reset) {
       m_cached.clear(); 
-      m_dirty = false; 
+      mDirty = false; 
       m_has_root = false;  
       m_parts.clear(); 
     }
@@ -297,11 +297,11 @@ private:
       m_parts.push_back(s);
     }
     // Mark dirty
-    m_dirty = true;
+    mDirty = true;
   }
 
   void update_cache() const {
-    if (! m_dirty) { 
+    if (! mDirty) { 
       return; 
     }
 
@@ -320,12 +320,12 @@ private:
       }
     }
 
-    m_dirty = false;
+    mDirty = false;
   }
 
 private:
   mutable std::string       m_cached;
-  mutable bool              m_dirty = false;
+  mutable bool              mDirty = false;
   mutable bool              m_has_root = false;
   std::vector<std::string>  m_parts;
 };

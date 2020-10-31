@@ -119,6 +119,7 @@ list(
     ${INC_DIR}/ppx/platform.h
     ${INC_DIR}/ppx/ppx.h
     ${INC_DIR}/ppx/timer.h
+    ${INC_DIR}/ppx/transform.h
     ${INC_DIR}/ppx/util.h
 )
 
@@ -136,6 +137,7 @@ list(
     ${SRC_DIR}/ppx/mesh.cpp
     ${SRC_DIR}/ppx/platform.cpp
     ${SRC_DIR}/ppx/timer.cpp
+    ${SRC_DIR}/ppx/transform.cpp
 )
 
 list(
