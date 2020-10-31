@@ -148,25 +148,78 @@ Result Bitmap::LoadFile(const fs::path& path, Bitmap* pBitmap)
         return ppx::ERROR_PATH_DOES_NOT_EXIST;
     }
 
-    int width            = 0;
-    int height           = 0;
-    int channels         = 0;
-    int requiredChannels = 4; // Force to 4 chanenls to make things easier for the graphics APIs
+    const char* kRadianceSig = "#?RADIANCE";
 
-    unsigned char* pData = stbi_load(path.c_str(), &width, &height, &channels, requiredChannels);
-    if (IsNull(pData)) {
-        return ppx::ERROR_IMAGE_FILE_LOAD_FAILED;
+    // Detect if file is an HDR Radiance file
+    bool isRadiance = false;
+    {
+        // Open file
+        FILE* pFile = fopen(path, "rb");
+        if (pFile == nullptr) {
+            return ppx::ERROR_IMAGE_FILE_LOAD_FAILED;
+        }
+        // Signature buffer
+        const size_t kBufferSize      = 10;
+        char         buf[kBufferSize] = {0};
+
+        // Read signature
+        size_t n = fread(buf, 1, kBufferSize, pFile);
+
+        // Close file
+        fclose(pFile);
+
+        // Only check if kBufferSize bytes were read
+        if (n == kBufferSize) {
+            int res    = strncmp(buf, kRadianceSig, kBufferSize);
+            isRadiance = (res == 0);
+        }
     }
 
-    Bitmap::Format format = Bitmap::FORMAT_RGBA_UINT8;
-    *pBitmap              = Bitmap(width, height, format);
-    if (!pBitmap->IsOk()) {
-        // Something has gone really wrongif this happens
-        return ppx::ERROR_FAILED;
-    }
+    // @TODO: Refactor to remove redundancies from both blocks
+    //
+    if (isRadiance) {
+        int width            = 0;
+        int height           = 0;
+        int channels         = 0;
+        int requiredChannels = 4;
 
-    size_t nbytes = Bitmap::StorageFootprint(static_cast<uint32_t>(width), static_cast<uint32_t>(height), format);
-    std::memcpy(pBitmap->GetData(), pData, nbytes);
+        // Force 3 channels since we're being lazy
+        float* pData = stbi_loadf(path, &width, &height, &channels, requiredChannels);
+        if (pData == nullptr) {
+            return ppx::ERROR_IMAGE_FILE_LOAD_FAILED;
+        }
+
+        Bitmap::Format format = Bitmap::FORMAT_RGBA_FLOAT;
+        *pBitmap              = Bitmap(width, height, format);
+        if (!pBitmap->IsOk()) {
+            // Something has gone really wrong if this happens
+            return ppx::ERROR_FAILED;
+        }
+
+        size_t nbytes = Bitmap::StorageFootprint(static_cast<uint32_t>(width), static_cast<uint32_t>(height), format);
+        std::memcpy(pBitmap->GetData(), pData, nbytes);
+    }
+    else {
+        int width            = 0;
+        int height           = 0;
+        int channels         = 0;
+        int requiredChannels = 4; // Force to 4 chanenls to make things easier for the graphics APIs
+
+        unsigned char* pData = stbi_load(path.c_str(), &width, &height, &channels, requiredChannels);
+        if (IsNull(pData)) {
+            return ppx::ERROR_IMAGE_FILE_LOAD_FAILED;
+        }
+
+        Bitmap::Format format = Bitmap::FORMAT_RGBA_UINT8;
+        *pBitmap              = Bitmap(width, height, format);
+        if (!pBitmap->IsOk()) {
+            // Something has gone really wrong if this happens
+            return ppx::ERROR_FAILED;
+        }
+
+        size_t nbytes = Bitmap::StorageFootprint(static_cast<uint32_t>(width), static_cast<uint32_t>(height), format);
+        std::memcpy(pBitmap->GetData(), pData, nbytes);
+    }
 
     return ppx::SUCCESS;
 }

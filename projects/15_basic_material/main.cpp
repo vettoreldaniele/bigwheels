@@ -56,6 +56,8 @@ private:
         grfx::TexturePtr       normalMapTexture;
     };
 
+    grfx::TexturePtr                  mEnvironmentMap;
+    grfx::TexturePtr                  mReflectionMap;
     grfx::SamplerPtr                  mSampler;
     MaterialResources                 mRustedIron;
     MaterialResources                 mSciFiMetal;
@@ -83,13 +85,15 @@ private:
 
     struct MaterialData
     {
-        float3 albedo          = float3(0.4f, 0.4f, 0.7f);
-        float  roughness       = 0.5f; // 0 = smooth, 1 = rough
-        float  metalness       = 0.5f; // 0 = dielectric, 1 = metal
-        bool   albedoSelect    = 0;    // 0 = value, 1 = texture
-        bool   roughnessSelect = 0;    // 0 = value, 1 = texture
-        bool   metalnessSelect = 0;    // 0 = value, 1 = texture
-        uint   normalSelect    = 0;    // 0 = attrb, 1 = texture
+        float3 albedo           = float3(0.4f, 0.4f, 0.7f);
+        float  roughness        = 0.5f; // 0 = smooth, 1 = rough
+        float  metalness        = 0.5f; // 0 = dielectric, 1 = metal
+        bool   albedoSelect     = 0;    // 0 = value, 1 = texture
+        bool   roughnessSelect  = 0;    // 0 = value, 1 = texture
+        bool   metalnessSelect  = 0;    // 0 = value, 1 = texture
+        bool   normalSelect     = 0;    // 0 = attrb, 1 = texture
+        bool   iblSelect        = 0;    // 0 = white, 1 = texture
+        bool   reflectionSelect = 0;    // 0 = none,  1 = texture
     };
 
     float mRotY    = 0;
@@ -184,7 +188,7 @@ void ProjApp::SetupMaterialResources(
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
-    // Normal Map
+    // Normal map
     {
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(normalMapPath), &materialResources.normalMapTexture));
 
@@ -193,6 +197,26 @@ void ProjApp::SetupMaterialResources(
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         write.pImageView            = materialResources.normalMapTexture->GetSampledImageView();
+        PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
+    }
+
+    // Environment map
+    {
+        grfx::WriteDescriptor write = {};
+        write.binding               = 6;
+        write.arrayIndex            = 0;
+        write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        write.pImageView            = mEnvironmentMap->GetSampledImageView();
+        PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
+    }
+
+    // Reflection map
+    {
+        grfx::WriteDescriptor write = {};
+        write.binding               = 7;
+        write.arrayIndex            = 0;
+        write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        write.pImageView            = mReflectionMap->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
@@ -217,8 +241,16 @@ void ProjApp::SetupMaterials()
     createInfo.bindings.push_back({grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
     createInfo.bindings.push_back({grfx::DescriptorBinding{2, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
     createInfo.bindings.push_back({grfx::DescriptorBinding{3, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{6, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{7, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
     createInfo.bindings.push_back({grfx::DescriptorBinding{8, grfx::DESCRIPTOR_TYPE_SAMPLER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialResourcesLayout));
+
+    // Environment map for IBL
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &mEnvironmentMap));
+
+    // Reflection map
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/refl.hdr"), &mReflectionMap));
 
     // Sampler
     grfx::SamplerCreateInfo samplerCreateInfo = {};
@@ -609,11 +641,11 @@ void ProjApp::Render()
         void* pMappedAddress = nullptr;
         PPX_CHECKED_CALL(ppxres = mCpuLightConstants->MapMemory(0, &pMappedAddress));
 
-        HlslLight* pLight = static_cast<HlslLight*>(pMappedAddress);
-        pLight[0].position  = float3(10, 5, 10);
-        pLight[1].position  = float3(-10, 0, 5);
-        pLight[2].position  = float3(1, 10, 3);
-        pLight[4].position  = float3(-1, 0, 15);
+        HlslLight* pLight  = static_cast<HlslLight*>(pMappedAddress);
+        pLight[0].position = float3(10, 5, 10);
+        pLight[1].position = float3(-10, 0, 5);
+        pLight[2].position = float3(1, 10, 3);
+        pLight[4].position = float3(-1, 0, 15);
 
         mCpuLightConstants->UnmapMemory();
 
@@ -633,20 +665,24 @@ void ProjApp::Render()
             hlsl_uint<4>    roughnessSelect;
             hlsl_uint<4>    metalnessSelect;
             hlsl_uint<4>    normalSelect;
+            hlsl_uint<4>    iblSelect;
+            hlsl_uint<4>    reflectionSelect;
         };
         PPX_HLSL_PACK_END();
 
         void* pMappedAddress = nullptr;
         PPX_CHECKED_CALL(ppxres = mCpuMaterialConstants->MapMemory(0, &pMappedAddress));
 
-        HlslMaterial* pMaterial    = static_cast<HlslMaterial*>(pMappedAddress);
-        pMaterial->albedo          = mMaterialData.albedo;
-        pMaterial->roughness       = mMaterialData.roughness;
-        pMaterial->metalness       = mMaterialData.metalness;
-        pMaterial->albedoSelect    = mMaterialData.albedoSelect;
-        pMaterial->roughnessSelect = mMaterialData.roughnessSelect;
-        pMaterial->metalnessSelect = mMaterialData.metalnessSelect;
-        pMaterial->normalSelect    = mMaterialData.normalSelect;
+        HlslMaterial* pMaterial     = static_cast<HlslMaterial*>(pMappedAddress);
+        pMaterial->albedo           = mMaterialData.albedo;
+        pMaterial->roughness        = mMaterialData.roughness;
+        pMaterial->metalness        = mMaterialData.metalness;
+        pMaterial->albedoSelect     = mMaterialData.albedoSelect;
+        pMaterial->roughnessSelect  = mMaterialData.roughnessSelect;
+        pMaterial->metalnessSelect  = mMaterialData.metalnessSelect;
+        pMaterial->normalSelect     = mMaterialData.normalSelect;
+        pMaterial->iblSelect        = mMaterialData.iblSelect;
+        pMaterial->reflectionSelect = mMaterialData.reflectionSelect;
 
         mCpuMaterialConstants->UnmapMemory();
 
@@ -743,7 +779,7 @@ void ProjApp::DrawGui()
 
     ImGui::Separator();
 
-    ImGui::SliderFloat("Ambient", &mAmbient, 0.0f, 1.0f, "%.03f degrees");
+    ImGui::SliderFloat("Ambient", &mAmbient, 0.0f, 1.0f, "%.03f");
 
     ImGui::Separator();
 
@@ -781,6 +817,8 @@ void ProjApp::DrawGui()
     ImGui::SliderFloat("Metalness", &mMaterialData.metalness, 0.0f, 1.0f, "%.03f degrees");
     ImGui::Checkbox("Use Roughness Texture", &mMaterialData.roughnessSelect);
     ImGui::Checkbox("Use Metalness Texture", &mMaterialData.metalnessSelect);
+    ImGui::Checkbox("Use IBL", &mMaterialData.iblSelect);
+    ImGui::Checkbox("Use Reflection Map", &mMaterialData.reflectionSelect);
 }
 
 int main(int argc, char** argv)

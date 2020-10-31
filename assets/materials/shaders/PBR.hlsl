@@ -10,6 +10,8 @@ Texture2D    AlbedoTex      : register(ALBEDO_TEXTURE_REGISTER,     MATERIAL_RES
 Texture2D    RoughnessTex   : register(ROUGHNESS_TEXTURE_REGISTER,  MATERIAL_RESOURCES_SPACE);
 Texture2D    MetalnessTex   : register(METALNESS_TEXTURE_REGISTER,  MATERIAL_RESOURCES_SPACE);
 Texture2D    NormalMapTex   : register(NORMAL_MAP_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
+Texture2D    EnvMapTex      : register(ENV_MAP_TEXTURE_REGISTER,    MATERIAL_RESOURCES_SPACE);
+Texture2D    ReflMapTex     : register(REFL_MAP_TEXTURE_REGISTER,   MATERIAL_RESOURCES_SPACE);
 SamplerState ClampedSampler : register(CLAMPED_TEXTURE,             MATERIAL_RESOURCES_SPACE);
 
 float DistributionGGX(float3 N, float3 H, float roughness)
@@ -50,6 +52,15 @@ float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
     return F0 + (1.0 - F0) * (float3)pow(1.0f - cosTheta, 5.0f);
+}
+
+float3 Environment(Texture2D tex, float3 coord)
+{
+    float2 uv = CartesianToSphereical(normalize(coord));
+    uv.x = saturate(uv.x / (2.0 * PI));
+    uv.y = saturate(uv.y / PI);
+    float3 color = tex.Sample(ClampedSampler, uv).rgb;
+    return color;
 }
 
 float4 psmain(VSOutput input) : SV_TARGET
@@ -121,15 +132,20 @@ float4 psmain(VSOutput input) : SV_TARGET
     float3 kS = FresnelSchlick(max(dot(N, V), 0.0), F0);
     float3 kD = 1.0 - kS;
     kD *= 1.0 - metalness;
-    float3 irradiance = (float3)1.0; //pParams->pIrradianceMap->Sample(N);
+    
+    float3 irradiance = (float3)1.0; 
+    if (Material.iblSelect == 1) {
+        irradiance = Environment(EnvMapTex, N);
+    }
+    
     float3 diffuse    = irradiance * albedo +  Scene.ambient;
     float3 ambient    = (kD * diffuse) * ao;    
         
     // Reflection
     float3 reflection = (float3)0.0;
-    //if (pParams->pEnvironmentMap) {
-    //    reflection = pParams->pEnvironmentMap->Sample(N);
-    //}    
+    if (Material.reflectionSelect) {
+        reflection = Environment(ReflMapTex, N);
+    }    
     
     // Final color
     float3 color = ambient + Lo + (kS * reflection * (1.0 - roughness));

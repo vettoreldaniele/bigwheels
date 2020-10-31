@@ -397,6 +397,7 @@ elseif (PPX_MSW)
     target_compile_definitions(
         ${PROJECT_NAME}
         PUBLIC  PPX_MSW
+                _CRT_SECURE_NO_WARNINGS
     )
 endif()
 

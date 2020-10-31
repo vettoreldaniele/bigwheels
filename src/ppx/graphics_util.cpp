@@ -9,6 +9,32 @@
 
 namespace ppx {
 
+grfx::Format ToGrfxFormat(Bitmap::Format value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case Bitmap::FORMAT_R_UINT8     : return grfx::FORMAT_R8_UNORM; break;
+        case Bitmap::FORMAT_RG_UINT8    : return grfx::FORMAT_R8G8_UNORM; break;
+        case Bitmap::FORMAT_RGB_UINT8   : return grfx::FORMAT_R8G8B8_UNORM; break;
+        case Bitmap::FORMAT_RGBA_UINT8  : return grfx::FORMAT_R8G8B8A8_UNORM; break;
+        case Bitmap::FORMAT_R_UINT16    : return grfx::FORMAT_R16_UNORM; break;
+        case Bitmap::FORMAT_RG_UINT16   : return grfx::FORMAT_R16G16_UNORM; break;
+        case Bitmap::FORMAT_RGB_UINT16  : return grfx::FORMAT_R16G16B16_UNORM; break;
+        case Bitmap::FORMAT_RGBA_UINT16 : return grfx::FORMAT_R16G16B16A16_UNORM; break;
+        //case Bitmap::FORMAT_R_UINT32    : return grfx::FORMAT_R32_UNORM; break;
+        //case Bitmap::FORMAT_RG_UINT32   : return grfx::FORMAT_R32G32_UNORM; break;
+        //case Bitmap::FORMAT_RGB_UINT32  : return grfx::FORMAT_R32G32B32_UNORM; break;
+        //case Bitmap::FORMAT_RGBA_UINT32 : return grfx::FORMAT_R32G32B32A32_UNORM; break;
+        case Bitmap::FORMAT_R_FLOAT     : return grfx::FORMAT_R32_FLOAT; break;
+        case Bitmap::FORMAT_RG_FLOAT    : return grfx::FORMAT_R32G32_FLOAT; break;
+        case Bitmap::FORMAT_RGB_FLOAT   : return grfx::FORMAT_R32G32B32_FLOAT; break;
+        case Bitmap::FORMAT_RGBA_FLOAT  : return grfx::FORMAT_R32G32B32A32_FLOAT; break;
+    }
+    // clang-format on
+    return grfx::FORMAT_UNDEFINED;
+}
+
 Result CreateTextureFromFile(
     grfx::Queue*                 pQueue,
     const fs::path&              path,
@@ -62,7 +88,7 @@ Result CreateTextureFromFile(
         ci.width                       = bitmap.GetWidth();
         ci.height                      = bitmap.GetHeight();
         ci.depth                       = 1;
-        ci.format                      = grfx::FORMAT_R8G8B8A8_UNORM;
+        ci.format                      = ToGrfxFormat(bitmap.GetFormat());
         ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
         ci.mipLevelCount               = 1;
         ci.arrayLayerCount             = 1;
@@ -173,14 +199,14 @@ Result CreateTextureFromFile(
         ci.width                       = bitmap.GetWidth();
         ci.height                      = bitmap.GetHeight();
         ci.depth                       = 1;
-        ci.imageFormat                 = grfx::FORMAT_R8G8B8A8_UNORM;
+        ci.imageFormat                 = ToGrfxFormat(bitmap.GetFormat());
         ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
         ci.mipLevelCount               = 1;
         ci.arrayLayerCount             = 1;
         ci.usageFlags.bits.transferDst = true;
         ci.usageFlags.bits.sampled     = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
-        ci.initialState                = grfx::RESOURCE_STATE_GENERAL; 
+        ci.initialState                = grfx::RESOURCE_STATE_GENERAL;
         ci.RTVClearValue               = {0, 0, 0, 0};
         ci.DSVClearValue               = {1.0f, 0xFF};
         ci.sampledImageViewType        = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
