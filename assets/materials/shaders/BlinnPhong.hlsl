@@ -12,6 +12,20 @@ Texture2D    MetalnessTex   : register(METALNESS_TEXTURE_REGISTER,  MATERIAL_RES
 Texture2D    NormalMapTex   : register(NORMAL_MAP_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
 SamplerState ClampedSampler : register(CLAMPED_TEXTURE,             MATERIAL_RESOURCES_SPACE);
 
+float Lambert(float3 N, float3 L)
+{
+    float diffuse = saturate(dot(N, L));
+    return diffuse;
+}
+
+float BlinnPhong(float3 N, float3 L, float3 V, float hardness)
+{
+    float3 H        = normalize(L + V);
+    float  theta    = saturate(dot(N, H));
+    float  specular = pow(theta, hardness);
+    return specular;
+}
+
 float4 psmain(VSOutput input) : SV_TARGET
 {
     float3 N = input.normal;  
@@ -33,19 +47,16 @@ float4 psmain(VSOutput input) : SV_TARGET
     float specular = 0;
 	for (uint i = 0; i < Scene.lightCount; ++i) {    
         float3 L = normalize(Lights[i].position - input.positionWS);
-        float  d = saturate(dot(N, L));
-        diffuse += d;
+
+        diffuse += Lambert(N, L);
         
-        float3 H = normalize(L + V);
-        float  theta = saturate(dot(N, H));
-        float  s = pow(theta, hardness);
-        specular += s;
+        specular += BlinnPhong(N, L, V, hardness);
 	}
         
     float3 color = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
     color = (diffuse + (specular * metalness) + Scene.ambient) * color;
     
-    // HDR tonemapping
+    // Faux HDR tonemapping
     color = color / (color + float3(1, 1, 1));
     
     return float4(color, 1);

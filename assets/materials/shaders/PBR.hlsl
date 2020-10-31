@@ -47,7 +47,7 @@ float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-float3 fresnelSchlick(float cosTheta, float3 F0)
+float3 FresnelSchlick(float cosTheta, float3 F0)
 {
     return F0 + (1.0 - F0) * (float3)pow(1.0f - cosTheta, 5.0f);
 }
@@ -75,7 +75,7 @@ float4 psmain(VSOutput input) : SV_TARGET
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
     float3 F0 = (float3)0.04;
-    F0        = lerp(F0, albedo, metalness);    
+    F0        = lerp(F0, albedo, metalness);
     
     float3 Lo = (float3)0.0;    
 	for (uint i = 0; i < Scene.lightCount; ++i) {    
@@ -91,7 +91,7 @@ float4 psmain(VSOutput input) : SV_TARGET
         // Cook-Torrance BRDF
         float  NDF = DistributionGGX(N, H, roughness);
         float  G   = GeometrySmith(N, V, L, roughness);
-        float3 F   = fresnelSchlick(max(dot(H, V), 0.0), F0);
+        float3 F   = FresnelSchlick(max(dot(H, V), 0.0), F0);
 
         float3 nominator   = NDF * G * F;
         float  denominator = 4 * max(dot(N, V), 0.0f) * max(dot(N, L), 0.0f) + 0.00001f; // 0.001 to prevent divide by zero.
@@ -118,7 +118,7 @@ float4 psmain(VSOutput input) : SV_TARGET
 	}
     
     // ambient lighting (we now use IBL as the ambient term)
-    float3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    float3 kS = FresnelSchlick(max(dot(N, V), 0.0), F0);
     float3 kD = 1.0 - kS;
     kD *= 1.0 - metalness;
     float3 irradiance = (float3)1.0; //pParams->pIrradianceMap->Sample(N);
@@ -134,7 +134,7 @@ float4 psmain(VSOutput input) : SV_TARGET
     // Final color
     float3 color = ambient + Lo + (kS * reflection * (1.0 - roughness));
     
-    // HDR tonemapping
+    // Faux HDR tonemapping
     color = color / (color + float3(1, 1, 1));
     
     return float4(color, 1);

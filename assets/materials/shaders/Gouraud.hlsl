@@ -9,6 +9,11 @@ ConstantBuffer<ModelData>    Model    : register(b0, MODEL_DATA_SPACE);
 Texture2D    AlbedoTex      : register(ALBEDO_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
 SamplerState ClampedSampler : register(CLAMPED_TEXTURE,         MATERIAL_RESOURCES_SPACE);
 
+float Lambert(float3 N, float3 L)
+{
+    float diffuse = saturate(dot(N, L));
+    return diffuse;
+}
 
 float4 psmain(VSOutput input) : SV_TARGET
 {
@@ -17,14 +22,14 @@ float4 psmain(VSOutput input) : SV_TARGET
     float diffuse = 0;
 	for (uint i = 0; i < Scene.lightCount; ++i) {    
         float3 L = normalize(Lights[i].position - input.positionWS);
-        float  d = saturate(dot(N, L));
-        diffuse += d;
+
+        diffuse += Lambert(N, L);
 	}
         
     float3 color = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
     color = (diffuse + Scene.ambient) * color;
     
-    // HDR tonemapping
+    // Faux HDR tonemapping
     color = color / (color + float3(1, 1, 1));
        
     return float4(color, 1);
