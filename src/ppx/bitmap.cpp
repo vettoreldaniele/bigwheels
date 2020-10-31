@@ -44,9 +44,10 @@ bool Bitmap::IsOk() const
     return isSizeValid && isFormatValid && isStorageValid;
 }
 
-uint64_t Bitmap::GetFootprintSize() const
+uint64_t Bitmap::GetFootprintSize(uint32_t rowStrideAlignment) const
 {
-    uint64_t size = mRowStride * mHeight;
+    uint32_t alignedRowStride = RoundUp<uint32_t>(mRowStride, rowStrideAlignment);
+    uint64_t size = alignedRowStride * mHeight;
     return size;
 }
 

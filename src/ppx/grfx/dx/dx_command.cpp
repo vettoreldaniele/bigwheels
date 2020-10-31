@@ -514,7 +514,14 @@ void CommandBuffer::CopyBufferToImage(
             &numRows,
             &rowSizeInBytes,
             &totalBytes);
+        //
         // Replace the values in case the footprint is a submimage
+        //
+        // NOTE: D3D12's debug layer will throw an error if RowPitch
+        //       isn't aligned to D3D12_TEXTURE_DATA_PITCH_ALIGNMENT(256).
+        //       But generally, we want to do this in the calling code
+        //       and not here.
+        //
         src.PlacedFootprint.Offset             = static_cast<UINT64>(pCopyInfo->srcBuffer.footprintOffset);
         src.PlacedFootprint.Footprint.Width    = static_cast<UINT>(pCopyInfo->srcBuffer.footprintWidth);
         src.PlacedFootprint.Footprint.Height   = static_cast<UINT>(pCopyInfo->srcBuffer.footprintHeight);

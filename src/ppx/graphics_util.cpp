@@ -54,10 +54,14 @@ Result CreateTextureFromFile(
     // Scoped destroy
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
+    // Row stride alignment to handle DX's requirement
+    uint32_t rowStrideAlignement = grfx::IsDx(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
+    uint32_t alignedRowStride    = RoundUp<uint32_t>(bitmap.GetRowStride(), rowStrideAlignement);
+
     // Create staging buffer
     grfx::BufferPtr stagingBuffer;
     {
-        uint64_t bitmapFootprintSize = bitmap.GetFootprintSize();
+        uint64_t bitmapFootprintSize = bitmap.GetFootprintSize(rowStrideAlignement);
 
         grfx::BufferCreateInfo ci      = {};
         ci.size                        = bitmapFootprintSize;
@@ -76,7 +80,17 @@ Result CreateTextureFromFile(
         if (Failed(ppxres)) {
             return ppxres;
         }
-        std::memcpy(pBufferAddress, bitmap.GetData(), bitmapFootprintSize);
+
+        const char*    pSrc         = bitmap.GetData();
+        char*          pDst         = static_cast<char*>(pBufferAddress);
+        const uint32_t srcRowStride = bitmap.GetRowStride();
+        const uint32_t dstRowStride = alignedRowStride;
+        for (uint32_t y = 0; y < bitmap.GetHeight(); ++y) {
+            memcpy(pDst, pSrc, srcRowStride);
+            pSrc += srcRowStride;
+            pDst += dstRowStride;
+        }
+
         stagingBuffer->UnmapMemory();
     }
 
@@ -109,7 +123,7 @@ Result CreateTextureFromFile(
     grfx::BufferToImageCopyInfo copyInfo = {};
     copyInfo.srcBuffer.imageWidth        = bitmap.GetWidth();
     copyInfo.srcBuffer.imageHeight       = bitmap.GetHeight();
-    copyInfo.srcBuffer.imageRowStride    = bitmap.GetRowStride();
+    copyInfo.srcBuffer.imageRowStride    = rowStrideAlignement;
     copyInfo.srcBuffer.footprintOffset   = 0;
     copyInfo.srcBuffer.footprintWidth    = bitmap.GetWidth();
     copyInfo.srcBuffer.footprintHeight   = bitmap.GetHeight();
@@ -164,10 +178,14 @@ Result CreateTextureFromFile(
     // Scoped destroy
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
+    // Row stride alignment to handle DX's requirement
+    uint32_t rowStrideAlignement = grfx::IsDx(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
+    uint32_t alignedRowStride    = RoundUp<uint32_t>(bitmap.GetRowStride(), rowStrideAlignement);
+
     // Create staging buffer
     grfx::BufferPtr stagingBuffer;
     {
-        uint64_t bitmapFootprintSize = bitmap.GetFootprintSize();
+        uint64_t bitmapFootprintSize = bitmap.GetFootprintSize(rowStrideAlignement);
 
         grfx::BufferCreateInfo ci      = {};
         ci.size                        = bitmapFootprintSize;
@@ -186,7 +204,17 @@ Result CreateTextureFromFile(
         if (Failed(ppxres)) {
             return ppxres;
         }
-        std::memcpy(pBufferAddress, bitmap.GetData(), bitmapFootprintSize);
+
+        const char*    pSrc         = bitmap.GetData();
+        char*          pDst         = static_cast<char*>(pBufferAddress);
+        const uint32_t srcRowStride = bitmap.GetRowStride();
+        const uint32_t dstRowStride = alignedRowStride;
+        for (uint32_t y = 0; y < bitmap.GetHeight(); ++y) {
+            memcpy(pDst, pSrc, srcRowStride);
+            pSrc += srcRowStride;
+            pDst += dstRowStride;
+        }
+
         stagingBuffer->UnmapMemory();
     }
 
@@ -229,7 +257,7 @@ Result CreateTextureFromFile(
     grfx::BufferToImageCopyInfo copyInfo = {};
     copyInfo.srcBuffer.imageWidth        = bitmap.GetWidth();
     copyInfo.srcBuffer.imageHeight       = bitmap.GetHeight();
-    copyInfo.srcBuffer.imageRowStride    = bitmap.GetRowStride();
+    copyInfo.srcBuffer.imageRowStride    = alignedRowStride;
     copyInfo.srcBuffer.footprintOffset   = 0;
     copyInfo.srcBuffer.footprintWidth    = bitmap.GetWidth();
     copyInfo.srcBuffer.footprintHeight   = bitmap.GetHeight();

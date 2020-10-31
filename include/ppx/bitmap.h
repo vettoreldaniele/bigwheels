@@ -50,7 +50,7 @@ public:
     uint32_t       GetPixelStride() const { return mPixelStride; }
     uint32_t       GetRowStride() const { return mRowStride; }
     char*          GetData() const { return mData; }
-    uint64_t       GetFootprintSize() const;
+    uint64_t       GetFootprintSize(uint32_t rowStrideAlignment = 1) const;
 
     Result Resize(uint32_t width, uint32_t height);
     Result Resize(uint32_t widht, uint32_t height, Bitmap* pBitmap) const;

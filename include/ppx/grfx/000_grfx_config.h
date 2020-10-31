@@ -287,6 +287,32 @@ private:
     grfx::DevicePtr mDevice;
 };
 
+// -------------------------------------------------------------------------------------------------
+inline bool IsDx(grfx::Api api)
+{
+    switch (api) {
+        default: break;
+        case grfx::API_DX_12_0:
+        case grfx::API_DX_12_1: {
+            return true;
+        } break;
+    }
+    return false;
+}
+
+inline bool IsVk(grfx::Api api)
+{
+    switch (api) {
+        default: break;
+        case grfx::API_VK_1_1:
+        case grfx::API_VK_1_2: {
+            return true;
+        } break;
+    }
+    return false;
+}
+
+
 } // namespace grfx
 } // namespace ppx
 

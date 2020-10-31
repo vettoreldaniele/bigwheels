@@ -31,7 +31,7 @@
 // Based on vulkan.gpuinfo.org, the range of this value [1, 256]
 // Meaning that 256 should cover all offset cases.
 // 
-// D3D12 on some GPUs require that the minimum constant buffer
+// D3D12 on most(all?) GPUs require that the minimum constant buffer
 // size to be 256.
 //
 #define PPX_CONSTANT_BUFFER_ALIGNMENT           256
@@ -46,6 +46,11 @@
 // clang-format on
 
 #define PPX_MAX_MODEL_TEXTURES_IN_CREATE_INFO   16
+
+// D3D12 requires buffer to image copies to have a row pitch that's
+// aligned to D3D12_TEXTURE_DATA_PITCH_ALIGNMENT(256).
+//
+#define PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT  256
 
 namespace ppx {
 namespace grfx {
