@@ -9,8 +9,26 @@ grfx::Api kApi = grfx::API_DX_12_0;
 grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth  1280
-#define kWindowHeight 720
+#define kWindowWidth  1920
+#define kWindowHeight 1080
+
+const float3 F0_MetalTitanium   = float3(0.542f, 0.497f, 0.449f);
+const float3 F0_MetalChromium   = float3(0.549f, 0.556f, 0.554f);
+const float3 F0_MetalIron       = float3(0.562f, 0.565f, 0.578f);
+const float3 F0_MetalNickel     = float3(0.660f, 0.609f, 0.526f);
+const float3 F0_MetalPlatinum   = float3(0.673f, 0.637f, 0.585f);
+const float3 F0_MetalCopper     = float3(0.955f, 0.638f, 0.538f);
+const float3 F0_MetalPalladium  = float3(0.733f, 0.697f, 0.652f);
+const float3 F0_MetalZinc       = float3(0.664f, 0.824f, 0.850f);
+const float3 F0_MetalGold       = float3(1.022f, 0.782f, 0.344f);
+const float3 F0_MetalAluminum   = float3(0.913f, 0.922f, 0.924f);
+const float3 F0_MetalSilver     = float3(0.972f, 0.960f, 0.915f);
+const float3 F0_DiletricWater   = float3(0.020f);
+const float3 F0_DiletricPlastic = float3(0.040f);
+const float3 F0_DiletricGlass   = float3(0.045f);
+const float3 F0_DiletricCrystal = float3(0.050f);
+const float3 F0_DiletricGem     = float3(0.080f);
+const float3 F0_DiletricDiamond = float3(0.150f);
 
 class ProjApp
     : public ppx::Application
@@ -30,6 +48,9 @@ private:
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
     };
+
+    grfx::TexturePtr m1x1BlackTexture;
+    grfx::TexturePtr m1x1WhiteTexture;
 
     std::vector<PerFrame>       mPerFrame;
     PerspCamera                 mCamera;
@@ -100,16 +121,59 @@ private:
         bool   reflectionSelect = 0;    // 0 = none,  1 = texture
     };
 
-    float mRotY    = 0;
-    float mAmbient = 0;
-
+    float        mRotY         = 0;
+    float        mAmbient      = 0;
     MaterialData mMaterialData = {};
+    float3       mAlbedoColor  = float3(1);
+
+    std::vector<float3> mF0 = {
+        F0_MetalTitanium,
+        F0_MetalChromium,
+        F0_MetalIron,
+        F0_MetalNickel,
+        F0_MetalPlatinum,
+        F0_MetalCopper,
+        F0_MetalPalladium,
+        F0_MetalZinc,
+        F0_MetalGold,
+        F0_MetalAluminum,
+        F0_MetalSilver,
+        F0_DiletricWater,
+        F0_DiletricPlastic,
+        F0_DiletricGlass,
+        F0_DiletricCrystal,
+        F0_DiletricGem,
+        F0_DiletricDiamond,
+        float3(1.0f),
+    };
 
     uint32_t           mModelIndex = 0;
     std::vector<char*> mModelNames = {
         "Knob",
         "Sphere",
         "Cube",
+    };
+
+    uint32_t           mF0Index = 0;
+    std::vector<char*> mF0Names = {
+        "MetalTitanium",
+        "MetalChromium",
+        "MetalIron",
+        "MetalNickel",
+        "MetalPlatinum",
+        "MetalCopper",
+        "MetalPalladium",
+        "MetalZinc",
+        "MetalGold",
+        "MetalAluminum",
+        "MetalSilver",
+        "DiletricWater",
+        "DiletricPlastic",
+        "DiletricGlass",
+        "DiletricCrystal",
+        "DiletricGem",
+        "DiletricDiamond",
+        "Albedo Color",
     };
 
     uint32_t           mMaterialIndex = 0;
@@ -320,6 +384,10 @@ void ProjApp::Setup()
 {
     Result ppxres = ppx::SUCCESS;
 
+    PPX_CHECKED_CALL(ppxres = CreateTexture1x1(GetDevice()->GetGraphicsQueue(), float4(0), &m1x1BlackTexture));
+    PPX_CHECKED_CALL(ppxres = CreateTexture1x1(GetDevice()->GetGraphicsQueue(), float4(1), &m1x1WhiteTexture));
+    mF0Index = static_cast<uint32_t>(mF0Names.size() - 1);
+
     // Cameras
     {
         mCamera = PerspCamera(60.0f, GetWindowAspect());
@@ -349,7 +417,7 @@ void ProjApp::Setup()
 
         {
             Geometry geo;
-            TriMesh  mesh = TriMesh::CreateSphere(0.75f, 32, 16, TriMesh::Options(options).TexCoordScale(float2(4)));
+            TriMesh  mesh = TriMesh::CreateSphere(0.75f, 128, 64, TriMesh::Options(options).TexCoordScale(float2(4)));
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
             PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
             mModels.push_back(mSphere);
@@ -700,6 +768,7 @@ void ProjApp::Render()
         PPX_HLSL_PACK_BEGIN();
         struct HlslMaterial
         {
+            hlsl_float3<16> F0;
             hlsl_float3<12> albedo;
             hlsl_float<4>   roughness;
             hlsl_float<4>   metalness;
@@ -716,7 +785,8 @@ void ProjApp::Render()
         PPX_CHECKED_CALL(ppxres = mCpuMaterialConstants->MapMemory(0, &pMappedAddress));
 
         HlslMaterial* pMaterial     = static_cast<HlslMaterial*>(pMappedAddress);
-        pMaterial->albedo           = mMaterialData.albedo;
+        pMaterial->F0               = mF0[mF0Index];
+        pMaterial->albedo           = (mF0Index <= 10) ? mF0[mF0Index] : mAlbedoColor;
         pMaterial->roughness        = mMaterialData.roughness;
         pMaterial->metalness        = mMaterialData.metalness;
         pMaterial->albedoSelect     = mMaterialData.albedoSelect;
@@ -840,20 +910,7 @@ void ProjApp::DrawGui()
         ImGui::EndCombo();
     }
 
-    static const char* currentMaterialName = mMaterialNames[0];
-    if (ImGui::BeginCombo("Material Textures", currentMaterialName)) {
-        for (size_t i = 0; i < mMaterialNames.size(); ++i) {
-            bool isSelected = (currentMaterialName == mMaterialNames[i]);
-            if (ImGui::Selectable(mMaterialNames[i], isSelected)) {
-                currentMaterialName = mMaterialNames[i];
-                mMaterialIndex      = static_cast<uint32_t>(i);
-            }
-            if (isSelected) {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-        ImGui::EndCombo();
-    }
+    ImGui::Separator();
 
     static const char* currentShaderName = mShaderNames[0];
     if (ImGui::BeginCombo("Shader Pipeline", currentShaderName)) {
@@ -870,8 +927,43 @@ void ProjApp::DrawGui()
         ImGui::EndCombo();
     }
 
+    ImGui::Separator();
+
+    static const char* currentF0Name = "Albedo Color";
+    if (ImGui::BeginCombo("F0", currentF0Name)) {
+        for (size_t i = 0; i < mF0Names.size(); ++i) {
+            bool isSelected = (currentF0Name == mF0Names[i]);
+            if (ImGui::Selectable(mF0Names[i], isSelected)) {
+                currentF0Name = mF0Names[i];
+                mF0Index      = static_cast<uint32_t>(i);
+            }
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    ImGui::ColorPicker4("Albedo Color", (float*)&mAlbedoColor);
+
+    static const char* currentMaterialName = mMaterialNames[0];
+    if (ImGui::BeginCombo("Material Textures", currentMaterialName)) {
+        for (size_t i = 0; i < mMaterialNames.size(); ++i) {
+            bool isSelected = (currentMaterialName == mMaterialNames[i]);
+            if (ImGui::Selectable(mMaterialNames[i], isSelected)) {
+                currentMaterialName = mMaterialNames[i];
+                mMaterialIndex      = static_cast<uint32_t>(i);
+            }
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
     ImGui::SliderFloat("Roughness", &mMaterialData.roughness, 0.0f, 1.0f, "%.03f degrees");
     ImGui::SliderFloat("Metalness", &mMaterialData.metalness, 0.0f, 1.0f, "%.03f degrees");
+    ImGui::Checkbox("Use Albedo Texture", &mMaterialData.albedoSelect);
     ImGui::Checkbox("Use Roughness Texture", &mMaterialData.roughnessSelect);
     ImGui::Checkbox("Use Metalness Texture", &mMaterialData.metalnessSelect);
     ImGui::Checkbox("Use Normal Map", &mMaterialData.normalSelect);

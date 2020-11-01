@@ -39,6 +39,7 @@ struct Light
 
 struct MaterialData
 {
+    float3 F0;
     float3 albedo;
     float  roughness;
     float  metalness;    

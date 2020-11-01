@@ -13,6 +13,15 @@ namespace ppx {
 class Bitmap
 {
 public:
+    enum DataType
+    {
+        DATA_TYPE_UNDEFINED = 0,
+        DATA_TYPE_UINT8,
+        DATA_TYPE_UINT16,
+        DATA_TYPE_UINT32,
+        DATA_TYPE_FLOAT,
+    };
+
     enum Format
     {
         FORMAT_UNDEFINED = 0,
@@ -53,13 +62,16 @@ public:
     uint64_t       GetFootprintSize(uint32_t rowStrideAlignment = 1) const;
 
     Result Resize(uint32_t width, uint32_t height);
-    Result Resize(uint32_t widht, uint32_t height, Bitmap* pBitmap) const;
-    Result CopyTo(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Bitmap* pBitmap) const;
+    //Result Resize(uint32_t widht, uint32_t height, Bitmap* pBitmap) const;
+    //Result CopyTo(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Bitmap* pBitmap) const;
 
-    static uint32_t ChannelSize(Bitmap::Format value);
-    static uint32_t ChannelCount(Bitmap::Format value);
-    static uint32_t FormatSize(Bitmap::Format value);
-    static uint64_t StorageFootprint(uint32_t width, uint32_t height, Bitmap::Format format);
+    void Fill(float r, float g, float b, float a);
+
+    static uint32_t         ChannelSize(Bitmap::Format value);
+    static uint32_t         ChannelCount(Bitmap::Format value);
+    static Bitmap::DataType ChannelDataType(Bitmap::Format value);
+    static uint32_t         FormatSize(Bitmap::Format value);
+    static uint64_t         StorageFootprint(uint32_t width, uint32_t height, Bitmap::Format format);
 
     static Result LoadFile(const fs::path& path, Bitmap* pBitmap);
 

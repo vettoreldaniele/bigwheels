@@ -21,7 +21,7 @@ float Lambert(float3 N, float3 L)
 float Phong(float3 N, float3 L, float3 V, float hardness)
 {
     float3 R        = reflect(-L, N);
-    float  theta    = saturate(dot(R, V));
+    float  theta    = max(dot(R, V), 0);
     float  specular = pow(theta, hardness);
     return specular;
 }
@@ -30,6 +30,11 @@ float4 psmain(VSOutput input) : SV_TARGET
 {
     float3 N = input.normal;  
     float3 V = normalize(Scene.eyePosition.xyz - input.positionWS);
+    
+    float3 albedo = Material.albedo;
+    if (Material.albedoSelect == 1) {
+        albedo = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
+    }
     
     float roughness = Material.roughness;
     if (Material.roughnessSelect == 1) {
@@ -41,7 +46,7 @@ float4 psmain(VSOutput input) : SV_TARGET
         metalness = MetalnessTex.Sample(ClampedSampler, input.texCoord).r;
     }
     
-    float hardness = lerp(1.0f, 200.0f, saturate(roughness));
+    float hardness = lerp(1.0, 100.0, 1.0 - saturate(roughness));
     
     float diffuse  = 0;
     float specular = 0;
@@ -51,10 +56,9 @@ float4 psmain(VSOutput input) : SV_TARGET
         diffuse += Lambert(N, L);
        
         specular += Phong(N, L, V, hardness);
-	}
+    }
         
-    float3 color = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
-    color = (diffuse + (specular * metalness) + Scene.ambient) * color;
+    float3 color = (diffuse + (specular * metalness) + Scene.ambient) * albedo;
     
     // Faux HDR tonemapping
     color = color / (color + float3(1, 1, 1));

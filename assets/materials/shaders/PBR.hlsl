@@ -69,7 +69,10 @@ float4 psmain(VSOutput input) : SV_TARGET
     float3 V  = normalize(Scene.eyePosition.xyz - input.positionWS);
     float  ao = 0.4f;    
     
-    float3 albedo = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;    
+	float3 albedo = Material.albedo;
+	if (Material.albedoSelect == 1) {
+		albedo = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
+	}
     
     float roughness = Material.roughness;
     if (Material.roughnessSelect == 1) {
@@ -104,7 +107,10 @@ float4 psmain(VSOutput input) : SV_TARGET
     
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
-    float3 F0 = (float3)0.04;
+    //
+    // float3 F0 = (float3)0.04;
+    //
+    float3 F0 = Material.F0;
     F0        = lerp(F0, albedo, metalness);
     
     float3 Lo = (float3)0.0;    

@@ -17,20 +17,25 @@ float Lambert(float3 N, float3 L)
 
 float4 psmain(VSOutput input) : SV_TARGET
 {
-    float3 N = input.normal;  
+    float3 N = input.normal; 
+    
+    float3 albedo = Material.albedo;
+    if (Material.albedoSelect == 1)
+    {
+        albedo = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
+    }
     
     float diffuse = 0;
-	for (uint i = 0; i < Scene.lightCount; ++i) {    
+    for (uint i = 0; i < Scene.lightCount; ++i) {    
         float3 L = normalize(Lights[i].position - input.positionWS);
 
         diffuse += Lambert(N, L);
-	}
-        
-    float3 color = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
-    color = (diffuse + Scene.ambient) * color;
+    }
+            
+    float3 color = (diffuse + Scene.ambient) * albedo;
     
     // Faux HDR tonemapping
-    color = color / (color + float3(1, 1, 1));
+	color = color / (color + float3(1, 1, 1));
        
     return float4(color, 1);
 }

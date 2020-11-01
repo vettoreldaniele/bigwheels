@@ -30,6 +30,11 @@ float4 psmain(VSOutput input) : SV_TARGET
 {
     float3 N = input.normal;  
     float3 V = normalize(Scene.eyePosition.xyz - input.positionWS);
+
+    float3 albedo = Material.albedo;
+    if (Material.albedoSelect == 1) {
+        albedo = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
+    }
     
     float roughness = Material.roughness;
     if (Material.roughnessSelect == 1) {
@@ -41,20 +46,19 @@ float4 psmain(VSOutput input) : SV_TARGET
         metalness = MetalnessTex.Sample(ClampedSampler, input.texCoord).r;
     }    
     
-    float hardness = lerp(1.0f, 200.0f, saturate(roughness));
+    float hardness = lerp(1.0, 100.0, 1.0 - saturate(roughness));
     
     float diffuse  = 0;
     float specular = 0;
-	for (uint i = 0; i < Scene.lightCount; ++i) {    
+    for (uint i = 0; i < Scene.lightCount; ++i) {    
         float3 L = normalize(Lights[i].position - input.positionWS);
 
         diffuse += Lambert(N, L);
         
         specular += BlinnPhong(N, L, V, hardness);
-	}
+    }
         
-    float3 color = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
-    color = (diffuse + (specular * metalness) + Scene.ambient) * color;
+    float3 color = (diffuse + (specular * metalness) + Scene.ambient) * albedo;
     
     // Faux HDR tonemapping
     color = color / (color + float3(1, 1, 1));

@@ -646,7 +646,7 @@ TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, cons
             float3 P         = SphericalToCartesian(theta, phi);
             float3 position  = radius * P;
             float3 color     = float3(u, v, 0);
-            float3 normal    = P;
+            float3 normal    = normalize(position);
             float2 texcoord  = float2(u, v);
             float4 tangent   = float4(-SphericalTangent(theta, phi), 1.0);
             float3 bitangent = glm::cross(normal, float3(tangent));

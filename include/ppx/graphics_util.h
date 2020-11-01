@@ -9,6 +9,7 @@
 
 namespace ppx {
 
+// clang-format off
 /*
  
 Cross Horizontal Left:
@@ -89,6 +90,7 @@ Strip Vertical:
     |_____|
 
 */
+// clang-format on
 enum CubeImageLayout
 {
     CUBE_IMAGE_LAYOUT_UNDEFINED              = 0,
@@ -171,6 +173,12 @@ Result CreateTextureFromFile(
 Result CreateTextureFromFile(
     grfx::Queue*                 pQueue,
     const fs::path&              path,
+    grfx::Texture**              ppTexture,
+    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
+
+Result CreateTexture1x1(
+    grfx::Queue*                 pQueue,
+    const float4&                color,
     grfx::Texture**              ppTexture,
     const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
 
