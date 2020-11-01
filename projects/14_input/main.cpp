@@ -18,7 +18,7 @@ public:
     virtual void Setup() override;
     virtual void KeyDown(ppx::KeyCode key) override;
     virtual void KeyUp(ppx::KeyCode key) override;
-    virtual void MouseMove(int32_t x, int32_t y, uint32_t buttons) override;
+    virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) override;
     virtual void MouseDown(int32_t x, int32_t y, uint32_t buttons) override;
     virtual void MouseUp(int32_t x, int32_t y, uint32_t buttons) override;
     virtual void Render() override;
@@ -92,7 +92,7 @@ void ProjApp::KeyUp(ppx::KeyCode key)
     mKeyStates[key].timeDown = FLT_MAX;
 }
 
-void ProjApp::MouseMove(int32_t x, int32_t y, uint32_t buttons)
+void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons)
 {
     mMouseX = x;
     mMouseY = y;

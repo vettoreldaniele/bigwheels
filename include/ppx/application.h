@@ -242,13 +242,13 @@ public:
     virtual void Config(ppx::ApplicationSettings& settings) {}
     virtual void Setup() {}
     virtual void Shutdown() {}
-    virtual void Move(int32_t x, int32_t y) {}                        // Window move event
-    virtual void Resize(uint32_t width, uint32_t height) {}           // Window resize event
-    virtual void KeyDown(KeyCode key) {}                              // Key down event
-    virtual void KeyUp(KeyCode key) {}                                // Key up event
-    virtual void MouseMove(int32_t x, int32_t y, uint32_t buttons) {} // Mouse move event
-    virtual void MouseDown(int32_t x, int32_t y, uint32_t buttons) {} // Mouse down event
-    virtual void MouseUp(int32_t x, int32_t y, uint32_t buttons) {}   // Mouse up event
+    virtual void Move(int32_t x, int32_t y) {}                                                // Window move event
+    virtual void Resize(uint32_t width, uint32_t height) {}                                   // Window resize event
+    virtual void KeyDown(KeyCode key) {}                                                      // Key down event
+    virtual void KeyUp(KeyCode key) {}                                                        // Key up event
+    virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) {} // Mouse move event
+    virtual void MouseDown(int32_t x, int32_t y, uint32_t buttons) {}                         // Mouse down event
+    virtual void MouseUp(int32_t x, int32_t y, uint32_t buttons) {}                           // Mouse up event
     virtual void Render() {}
 
 protected:
@@ -259,7 +259,7 @@ protected:
     virtual void DispatchResize(uint32_t width, uint32_t height);
     virtual void DispatchKeyDown(KeyCode key);
     virtual void DispatchKeyUp(KeyCode key);
-    virtual void DispatchMouseMove(int32_t x, int32_t y, uint32_t buttons);
+    virtual void DispatchMouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons);
     virtual void DispatchMouseDown(int32_t x, int32_t y, uint32_t buttons);
     virtual void DispatchMouseUp(int32_t x, int32_t y, uint32_t buttons);
     virtual void DispatchRender();
@@ -357,9 +357,9 @@ private:
     void ResizeCallback(uint32_t width, uint32_t height);
     void KeyDownCallback(KeyCode key);
     void KeyUpCallback(KeyCode key);
+    void MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons);
     void MouseDownCallback(int32_t x, int32_t y, uint32_t buttons);
     void MouseUpCallback(int32_t x, int32_t y, uint32_t buttons);
-    void MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons);
 
 private:
     ApplicationSettings        mSettings = {};
@@ -369,6 +369,8 @@ private:
     void*                      mWindow                     = nullptr;
     bool                       mWindowSurfaceInvalid       = false;
     KeyState                   mKeyStates[TOTAL_KEY_COUNT] = {false, 0.0f};
+    int32_t                    mPrevMouseX                 = INT32_MAX;
+    int32_t                    mPrevMouseY                 = INT32_MAX;
     bool                       mRunning                    = true;
     grfx::InstancePtr          mInstance;
     grfx::DevicePtr            mDevice;

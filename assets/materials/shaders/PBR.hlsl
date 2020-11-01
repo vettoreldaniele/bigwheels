@@ -160,7 +160,7 @@ float4 psmain(VSOutput input) : SV_TARGET
     
     float3 irradiance = (float3)1.0; 
     if (Material.iblSelect == 1) {
-        irradiance = Environment(EnvMapTex, R);
+        irradiance = Environment(EnvMapTex, R) * Material.iblStrength;
     }
     
     float3 diffuse    = irradiance * albedo +  Scene.ambient;
@@ -169,7 +169,7 @@ float4 psmain(VSOutput input) : SV_TARGET
     // Reflection
     float3 reflection = (float3)0.0;
     if (Material.reflectionSelect) {
-        reflection = Environment(ReflMapTex, R);
+        reflection = Environment(ReflMapTex, R) * Material.reflectionStrength;
     }    
     
     // Final color

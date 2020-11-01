@@ -471,7 +471,7 @@ void TriMesh::AppendIndexAndVertexData(
         for (size_t i = 0; i < vertexCount; ++i) {
             const VertexData* pVertexData = reinterpret_cast<const VertexData*>(pData + (i * sizeof(VertexData)));
 
-            mesh.AppendPosition(pVertexData->position);
+            mesh.AppendPosition(pVertexData->position * options.mScale);
 
             if (options.mEnableVertexColors || options.mEnableObjectColor) {
                 float3 color = options.mEnableObjectColor ? options.mObjectColor : pVertexData->color;
@@ -505,7 +505,7 @@ void TriMesh::AppendIndexAndVertexData(
             uint32_t          vi          = indexData[i];
             const VertexData* pVertexData = reinterpret_cast<const VertexData*>(pData + (vi * sizeof(VertexData)));
 
-            mesh.AppendPosition(pVertexData->position);
+            mesh.AppendPosition(pVertexData->position * options.mScale);
 
             if (options.mEnableVertexColors) {
                 mesh.AppendColor(pVertexData->color);
@@ -845,9 +845,9 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
                 vtx2.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
             }
 
-            uint32_t triVtx0 = mesh.AppendPosition(vtx0.position) - 1;
-            uint32_t triVtx1 = mesh.AppendPosition(vtx1.position) - 1;
-            uint32_t triVtx2 = mesh.AppendPosition(vtx2.position) - 1;
+            uint32_t triVtx0 = mesh.AppendPosition(vtx0.position * options.mScale) - 1;
+            uint32_t triVtx1 = mesh.AppendPosition(vtx1.position * options.mScale) - 1;
+            uint32_t triVtx2 = mesh.AppendPosition(vtx2.position * options.mScale) - 1;
 
             if (options.mEnableVertexColors || options.mEnableObjectColor) {
                 if (options.mEnableObjectColor) {

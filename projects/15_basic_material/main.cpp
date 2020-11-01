@@ -36,6 +36,7 @@ class ProjApp
 public:
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
+    virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) override;
     virtual void Shutdown() override;
     virtual void Render() override;
 
@@ -58,6 +59,8 @@ private:
     grfx::ModelPtr              mKnob;
     grfx::ModelPtr              mSphere;
     grfx::ModelPtr              mCube;
+    grfx::ModelPtr              mMonkey;
+    grfx::ModelPtr              mCeberus;
     std::vector<grfx::ModelPtr> mModels;
 
     // Descriptor Set 0 - Scene Data
@@ -110,18 +113,21 @@ private:
 
     struct MaterialData
     {
-        float3 albedo           = float3(0.4f, 0.4f, 0.7f);
-        float  roughness        = 0.5f; // 0 = smooth, 1 = rough
-        float  metalness        = 0.5f; // 0 = dielectric, 1 = metal
-        bool   albedoSelect     = 0;    // 0 = value, 1 = texture
-        bool   roughnessSelect  = 0;    // 0 = value, 1 = texture
-        bool   metalnessSelect  = 0;    // 0 = value, 1 = texture
-        bool   normalSelect     = 0;    // 0 = attrb, 1 = texture
-        bool   iblSelect        = 0;    // 0 = white, 1 = texture
-        bool   reflectionSelect = 0;    // 0 = none,  1 = texture
+        float3 albedo             = float3(0.4f, 0.4f, 0.7f);
+        float  roughness          = 0.5f; // 0 = smooth, 1 = rough
+        float  metalness          = 0.5f; // 0 = dielectric, 1 = metal
+        float  iblStrength        = 1.0f; // 0 = nocontrib, 5 = max
+        float  reflectionStrength = 1.0f; // 0 = nocontrig, 1 = max
+        bool   albedoSelect       = 0;    // 0 = value, 1 = texture
+        bool   roughnessSelect    = 0;    // 0 = value, 1 = texture
+        bool   metalnessSelect    = 0;    // 0 = value, 1 = texture
+        bool   normalSelect       = 0;    // 0 = attrb, 1 = texture
+        bool   iblSelect          = 0;    // 0 = white, 1 = texture
+        bool   reflectionSelect   = 0;    // 0 = none,  1 = texture
     };
 
     float        mRotY         = 0;
+    float        mTargetRotY   = 0;
     float        mAmbient      = 0;
     MaterialData mMaterialData = {};
     float3       mAlbedoColor  = float3(1);
@@ -144,7 +150,7 @@ private:
         F0_DiletricCrystal,
         F0_DiletricGem,
         F0_DiletricDiamond,
-        float3(1.0f),
+        float3(0.4f),
     };
 
     uint32_t           mModelIndex = 0;
@@ -152,6 +158,8 @@ private:
         "Knob",
         "Sphere",
         "Cube",
+        "Monkey",
+        "Ceberus",
     };
 
     uint32_t           mF0Index = 0;
@@ -173,7 +181,7 @@ private:
         "DiletricCrystal",
         "DiletricGem",
         "DiletricDiamond",
-        "Albedo Color",
+        "Use Albedo Color",
     };
 
     uint32_t           mMaterialIndex = 0;
@@ -429,6 +437,22 @@ void ProjApp::Setup()
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
             PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCube));
             mModels.push_back(mCube);
+        }
+
+        {
+            Geometry geo;
+            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/monkey.obj"), TriMesh::Options(options).Scale(float3(0.75f)));
+            PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
+            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mMonkey));
+            mModels.push_back(mMonkey);
+        }
+
+        {
+            Geometry geo;
+            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/cerberus.obj"), TriMesh::Options(options).Scale(float3(0.75f)));
+            PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
+            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCeberus));
+            mModels.push_back(mCeberus);
         }
     }
 
@@ -686,8 +710,20 @@ void ProjApp::Shutdown()
 {
 }
 
+void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons)
+{
+    if (buttons & ppx::MOUSE_BUTTON_LEFT) {
+        mTargetRotY += 0.25f * dx;
+    }
+}
+
 void ProjApp::Render()
 {
+    // Smooth out the rotation on Y
+    mRotY += (mTargetRotY - mRotY) * 0.1f;
+
+    // ---------------------------------------------------------------------------------------------
+
     Result ppxres = ppx::SUCCESS;
 
     uint32_t  iffIndex = GetInFlightFrameIndex();
@@ -772,6 +808,8 @@ void ProjApp::Render()
             hlsl_float3<12> albedo;
             hlsl_float<4>   roughness;
             hlsl_float<4>   metalness;
+            hlsl_float<4>   iblStrength;
+            hlsl_float<4>   reflectionStrength;
             hlsl_uint<4>    albedoSelect;
             hlsl_uint<4>    roughnessSelect;
             hlsl_uint<4>    metalnessSelect;
@@ -784,17 +822,19 @@ void ProjApp::Render()
         void* pMappedAddress = nullptr;
         PPX_CHECKED_CALL(ppxres = mCpuMaterialConstants->MapMemory(0, &pMappedAddress));
 
-        HlslMaterial* pMaterial     = static_cast<HlslMaterial*>(pMappedAddress);
-        pMaterial->F0               = mF0[mF0Index];
-        pMaterial->albedo           = (mF0Index <= 10) ? mF0[mF0Index] : mAlbedoColor;
-        pMaterial->roughness        = mMaterialData.roughness;
-        pMaterial->metalness        = mMaterialData.metalness;
-        pMaterial->albedoSelect     = mMaterialData.albedoSelect;
-        pMaterial->roughnessSelect  = mMaterialData.roughnessSelect;
-        pMaterial->metalnessSelect  = mMaterialData.metalnessSelect;
-        pMaterial->normalSelect     = mMaterialData.normalSelect;
-        pMaterial->iblSelect        = mMaterialData.iblSelect;
-        pMaterial->reflectionSelect = mMaterialData.reflectionSelect;
+        HlslMaterial* pMaterial       = static_cast<HlslMaterial*>(pMappedAddress);
+        pMaterial->F0                 = mF0[mF0Index];
+        pMaterial->albedo             = (mF0Index <= 10) ? mF0[mF0Index] : mAlbedoColor;
+        pMaterial->roughness          = mMaterialData.roughness;
+        pMaterial->metalness          = mMaterialData.metalness;
+        pMaterial->iblStrength        = mMaterialData.iblStrength;
+        pMaterial->reflectionStrength = mMaterialData.reflectionStrength;
+        pMaterial->albedoSelect       = mMaterialData.albedoSelect;
+        pMaterial->roughnessSelect    = mMaterialData.roughnessSelect;
+        pMaterial->metalnessSelect    = mMaterialData.metalnessSelect;
+        pMaterial->normalSelect       = mMaterialData.normalSelect;
+        pMaterial->iblSelect          = mMaterialData.iblSelect;
+        pMaterial->reflectionSelect   = mMaterialData.reflectionSelect;
 
         mCpuMaterialConstants->UnmapMemory();
 
@@ -887,9 +927,9 @@ void ProjApp::DrawGui()
 {
     ImGui::Separator();
 
-    ImGui::SliderFloat("Rot Y", &mRotY, -180.0f, 180.0f, "%.03f degrees");
-
-    ImGui::Separator();
+    //ImGui::SliderFloat("Rot Y", &mRotY, -180.0f, 180.0f, "%.03f degrees");
+    //
+    //ImGui::Separator();
 
     ImGui::SliderFloat("Ambient", &mAmbient, 0.0f, 1.0f, "%.03f");
 
@@ -944,6 +984,8 @@ void ProjApp::DrawGui()
         ImGui::EndCombo();
     }
 
+    ImGui::Separator();
+
     ImGui::ColorPicker4("Albedo Color", (float*)&mAlbedoColor);
 
     static const char* currentMaterialName = mMaterialNames[0];
@@ -961,14 +1003,21 @@ void ProjApp::DrawGui()
         ImGui::EndCombo();
     }
 
+    ImGui::Separator();
+
     ImGui::SliderFloat("Roughness", &mMaterialData.roughness, 0.0f, 1.0f, "%.03f degrees");
     ImGui::SliderFloat("Metalness", &mMaterialData.metalness, 0.0f, 1.0f, "%.03f degrees");
-    ImGui::Checkbox("Use Albedo Texture", &mMaterialData.albedoSelect);
-    ImGui::Checkbox("Use Roughness Texture", &mMaterialData.roughnessSelect);
-    ImGui::Checkbox("Use Metalness Texture", &mMaterialData.metalnessSelect);
-    ImGui::Checkbox("Use Normal Map", &mMaterialData.normalSelect);
-    ImGui::Checkbox("Use IBL", &mMaterialData.iblSelect);
-    ImGui::Checkbox("Use Reflection Map", &mMaterialData.reflectionSelect);
+    ImGui::Checkbox("PBR Use Albedo Texture", &mMaterialData.albedoSelect);
+    ImGui::Checkbox("PBR Use Roughness Texture", &mMaterialData.roughnessSelect);
+    ImGui::Checkbox("PBR Use Metalness Texture", &mMaterialData.metalnessSelect);
+    ImGui::Checkbox("PBR Use Normal Map", &mMaterialData.normalSelect);
+    ImGui::Checkbox("PBR Use IBL", &mMaterialData.iblSelect);
+    ImGui::Checkbox("PBR Use Reflection Map", &mMaterialData.reflectionSelect);
+
+    ImGui::Separator();
+
+    ImGui::SliderFloat("PBR IBL Strength", &mMaterialData.iblStrength, 0.0f, 100.0f, "%.03f");
+    ImGui::SliderFloat("PBR Reflection Strength", &mMaterialData.reflectionStrength, 0.0f, 10.0f, "%.03f");
 }
 
 int main(int argc, char** argv)

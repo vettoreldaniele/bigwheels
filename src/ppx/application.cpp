@@ -777,6 +777,7 @@ Result Application::CreatePlatformWindow()
         return ppx::ERROR_GLFW_CREATE_WINDOW_FAILED;
     }
 
+    // Register window events
     Result ppxres = WindowEvents::RegisterWindowEvents(pWindow, this);
     if (Failed(ppxres)) {
         PPX_ASSERT_MSG(false, "RegisterWindowEvents failed");
@@ -857,9 +858,9 @@ void Application::DispatchKeyUp(KeyCode key)
     KeyUp(key);
 }
 
-void Application::DispatchMouseMove(int32_t x, int32_t y, uint32_t buttons)
+void Application::DispatchMouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons)
 {
-    MouseMove(x, y, buttons);
+    MouseMove(x, y, dx, dy, buttons);
 }
 
 void Application::DispatchMouseDown(int32_t x, int32_t y, uint32_t buttons)
@@ -896,21 +897,41 @@ void Application::ResizeCallback(uint32_t width, uint32_t height)
 
 void Application::MouseDownCallback(int32_t x, int32_t y, uint32_t buttons)
 {
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
+
     DispatchMouseDown(x, y, buttons);
 }
 
 void Application::MouseUpCallback(int32_t x, int32_t y, uint32_t buttons)
 {
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
+
     DispatchMouseUp(x, y, buttons);
 }
 
 void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
 {
-    DispatchMouseMove(x, y, buttons);
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
+
+    int32_t dx = (mPrevMouseX != INT32_MAX) ? (x - mPrevMouseX) : 0;
+    int32_t dy = (mPrevMouseY != INT32_MAX) ? (y - mPrevMouseY) : 0;
+    DispatchMouseMove(x, y, dx, dy, buttons);
+    mPrevMouseX = x;
+    mPrevMouseY = y;
 }
 
 void Application::KeyUpCallback(KeyCode key)
 {
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
+
     mKeyStates[key].down     = false;
     mKeyStates[key].timeDown = FLT_MAX;
     DispatchKeyUp(key);
@@ -918,6 +939,10 @@ void Application::KeyUpCallback(KeyCode key)
 
 void Application::KeyDownCallback(KeyCode key)
 {
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
+
     mKeyStates[key].down     = true;
     mKeyStates[key].timeDown = GetElapsedSeconds();
     DispatchKeyDown(key);

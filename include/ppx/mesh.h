@@ -56,6 +56,8 @@ public:
         Options& Tangents(bool value = true) { mEnableTangents = value; return *this; }
         //! Set and/or enable/disable object color, object color will override vertex colors
         Options& ObjectColor(const float3& color, bool enable = true) { mObjectColor = color; mEnableObjectColor = enable; return *this;}
+        //! Set the scale of geometry position, default is (1, 1, 1)
+        Options& Scale(const float3& scale) { mScale = scale; return *this; }
         //! Sets the UV texture coordinate scale, default is (1, 1)
         Options& TexCoordScale(const float2& scale) { mTexCoordScale = scale; return *this; }
         // clang-format on
@@ -67,6 +69,7 @@ public:
         bool   mEnableTangents     = false;
         bool   mEnableObjectColor  = false;
         float3 mObjectColor        = float3(0.7f);
+        float3 mScale              = float3(1, 1, 1);
         float2 mTexCoordScale      = float2(1, 1);
         friend class TriMesh;
     };

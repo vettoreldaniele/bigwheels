@@ -42,7 +42,9 @@ struct MaterialData
     float3 F0;
     float3 albedo;
     float  roughness;
-    float  metalness;    
+    float  metalness;
+    float  iblStrength;
+    float  reflectionStrength;
     uint   albedoSelect;     // 0 = value, 1 = texture
     uint   roughnessSelect;  // 0 = value, 1 = texture
     uint   metalnessSelect;  // 0 = value, 1 = texture
