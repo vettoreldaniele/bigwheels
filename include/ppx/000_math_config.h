@@ -73,7 +73,11 @@ using double4x3 = glm::dmat4x3;
 using double4x4 = glm::dmat4x4;
 // clang-format on
 
-#define PRAGMA(X)             _Pragma(#X)
+#if defined(_MSC_VER)
+#define PRAGMA(X) __pragma(X)
+#else
+#define PRAGMA(X) _Pragma(#X)
+#endif
 #define PPX_HLSL_PACK_BEGIN() PRAGMA(pack(push, 1))
 #define PPX_HLSL_PACK_END()   PRAGMA(pack(pop))
 
