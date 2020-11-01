@@ -132,7 +132,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     //
     // NOTE: This requires Windows 10 to be in Developer Mode.
     //
-    {
+    if (pCreateInfo->enableDXIL) {
         // Create a temp device so we can query it for SM 6.0 support
         D3D12DevicePtr device;
         {
@@ -175,6 +175,8 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
             PPX_ASSERT_MSG(false, "D3D12EnableExperimentalFeatures failed: couldn't turn on SM 6.0 support - is the system in Developer Mode?");
             return ppx::ERROR_API_FAILURE;
         }
+
+        PPX_LOG_INFO("D3D12 SM 6.0+ support enabled (DXIL)")
     }
 
     // Create real D3D12 device

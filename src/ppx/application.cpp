@@ -552,7 +552,6 @@ void Application::InitializeAssetDirs()
     }
 }
 
-
 Result Application::InitializePlatform()
 {
     int res = glfwInit();
@@ -606,6 +605,7 @@ Result Application::InitializeGrfxDevice()
         ci.transferQueueCount     = mSettings.grfx.device.transferQueueCount;
         ci.vulkanExtensions       = {};
         ci.pVulkanDeviceFeatures  = nullptr;
+        ci.enableDXIL             = mSettings.grfx.enableDXIL;
 
         PPX_LOG_INFO("Creating application graphics device using " << gpu->GetDeviceName());
         PPX_LOG_INFO("   requested graphics queue count : " << mSettings.grfx.device.graphicsQueueCount);
@@ -946,7 +946,7 @@ int Application::Run(int argc, char** argv)
     if (this != sApplicationInstance) {
         return false;
     }
-    
+
     // Initialize the platform
     Result ppxres = InitializePlatform();
     if (Failed(ppxres)) {

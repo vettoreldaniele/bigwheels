@@ -30,6 +30,7 @@ struct DeviceCreateInfo
     uint32_t                 transferQueueCount    = 0;
     std::vector<std::string> vulkanExtensions      = {};      // [OPTIONAL] Additional device extensions
     const void*              pVulkanDeviceFeatures = nullptr; // [OPTIONAL] Pointer to custom VkPhysicalDeviceFeatures
+    bool                     enableDXIL            = false;   // [OPTIONAL] Enabled SM6.0+ in D3D12
 };
 
 //! @class Device

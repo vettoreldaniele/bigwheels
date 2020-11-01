@@ -50,6 +50,9 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
+#if defined(USE_DXIL)
+    settings.grfx.enableDXIL = true;
+#endif
 }
 
 void ProjApp::Setup()
