@@ -17,5 +17,10 @@ VSOutput vsmain(VSInput input)
     output.color    = input.color;
     output.texCoord = input.texCoord;
     
+    // TBN
+    output.normalTS    = normalize(mul(Model.modelMatrix, float4(input.normal, 0)).xyz);
+    output.tangentTS   = normalize(mul(Model.modelMatrix, float4(input.tangent, 0)).xyz);
+    output.bitangnetTS = normalize(mul(Model.modelMatrix, float4(input.bitangnet, 0)).xyz);    
+    
     return output;
 }

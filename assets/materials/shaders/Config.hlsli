@@ -69,13 +69,14 @@ struct VSInput
 
 struct VSOutput
 {
-    float4 position   : SV_POSITION;
-    float3 positionWS : POSITIONWS;
-    float3 color      : COLOR;
-    float3 normal     : NORMAL;
-    float2 texCoord   : TEXCOORD;
-    float3 tangent    : TANGENT;
-    float3 titangnet  : BITANGENT;
+    float4 position    : SV_POSITION;
+    float3 positionWS  : POSITIONWS;
+    float3 color       : COLOR;
+    float3 normal      : NORMAL;
+    float2 texCoord    : TEXCOORD;
+    float3 normalTS    : NORMALTS;
+    float3 tangentTS   : TANGENTTS;
+    float3 bitangnetTS : BITANGENTTS;
 };
 
 // circular atan2 - converts (x,y) on a unit circle to [0, 2pi]

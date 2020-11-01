@@ -56,6 +56,8 @@ public:
         Options& Tangents(bool value = true) { mEnableTangents = value; return *this; }
         //! Set and/or enable/disable object color, object color will override vertex colors
         Options& ObjectColor(const float3& color, bool enable = true) { mObjectColor = color; mEnableObjectColor = enable; return *this;}
+        //! Sets the UV texture coordinate scale, default is (1, 1)
+        Options& TexCoordScale(const float2& scale) { mTexCoordScale = scale; return *this; }
         // clang-format on
     private:
         bool   mEnableIndices      = false;
@@ -65,6 +67,7 @@ public:
         bool   mEnableTangents     = false;
         bool   mEnableObjectColor  = false;
         float3 mObjectColor        = float3(0.7f);
+        float2 mTexCoordScale      = float2(1, 1);
         friend class TriMesh;
     };
 
@@ -126,6 +129,7 @@ public:
 
     static TriMesh CreatePlane(const float2& size, const TriMesh::Options& options = TriMesh::Options());
     static TriMesh CreateCube(const float3& size, const TriMesh::Options& options = TriMesh::Options());
+    static TriMesh CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options = TriMesh::Options());
     static TriMesh CreateFromOBJ(const fs::path& path, const TriMesh::Options& options = TriMesh::Options());
 
 private:

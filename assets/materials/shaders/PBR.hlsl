@@ -79,9 +79,28 @@ float4 psmain(VSOutput input) : SV_TARGET
     float metalness = Material.metalness;
     if (Material.metalnessSelect == 1) {
         metalness = MetalnessTex.Sample(ClampedSampler, input.texCoord).r;
-    }    
+    }
+    
+    if (Material.normalSelect == 1) {
+        float3   nTS = input.normalTS;
+        float3   tTS = input.tangentTS;
+        float3   bTS = input.bitangnetTS;
+        float3x3 TBN = float3x3(tTS.x, bTS.x, nTS.x,
+                                tTS.y, bTS.y, nTS.y,
+                                tTS.z, bTS.z, nTS.z);
+        
+        // Read normal map value in tangent space
+        float3 normal = (NormalMapTex.Sample(ClampedSampler, input.texCoord).rgb * 2.0f) - 1.0;
+
+        // Transform from tangent space to world space
+        N = mul(TBN, normal);
+        
+        // Normalize the transformed normal
+        N = normalize(N);        
+    }
     
     float3 P = input.positionWS;
+    float3 R = reflect(-V, N);
     
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
@@ -135,7 +154,7 @@ float4 psmain(VSOutput input) : SV_TARGET
     
     float3 irradiance = (float3)1.0; 
     if (Material.iblSelect == 1) {
-        irradiance = Environment(EnvMapTex, N);
+        irradiance = Environment(EnvMapTex, R);
     }
     
     float3 diffuse    = irradiance * albedo +  Scene.ambient;
@@ -144,7 +163,7 @@ float4 psmain(VSOutput input) : SV_TARGET
     // Reflection
     float3 reflection = (float3)0.0;
     if (Material.reflectionSelect) {
-        reflection = Environment(ReflMapTex, N);
+        reflection = Environment(ReflMapTex, R);
     }    
     
     // Final color

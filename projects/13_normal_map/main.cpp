@@ -54,7 +54,15 @@ private:
     grfx::SampledImageViewPtr    mNormalMapView;
     grfx::SamplerPtr             mSampler;
     Entity                       mCube;
+    Entity                       mSphere;
+    std::vector<Entity*>         mEntities;
+    uint32_t                     mEntityIndex = 0;
     PerspCamera                  mCamera;
+
+    std::vector<const char*> mEntityNames = {
+        "Cube",
+        "Sphere",
+    };
 
     grfx::DescriptorSetLayoutPtr mLightSetLayout;
     grfx::PipelineInterfacePtr   mLightPipelineInterface;
@@ -174,8 +182,14 @@ void ProjApp::Setup()
     // Setup entities
     {
         TriMesh::Options options = TriMesh::Options().Indices().Normals().TexCoords().Tangents();
-        TriMesh          mesh    = TriMesh::CreateCube(float3(2, 2, 2), TriMesh::Options(options).ObjectColor(float3(0.7f)));
+
+        TriMesh mesh = TriMesh::CreateCube(float3(2, 2, 2), TriMesh::Options(options).ObjectColor(float3(0.7f)));
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mDrawObjectSetLayout, &mCube);
+        mEntities.push_back(&mCube);
+
+        mesh = TriMesh::CreateSphere(2, 16, 8, TriMesh::Options(options).ObjectColor(float3(0.7f)).TexCoordScale(float2(8)));
+        SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mDrawObjectSetLayout, &mSphere);
+        mEntities.push_back(&mSphere);
     }
 
     // Draw object pipeline interface and pipeline
@@ -349,7 +363,7 @@ void ProjApp::Render()
 
     // Update uniform buffer(s)
     {
-        Entity* pEntity = &mCube;
+        Entity* pEntity = mEntities[mEntityIndex];
 
         pEntity->rotate = float3(t, t, 2*t);
 
@@ -406,10 +420,10 @@ void ProjApp::Render()
 
             // Draw entities
             frame.cmd->BindGraphicsPipeline(mDrawObjectPipeline);
-            frame.cmd->BindGraphicsDescriptorSets(mDrawObjectPipelineInterface, 1, &mCube.drawDescriptorSet);
-            frame.cmd->BindIndexBuffer(mCube.model);
-            frame.cmd->BindVertexBuffers(mCube.model);
-            frame.cmd->DrawIndexed(mCube.model->GetIndexCount());
+            frame.cmd->BindGraphicsDescriptorSets(mDrawObjectPipelineInterface, 1, &mEntities[mEntityIndex]->drawDescriptorSet);
+            frame.cmd->BindIndexBuffer(mEntities[mEntityIndex]->model);
+            frame.cmd->BindVertexBuffers(mEntities[mEntityIndex]->model);
+            frame.cmd->DrawIndexed(mEntities[mEntityIndex]->model->GetIndexCount());
 
             // Draw light
             frame.cmd->BindGraphicsPipeline(mLightPipeline);
@@ -443,7 +457,23 @@ void ProjApp::Render()
 
 void ProjApp::DrawGui()
 {
+    ImGui::Separator();
 
+    static const char* currentEntity = mEntityNames[0];
+
+    if (ImGui::BeginCombo("Geometry", currentEntity)) {
+        for (size_t i = 0; i < mEntityNames.size(); ++i) {
+            bool isSelected = (currentEntity == mEntityNames[i]);
+            if (ImGui::Selectable(mEntityNames[i], isSelected)) {
+                currentEntity = mEntityNames[i];
+                mEntityIndex  = static_cast<uint32_t>(i);
+            }
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
 }
 
 int main(int argc, char** argv)

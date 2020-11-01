@@ -1,4 +1,5 @@
 #include "ppx/mesh.h"
+#include "ppx/math_util.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
@@ -624,6 +625,85 @@ TriMesh TriMesh::CreateCube(const float3& size, const TriMesh::Options& options)
     return mesh;
 }
 
+TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options)
+{
+    constexpr float kPi    = glm::pi<float>();
+    constexpr float kTwoPi = 2.0f * kPi;
+
+    const uint32_t uverts = usegs + 1;
+    const uint32_t vverts = vsegs + 1;
+
+    float dt = kTwoPi / static_cast<float>(usegs);
+    float dp = kPi / static_cast<float>(vsegs);
+
+    std::vector<float> vertexData;
+    for (uint32_t i = 0; i < uverts; ++i) {
+        for (uint32_t j = 0; j < vverts; ++j) {
+            float  theta     = i * dt;
+            float  phi       = j * dp;
+            float  u         = options.mTexCoordScale.x * theta / kTwoPi;
+            float  v         = options.mTexCoordScale.x * phi / kPi;
+            float3 P         = SphericalToCartesian(theta, phi);
+            float3 position  = radius * P;
+            float3 color     = float3(u, v, 0);
+            float3 normal    = P;
+            float2 texcoord  = float2(u, v);
+            float4 tangent   = float4(-SphericalTangent(theta, phi), 1.0);
+            float3 bitangent = glm::cross(normal, float3(tangent));
+
+            vertexData.push_back(position.x);
+            vertexData.push_back(position.y);
+            vertexData.push_back(position.z);
+            vertexData.push_back(color.r);
+            vertexData.push_back(color.g);
+            vertexData.push_back(color.b);
+            vertexData.push_back(normal.x);
+            vertexData.push_back(normal.y);
+            vertexData.push_back(normal.z);
+            vertexData.push_back(texcoord.x);
+            vertexData.push_back(texcoord.y);
+            vertexData.push_back(tangent.x);
+            vertexData.push_back(tangent.y);
+            vertexData.push_back(tangent.z);
+            vertexData.push_back(tangent.w);
+            vertexData.push_back(bitangent.x);
+            vertexData.push_back(bitangent.y);
+            vertexData.push_back(bitangent.z);
+        }
+    }
+
+    std::vector<uint32_t> indexData;
+    for (uint32_t i = 1; i < uverts; ++i) {
+        for (uint32_t j = 1; j < vverts; ++j) {
+            uint32_t i0 = i - 1;
+            uint32_t i1 = i;
+            uint32_t j0 = j - 1;
+            uint32_t j1 = j;
+            uint32_t v0 = i1 * vverts + j0;
+            uint32_t v1 = i1 * vverts + j1;
+            uint32_t v2 = i0 * vverts + j1;
+            uint32_t v3 = i0 * vverts + j0;
+
+            indexData.push_back(v0);
+            indexData.push_back(v1);
+            indexData.push_back(v2);
+
+            indexData.push_back(v0);
+            indexData.push_back(v2);
+            indexData.push_back(v3);
+        }
+    }
+
+    grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    TriMesh             mesh        = TriMesh(indexType, texCoordDim);
+
+    uint32_t expectedVertexCount = uverts * vverts;
+    AppendIndexAndVertexData(indexData, vertexData, expectedVertexCount, options, mesh);
+
+    return mesh;
+}
+
 TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& options)
 {
     grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
@@ -812,12 +892,12 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
                 tangent = glm::normalize(tangent - vtx0.normal * glm::dot(vtx0.normal, tangent));
                 float w = 1.0f;
 
-                mesh.AppendTangent(float4(tangent, w));
-                mesh.AppendTangent(float4(tangent, w));
-                mesh.AppendTangent(float4(tangent, w));
-                mesh.AppendBitangent(bitangent);
-                mesh.AppendBitangent(bitangent);
-                mesh.AppendBitangent(bitangent);
+                mesh.AppendTangent(float4(-tangent, w));
+                mesh.AppendTangent(float4(-tangent, w));
+                mesh.AppendTangent(float4(-tangent, w));
+                mesh.AppendBitangent(-bitangent);
+                mesh.AppendBitangent(-bitangent);
+                mesh.AppendBitangent(-bitangent);
             }
 
             if (indexType != grfx::INDEX_TYPE_UNDEFINED) {

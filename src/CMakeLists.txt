@@ -114,6 +114,7 @@ list(
     ${INC_DIR}/ppx/headless_application.h
     ${INC_DIR}/ppx/imgui_impl.h
     ${INC_DIR}/ppx/log.h
+    ${INC_DIR}/ppx/math_util.h
     ${INC_DIR}/ppx/mesh.h
     ${INC_DIR}/ppx/obj_ptr.h
     ${INC_DIR}/ppx/platform.h
@@ -134,6 +135,7 @@ list(
     ${SRC_DIR}/ppx/headless_application.cpp
     ${SRC_DIR}/ppx/imgui_impl.cpp
     ${SRC_DIR}/ppx/log.cpp
+    ${SRC_DIR}/ppx/math_util.cpp
     ${SRC_DIR}/ppx/mesh.cpp
     ${SRC_DIR}/ppx/platform.cpp
     ${SRC_DIR}/ppx/timer.cpp

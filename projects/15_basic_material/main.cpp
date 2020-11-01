@@ -31,10 +31,13 @@ private:
         grfx::FencePtr         renderCompleteFence;
     };
 
-    std::vector<PerFrame>   mPerFrame;
-    PerspCamera             mCamera;
-    grfx::DescriptorPoolPtr mDescriptorPool;
-    grfx::ModelPtr          mModel;
+    std::vector<PerFrame>       mPerFrame;
+    PerspCamera                 mCamera;
+    grfx::DescriptorPoolPtr     mDescriptorPool;
+    grfx::ModelPtr              mKnob;
+    grfx::ModelPtr              mSphere;
+    grfx::ModelPtr              mCube;
+    std::vector<grfx::ModelPtr> mModels;
 
     // Descriptor Set 0 - Scene Data
     grfx::DescriptorSetLayoutPtr mSceneDataLayout;
@@ -62,6 +65,7 @@ private:
     MaterialResources                 mRustedIron;
     MaterialResources                 mSciFiMetal;
     MaterialResources                 mPaintedMetal;
+    MaterialResources                 mWoodWall;
     std::vector<grfx::DescriptorSet*> mMaterialResourcesSets;
 
     // Descriptor Set 2 - MaterialData Data
@@ -101,11 +105,19 @@ private:
 
     MaterialData mMaterialData = {};
 
+    uint32_t           mModelIndex = 0;
+    std::vector<char*> mModelNames = {
+        "Knob",
+        "Sphere",
+        "Cube",
+    };
+
     uint32_t           mMaterialIndex = 0;
     std::vector<char*> mMaterialNames = {
         "Rusted Iron",
         "SciFi Metal",
         "Painted Metal",
+        "Wood Wall",
     };
 
     uint32_t           mShaderIndex = 0;
@@ -291,6 +303,17 @@ void ProjApp::SetupMaterials()
             mPaintedMetal);
         mMaterialResourcesSets.push_back(mPaintedMetal.set);
     }
+
+    // WoodWall
+    {
+        SetupMaterialResources(
+            "materials/textures/WoodWall/albedo.jpg",
+            "materials/textures/WoodWall/roughness.jpg",
+            "materials/textures/WoodWall/metalness.jpg",
+            "materials/textures/WoodWall/normal.jpg",
+            mWoodWall);
+        mMaterialResourcesSets.push_back(mWoodWall.set);
+    }
 }
 
 void ProjApp::Setup()
@@ -312,14 +335,33 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
     }
 
-    // Entity
+    // Models
     {
         TriMesh::Options options = TriMesh::Options().Indices().VertexColors().Normals().TexCoords().Tangents();
-        TriMesh          mesh    = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), options);
 
-        Geometry geo;
-        PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-        PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mModel));
+        {
+            Geometry geo;
+            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), options);
+            PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
+            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mKnob));
+            mModels.push_back(mKnob);
+        }
+
+        {
+            Geometry geo;
+            TriMesh  mesh = TriMesh::CreateSphere(0.75f, 32, 16, TriMesh::Options(options).TexCoordScale(float2(4)));
+            PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
+            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
+            mModels.push_back(mSphere);
+        }
+
+        {
+            Geometry geo;
+            TriMesh  mesh = TriMesh::CreateCube(float3(1.0f), options);
+            PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
+            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCube));
+            mModels.push_back(mCube);
+        }
     }
 
     // Scene data
@@ -458,13 +500,13 @@ void ProjApp::Setup()
     // Pipeline
     {
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
-        gpCreateInfo.vertexInputState.bindingCount      = mModel->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mModel->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mModel->GetVertexBinding(1);
-        gpCreateInfo.vertexInputState.bindings[2]       = *mModel->GetVertexBinding(2);
-        gpCreateInfo.vertexInputState.bindings[3]       = *mModel->GetVertexBinding(3);
-        gpCreateInfo.vertexInputState.bindings[4]       = *mModel->GetVertexBinding(4);
-        gpCreateInfo.vertexInputState.bindings[5]       = *mModel->GetVertexBinding(5);
+        gpCreateInfo.vertexInputState.bindingCount      = mKnob->GetVertexBufferCount();
+        gpCreateInfo.vertexInputState.bindings[0]       = *mKnob->GetVertexBinding(0);
+        gpCreateInfo.vertexInputState.bindings[1]       = *mKnob->GetVertexBinding(1);
+        gpCreateInfo.vertexInputState.bindings[2]       = *mKnob->GetVertexBinding(2);
+        gpCreateInfo.vertexInputState.bindings[3]       = *mKnob->GetVertexBinding(3);
+        gpCreateInfo.vertexInputState.bindings[4]       = *mKnob->GetVertexBinding(4);
+        gpCreateInfo.vertexInputState.bindings[5]       = *mKnob->GetVertexBinding(5);
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -744,9 +786,9 @@ void ProjApp::Render()
 
             frame.cmd->BindGraphicsPipeline(mShaderPipelines[mShaderIndex]);
 
-            frame.cmd->BindIndexBuffer(mModel);
-            frame.cmd->BindVertexBuffers(mModel);
-            frame.cmd->DrawIndexed(mModel->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mModels[mModelIndex]);
+            frame.cmd->BindVertexBuffers(mModels[mModelIndex]);
+            frame.cmd->DrawIndexed(mModels[mModelIndex]->GetIndexCount());
 
             // Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });
@@ -783,6 +825,21 @@ void ProjApp::DrawGui()
 
     ImGui::Separator();
 
+    static const char* currentModelName = mModelNames[0];
+    if (ImGui::BeginCombo("Geometry", currentModelName)) {
+        for (size_t i = 0; i < mModelNames.size(); ++i) {
+            bool isSelected = (currentModelName == mModelNames[i]);
+            if (ImGui::Selectable(mModelNames[i], isSelected)) {
+                currentModelName = mModelNames[i];
+                mModelIndex      = static_cast<uint32_t>(i);
+            }
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
     static const char* currentMaterialName = mMaterialNames[0];
     if (ImGui::BeginCombo("Material Textures", currentMaterialName)) {
         for (size_t i = 0; i < mMaterialNames.size(); ++i) {
@@ -817,6 +874,7 @@ void ProjApp::DrawGui()
     ImGui::SliderFloat("Metalness", &mMaterialData.metalness, 0.0f, 1.0f, "%.03f degrees");
     ImGui::Checkbox("Use Roughness Texture", &mMaterialData.roughnessSelect);
     ImGui::Checkbox("Use Metalness Texture", &mMaterialData.metalnessSelect);
+    ImGui::Checkbox("Use Normal Map", &mMaterialData.normalSelect);
     ImGui::Checkbox("Use IBL", &mMaterialData.iblSelect);
     ImGui::Checkbox("Use Reflection Map", &mMaterialData.reflectionSelect);
 }
