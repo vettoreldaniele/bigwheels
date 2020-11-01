@@ -16,7 +16,7 @@
    * Visual Studio Code or CLI
    * Latest Vulkan SDK
  * Windows
-   * Visual Studio 2019 Professaion or Visual Studio Code
+   * Visual Studio 2019 Professional or Visual Studio Code
    * Latest Vulkan SDK
    * Recent version of Windows SDK
 
