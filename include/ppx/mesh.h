@@ -28,7 +28,7 @@ struct VertexData
     float3 color;
     float3 normal;
     float2 texCoord;
-    float3 tangent;
+    float4 tangent;
     float3 bitangent;
 };
 
@@ -108,7 +108,7 @@ public:
     const float2*   GetDataTexCoords2(uint32_t index = 0) const;
     const float3*   GetDataTexCoords3(uint32_t index = 0) const;
     const float4*   GetDataTexCoords4(uint32_t index = 0) const;
-    const float3*   GetDataTangents(uint32_t index = 0) const;
+    const float4*   GetDataTangents(uint32_t index = 0) const;
     const float3*   GetDataBitangents(uint32_t index = 0) const;
 
     uint32_t AppendTriangle(uint32_t v0, uint32_t v1, uint32_t v2);
@@ -118,7 +118,7 @@ public:
     uint32_t AppendTexCoord(const float3& value);
     uint32_t AppendTexCoord(const float4& value);
     uint32_t AppendNormal(const float3& value);
-    uint32_t AppendTangent(const float3& value);
+    uint32_t AppendTangent(const float4& value);
     uint32_t AppendBitangent(const float3& value);
 
     Result GetTriangle(uint32_t triIndex, uint32_t& v0, uint32_t& v1, uint32_t& v2) const;
@@ -147,7 +147,7 @@ private:
     std::vector<float3>  mColors;     // Vertex colors
     std::vector<float3>  mNormals;    // Vertex normals
     std::vector<float>   mTexCoords;  // Vertex texcoords, dimension can be 2, 3, or 4
-    std::vector<float3>  mTangents;   // Vertex tangents
+    std::vector<float4>  mTangents;   // Vertex tangents
     std::vector<float3>  mBitangents; // Vertex bitangents
 };
 

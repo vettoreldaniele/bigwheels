@@ -608,7 +608,7 @@ void Geometry::AppendTexCoord(const float2& value)
     }
 }
 
-void Geometry::AppendTangent(const float3& value)
+void Geometry::AppendTangent(const float4& value)
 {
     if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
         PPX_ASSERT_MSG(false, NOT_PLANAR_MSG);

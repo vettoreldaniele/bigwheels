@@ -65,7 +65,7 @@ struct GeometryCreateInfo
     GeometryCreateInfo& AddNormal(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
     GeometryCreateInfo& AddColor(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
     GeometryCreateInfo& AddTexCoord(grfx::Format format = grfx::FORMAT_R32G32_FLOAT);
-    GeometryCreateInfo& AddTangent(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
+    GeometryCreateInfo& AddTangent(grfx::Format format = grfx::FORMAT_R32G32B32A32_FLOAT);
     GeometryCreateInfo& AddBitangent(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
 
 private:
@@ -199,7 +199,7 @@ public:
     void     AppendNormal(const float3& value);
     void     AppendColor(const float3& value);
     void     AppendTexCoord(const float2& value);
-    void     AppendTangent(const float3& value);
+    void     AppendTangent(const float4& value);
     void     AppendBitangent(const float3& value);
 
 private:
