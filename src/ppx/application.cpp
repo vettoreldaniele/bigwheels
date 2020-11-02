@@ -525,7 +525,6 @@ Application::~Application()
         sApplicationInstance = nullptr;
     }
 }
-
 void Application::InternalCtor()
 {
     if (IsNull(sApplicationInstance)) {
@@ -534,6 +533,12 @@ void Application::InternalCtor()
 
     InitializeAssetDirs();
 }
+
+Application* Application::Get()
+{
+    return sApplicationInstance;
+}
+
 
 void Application::InitializeAssetDirs()
 {

@@ -140,6 +140,8 @@ list(
     ${SRC_DIR}/ppx/platform.cpp
     ${SRC_DIR}/ppx/timer.cpp
     ${SRC_DIR}/ppx/transform.cpp
+    ${SRC_DIR}/ppx/imgui/font_inconsolata.h
+    ${SRC_DIR}/ppx/imgui/font_inconsolata.cpp
 )
 
 list(

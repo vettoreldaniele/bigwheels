@@ -1,4 +1,5 @@
 #include "ppx/imgui_impl.h"
+#include "ppx/imgui/font_inconsolata.h"
 
 #include "ppx/application.h"
 
@@ -25,6 +26,64 @@ namespace ppx {
 // -------------------------------------------------------------------------------------------------
 // ImGuiImpl
 // -------------------------------------------------------------------------------------------------
+Result ImGuiImpl::Init(ppx::Application* pApp)
+{
+    // Setup Dear ImGui binding
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+
+    float fontSize = 16.0f;
+#if defined(PPX_GGP)
+    if (pApp->GetWindowHeight() > 1080) {
+        fontSize = 32.0f;
+    }
+#elif defined(PPX_MSW)
+    HWND     activeWindow = GetActiveWindow();
+    HMONITOR monitor      = MonitorFromWindow(activeWindow, MONITOR_DEFAULTTONEAREST);
+
+    // Get the logical width and height of the monitor
+    MONITORINFOEX monitorInfoEx = {};
+    monitorInfoEx.cbSize        = sizeof(monitorInfoEx);
+    GetMonitorInfo(monitor, &monitorInfoEx);
+    auto cxLogical = monitorInfoEx.rcMonitor.right - monitorInfoEx.rcMonitor.left;
+    auto cyLogical = monitorInfoEx.rcMonitor.bottom - monitorInfoEx.rcMonitor.top;
+
+    // Get the physical width and height of the monitor
+    DEVMODE devMode       = {};
+    devMode.dmSize        = sizeof(devMode);
+    devMode.dmDriverExtra = 0;
+    EnumDisplaySettings(monitorInfoEx.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+    auto cxPhysical = devMode.dmPelsWidth;
+    auto cyPhysical = devMode.dmPelsHeight;
+
+    // Calculate the scaling factor
+    float horizontalScale = ((float)cxPhysical / (float)cxLogical);
+    float verticalScale   = ((float)cyPhysical / (float)cyLogical);
+
+    // Scale fontSize based on scaling factor
+    fontSize *= std::max(horizontalScale, verticalScale);
+#endif
+
+    ImFontConfig fontConfig         = {};
+    fontConfig.FontDataOwnedByAtlas = false;
+
+    ImFont* pFont = io.Fonts->AddFontFromMemoryTTF(
+        const_cast<void*>(static_cast<const void*>(imgui::kFontInconsolata)),
+        static_cast<int>(imgui::kFontInconsolataSize),
+        fontSize,
+        &fontConfig);
+
+    PPX_ASSERT_MSG(!IsNull(pFont), "imgui add font failed");
+
+    Result ppxres = InitApiObjects(pApp);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
 void ImGuiImpl::SetColorStyle()
 {
     //ImGui::StyleColorsClassic();
@@ -32,17 +91,16 @@ void ImGuiImpl::SetColorStyle()
     //ImGui::StyleColorsLight();
 }
 
+void ImGuiImpl::NewFrame()
+{
+    NewFrameApi();
+}
+
 // -------------------------------------------------------------------------------------------------
 // ImGuiImplVk
 // -------------------------------------------------------------------------------------------------
-Result ImGuiImplVk::Init(ppx::Application* pApp)
+Result ImGuiImplVk::InitApiObjects(ppx::Application* pApp)
 {
-    // Setup Dear ImGui binding
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-
     // Setup GLFW binding
     GLFWwindow* pWindow = static_cast<GLFWwindow*>(pApp->GetWindow());
     ImGui_ImplGlfw_InitForVulkan(pWindow, false);
@@ -152,7 +210,7 @@ void ImGuiImplVk::Shutdown(ppx::Application* pApp)
     }
 }
 
-void ImGuiImplVk::NewFrame()
+void ImGuiImplVk::NewFrameApi()
 {
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -170,15 +228,9 @@ void ImGuiImplVk::Render(grfx::CommandBuffer* pCommandBuffer)
 // -------------------------------------------------------------------------------------------------
 #if defined(PPX_D3D12)
 
-Result ImGuiImplDx::Init(ppx::Application* pApp)
+Result ImGuiImplDx::InitApiObjects(ppx::Application* pApp)
 {
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-
-    // Setup GLFW binding
+    // Setup GLFW binding - yes...we're using the one for Vulkan :)
     GLFWwindow* pWindow = static_cast<GLFWwindow*>(pApp->GetWindow());
     ImGui_ImplGlfw_InitForVulkan(pWindow, false);
 
@@ -194,7 +246,7 @@ Result ImGuiImplDx::Init(ppx::Application* pApp)
         desc.NodeMask                   = 0;
 
         grfx::dx::D3D12DevicePtr device = grfx::dx::ToApi(pApp->GetDevice())->GetDxDevice();
-        HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
+        HRESULT                  hr     = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
         if (FAILED(hr)) {
             PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CBVSRVUAV) failed");
             return ppx::ERROR_API_FAILURE;
@@ -229,7 +281,7 @@ void ImGuiImplDx::Shutdown(ppx::Application* pApp)
     }
 }
 
-void ImGuiImplDx::NewFrame()
+void ImGuiImplDx::NewFrameApi()
 {
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplGlfw_NewFrame();

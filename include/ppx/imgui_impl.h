@@ -19,13 +19,15 @@ public:
     ImGuiImpl() {}
     virtual ~ImGuiImpl() {}
 
-    virtual Result Init(ppx::Application* pApp)                = 0;
+    virtual Result Init(ppx::Application* pApp);
     virtual void   Shutdown(ppx::Application* pApp)            = 0;
-    virtual void   NewFrame()                                  = 0;
+    virtual void   NewFrame();
     virtual void   Render(grfx::CommandBuffer* pCommandBuffer) = 0;
 
 protected:
-    void SetColorStyle();
+    virtual Result InitApiObjects(ppx::Application* pApp) = 0;
+    void           SetColorStyle();
+    virtual void   NewFrameApi() = 0;
 };
 
 class ImGuiImplVk
@@ -35,10 +37,12 @@ public:
     ImGuiImplVk() {}
     virtual ~ImGuiImplVk() {}
 
-    virtual Result Init(ppx::Application* pApp) override;
-    virtual void   Shutdown(ppx::Application* pApp) override;
-    virtual void   NewFrame() override;
-    virtual void   Render(grfx::CommandBuffer* pCommandBuffer) override;
+    virtual void Shutdown(ppx::Application* pApp) override;
+    virtual void Render(grfx::CommandBuffer* pCommandBuffer) override;
+
+protected:
+    virtual Result InitApiObjects(ppx::Application* pApp) override;
+    virtual void   NewFrameApi() override;
 
 private:
     grfx::DescriptorPoolPtr mPool;
@@ -52,10 +56,12 @@ public:
     ImGuiImplDx() {}
     virtual ~ImGuiImplDx() {}
 
-    virtual Result Init(ppx::Application* pApp) override;
-    virtual void   Shutdown(ppx::Application* pApp) override;
-    virtual void   NewFrame() override;
-    virtual void   Render(grfx::CommandBuffer* pCommandBuffer) override;
+    virtual void Shutdown(ppx::Application* pApp) override;
+    virtual void Render(grfx::CommandBuffer* pCommandBuffer) override;
+
+protected:
+    virtual Result InitApiObjects(ppx::Application* pApp) override;
+    virtual void   NewFrameApi() override;
 
 private:
     ID3D12DescriptorHeap* mHeapCBVSRVUAV = nullptr;
