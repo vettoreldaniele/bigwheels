@@ -60,8 +60,17 @@ private:
     grfx::ModelPtr              mSphere;
     grfx::ModelPtr              mCube;
     grfx::ModelPtr              mMonkey;
-    grfx::ModelPtr              mCeberus;
+    grfx::ModelPtr              mCeberusModel;
     std::vector<grfx::ModelPtr> mModels;
+
+    grfx::ModelPtr                mIBLModel;
+    grfx::DescriptorSetLayoutPtr  mIBLLayout;
+    grfx::DescriptorSetPtr        mIBLSet;
+    grfx::BufferPtr               mIBLConstants;
+    std::vector<grfx::TexturePtr> mIBLEnvMaps;
+    std::vector<grfx::TexturePtr> mIBLReflMaps;
+    grfx::PipelineInterfacePtr    mIBLPipelineInterface;
+    grfx::GraphicsPipelinePtr     mIBLPipeline;
 
     // Descriptor Set 0 - Scene Data
     grfx::DescriptorSetLayoutPtr mSceneDataLayout;
@@ -83,13 +92,12 @@ private:
         grfx::TexturePtr       normalMapTexture;
     };
 
-    grfx::TexturePtr                  mEnvironmentMap;
-    grfx::TexturePtr                  mReflectionMap;
     grfx::SamplerPtr                  mSampler;
     MaterialResources                 mRustedIron;
     MaterialResources                 mSciFiMetal;
     MaterialResources                 mPaintedMetal;
     MaterialResources                 mWoodWall;
+    MaterialResources                 mCeberusMaterial;
     std::vector<grfx::DescriptorSet*> mMaterialResourcesSets;
 
     // Descriptor Set 2 - MaterialData Data
@@ -117,13 +125,13 @@ private:
         float  roughness          = 0.5f; // 0 = smooth, 1 = rough
         float  metalness          = 0.5f; // 0 = dielectric, 1 = metal
         float  iblStrength        = 1.0f; // 0 = nocontrib, 5 = max
-        float  reflectionStrength = 1.0f; // 0 = nocontrig, 1 = max
-        bool   albedoSelect       = 0;    // 0 = value, 1 = texture
-        bool   roughnessSelect    = 0;    // 0 = value, 1 = texture
-        bool   metalnessSelect    = 0;    // 0 = value, 1 = texture
+        float  reflectionStrength = 0.4f; // 0 = nocontrig, 1 = max
+        bool   albedoSelect       = 1;    // 0 = value, 1 = texture
+        bool   roughnessSelect    = 1;    // 0 = value, 1 = texture
+        bool   metalnessSelect    = 1;    // 0 = value, 1 = texture
         bool   normalSelect       = 0;    // 0 = attrb, 1 = texture
-        bool   iblSelect          = 0;    // 0 = white, 1 = texture
-        bool   reflectionSelect   = 0;    // 0 = none,  1 = texture
+        bool   iblSelect          = 1;    // 0 = white, 1 = texture
+        bool   reflectionSelect   = 1;    // 0 = none,  1 = texture
     };
 
     float        mRotY         = 0;
@@ -190,9 +198,10 @@ private:
         "SciFi Metal",
         "Painted Metal",
         "Wood Wall",
+        "Ceberus",
     };
 
-    uint32_t           mShaderIndex = 0;
+    uint32_t           mShaderIndex = 3;
     std::vector<char*> mShaderNames = {
         "Gouraud",
         "Phong",
@@ -200,7 +209,19 @@ private:
         "PBR",
     };
 
+    uint32_t           mCurrentIBLIndex = 0;
+    uint32_t           mTargetIBLIndex  = 0;
+    std::vector<char*> mIBLNames        = {
+        "GoldenHour",
+        "PaperMill",
+        "UenoShrine",
+        "TokyoBigSight",
+        "TropicalBeach",
+    };
+
 private:
+    void SetupSamplers();
+    void SetupIBLResources();
     void SetupMaterialResources(
         const fs::path&    albedoPath,
         const fs::path&    roughnessPath,
@@ -208,6 +229,7 @@ private:
         const fs::path&    normalMapPath,
         MaterialResources& materialResources);
     void SetupMaterials();
+    void UpdateEnvDescriptors();
     void DrawGui();
 };
 
@@ -223,6 +245,167 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
+}
+
+void ProjApp::SetupSamplers()
+{
+    Result ppxres = ppx::SUCCESS;
+
+    // Sampler
+    grfx::SamplerCreateInfo samplerCreateInfo = {};
+    samplerCreateInfo.magFilter               = grfx::FILTER_LINEAR;
+    samplerCreateInfo.minFilter               = grfx::FILTER_LINEAR;
+    samplerCreateInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
+}
+
+void ProjApp::SetupIBLResources()
+{
+    Result ppxres = ppx::SUCCESS;
+
+    Geometry geo;
+    TriMesh  mesh = TriMesh::CreateSphere(5, 32, 16, TriMesh::Options().Indices().TexCoords());
+    PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
+    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
+
+    // Layout
+    grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
+    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
+    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mIBLLayout));
+
+    // Uniform buffer
+    {
+        grfx::BufferCreateInfo bufferCreateInfo        = {};
+        bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
+        bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
+        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
+
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mIBLConstants));
+    }
+
+    // GoldenHour
+    {
+        grfx::TexturePtr env;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &env));
+        mIBLEnvMaps.push_back(env);
+
+        grfx::TexturePtr refl;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/refl.hdr"), &refl));
+        mIBLReflMaps.push_back(refl);
+    }
+
+    // PaperMill
+    {
+        grfx::TexturePtr env;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &env));
+        mIBLEnvMaps.push_back(env);
+
+        grfx::TexturePtr refl;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/refl.hdr"), &refl));
+        mIBLReflMaps.push_back(refl);
+    }
+
+    // UenoShrine
+    {
+        grfx::TexturePtr env;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &env));
+        mIBLEnvMaps.push_back(env);
+
+        grfx::TexturePtr refl;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/refl.hdr"), &refl));
+        mIBLReflMaps.push_back(refl);
+    }
+
+    // TokyoBigSight
+    {
+        grfx::TexturePtr env;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &env));
+        mIBLEnvMaps.push_back(env);
+
+        grfx::TexturePtr refl;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/refl.hdr"), &refl));
+        mIBLReflMaps.push_back(refl);
+    }
+
+    // TropicalBeach
+    {
+        grfx::TexturePtr env;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &env));
+        mIBLEnvMaps.push_back(env);
+
+        grfx::TexturePtr refl;
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/refl.hdr"), &refl));
+        mIBLReflMaps.push_back(refl);
+    }
+
+    // Allocate descriptor set
+    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mIBLLayout, &mIBLSet));
+
+    // Update descriptors
+    {
+        grfx::WriteDescriptor write = {};
+        write.binding               = 0;
+        write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write.bufferOffset          = 0;
+        write.bufferRange           = PPX_WHOLE_SIZE;
+        write.pBuffer               = mIBLConstants;
+        PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+
+        write            = {};
+        write.binding    = 1;
+        write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        write.pImageView = mIBLReflMaps[mCurrentIBLIndex]->GetSampledImageView();
+        PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+
+        write          = {};
+        write.binding  = 2;
+        write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
+        write.pSampler = mSampler;
+        PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+    }
+
+    // Pipeline
+    {
+        grfx::ShaderModulePtr VS;
+        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
+        grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
+
+        grfx::ShaderModulePtr PS;
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
+        shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
+
+        grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
+        piCreateInfo.setCount                          = 1;
+        piCreateInfo.sets[0].set                       = 0;
+        piCreateInfo.sets[0].pLayout                   = mIBLLayout;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mIBLPipelineInterface));
+
+        grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
+        gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
+        gpCreateInfo.PS                                 = {PS.Get(), "psmain"};
+        gpCreateInfo.vertexInputState.bindingCount      = mIBLModel->GetVertexBufferCount();
+        gpCreateInfo.vertexInputState.bindings[0]       = *mIBLModel->GetVertexBinding(0);
+        gpCreateInfo.vertexInputState.bindings[1]       = *mIBLModel->GetVertexBinding(1);
+        gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
+        gpCreateInfo.cullMode                           = grfx::CULL_MODE_FRONT;
+        gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
+        gpCreateInfo.depthEnable                        = true;
+        gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
+        gpCreateInfo.outputState.renderTargetCount      = 1;
+        gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
+        gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
+        gpCreateInfo.pPipelineInterface                 = mIBLPipelineInterface;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mIBLPipeline));
+        GetDevice()->DestroyShaderModule(VS);
+        GetDevice()->DestroyShaderModule(PS);
+    }
 }
 
 void ProjApp::SetupMaterialResources(
@@ -290,7 +473,7 @@ void ProjApp::SetupMaterialResources(
         write.binding               = 6;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView            = mEnvironmentMap->GetSampledImageView();
+        write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
@@ -300,7 +483,7 @@ void ProjApp::SetupMaterialResources(
         write.binding               = 7;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView            = mReflectionMap->GetSampledImageView();
+        write.pImageView            = mIBLReflMaps[mCurrentIBLIndex]->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
@@ -329,19 +512,6 @@ void ProjApp::SetupMaterials()
     createInfo.bindings.push_back({grfx::DescriptorBinding{7, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
     createInfo.bindings.push_back({grfx::DescriptorBinding{8, grfx::DESCRIPTOR_TYPE_SAMPLER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialResourcesLayout));
-
-    // Environment map for IBL
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &mEnvironmentMap));
-
-    // Reflection map
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/refl.hdr"), &mReflectionMap));
-
-    // Sampler
-    grfx::SamplerCreateInfo samplerCreateInfo = {};
-    samplerCreateInfo.magFilter               = grfx::FILTER_LINEAR;
-    samplerCreateInfo.minFilter               = grfx::FILTER_LINEAR;
-    samplerCreateInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
 
     // RustedIron
     {
@@ -385,6 +555,17 @@ void ProjApp::SetupMaterials()
             "materials/textures/WoodWall/normal.jpg",
             mWoodWall);
         mMaterialResourcesSets.push_back(mWoodWall.set);
+    }
+
+    // Ceberus
+    {
+        SetupMaterialResources(
+            "materials/textures/Ceberus/albedo.jpg",
+            "materials/textures/Ceberus/roughness.jpg",
+            "materials/textures/Ceberus/metalness.jpg",
+            "materials/textures/Ceberus/normal.jpg",
+            mCeberusMaterial);
+        mMaterialResourcesSets.push_back(mCeberusMaterial.set);
     }
 }
 
@@ -451,8 +632,8 @@ void ProjApp::Setup()
             Geometry geo;
             TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/cerberus.obj"), TriMesh::Options(options).Scale(float3(0.75f)));
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCeberus));
-            mModels.push_back(mCeberus);
+            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCeberusModel));
+            mModels.push_back(mCeberusModel);
         }
     }
 
@@ -510,7 +691,13 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = mSceneDataSet->UpdateDescriptors(1, &write));
     }
 
-    // MaterialData resources
+    // Samplers
+    SetupSamplers();
+
+    // Environment and reflection maps
+    SetupIBLResources();
+
+    // Material data resources
     SetupMaterials();
 
     // MaterialData data
@@ -717,13 +904,50 @@ void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t b
     }
 }
 
+void ProjApp::UpdateEnvDescriptors()
+{
+    Result ppxres = ppx::SUCCESS;
+
+    if (mCurrentIBLIndex != mTargetIBLIndex) {
+        mCurrentIBLIndex = mTargetIBLIndex;
+
+        // IBL
+        {
+            grfx::WriteDescriptor write = {};
+            write                       = {};
+            write.binding               = 1;
+            write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+            write.pImageView            = mIBLReflMaps[mCurrentIBLIndex]->GetSampledImageView();
+            PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+        }
+
+        // Material resources
+        for (size_t i = 0; i < mMaterialResourcesSets.size(); ++i) {
+            // Environment map
+            {
+                grfx::WriteDescriptor write = {};
+                write.binding               = 6;
+                write.arrayIndex            = 0;
+                write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+                write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
+                PPX_CHECKED_CALL(ppxres = mMaterialResourcesSets[i]->UpdateDescriptors(1, &write));
+            }
+
+            // Reflection map
+            {
+                grfx::WriteDescriptor write = {};
+                write.binding               = 7;
+                write.arrayIndex            = 0;
+                write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+                write.pImageView            = mIBLReflMaps[mCurrentIBLIndex]->GetSampledImageView();
+                PPX_CHECKED_CALL(ppxres = mMaterialResourcesSets[i]->UpdateDescriptors(1, &write));
+            }
+        }
+    }
+}
+
 void ProjApp::Render()
 {
-    // Smooth out the rotation on Y
-    mRotY += (mTargetRotY - mRotY) * 0.1f;
-
-    // ---------------------------------------------------------------------------------------------
-
     Result ppxres = ppx::SUCCESS;
 
     uint32_t  iffIndex = GetInFlightFrameIndex();
@@ -739,6 +963,15 @@ void ProjApp::Render()
 
     // Wait for and reset render complete fence
     PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Smooth out the rotation on Y
+    mRotY += (mTargetRotY - mRotY) * 0.1f;
+
+    UpdateEnvDescriptors();
+
+    // ---------------------------------------------------------------------------------------------
 
     // Update camera(s)
     mCamera.LookAt(float3(0, 0, 5), float3(0, 0, 0));
@@ -872,6 +1105,19 @@ void ProjApp::Render()
         GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants);
     }
 
+    // Update environment constants
+    {
+        void* pMappedAddress = nullptr;
+        PPX_CHECKED_CALL(ppxres = mIBLConstants->MapMemory(0, &pMappedAddress));
+
+        const float4x4& VP  = mCamera.GetViewProjectionMatrix();
+        float4x4        M   = glm::rotate(0.0f, float3(0, 1, 0));
+        float4x4        mat = VP * M;
+        memcpy(pMappedAddress, &mat, sizeof(mat));
+
+        mIBLConstants->UnmapMemory();
+    }
+
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
@@ -887,6 +1133,7 @@ void ProjApp::Render()
             frame.cmd->SetScissors(GetScissor());
             frame.cmd->SetViewports(GetViewport());
 
+            // Draw model
             grfx::DescriptorSet* sets[4] = {nullptr};
             sets[0]                      = mSceneDataSet;
             sets[1]                      = mMaterialResourcesSets[mMaterialIndex];
@@ -899,6 +1146,13 @@ void ProjApp::Render()
             frame.cmd->BindIndexBuffer(mModels[mModelIndex]);
             frame.cmd->BindVertexBuffers(mModels[mModelIndex]);
             frame.cmd->DrawIndexed(mModels[mModelIndex]->GetIndexCount());
+
+            // Draw IBL environment
+            frame.cmd->BindGraphicsDescriptorSets(mIBLPipelineInterface, 1, &mIBLSet);
+            frame.cmd->BindGraphicsPipeline(mIBLPipeline);
+            frame.cmd->BindIndexBuffer(mIBLModel);
+            frame.cmd->BindVertexBuffers(mIBLModel);
+            frame.cmd->DrawIndexed(mIBLModel->GetIndexCount());
 
             // Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });
@@ -952,7 +1206,7 @@ void ProjApp::DrawGui()
 
     ImGui::Separator();
 
-    static const char* currentShaderName = mShaderNames[0];
+    static const char* currentShaderName = "PBR";
     if (ImGui::BeginCombo("Shader Pipeline", currentShaderName)) {
         for (size_t i = 0; i < mShaderNames.size(); ++i) {
             bool isSelected = (currentShaderName == mShaderNames[i]);
@@ -986,7 +1240,9 @@ void ProjApp::DrawGui()
 
     ImGui::Separator();
 
-    ImGui::ColorPicker4("Albedo Color", (float*)&mAlbedoColor);
+    ImGui::ColorPicker4("Albedo Color", (float*)&mAlbedoColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
+
+    ImGui::Separator();
 
     static const char* currentMaterialName = mMaterialNames[0];
     if (ImGui::BeginCombo("Material Textures", currentMaterialName)) {
@@ -1016,8 +1272,23 @@ void ProjApp::DrawGui()
 
     ImGui::Separator();
 
-    ImGui::SliderFloat("PBR IBL Strength", &mMaterialData.iblStrength, 0.0f, 100.0f, "%.03f");
-    ImGui::SliderFloat("PBR Reflection Strength", &mMaterialData.reflectionStrength, 0.0f, 10.0f, "%.03f");
+    static const char* currentIBLName = "GoldenHour";
+    if (ImGui::BeginCombo("PBR IBL Textures", currentIBLName)) {
+        for (size_t i = 0; i < mIBLNames.size(); ++i) {
+            bool isSelected = (currentIBLName == mIBLNames[i]);
+            if (ImGui::Selectable(mIBLNames[i], isSelected)) {
+                currentIBLName  = mIBLNames[i];
+                mTargetIBLIndex = static_cast<uint32_t>(i);
+            }
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    ImGui::SliderFloat("PBR IBL Strength", &mMaterialData.iblStrength, 0.0f, 25.0f, "%.03f");
+    ImGui::SliderFloat("PBR Reflection Strength", &mMaterialData.reflectionStrength, 0.0f, 5.0f, "%.03f");
 }
 
 int main(int argc, char** argv)
