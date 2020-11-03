@@ -128,7 +128,7 @@ Result CreateTextureFromFile(
     grfx::BufferToImageCopyInfo copyInfo = {};
     copyInfo.srcBuffer.imageWidth        = bitmap.GetWidth();
     copyInfo.srcBuffer.imageHeight       = bitmap.GetHeight();
-    copyInfo.srcBuffer.imageRowStride    = rowStrideAlignement;
+    copyInfo.srcBuffer.imageRowStride    = alignedRowStride;
     copyInfo.srcBuffer.footprintOffset   = 0;
     copyInfo.srcBuffer.footprintWidth    = bitmap.GetWidth();
     copyInfo.srcBuffer.footprintHeight   = bitmap.GetHeight();

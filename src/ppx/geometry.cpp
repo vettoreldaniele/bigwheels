@@ -199,8 +199,8 @@ Result Geometry::InternalCtor()
         for (uint32_t i = 0; i < mCreateInfo.vertexBindingCount; ++i) {
             const grfx::VertexBinding&   binding    = mCreateInfo.vertexBindings[i];
             const grfx::VertexAttribute* pAttribute = nullptr;
-            bool                         found      = binding.GetAttribute(0, &pAttribute);
-            if (!found) {
+            Result                       ppxres     = binding.GetAttribute(0, &pAttribute);
+            if (Failed(ppxres)) {
                 // Shouldn't occur unless there's corruption
                 PPX_ASSERT_MSG(false, "could not get attribute at index 0");
                 return ppx::ERROR_FAILED;
@@ -500,8 +500,8 @@ uint32_t Geometry::AppendVertexInterleaved(const VertexData& vtx)
     const uint32_t attrCount = mCreateInfo.vertexBindings[0].GetAttributeCount();
     for (uint32_t attrIndex = 0; attrIndex < attrCount; ++attrIndex) {
         const grfx::VertexAttribute* pAttribute = nullptr;
-        bool                         res        = mCreateInfo.vertexBindings[0].GetAttribute(attrIndex, &pAttribute);
-        PPX_ASSERT_MSG(res, "attribute not found at index=" << attrIndex);
+        Result                       ppxres     = mCreateInfo.vertexBindings[0].GetAttribute(attrIndex, &pAttribute);
+        PPX_ASSERT_MSG((ppxres == ppx::SUCCESS), "attribute not found at index=" << attrIndex);
 
         // clang-format off
         switch (pAttribute->semantic) {

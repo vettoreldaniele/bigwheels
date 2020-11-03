@@ -33,13 +33,13 @@ void VertexBinding::SetBinding(uint32_t binding)
     }
 }
 
-bool VertexBinding::GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const
+Result VertexBinding::GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const
 {
-    if (index >= mAttributes.size()) {
-        return false;
+    if (!IsIndexInRange(index, mAttributes)) {
+        return ppx::ERROR_OUT_OF_RANGE;
     }
     *ppAttribute = &mAttributes[index];
-    return true;
+    return ppx::SUCCESS;
 }
 
 uint32_t VertexBinding::GetAttributeIndex(grfx::VertexSemantic semantic) const
@@ -48,7 +48,7 @@ uint32_t VertexBinding::GetAttributeIndex(grfx::VertexSemantic semantic) const
         mAttributes,
         [semantic](const grfx::VertexAttribute& elem) -> bool {
             bool isMatch = (elem.semantic == semantic);
-            return isMatch;});
+            return isMatch; });
     if (it == std::end(mAttributes)) {
         return PPX_VALUE_IGNORED;
     }
@@ -93,6 +93,55 @@ grfx::VertexBinding& VertexBinding::operator+=(const grfx::VertexAttribute& rhs)
 {
     AppendAttribute(rhs);
     return *this;
+}
+
+// -------------------------------------------------------------------------------------------------
+// VertexDescription
+// -------------------------------------------------------------------------------------------------
+Result VertexDescription::GetBinding(uint32_t index, const grfx::VertexBinding** ppBinding) const
+{
+    if (IsIndexInRange(index, mBindings)) {
+        return ppx::ERROR_OUT_OF_RANGE;
+    }
+    if (!IsNull(ppBinding)) {
+        *ppBinding = &mBindings[index];
+    }
+    return ppx::SUCCESS;
+}
+
+const grfx::VertexBinding* VertexDescription::GetBinding(uint32_t index) const
+{
+    const VertexBinding* ptr = nullptr;
+    GetBinding(index, &ptr);
+    return ptr;
+}
+
+uint32_t VertexDescription::GetBindingIndex(uint32_t binding) const
+{
+    auto it = FindIf(
+        mBindings,
+        [binding](const grfx::VertexBinding& elem) -> bool {
+            bool isMatch = (elem.GetBinding() == binding);
+            return isMatch; });
+    if (it == std::end(mBindings)) {
+        return PPX_VALUE_IGNORED;
+    }
+    uint32_t index = static_cast<uint32_t>(std::distance(std::begin(mBindings), it));
+    return index;
+}
+
+Result VertexDescription::AppendBinding(const grfx::VertexBinding& binding)
+{
+    auto it = FindIf(
+        mBindings,
+        [binding](const grfx::VertexBinding& elem) -> bool {
+            bool isSame = (elem.GetBinding() == binding.GetBinding());
+            return isSame; });
+    if (it != std::end(mBindings)) {
+        return ppx::ERROR_DUPLICATE_ELEMENT;
+    }
+    mBindings.push_back(binding);
+    return ppx::SUCCESS;
 }
 
 } // namespace grfx

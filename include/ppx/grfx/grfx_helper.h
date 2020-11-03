@@ -1,6 +1,7 @@
 #ifndef ppx_grfx_helper_h
 #define ppx_grfx_helper_h
 
+#include "ppx/000_config.h"
 #include "ppx/grfx/grfx_constants.h"
 #include "ppx/grfx/grfx_enums.h"
 #include "ppx/grfx/grfx_format.h"
@@ -230,8 +231,10 @@ struct VertexAttribute
 class VertexBinding
 {
 public:
-    VertexBinding(uint32_t binding = 0)
-        : mBinding(binding) {}
+    VertexBinding() {}
+
+    VertexBinding(uint32_t binding, grfx::VertexInputRate inputRate)
+        : mBinding(binding), mInputRate(inputRate) {}
 
     ~VertexBinding() {}
 
@@ -240,7 +243,7 @@ public:
     const uint32_t&       GetStride() const { return mStride; }
     grfx::VertexInputRate GetInputRate() const { return mInputRate; }
     uint32_t              GetAttributeCount() const { return static_cast<uint32_t>(mAttributes.size()); }
-    bool                  GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const;
+    Result                GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const;
     uint32_t              GetAttributeIndex(grfx::VertexSemantic semantic) const;
     void                  AppendAttribute(const grfx::VertexAttribute& attribute);
 
@@ -253,6 +256,24 @@ private:
     uint32_t                           mStride    = 0;
     grfx::VertexInputRate              mInputRate = kInvalidVertexInputRate;
     std::vector<grfx::VertexAttribute> mAttributes;
+};
+
+// -------------------------------------------------------------------------------------------------
+
+class VertexDescription
+{
+public:
+    VertexDescription() {}
+    ~VertexDescription() {}
+
+    uint32_t                   GetBindingCount() const { return CountU32(mBindings); }
+    Result                     GetBinding(uint32_t index, const grfx::VertexBinding** ppBinding) const;
+    const grfx::VertexBinding* GetBinding(uint32_t index) const;
+    uint32_t                   GetBindingIndex(uint32_t binding) const;
+    Result                     AppendBinding(const grfx::VertexBinding& binding);
+
+private:
+    std::vector<VertexBinding> mBindings;
 };
 
 } // namespace grfx
