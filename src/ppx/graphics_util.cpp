@@ -156,6 +156,8 @@ Result CreateTextureFromFile(
     // Assign output
     *ppImage = targetImage;
 
+    PPX_LOG_INFO("Created image from image file: " << path);
+
     return ppx::SUCCESS;
 }
 
@@ -289,6 +291,8 @@ Result CreateTextureFromFile(
 
     // Assign output
     *ppTexture = targetTexture;
+
+    PPX_LOG_INFO("Created texture from image file: " << path);
 
     return ppx::SUCCESS;
 }

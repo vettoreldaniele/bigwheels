@@ -1004,6 +1004,19 @@ int Application::Run(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    // Update the window size if the settings got changed due to surface requiremetns
+    {
+        int windowWidth = 0;
+        int windowHeight = 0;
+        glfwGetWindowSize(static_cast<GLFWwindow*>(mWindow), &windowWidth, &windowHeight);
+        if ((static_cast<uint32_t>(windowWidth) != mSettings.window.width) || (static_cast<uint32_t>(windowHeight) != mSettings.window.width)) {
+           glfwSetWindowSize(
+              static_cast<GLFWwindow*>(mWindow),
+              static_cast<int>(mSettings.window.width),
+              static_cast<int>(mSettings.window.height));
+        }
+    }
+
     // Setup ImGui
     ppxres = InitializeImGui();
     if (Failed(ppxres)) {

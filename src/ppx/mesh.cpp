@@ -919,6 +919,8 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
     //    }
     //}
 
+    PPX_LOG_INFO("Created mesh from OBJ file: " << path);
+
     return mesh;
 }
 

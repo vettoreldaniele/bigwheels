@@ -36,7 +36,7 @@ Result ImGuiImpl::Init(ppx::Application* pApp)
     float fontSize = 16.0f;
 #if defined(PPX_GGP)
     if (pApp->GetWindowHeight() > 1080) {
-        fontSize = 32.0f;
+        fontSize = 40.0f;
     }
 #elif defined(PPX_MSW)
     HWND     activeWindow = GetActiveWindow();
@@ -93,6 +93,11 @@ void ImGuiImpl::SetColorStyle()
 
 void ImGuiImpl::NewFrame()
 {
+    Application* pApp = Application::Get();
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize.x = static_cast<float>(pApp->GetWindowWidth());
+    io.DisplaySize.y = static_cast<float>(pApp->GetWindowHeight());
     NewFrameApi();
 }
 
