@@ -54,6 +54,13 @@ Built binaries are written to `BigWheels\bin`.
 
 **NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
 
+### Running on GGP
+Push the `assets` folder up to the instance before running. Since the shaders are compiled per project they must be built and pushed *before* running.
+```
+ggp ssh put -r assets
+```
+
+
 ## Linux
 ```
 git clone --recursive git@github.com:chaoticbob/BigWheels.git
