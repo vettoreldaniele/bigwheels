@@ -474,15 +474,15 @@ void RenderPass::Destroy()
             GetDevice()->DestroyRenderTargetView(rtv);
             rtv.Reset();
         }
-        mRenderTargetViews.clear();
 
         grfx::ImagePtr& image = mRenderTargetImages[i];
         if (image && (image->GetOwnership() != grfx::OWNERSHIP_REFERENCE)) {
             GetDevice()->DestroyImage(image);
             image.Reset();
         }
-        mRenderTargetImages.clear();
     }
+    mRenderTargetViews.clear();
+    mRenderTargetImages.clear();
 
     if (mDepthStencilView && (mDepthStencilView->GetOwnership() != grfx::OWNERSHIP_REFERENCE)) {
         GetDevice()->DestroyDepthStencilView(mDepthStencilView);
@@ -603,7 +603,6 @@ Result RenderPass::DisownRenderTargetImage(uint32_t index, grfx::Image** ppImage
     if (mRenderTargetImages[index]->GetOwnership() == grfx::OWNERSHIP_RESTRICTED) {
         return ppx::ERROR_GRFX_OBJECT_OWNERSHIP_IS_RESTRICTED;
     }
-
 
     mRenderTargetImages[index]->SetOwnership(grfx::OWNERSHIP_REFERENCE);
 

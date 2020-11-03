@@ -28,9 +28,9 @@ DrawPassCreateInfo::DrawPassCreateInfo(const grfx::DrawPassCreateInfo& obj)
 
     // Usage flags
     for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
-        this->V1.renderTargetUsageFlags[i] = obj.renderTargetUsageFlags[i];
+        this->V1.renderTargetUsageFlags[i] = obj.renderTargetUsageFlags[i] | grfx::IMAGE_USAGE_COLOR_ATTACHMENT;
     }
-    this->V1.depthStencilUsageFlags = obj.depthStencilUsageFlags;
+    this->V1.depthStencilUsageFlags = obj.depthStencilUsageFlags | grfx::IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT;
 
     // Clear values
     for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
@@ -64,82 +64,102 @@ DrawPassCreateInfo::DrawPassCreateInfo(const grfx::DrawPassCreateInfo2& obj)
 // -------------------------------------------------------------------------------------------------
 // DrawPass
 // -------------------------------------------------------------------------------------------------
-Result DrawPass::CreateImagesAndViewsV1(const grfx::internal::DrawPassCreateInfo* pCreateInfo)
+Result DrawPass::CreateTexturesV1(const grfx::internal::DrawPassCreateInfo* pCreateInfo)
 {
     // Create images
     {
-        // RTV images
+        // Create render target textures
         for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-            grfx::ImageCreateInfo imageCreateInfo = {};
-            imageCreateInfo.type                  = grfx::IMAGE_TYPE_2D;
-            imageCreateInfo.width                 = pCreateInfo->width;
-            imageCreateInfo.height                = pCreateInfo->height;
-            imageCreateInfo.depth                 = 1;
-            imageCreateInfo.format                = pCreateInfo->V1.renderTargetFormats[i];
-            imageCreateInfo.sampleCount           = pCreateInfo->V1.sampleCount;
-            imageCreateInfo.mipLevelCount         = 1;
-            imageCreateInfo.arrayLayerCount       = 1;
-            imageCreateInfo.usageFlags            = pCreateInfo->V1.renderTargetUsageFlags[i];
+            grfx::TextureCreateInfo ci = {};
+            ci.pImage                  = nullptr;
+            ci.imageType               = grfx::IMAGE_TYPE_2D;
+            ci.width                   = pCreateInfo->width;
+            ci.height                  = pCreateInfo->height;
+            ci.depth                   = 1;
+            ci.imageFormat             = pCreateInfo->V1.renderTargetFormats[i];
+            ci.sampleCount             = pCreateInfo->V1.sampleCount;
+            ci.mipLevelCount           = 1;
+            ci.arrayLayerCount         = 1;
+            ci.usageFlags              = pCreateInfo->V1.renderTargetUsageFlags[i];
+            ci.memoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY;
+            ci.initialState            = grfx::RESOURCE_STATE_RENDER_TARGET;
+            ci.RTVClearValue           = pCreateInfo->renderTargetClearValues[i];
+            ci.sampledImageViewType    = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
+            ci.sampledImageViewFormat  = grfx::FORMAT_UNDEFINED;
+            ci.renderTargetViewFormat  = grfx::FORMAT_UNDEFINED;
+            ci.depthStencilViewFormat  = grfx::FORMAT_UNDEFINED;
+            ci.storageImageViewFormat  = grfx::FORMAT_UNDEFINED;
+            ci.ownership               = grfx::OWNERSHIP_EXCLUSIVE;
 
-            grfx::ImagePtr image;
-            Result         ppxres = GetDevice()->CreateImage(&imageCreateInfo, &image);
+            grfx::TexturePtr texture;
+            Result         ppxres = GetDevice()->CreateTexture(&ci, &texture);
             if (Failed(ppxres)) {
-                PPX_ASSERT_MSG(false, "RTV image create failed");
+                PPX_ASSERT_MSG(false, "render target texture create failed");
                 return ppxres;
             }
 
-            mRenderTargetImages.push_back({false, image});
+            mRenderTargetTextures.push_back(texture);
         }
 
         // DSV image
         if (pCreateInfo->V1.depthStencilFormat != grfx::FORMAT_UNDEFINED) {
-            grfx::ImageCreateInfo imageCreateInfo = {};
-            imageCreateInfo.type                  = grfx::IMAGE_TYPE_2D;
-            imageCreateInfo.width                 = pCreateInfo->width;
-            imageCreateInfo.height                = pCreateInfo->height;
-            imageCreateInfo.depth                 = 1;
-            imageCreateInfo.format                = pCreateInfo->V1.depthStencilFormat;
-            imageCreateInfo.sampleCount           = pCreateInfo->V1.sampleCount;
-            imageCreateInfo.mipLevelCount         = 1;
-            imageCreateInfo.arrayLayerCount       = 1;
-            imageCreateInfo.usageFlags            = pCreateInfo->V1.depthStencilUsageFlags;
+            grfx::TextureCreateInfo ci = {};
+            ci.pImage                  = nullptr;
+            ci.imageType               = grfx::IMAGE_TYPE_2D;
+            ci.width                   = pCreateInfo->width;
+            ci.height                  = pCreateInfo->height;
+            ci.depth                   = 1;
+            ci.imageFormat             = pCreateInfo->V1.depthStencilFormat;
+            ci.sampleCount             = pCreateInfo->V1.sampleCount;
+            ci.mipLevelCount           = 1;
+            ci.arrayLayerCount         = 1;
+            ci.usageFlags              = pCreateInfo->V1.depthStencilUsageFlags;
+            ci.memoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY;
+            ci.initialState            = grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE;
+            ci.DSVClearValue           = {1.0f, 0xFF};
+            ci.sampledImageViewType    = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
+            ci.sampledImageViewFormat  = grfx::FORMAT_UNDEFINED;
+            ci.renderTargetViewFormat  = grfx::FORMAT_UNDEFINED;
+            ci.depthStencilViewFormat  = grfx::FORMAT_UNDEFINED;
+            ci.storageImageViewFormat  = grfx::FORMAT_UNDEFINED;
+            ci.ownership               = grfx::OWNERSHIP_EXCLUSIVE;
 
-            grfx::ImagePtr image;
-            Result         ppxres = GetDevice()->CreateImage(&imageCreateInfo, &image);
+            grfx::TexturePtr texture;
+            Result         ppxres = GetDevice()->CreateTexture(&ci, &texture);
             if (Failed(ppxres)) {
-                PPX_ASSERT_MSG(false, "DSV image create failed");
+                PPX_ASSERT_MSG(false, "render target texture create failed");
                 return ppxres;
             }
 
-            mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{false, image};
+            mDepthStencilTexture = texture;
         }
     }
     return ppx::SUCCESS;
 }
 
-Result DrawPass::CreateImagesAndViewsV2(const grfx::internal::DrawPassCreateInfo* pCreateInfo)
+Result DrawPass::CreateTexturesV2(const grfx::internal::DrawPassCreateInfo* pCreateInfo)
 {
-    // Copy images
-    {
-        // Copy RTV images
-        for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
-            grfx::ImagePtr image = pCreateInfo->V2.pRenderTargetImages[i];
-            if (!image) {
-                PPX_ASSERT_MSG(false, "image << " << i << " is null");
-                return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
-            }
+    //// Copy images
+    //{
+    //    // Copy RTV images
+    //    for (uint32_t i = 0; i < pCreateInfo->renderTargetCount; ++i) {
+    //        grfx::ImagePtr image = pCreateInfo->V2.pRenderTargetImages[i];
+    //        if (!image) {
+    //            PPX_ASSERT_MSG(false, "image << " << i << " is null");
+    //            return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    //        }
+    //
+    //        mRenderTargetImages.push_back({true, image});
+    //    }
+    //    // Copy DSV image
+    //    if (!IsNull(pCreateInfo->V2.pDepthStencilImage)) {
+    //        grfx::ImagePtr image = pCreateInfo->V2.pDepthStencilImage;
+    //
+    //        mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, image};
+    //    }
+    //}
 
-            mRenderTargetImages.push_back({true, image});
-        }
-        // Copy DSV image
-        if (!IsNull(pCreateInfo->V2.pDepthStencilImage)) {
-            grfx::ImagePtr image = pCreateInfo->V2.pDepthStencilImage;
-
-            mDepthStencilImage = ExtObjPtr<grfx::ImagePtr>{true, image};
-        }
-    }
-
-    return ppx::SUCCESS;
+    return ppx::ERROR_FAILED;
 }
 
 Result DrawPass::CreateApiObjects(const grfx::internal::DrawPassCreateInfo* pCreateInfo)
@@ -151,17 +171,17 @@ Result DrawPass::CreateApiObjects(const grfx::internal::DrawPassCreateInfo* pCre
         default: return ppx::ERROR_INVALID_CREATE_ARGUMENT; break;
 
         case grfx::internal::DrawPassCreateInfo::CREATE_INFO_VERSION_1: {
-            Result ppxres = CreateImagesAndViewsV1(pCreateInfo);
+            Result ppxres = CreateTexturesV1(pCreateInfo);
             if (Failed(ppxres)) {
-                PPX_ASSERT_MSG(false, "create images and views(V1) failed");
+                PPX_ASSERT_MSG(false, "create textures(V1) failed");
                 return ppxres;
             }
         } break;
 
         case grfx::internal::DrawPassCreateInfo::CREATE_INFO_VERSION_2: {
-            Result ppxres = CreateImagesAndViewsV2(pCreateInfo);
+            Result ppxres = CreateTexturesV2(pCreateInfo);
             if (Failed(ppxres)) {
-                PPX_ASSERT_MSG(false, "create images and views(V2) failed");
+                PPX_ASSERT_MSG(false, "create textures(V2) failed");
                 return ppxres;
             }
         } break;
@@ -189,18 +209,18 @@ Result DrawPass::CreateApiObjects(const grfx::internal::DrawPassCreateInfo* pCre
         rpCreateInfo.renderTargetCount           = pCreateInfo->renderTargetCount;
 
         for (uint32_t i = 0; i < rpCreateInfo.renderTargetCount; ++i) {
-            if (!mRenderTargetImages[i].object) {
+            if (!mRenderTargetTextures[i]) {
                 continue;
             }
-            rpCreateInfo.pRenderTargetImages[i]     = mRenderTargetImages[i].object;
-            rpCreateInfo.renderTargetClearValues[i] = pCreateInfo->renderTargetClearValues[i];
+            rpCreateInfo.pRenderTargetImages[i]     = mRenderTargetTextures[i]->GetImage();
+            rpCreateInfo.renderTargetClearValues[i] = mRenderTargetTextures[i]->GetImage()->GetRTVClearValue();
             rpCreateInfo.renderTargetLoadOps[i]     = renderTargetLoadOp;
             rpCreateInfo.renderTargetStoreOps[i]    = grfx::ATTACHMENT_STORE_OP_STORE;
         }
 
-        if (mDepthStencilImage.object) {
-            rpCreateInfo.pDepthStencilImage     = mDepthStencilImage.object;
-            rpCreateInfo.depthStencilClearValue = pCreateInfo->depthStencilClearValue;
+        if (mDepthStencilTexture) {
+            rpCreateInfo.pDepthStencilImage     = mDepthStencilTexture->GetImage();
+            rpCreateInfo.depthStencilClearValue = mDepthStencilTexture->GetImage()->GetDSVClearValue();
             rpCreateInfo.depthLoadOp            = depthLoadOp;
             rpCreateInfo.depthStoreOp           = grfx::ATTACHMENT_STORE_OP_STORE;
             rpCreateInfo.stencilLoadOp          = stencilLoadOp;
@@ -224,17 +244,25 @@ Result DrawPass::CreateApiObjects(const grfx::internal::DrawPassCreateInfo* pCre
 
 void DrawPass::DestroyApiObjects()
 {
-    for (uint32_t i = 0; i < mCreateInfo.renderTargetCount; ++i) {
-        ExtObjPtr<grfx::ImagePtr> image = mRenderTargetImages[i];
-        if (image.object && (image.isExternal == false)) {
-            GetDevice()->DestroyImage(image.object);
-            image.object.Reset();
+    for (size_t i = 0; i < mPasses.size(); ++i) {
+        if (mPasses[i].renderPass) {
+            GetDevice()->DestroyRenderPass(mPasses[i].renderPass);
+            mPasses[i].renderPass.Reset();
         }
     }
+    mPasses.clear();
 
-    if (mDepthStencilImage.object && (mDepthStencilImage.isExternal == false)) {
-        GetDevice()->DestroyImage(mDepthStencilImage.object);
-        mDepthStencilImage.object.Reset();
+    for (size_t i = 0; i < mRenderTargetTextures.size(); ++i) {
+        if (mRenderTargetTextures[i] && (mRenderTargetTextures[i]->GetOwnership() == grfx::OWNERSHIP_EXCLUSIVE)) {
+            GetDevice()->DestroyTexture(mRenderTargetTextures[i]);
+            mRenderTargetTextures[i].Reset();
+        }
+    }
+    mRenderTargetTextures.clear();
+
+    if (mDepthStencilTexture && (mDepthStencilTexture->GetOwnership() == grfx::OWNERSHIP_EXCLUSIVE)) {
+        GetDevice()->DestroyTexture(mDepthStencilTexture);
+        mDepthStencilTexture.Reset();
     }
 
     for (size_t i = 0; i < mPasses.size(); ++i) {
@@ -263,7 +291,7 @@ void DrawPass::PrepareRenderPassBeginInfo(const grfx::DrawPassClearFlags& clearF
     pBeginInfo->pRenderPass   = it->renderPass;
     pBeginInfo->renderArea    = GetRenderArea();
     pBeginInfo->RTVClearCount = mCreateInfo.renderTargetCount;
-    
+
     for (uint32_t i = 0; i < mCreateInfo.renderTargetCount; ++i) {
         pBeginInfo->RTVClearValues[i] = mCreateInfo.renderTargetClearValues[i];
     }

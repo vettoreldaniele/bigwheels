@@ -156,5 +156,6 @@ add_subdirectory(12_camera)
 add_subdirectory(13_normal_map)
 add_subdirectory(14_input)
 add_subdirectory(15_basic_material)
+add_subdirectory(gbuffer)
 add_subdirectory(shadertoy)
 

@@ -30,7 +30,7 @@ struct DrawPassCreateInfo
 
 //! @struct DrawPassCreateInfo2
 //!
-//! Use this if the images exists.
+//! Use this version if the images exists.
 //!
 struct DrawPassCreateInfo2
 {
@@ -106,20 +106,13 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-    Result CreateImagesAndViewsV1(const grfx::internal::DrawPassCreateInfo* pCreateInfo);
-    Result CreateImagesAndViewsV2(const grfx::internal::DrawPassCreateInfo* pCreateInfo);
+    Result CreateTexturesV1(const grfx::internal::DrawPassCreateInfo* pCreateInfo);
+    Result CreateTexturesV2(const grfx::internal::DrawPassCreateInfo* pCreateInfo);
 
 private:
-    template <typename ObjectPtrT>
-    struct ExtObjPtr
-    {
-        bool       isExternal = true;
-        ObjectPtrT object     = nullptr;
-    };
-
-    grfx::Rect                             mRenderArea = {};
-    std::vector<ExtObjPtr<grfx::ImagePtr>> mRenderTargetImages;
-    ExtObjPtr<grfx::ImagePtr>              mDepthStencilImage;
+    grfx::Rect                    mRenderArea = {};
+    std::vector<grfx::TexturePtr> mRenderTargetTextures;
+    grfx::TexturePtr              mDepthStencilTexture;
 
     struct Pass
     {
