@@ -407,7 +407,7 @@ endif()
 
 
 # ------------------------------------------------------------------------------
-# Graphics API Compile definitions
+# Graphics API compile definitions
 # ------------------------------------------------------------------------------
 
 if (PPX_D3D12)
@@ -428,7 +428,16 @@ if (PPX_VULKAN)
             ${PROJECT_NAME}
             PRIVATE
         )
+        #
+        # Disaable Wno-missing-braces because it's meaningless in the cases
+        # that PPX uses. 
+        #
+        target_compile_options(
+            ${PROJECT_NAME}
+            PUBLIC -Wno-missing-braces        
+		)
     elseif (PPX_LINUX)
+
         target_compile_definitions(
             ${PROJECT_NAME}
             PUBLIC ${PPX_LINUX_VULKAN_SURFACE}

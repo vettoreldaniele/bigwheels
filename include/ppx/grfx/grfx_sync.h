@@ -33,9 +33,6 @@ protected:
     virtual Result CreateApiObjects(const grfx::FenceCreateInfo* pCreateInfo) = 0;
     virtual void   DestroyApiObjects()                                        = 0;
     friend class grfx::Device;
-
-private:
-    grfx::FenceCreateInfo mCreateInfo = {};
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -61,9 +58,6 @@ protected:
     virtual Result CreateApiObjects(const grfx::SemaphoreCreateInfo* pCreateInfo) = 0;
     virtual void   DestroyApiObjects()                                            = 0;
     friend class grfx::Device;
-
-private:
-    grfx::SemaphoreCreateInfo mCreateInfo = {};
 };
 
 } // namespace grfx

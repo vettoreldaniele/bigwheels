@@ -1,5 +1,6 @@
 #include "ppx/mesh.h"
 #include "ppx/math_util.h"
+#include "ppx/timer.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
@@ -706,6 +707,10 @@ TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, cons
 
 TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& options)
 {
+    Timer timer;
+    PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
+    double fnStartTime = timer.SecondsSinceStart();
+
     grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
     TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
     TriMesh             mesh        = TriMesh(indexType, texCoordDim);
@@ -918,6 +923,10 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
     //        const float3& B = mesh.mBitangents[i];
     //    }
     //}
+
+    double fnEndTime = timer.SecondsSinceStart();
+    float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);
+    PPX_LOG_INFO("Created mesh from OBJ file: " << path << " (" << FloatString(fnElapsed) << " seconds)");
 
     return mesh;
 }

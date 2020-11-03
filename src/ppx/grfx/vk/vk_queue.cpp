@@ -271,16 +271,16 @@ static VkResult CmdTransitionImageLayout(
     barrier.subresourceRange.layerCount     = layerCount;
 
     vkCmdPipelineBarrier(
-        commandBuffer, // commandBuffer
-        srcStageMask,  // srcStageMask
-        dstStageMask,  // dstStageMask
-        0,             // dependencyFlags
-        0,             // memoryBarrierCount
-        nullptr,       // pMemoryBarriers
-        0,             // bufferMemoryBarrierCount
-        nullptr,       // pBufferMemoryBarriers
-        1,             // imageMemoryBarrierCount
-        &barrier);     // pImageMemoryBarriers);
+        commandBuffer,   // commandBuffer
+        srcStageMask,    // srcStageMask
+        dstStageMask,    // dstStageMask
+        dependencyFlags, // dependencyFlags
+        0,               // memoryBarrierCount
+        nullptr,         // pMemoryBarriers
+        0,               // bufferMemoryBarrierCount
+        nullptr,         // pBufferMemoryBarriers
+        1,               // imageMemoryBarrierCount
+        &barrier);       // pImageMemoryBarriers);
 
     return VK_SUCCESS;
 }

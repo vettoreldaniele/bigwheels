@@ -302,7 +302,6 @@ void ProjApp::Render()
     // Update uniform buffer
     {
         float    t   = GetElapsedSeconds();
-        float4x4 mat = glm::rotate(t, float3(0, 0, 1));
 
         char* pData = nullptr;
         PPX_CHECKED_CALL(ppxres = mShaderToyUniformBuffer->MapMemory(0, reinterpret_cast<void**>(&pData)));

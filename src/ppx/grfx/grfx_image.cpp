@@ -96,7 +96,6 @@ grfx::ImageViewType Image::GuessImageViewType(bool isCube) const
 {
     const uint32_t arrayLayerCount = GetArrayLayerCount();
 
-    grfx::ImageViewType result = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
     if (isCube) {
         return (arrayLayerCount > 0) ? grfx::IMAGE_VIEW_TYPE_CUBE_ARRAY : grfx::IMAGE_VIEW_TYPE_CUBE;
     }

@@ -1077,8 +1077,6 @@ void ProjApp::Render()
 
     // Update model constants
     {
-        float t = GetElapsedSeconds();
-
         float4x4 R = glm::rotate(glm::radians(mRotY + 180.0f), float3(0, 1, 0));
         float4x4 S = glm::scale(float3(3.0f));
         float4x4 M = R * S;

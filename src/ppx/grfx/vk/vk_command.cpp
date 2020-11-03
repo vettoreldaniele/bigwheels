@@ -155,16 +155,16 @@ void CommandBuffer::TransitionImageLayout(
     barrier.subresourceRange.layerCount     = arrayLayerCount;
 
     vkCmdPipelineBarrier(
-        mCommandBuffer, // commandBuffer
-        srcStageMask,   // srcStageMask
-        dstStageMask,   // dstStageMask
-        0,              // dependencyFlags
-        0,              // memoryBarrierCount
-        nullptr,        // pMemoryBarriers
-        0,              // bufferMemoryBarrierCount
-        nullptr,        // pBufferMemoryBarriers
-        1,              // imageMemoryBarrierCount
-        &barrier);      // pImageMemoryBarriers);
+        mCommandBuffer,  // commandBuffer
+        srcStageMask,    // srcStageMask
+        dstStageMask,    // dstStageMask
+        dependencyFlags, // dependencyFlags
+        0,               // memoryBarrierCount
+        nullptr,         // pMemoryBarriers
+        0,               // bufferMemoryBarrierCount
+        nullptr,         // pBufferMemoryBarriers
+        1,               // imageMemoryBarrierCount
+        &barrier);       // pImageMemoryBarriers);
 }
 
 void CommandBuffer::SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports)
