@@ -1,5 +1,6 @@
 #include "ppx/graphics_util.h"
 #include "ppx/bitmap.h"
+#include "ppx/timer.h"
 #include "ppx/grfx/grfx_buffer.h"
 #include "ppx/grfx/grfx_command.h"
 #include "ppx/grfx/grfx_device.h"
@@ -43,6 +44,10 @@ Result CreateTextureFromFile(
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppImage);
+
+    Timer timer;
+    PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
+    double fnStartTime = timer.SecondsSinceStart(); 
 
     // Load bitmap
     Bitmap bitmap;
@@ -156,7 +161,9 @@ Result CreateTextureFromFile(
     // Assign output
     *ppImage = targetImage;
 
-    PPX_LOG_INFO("Created image from image file: " << path);
+    double fnEndTime = timer.SecondsSinceStart();
+    float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);
+    PPX_LOG_INFO("Created image from image file: " << path << " (" << FloatString(fnElapsed) << " seconds)");
 
     return ppx::SUCCESS;
 }
@@ -169,6 +176,10 @@ Result CreateTextureFromFile(
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppTexture);
+
+    Timer timer;
+    PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
+    double fnStartTime = timer.SecondsSinceStart();
 
     // Load bitmap
     Bitmap bitmap;
@@ -292,7 +303,9 @@ Result CreateTextureFromFile(
     // Assign output
     *ppTexture = targetTexture;
 
-    PPX_LOG_INFO("Created texture from image file: " << path);
+    double fnEndTime = timer.SecondsSinceStart();
+    float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);
+    PPX_LOG_INFO("Created texture from image file: " << path << " (" << FloatString(fnElapsed) << " seconds)");
 
     return ppx::SUCCESS;
 }

@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <iomanip>
+#include <sstream>
 #include <vector>
 
 namespace ppx {
@@ -200,6 +202,13 @@ inline std::vector<std::string> GetNotFound(const std::vector<std::string>& sear
         }
     }
     return result;
+}
+
+inline std::string FloatString(float value, int precision = 6, int width = 6)
+{
+    std::stringstream ss;
+    ss << std::setprecision(precision) << std::setw(6) << std::fixed << value;
+    return ss.str();
 }
 
 } // namespace ppx

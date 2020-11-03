@@ -272,7 +272,6 @@ void ProjApp::Render()
     // Update uniform buffer
     {
         float3   eyePos = float3(0, 0, 5);
-        float    t      = GetElapsedSeconds();
         float4x4 P      = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
         float4x4 V      = glm::lookAt(eyePos, float3(0, 0, 0), float3(0, 1, 0));
         float4x4 M      = glm::translate(float3(0, 0, 0));
