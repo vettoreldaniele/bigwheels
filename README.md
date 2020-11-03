@@ -8,17 +8,36 @@
    * Shaders are compiled with DXC/SPIR-V
 
 # Requirements
- * GGP
-   * Visual Studio 2019 Professional
-   * GGP SDK
-   * Latest Vulkan SDK
- * Linux
-   * Visual Studio Code or CLI
-   * Latest Vulkan SDK
- * Windows
-   * Visual Studio 2019 Professional or Visual Studio Code
-   * Latest Vulkan SDK
-   * Recent version of Windows SDK
+ * Software
+   * GGP
+     * Visual Studio 2019 Professional
+     * GGP SDK
+     * Recent Vulkan SDK
+       * 1.2.154.1 or later
+   * Linux
+     * Visual Studio Code or CLI
+     * Recent Vulkan SDK
+       * 1.2.154.1 or later
+   * Windows
+     * Visual Studio 2019 Professional or Visual Studio Code
+     * Recent Vulkan SDK
+       * 1.2.154.1 or later
+     * Recent version of Windows SDK
+ * Hardware
+   * AMD
+     * Vega GPUs
+       * Vega 56
+       * Vega 64
+     * Navi GPUs
+        * Radeon 5700
+        * Radeon 5700 XT
+   * NVIDIA
+     * 20x0 GPUs
+     * 16x0 GPus
+     * 10x0 GPUs
+       * *This is iffy - some of the later more recent DX12 and Vulkan features many not work.*
+    * Intel
+       * None tested
 
 # Build Instructions
 ## GGP
