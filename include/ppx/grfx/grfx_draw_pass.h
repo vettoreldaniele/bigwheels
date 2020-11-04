@@ -99,6 +99,13 @@ public:
 
     const grfx::Rect& GetRenderArea() const { return mRenderArea; }
 
+    uint32_t       GetRenderTargetCount() const { return mCreateInfo.renderTargetCount; }
+    Result         GetRenderTarget(uint32_t index, grfx::Texture** ppRenderTarget) const;
+    grfx::Texture* GetRenderTarget(uint32_t index) const;
+    bool           HasDepthStencil() const { return mDepthStencilTexture ? true : false; }
+    Result         GetDepthStencil(grfx::Texture** ppDepthStencil) const;
+    grfx::Texture* GetDepthStencil() const;
+
     void PrepareRenderPassBeginInfo(const grfx::DrawPassClearFlags& clearFlags, grfx::RenderPassBeginInfo* pBeginInfo) const;
 
 protected:

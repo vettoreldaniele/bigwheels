@@ -92,7 +92,7 @@ Result DrawPass::CreateTexturesV1(const grfx::internal::DrawPassCreateInfo* pCre
             ci.ownership               = grfx::OWNERSHIP_EXCLUSIVE;
 
             grfx::TexturePtr texture;
-            Result         ppxres = GetDevice()->CreateTexture(&ci, &texture);
+            Result           ppxres = GetDevice()->CreateTexture(&ci, &texture);
             if (Failed(ppxres)) {
                 PPX_ASSERT_MSG(false, "render target texture create failed");
                 return ppxres;
@@ -125,7 +125,7 @@ Result DrawPass::CreateTexturesV1(const grfx::internal::DrawPassCreateInfo* pCre
             ci.ownership               = grfx::OWNERSHIP_EXCLUSIVE;
 
             grfx::TexturePtr texture;
-            Result         ppxres = GetDevice()->CreateTexture(&ci, &texture);
+            Result           ppxres = GetDevice()->CreateTexture(&ci, &texture);
             if (Failed(ppxres)) {
                 PPX_ASSERT_MSG(false, "render target texture create failed");
                 return ppxres;
@@ -272,6 +272,38 @@ void DrawPass::DestroyApiObjects()
         }
     }
     mPasses.clear();
+}
+
+Result DrawPass::GetRenderTarget(uint32_t index, grfx::Texture** ppRenderTarget) const
+{
+    if (index >= mCreateInfo.renderTargetCount) {
+        return ppx::ERROR_OUT_OF_RANGE;
+    }
+    *ppRenderTarget = mRenderTargetTextures[index];
+    return ppx::SUCCESS;
+}
+
+grfx::Texture* DrawPass::GetRenderTarget(uint32_t index) const
+{
+    grfx::Texture* pTexture = nullptr;
+    GetRenderTarget(index, &pTexture);
+    return pTexture;
+}
+
+Result DrawPass::GetDepthStencil(grfx::Texture** ppDepthStencil) const
+{
+    if (!HasDepthStencil()) {
+        return ppx::ERROR_ELEMENT_NOT_FOUND;
+    }
+    *ppDepthStencil = mDepthStencilTexture;
+    return ppx::SUCCESS;
+}
+
+grfx::Texture* DrawPass::GetDepthStencil() const
+{
+    grfx::Texture* pTexture = nullptr;
+    GetDepthStencil(&pTexture);
+    return pTexture;
 }
 
 void DrawPass::PrepareRenderPassBeginInfo(const grfx::DrawPassClearFlags& clearFlags, grfx::RenderPassBeginInfo* pBeginInfo) const

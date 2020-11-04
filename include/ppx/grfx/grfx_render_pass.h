@@ -167,6 +167,7 @@ public:
     const grfx::Viewport& GetViewport() const { return mViewport; }
 
     uint32_t GetRenderTargetCount() const { return mCreateInfo.renderTargetCount; }
+    bool     HasDepthStencil() const { return mDepthStencilImage ? true : false; }
 
     Result GetRenderTargetView(uint32_t index, grfx::RenderTargetView** ppView) const;
     Result GetDepthStencilView(grfx::DepthStencilView** ppView) const;

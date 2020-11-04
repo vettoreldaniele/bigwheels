@@ -1,5 +1,9 @@
 #include "ppx/ppx.h"
+#include "ppx/camera.h"
 using namespace ppx;
+
+#include "Entity.h"
+#include "Material.h"
 
 #if defined(USE_DX)
 grfx::Api kApi = grfx::API_DX_12_0;
@@ -16,6 +20,7 @@ class ProjApp
 public:
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
+    virtual void Shutdown() override;
     virtual void Render() override;
 
 private:
@@ -31,7 +36,13 @@ private:
         ppx::grfx::FencePtr         renderCompleteFence;
     };
 
-    std::vector<PerFrame> mPerFrame;
+    std::vector<PerFrame>        mPerFrame;
+    grfx::DescriptorPoolPtr      mDescriptorPool;
+    PerspCamera                  mCamera;
+    grfx::DescriptorSetLayoutPtr mSceneDataLayout;
+    grfx::DescriptorSetPtr       mSceneDataSet;
+    grfx::BufferPtr              mCpuSceneConstants;
+    grfx::BufferPtr              mGpuSceneConstants;
 
     grfx::DrawPassPtr mGBuffer;
 };
@@ -77,15 +88,19 @@ void ProjApp::Setup()
 {
     Result ppxres = ppx::SUCCESS;
 
-    SetupPerFrame();
+    // Create descriptor pool
+    {
+        grfx::DescriptorPoolCreateInfo createInfo = {};
+        createInfo.sampler                        = 1000;
+        createInfo.sampledImage                   = 1000;
+        createInfo.uniformBuffer                  = 1000;
+        createInfo.structuredBuffer               = 1000;
+
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
+    }
 
     // GBuffer using a draw pass
     {
-        // RT0: Position (RGB)
-        // RT1: Albedo (RGB) Roughness (A)
-        // RT2: Normal (RGB) Metalness (A)
-        // RT3: AmbOcc (R) EnvStrength (G) ReflStrength(B)
-
         grfx::ImageUsageFlags        imageUsageFlags = grfx::IMAGE_USAGE_SAMPLED;
         grfx::RenderTargetClearValue rtvClearValue   = {0, 0, 0, 0};
         grfx::DepthStencilClearValue dsvClearValue   = {1.0f, 0xFF};
@@ -112,6 +127,27 @@ void ProjApp::Setup()
 
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDrawPass(&createInfo, &mGBuffer));
     }
+
+    // Create per frame objects
+    SetupPerFrame();
+
+    // Scene data
+    {
+        grfx::DescriptorSetLayoutCreateInfo createInfo = {};
+        createInfo.bindings.push_back({grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataLayout));
+    }
+
+    // Create materials
+    PPX_CHECKED_CALL(ppxres = Material::CreateMaterials(GetGraphicsQueue(), mDescriptorPool));
+
+    // Create pipelines
+    PPX_CHECKED_CALL(ppxres = Entity::CreatePipelines(mSceneDataLayout, mGBuffer));
+}
+
+void ProjApp::Shutdown()
+{
 }
 
 void ProjApp::Render()

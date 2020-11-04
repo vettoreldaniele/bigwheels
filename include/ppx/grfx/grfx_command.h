@@ -254,6 +254,20 @@ public:
         const grfx::DrawPass*           pDrawPass,
         const grfx::DrawPassClearFlags& clearFlags = grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_ALL);
 
+    void TransitiontImageLayout(
+        grfx::RenderPass*   pRenderPass,
+        grfx::ResourceState renderTargetBeforeState,
+        grfx::ResourceState renderTargetAfterState,
+        grfx::ResourceState depthStencilTargetBeforeState,
+        grfx::ResourceState depthStencilTargetAfterState);
+
+    void TransitiontImageLayout(
+        grfx::DrawPass*     pDrawPass,
+        grfx::ResourceState renderTargetBeforeState,
+        grfx::ResourceState renderTargetAfterState,
+        grfx::ResourceState depthStencilTargetBeforeState,
+        grfx::ResourceState depthStencilTargetAfterState);
+
     void SetViewports(const grfx::Viewport& viewport);
 
     void SetScissors(const grfx::Rect& scissor);

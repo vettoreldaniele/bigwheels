@@ -116,6 +116,10 @@ void CommandBuffer::TransitionImageLayout(
 {
     PPX_ASSERT_NULL_ARG(pImage);
 
+    if (beforeState == afterState) {
+        return;
+    }
+
     if (mipLevelCount == PPX_ALL_MIP_LEVELS) {
         mipLevelCount = pImage->GetMipLevelCount();
     }

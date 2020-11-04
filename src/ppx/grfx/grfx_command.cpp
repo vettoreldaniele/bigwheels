@@ -18,7 +18,7 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPass* pRenderPass)
 
     beginInfo.RTVClearCount = pRenderPass->GetRenderTargetCount();
     for (uint32_t i = 0; i < beginInfo.RTVClearCount; ++i) {
-        grfx::ImagePtr  rtvImage = pRenderPass->GetRenderTargetImage(i);
+        grfx::ImagePtr rtvImage     = pRenderPass->GetRenderTargetImage(i);
         beginInfo.RTVClearValues[i] = rtvImage->GetRTVClearValue();
     }
 
@@ -40,6 +40,76 @@ void CommandBuffer::BeginRenderPass(
     pDrawPass->PrepareRenderPassBeginInfo(clearFlags, &beginInfo);
 
     BeginRenderPass(&beginInfo);
+}
+
+void CommandBuffer::TransitiontImageLayout(
+    grfx::RenderPass*   pRenderPass,
+    grfx::ResourceState renderTargetBeforeState,
+    grfx::ResourceState renderTargetAfterState,
+    grfx::ResourceState depthStencilTargetBeforeState,
+    grfx::ResourceState depthStencilTargetAfterState)
+{
+    PPX_ASSERT_NULL_ARG(pRenderPass);
+
+    const uint32_t n = pRenderPass->GetRenderTargetCount();
+    for (uint32_t i = 0; i < n; ++i) {
+        grfx::ImagePtr renderTarget;
+        Result         ppxres = pRenderPass->GetRenderTargetImage(i, &renderTarget);
+        PPX_ASSERT_MSG(ppxres != ppx::SUCCESS, "failed getting render pass render target");
+
+        TransitionImageLayout(
+            renderTarget,
+            PPX_ALL_SUBRESOURCES,
+            depthStencilTargetBeforeState,
+            depthStencilTargetAfterState);
+    }
+
+    if (pRenderPass->HasDepthStencil()) {
+        grfx::ImagePtr depthStencil;
+        Result         ppxres = pRenderPass->GetDepthStencilImage(&depthStencil);
+        PPX_ASSERT_MSG(ppxres != ppx::SUCCESS, "failed getting render pass depth/stencil");
+
+        TransitionImageLayout(
+            depthStencil,
+            PPX_ALL_SUBRESOURCES,
+            depthStencilTargetBeforeState,
+            depthStencilTargetAfterState);
+    }
+}
+
+void CommandBuffer::TransitiontImageLayout(
+    grfx::DrawPass*     pDrawPass,
+    grfx::ResourceState renderTargetBeforeState,
+    grfx::ResourceState renderTargetAfterState,
+    grfx::ResourceState depthStencilTargetBeforeState,
+    grfx::ResourceState depthStencilTargetAfterState)
+{
+    PPX_ASSERT_NULL_ARG(pDrawPass);
+
+    const uint32_t n = pDrawPass->GetRenderTargetCount();
+    for (uint32_t i = 0; i < n; ++i) {
+        grfx::TexturePtr renderTarget;
+        Result           ppxres = pDrawPass->GetRenderTarget(i, &renderTarget);
+        PPX_ASSERT_MSG(ppxres != ppx::SUCCESS, "failed getting draw pass render target");
+
+        TransitionImageLayout(
+            renderTarget->GetImage(),
+            PPX_ALL_SUBRESOURCES,
+            depthStencilTargetBeforeState,
+            depthStencilTargetAfterState);
+    }
+
+    if (pDrawPass->HasDepthStencil()) {
+        grfx::TexturePtr depthSencil;
+        Result           ppxres = pDrawPass->GetDepthStencil(&depthSencil);
+        PPX_ASSERT_MSG(ppxres != ppx::SUCCESS, "failed getting draw pass depth/stencil");
+
+        TransitionImageLayout(
+            depthSencil->GetImage(),
+            PPX_ALL_SUBRESOURCES,
+            depthStencilTargetBeforeState,
+            depthStencilTargetAfterState);
+    }
 }
 
 void CommandBuffer::SetViewports(const grfx::Viewport& viewport)

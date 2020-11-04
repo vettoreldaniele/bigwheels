@@ -531,6 +531,12 @@ void Application::InternalCtor()
         sApplicationInstance = this;
     }
 
+    // Initialize timer static data
+    ppx::TimerResult tmres = ppx::Timer::InitializeStaticData();
+    if (tmres != ppx::TIMER_RESULT_SUCCESS) {
+        PPX_ASSERT_MSG(false, "failed to initialize timer's statick data");
+    }
+
     InitializeAssetDirs();
 }
 
@@ -1031,11 +1037,11 @@ int Application::Run(int argc, char** argv)
     // ---------------------------------------------------------------------------------------------
 
     // Initialize and start timer
-    ppx::TimerResult tmres = ppx::Timer::InitializeStaticData();
+    ppx::TimerResult tmres = mTimer.Start();
     if (tmres != ppx::TIMER_RESULT_SUCCESS) {
+        PPX_ASSERT_MSG(false, "failed to start application timer");
         return EXIT_FAILURE;
     }
-    tmres = mTimer.Start();
 
     mRunning = true;
     while (IsRunning()) {

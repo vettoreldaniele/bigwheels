@@ -100,7 +100,7 @@ grfx::VertexBinding& VertexBinding::operator+=(const grfx::VertexAttribute& rhs)
 // -------------------------------------------------------------------------------------------------
 Result VertexDescription::GetBinding(uint32_t index, const grfx::VertexBinding** ppBinding) const
 {
-    if (IsIndexInRange(index, mBindings)) {
+    if (!IsIndexInRange(index, mBindings)) {
         return ppx::ERROR_OUT_OF_RANGE;
     }
     if (!IsNull(ppBinding)) {

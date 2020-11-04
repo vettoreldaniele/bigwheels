@@ -204,6 +204,10 @@ void CommandBuffer::TransitionImageLayout(
     grfx::ResourceState beforeState,
     grfx::ResourceState afterState)
 {
+    if (beforeState == afterState) {
+        return;
+    }
+
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Transition.pResource   = ToApi(pImage)->GetDxResource();
