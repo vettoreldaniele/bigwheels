@@ -45,6 +45,9 @@ private:
     grfx::BufferPtr              mGpuSceneConstants;
 
     grfx::DrawPassPtr mGBuffer;
+
+    grfx::ModelPtr      mSphere;
+    std::vector<Entity> mEntities;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
