@@ -459,7 +459,7 @@ if (PPX_D3D12)
     # Link in d3d12.lib and dxgi.lib
     if (PPX_D3D12)
         target_link_libraries(${PROJECT_NAME} 
-            PUBLIC d3d12.lib dxgi.lib dxguid.lib
+            PUBLIC d3d12.lib dxgi.lib dxguid.lib shcore.lib
         )
     endif()
 endif()

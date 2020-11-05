@@ -21,6 +21,10 @@
 #include "ppx/grfx/dx/dx_device.h"
 #endif // defined(PPX_D3D12)
 
+#if defined(PPX_MSW)
+#include <ShellScalingApi.h>
+#endif
+
 namespace ppx {
 
 // -------------------------------------------------------------------------------------------------
@@ -42,27 +46,55 @@ Result ImGuiImpl::Init(ppx::Application* pApp)
     HWND     activeWindow = GetActiveWindow();
     HMONITOR monitor      = MonitorFromWindow(activeWindow, MONITOR_DEFAULTTONEAREST);
 
-    // Get the logical width and height of the monitor
-    MONITORINFOEX monitorInfoEx = {};
-    monitorInfoEx.cbSize        = sizeof(monitorInfoEx);
-    GetMonitorInfo(monitor, &monitorInfoEx);
-    auto cxLogical = monitorInfoEx.rcMonitor.right - monitorInfoEx.rcMonitor.left;
-    auto cyLogical = monitorInfoEx.rcMonitor.bottom - monitorInfoEx.rcMonitor.top;
+    DEVICE_SCALE_FACTOR scale = SCALE_100_PERCENT;
+    HRESULT hr = GetScaleFactorForMonitor(monitor, &scale);
+    if (FAILED(hr)) {
+        return ppx::ERROR_FAILED;
+    }
 
-    // Get the physical width and height of the monitor
-    DEVMODE devMode       = {};
-    devMode.dmSize        = sizeof(devMode);
-    devMode.dmDriverExtra = 0;
-    EnumDisplaySettings(monitorInfoEx.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
-    auto cxPhysical = devMode.dmPelsWidth;
-    auto cyPhysical = devMode.dmPelsHeight;
+    float fontScale = 1.0f;
+    // clang-format off
+    switch (scale) {
+        default: break;
+        case SCALE_120_PERCENT: fontScale = 1.20f; break;
+        case SCALE_125_PERCENT: fontScale = 1.25f; break;
+        case SCALE_140_PERCENT: fontScale = 1.40f; break;
+        case SCALE_150_PERCENT: fontScale = 1.50f; break;
+        case SCALE_160_PERCENT: fontScale = 1.60f; break;
+        case SCALE_175_PERCENT: fontScale = 1.75f; break;
+        case SCALE_180_PERCENT: fontScale = 1.80f; break;
+        case SCALE_200_PERCENT: fontScale = 2.00f; break;
+        case SCALE_225_PERCENT: fontScale = 2.25f; break;
+        case SCALE_250_PERCENT: fontScale = 2.50f; break;
+        case SCALE_300_PERCENT: fontScale = 3.00f; break;
+        case SCALE_350_PERCENT: fontScale = 3.50f; break;
+        case SCALE_400_PERCENT: fontScale = 4.00f; break;
+        case SCALE_450_PERCENT: fontScale = 4.50f; break;
+        case SCALE_500_PERCENT: fontScale = 5.00f; break;
+    }
+    // clang-format on
 
-    // Calculate the scaling factor
-    float horizontalScale = ((float)cxPhysical / (float)cxLogical);
-    float verticalScale   = ((float)cyPhysical / (float)cyLogical);
+    //// Get the logical width and height of the monitor
+    //MONITORINFOEX monitorInfoEx = {};
+    //monitorInfoEx.cbSize        = sizeof(monitorInfoEx);
+    //GetMonitorInfo(monitor, &monitorInfoEx);
+    //auto cxLogical = monitorInfoEx.rcMonitor.right - monitorInfoEx.rcMonitor.left;
+    //auto cyLogical = monitorInfoEx.rcMonitor.bottom - monitorInfoEx.rcMonitor.top;
+    //
+    //// Get the physical width and height of the monitor
+    //DEVMODE devMode       = {};
+    //devMode.dmSize        = sizeof(devMode);
+    //devMode.dmDriverExtra = 0;
+    //EnumDisplaySettings(monitorInfoEx.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+    //auto cxPhysical = devMode.dmPelsWidth;
+    //auto cyPhysical = devMode.dmPelsHeight;
+    //
+    //// Calculate the scaling factor
+    //float horizontalScale = ((float)cxPhysical / (float)cxLogical);
+    //float verticalScale   = ((float)cyPhysical / (float)cyLogical);
 
     // Scale fontSize based on scaling factor
-    fontSize *= std::max(horizontalScale, verticalScale);
+    fontSize *= fontScale;
 #endif
 
     ImFontConfig fontConfig         = {};
