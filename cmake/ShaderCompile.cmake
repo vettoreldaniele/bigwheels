@@ -29,7 +29,18 @@ if (NOT DXC_PATH)
     message(FATAL_ERROR "Could not locate DXC executable - DXC is required")
 endif()
 
-set(FXC_PATH "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\x64\\fxc.exe")
+if (NOT PPX_LINUX AND NOT FXC_PATH)
+    message("CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is set to: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}.")
+    if (NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+        message(FATAL_ERROR "Windows SDK not found on this system. Make sure that CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is set.")
+    endif()
+
+    set(FXC_PATH "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\x64\\fxc.exe")
+
+    if (NOT EXISTS "${FXC_PATH}")
+        message(FATAL_ERROR "Could not locate FXC executable at ${FXC_PATH} - FXC is required")
+    endif()
+endif()
 
 message("DXC_PATH: ${DXC_PATH}")
 message("FXC_PATH: ${FXC_PATH}")
