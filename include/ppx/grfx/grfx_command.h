@@ -254,14 +254,14 @@ public:
         const grfx::DrawPass*           pDrawPass,
         const grfx::DrawPassClearFlags& clearFlags = grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_ALL);
 
-    void TransitiontImageLayout(
+    void TransitionImageLayout(
         grfx::RenderPass*   pRenderPass,
         grfx::ResourceState renderTargetBeforeState,
         grfx::ResourceState renderTargetAfterState,
         grfx::ResourceState depthStencilTargetBeforeState,
         grfx::ResourceState depthStencilTargetAfterState);
 
-    void TransitiontImageLayout(
+    void TransitionImageLayout(
         grfx::DrawPass*     pDrawPass,
         grfx::ResourceState renderTargetBeforeState,
         grfx::ResourceState renderTargetAfterState,

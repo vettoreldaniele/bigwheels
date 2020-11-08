@@ -307,6 +307,20 @@ Result Device::CreateDrawPass(const grfx::DrawPassCreateInfo2* pCreateInfo, grfx
     return ppx::SUCCESS;
 }
 
+Result Device::CreateDrawPass(const grfx::DrawPassCreateInfo3* pCreateInfo, grfx::DrawPass** ppDrawPass)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppDrawPass);
+
+    grfx::internal::DrawPassCreateInfo createInfo = grfx::internal::DrawPassCreateInfo(*pCreateInfo);
+
+    Result gxres = CreateObject(&createInfo, mDrawPasses, ppDrawPass);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
 void Device::DestroyDrawPass(const grfx::DrawPass* pDrawPass)
 {
     PPX_ASSERT_NULL_ARG(pDrawPass);

@@ -42,7 +42,7 @@ void CommandBuffer::BeginRenderPass(
     BeginRenderPass(&beginInfo);
 }
 
-void CommandBuffer::TransitiontImageLayout(
+void CommandBuffer::TransitionImageLayout(
     grfx::RenderPass*   pRenderPass,
     grfx::ResourceState renderTargetBeforeState,
     grfx::ResourceState renderTargetAfterState,
@@ -55,19 +55,19 @@ void CommandBuffer::TransitiontImageLayout(
     for (uint32_t i = 0; i < n; ++i) {
         grfx::ImagePtr renderTarget;
         Result         ppxres = pRenderPass->GetRenderTargetImage(i, &renderTarget);
-        PPX_ASSERT_MSG(ppxres != ppx::SUCCESS, "failed getting render pass render target");
+        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "failed getting render pass render target");
 
         TransitionImageLayout(
             renderTarget,
             PPX_ALL_SUBRESOURCES,
-            depthStencilTargetBeforeState,
-            depthStencilTargetAfterState);
+            renderTargetBeforeState,
+            renderTargetAfterState);
     }
 
     if (pRenderPass->HasDepthStencil()) {
         grfx::ImagePtr depthStencil;
         Result         ppxres = pRenderPass->GetDepthStencilImage(&depthStencil);
-        PPX_ASSERT_MSG(ppxres != ppx::SUCCESS, "failed getting render pass depth/stencil");
+        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "failed getting render pass depth/stencil");
 
         TransitionImageLayout(
             depthStencil,
@@ -77,7 +77,7 @@ void CommandBuffer::TransitiontImageLayout(
     }
 }
 
-void CommandBuffer::TransitiontImageLayout(
+void CommandBuffer::TransitionImageLayout(
     grfx::DrawPass*     pDrawPass,
     grfx::ResourceState renderTargetBeforeState,
     grfx::ResourceState renderTargetAfterState,
@@ -89,20 +89,20 @@ void CommandBuffer::TransitiontImageLayout(
     const uint32_t n = pDrawPass->GetRenderTargetCount();
     for (uint32_t i = 0; i < n; ++i) {
         grfx::TexturePtr renderTarget;
-        Result           ppxres = pDrawPass->GetRenderTarget(i, &renderTarget);
-        PPX_ASSERT_MSG(ppxres != ppx::SUCCESS, "failed getting draw pass render target");
+        Result           ppxres = pDrawPass->GetRenderTargetTexture(i, &renderTarget);
+        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "failed getting draw pass render target");
 
         TransitionImageLayout(
             renderTarget->GetImage(),
             PPX_ALL_SUBRESOURCES,
-            depthStencilTargetBeforeState,
-            depthStencilTargetAfterState);
+            renderTargetBeforeState,
+            renderTargetAfterState);
     }
 
     if (pDrawPass->HasDepthStencil()) {
         grfx::TexturePtr depthSencil;
-        Result           ppxres = pDrawPass->GetDepthStencil(&depthSencil);
-        PPX_ASSERT_MSG(ppxres != ppx::SUCCESS, "failed getting draw pass depth/stencil");
+        Result           ppxres = pDrawPass->GetDepthStencilTexture(&depthSencil);
+        PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "failed getting draw pass depth/stencil");
 
         TransitionImageLayout(
             depthSencil->GetImage(),

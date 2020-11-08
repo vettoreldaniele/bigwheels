@@ -87,15 +87,19 @@ public:
     Swapchain() {}
     virtual ~Swapchain() {}
 
+    uint32_t     GetWidth() const { return mCreateInfo.width; }
+    uint32_t     GetHeight() const { return mCreateInfo.height; }
     uint32_t     GetImageCount() const { return mCreateInfo.imageCount; }
     grfx::Format GetColorFormat() const { return mCreateInfo.colorFormat; }
     grfx::Format GetDepthFormat() const { return mCreateInfo.depthFormat; }
 
-    Result GetImage(uint32_t imageIndex, grfx::Image** ppImage) const;
+    Result GetColorImage(uint32_t imageIndex, grfx::Image** ppImage) const;
+    Result GetDepthImage(uint32_t imageIndex, grfx::Image** ppImage) const;
     Result GetRenderPass(uint32_t imageIndex, grfx::AttachmentLoadOp loadOp, grfx::RenderPass** ppRenderPass) const;
 
     // Convenience functions - returns empty object if index is invalid
-    grfx::ImagePtr      GetImage(uint32_t imageIndex) const;
+    grfx::ImagePtr      GetColorImage(uint32_t imageIndex) const;
+    grfx::ImagePtr      GetDepthImage(uint32_t imageIndex) const;
     grfx::RenderPassPtr GetRenderPass(uint32_t imageIndex, grfx::AttachmentLoadOp loadOp = grfx::ATTACHMENT_LOAD_OP_CLEAR) const;
 
     virtual Result AcquireNextImage(
@@ -116,7 +120,7 @@ protected:
 
 protected:
     grfx::QueuePtr                   mQueue;
-    std::vector<grfx::ImagePtr>      mDepthStencilImages;
+    std::vector<grfx::ImagePtr>      mDepthImages;
     std::vector<grfx::ImagePtr>      mColorImages;
     std::vector<grfx::RenderPassPtr> mClearRenderPasses;
     std::vector<grfx::RenderPassPtr> mLoadRenderPasses;

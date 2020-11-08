@@ -484,7 +484,7 @@ void TriMesh::AppendIndexAndVertexData(
             }
 
             if (options.mEnableTexCoords) {
-                mesh.AppendTexCoord(pVertexData->texCoord);
+                mesh.AppendTexCoord(pVertexData->texCoord * options.mTexCoordScale);
             }
 
             if (options.mEnableTangents) {

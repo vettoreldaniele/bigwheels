@@ -47,7 +47,7 @@ Result CreateTextureFromFile(
 
     Timer timer;
     PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
-    double fnStartTime = timer.SecondsSinceStart(); 
+    double fnStartTime = timer.SecondsSinceStart();
 
     // Load bitmap
     Bitmap bitmap;
@@ -744,6 +744,85 @@ Result CreateModelFromGeometry(
     *ppModel = targetModel;
 
     return ppx::SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------
+// FullscreenQuad
+// -------------------------------------------------------------------------------------------------
+Result FullscreenQuad::InternalCreate(grfx::Device* pDevice, FullscreenQuadCreateInfo* pCreateInfo)
+{
+    PPX_ASSERT_NULL_ARG(pDevice);
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+
+    Result ppxres = ppx::ERROR_FAILED;
+
+    // Pipeline interface
+    {
+        grfx::PipelineInterfaceCreateInfo createInfo = {};
+        createInfo.setCount                          = pCreateInfo->setCount;
+        for (uint32_t i = 0; i < createInfo.setCount; ++i) {
+            createInfo.sets[i].set     = pCreateInfo->sets[i].set;
+            createInfo.sets[i].pLayout = pCreateInfo->sets[i].pLayout;
+        }
+
+        Result ppxres = pDevice->CreatePipelineInterface(&createInfo, &mPipelineInterface);
+        if (Failed(ppxres)) {
+            PPX_ASSERT_MSG(false, "failed creating pipeline interface");
+            return ppxres;
+        }
+    }
+
+    // Pipeline
+    {
+        grfx::GraphicsPipelineCreateInfo2 createInfo = {};
+        createInfo.VS                                = {pCreateInfo->VS, "vsmain"};
+        createInfo.PS                                = {pCreateInfo->PS, "psmain"};
+        createInfo.pPipelineInterface                = mPipelineInterface;
+        // Render target
+        createInfo.outputState.renderTargetCount = pCreateInfo->renderTargetCount;
+        for (uint32_t i = 0; i < createInfo.outputState.renderTargetCount; ++i) {
+            createInfo.blendModes[i]                      = grfx::BLEND_MODE_NONE;
+            createInfo.outputState.renderTargetFormats[i] = pCreateInfo->renderTargetFormats[i];
+        }
+
+        PPX_CHECKED_CALL(ppxres = pDevice->CreateGraphicsPipeline(&createInfo, &mPipeline));
+        if (Failed(ppxres)) {
+            PPX_ASSERT_MSG(false, "failed creating graphics pipeline");
+            return ppxres;
+        }
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result FullscreenQuad::Create(grfx::Device* pDevice, FullscreenQuadCreateInfo* pCreateInfo)
+{
+    Result ppxres = InternalCreate(pDevice, pCreateInfo);
+    if (Failed(ppxres)) {
+        Destroy();
+        return ppxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void FullscreenQuad::Destroy()
+{
+    if (mPipeline) {
+        grfx::DevicePtr device = mPipeline->GetDevice();
+        device->DestroyGraphicsPipeline(mPipeline);
+    }
+
+    if (mPipelineInterface) {
+        grfx::DevicePtr device = mPipelineInterface->GetDevice();
+        device->DestroyPipelineInterface(mPipelineInterface);
+    }
+}
+
+void FullscreenQuad::Draw(grfx::CommandBuffer* pCmd, uint32_t setCount, const grfx::DescriptorSet* const* ppSets)
+{
+    pCmd->BindGraphicsDescriptorSets(mPipelineInterface, setCount, ppSets);
+    pCmd->BindGraphicsPipeline(mPipeline);
+    pCmd->Draw(3, 1);
 }
 
 } // namespace ppx

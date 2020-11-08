@@ -198,7 +198,44 @@ Result CreateCubeMapFromFile(
 Result CreateModelFromGeometry(
     grfx::Queue*    pQueue,
     const Geometry* pGeometry,
-    grfx::Model**   ppMode);
+    grfx::Model**   ppModel);
+
+// -------------------------------------------------------------------------------------------------
+
+struct FullscreenQuadCreateInfo
+{
+    grfx::ShaderModule* VS = nullptr;
+    grfx::ShaderModule* PS = nullptr;
+
+    uint32_t setCount = 0;
+    struct
+    {
+        uint32_t                   set = PPX_VALUE_IGNORED;
+        grfx::DescriptorSetLayout* pLayout;
+    } sets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {};
+
+    uint32_t     renderTargetCount                           = 0;
+    grfx::Format renderTargetFormats[PPX_MAX_RENDER_TARGETS] = {grfx::FORMAT_UNDEFINED};
+};
+
+class FullscreenQuad
+{
+public:
+    FullscreenQuad() {}
+    ~FullscreenQuad() {}
+
+    Result Create(grfx::Device* pDevice, FullscreenQuadCreateInfo* pCreateInfo);
+    void   Destroy();
+
+    void Draw(grfx::CommandBuffer* pCmd, uint32_t setCount, const grfx::DescriptorSet* const* ppSets);
+
+private:
+    Result InternalCreate(grfx::Device* pDevice, FullscreenQuadCreateInfo* pCreateInfo);
+
+private:
+    grfx::PipelineInterfacePtr mPipelineInterface;
+    grfx::GraphicsPipelinePtr  mPipeline;
+};
 
 } // namespace ppx
 

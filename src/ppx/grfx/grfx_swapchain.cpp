@@ -29,7 +29,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
                 return ppxres;
             }
 
-            mDepthStencilImages.push_back(depthStencilTarget);
+            mDepthImages.push_back(depthStencilTarget);
         }
     }
 
@@ -40,7 +40,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         rpCreateInfo.height                      = pCreateInfo->height;
         rpCreateInfo.renderTargetCount           = 1;
         rpCreateInfo.pRenderTargetImages[0]      = mColorImages[i];
-        rpCreateInfo.pDepthStencilImage          = mDepthStencilImages.empty() ? nullptr : mDepthStencilImages[i];
+        rpCreateInfo.pDepthStencilImage          = mDepthImages.empty() ? nullptr : mDepthImages[i];
         rpCreateInfo.renderTargetClearValues[0]  = {0.0f, 0.0f, 0.0f, 0.0f};
         rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
         rpCreateInfo.renderTargetLoadOps[0]      = grfx::ATTACHMENT_LOAD_OP_CLEAR;
@@ -64,7 +64,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         rpCreateInfo.height                      = pCreateInfo->height;
         rpCreateInfo.renderTargetCount           = 1;
         rpCreateInfo.pRenderTargetImages[0]      = mColorImages[i];
-        rpCreateInfo.pDepthStencilImage          = mDepthStencilImages.empty() ? nullptr : mDepthStencilImages[i];
+        rpCreateInfo.pDepthStencilImage          = mDepthImages.empty() ? nullptr : mDepthImages[i];
         rpCreateInfo.renderTargetClearValues[0]  = {0.0f, 0.0f, 0.0f, 0.0f};
         rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
         rpCreateInfo.renderTargetLoadOps[0]      = grfx::ATTACHMENT_LOAD_OP_LOAD;
@@ -88,12 +88,12 @@ void Swapchain::Destroy()
 {
     grfx::DeviceObject<grfx::SwapchainCreateInfo>::Destroy();
 
-    for (auto& elem : mDepthStencilImages) {
+    for (auto& elem : mDepthImages) {
         if (elem) {
             GetDevice()->DestroyImage(elem);
         }
     }
-    mDepthStencilImages.clear();
+    mDepthImages.clear();
 
     for (auto& elem : mColorImages) {
         if (elem) {
@@ -117,12 +117,21 @@ void Swapchain::Destroy()
     mLoadRenderPasses.clear();
 }
 
-Result Swapchain::GetImage(uint32_t imageIndex, grfx::Image** ppImage) const
+Result Swapchain::GetColorImage(uint32_t imageIndex, grfx::Image** ppImage) const
 {
     if (!IsIndexInRange(imageIndex, mColorImages)) {
         return ppx::ERROR_OUT_OF_RANGE;
     }
     *ppImage = mColorImages[imageIndex];
+    return ppx::SUCCESS;
+}
+
+Result Swapchain::GetDepthImage(uint32_t imageIndex, grfx::Image** ppImage) const
+{
+    if (!IsIndexInRange(imageIndex, mDepthImages)) {
+        return ppx::ERROR_OUT_OF_RANGE;
+    }
+    *ppImage = mDepthImages[imageIndex];
     return ppx::SUCCESS;
 }
 
@@ -140,10 +149,17 @@ Result Swapchain::GetRenderPass(uint32_t imageIndex, grfx::AttachmentLoadOp load
     return ppx::SUCCESS;
 }
 
-grfx::ImagePtr Swapchain::GetImage(uint32_t imageIndex) const
+grfx::ImagePtr Swapchain::GetColorImage(uint32_t imageIndex) const
 {
     grfx::ImagePtr object;
-    GetImage(imageIndex, &object);
+    GetColorImage(imageIndex, &object);
+    return object;
+}
+
+grfx::ImagePtr Swapchain::GetDepthImage(uint32_t imageIndex) const
+{
+    grfx::ImagePtr object;
+    GetDepthImage(imageIndex, &object);
     return object;
 }
 

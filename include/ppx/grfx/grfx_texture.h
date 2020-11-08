@@ -66,6 +66,9 @@ public:
     grfx::StorageImageViewPtr GetStorageImageView() const { return mStorageImageView; }
 
 protected:
+    virtual Result Create(const grfx::TextureCreateInfo* pCreateInfo) override;
+    friend class grfx::Device;
+
     virtual Result CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 

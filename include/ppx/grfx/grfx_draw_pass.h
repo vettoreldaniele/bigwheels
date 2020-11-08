@@ -16,16 +16,18 @@ struct RenderPassBeginInfo;
 //!
 struct DrawPassCreateInfo
 {
-    uint32_t                     width                                           = 0;
-    uint32_t                     height                                          = 0;
-    grfx::SampleCount            sampleCount                                     = grfx::SAMPLE_COUNT_1;
-    uint32_t                     renderTargetCount                               = 0;
-    grfx::Format                 renderTargetFormats[PPX_MAX_RENDER_TARGETS]     = {};
-    grfx::Format                 depthStencilFormat                              = grfx::FORMAT_UNDEFINED;
-    grfx::ImageUsageFlags        renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS]  = {};
-    grfx::ImageUsageFlags        depthStencilUsageFlags                          = {};
-    grfx::RenderTargetClearValue renderTargetClearValues[PPX_MAX_RENDER_TARGETS] = {};
-    grfx::DepthStencilClearValue depthStencilClearValue                          = {};
+    uint32_t                     width                                             = 0;
+    uint32_t                     height                                            = 0;
+    grfx::SampleCount            sampleCount                                       = grfx::SAMPLE_COUNT_1;
+    uint32_t                     renderTargetCount                                 = 0;
+    grfx::Format                 renderTargetFormats[PPX_MAX_RENDER_TARGETS]       = {};
+    grfx::Format                 depthStencilFormat                                = grfx::FORMAT_UNDEFINED;
+    grfx::ImageUsageFlags        renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS]    = {};
+    grfx::ImageUsageFlags        depthStencilUsageFlags                            = {};
+    grfx::ResourceState          renderTargetInitialStates[PPX_MAX_RENDER_TARGETS] = {grfx::RESOURCE_STATE_RENDER_TARGET};
+    grfx::ResourceState          depthStencilInitialState                          = grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE;
+    grfx::RenderTargetClearValue renderTargetClearValues[PPX_MAX_RENDER_TARGETS]   = {};
+    grfx::DepthStencilClearValue depthStencilClearValue                            = {};
 };
 
 //! @struct DrawPassCreateInfo2
@@ -43,6 +45,19 @@ struct DrawPassCreateInfo2
     grfx::DepthStencilClearValue depthStencilClearValue                          = {};
 };
 
+//! struct DrawPassCreateInfo3
+//!
+//! Use this version if the textures exists.
+//!
+struct DrawPassCreateInfo3
+{
+    uint32_t       width                                         = 0;
+    uint32_t       height                                        = 0;
+    uint32_t       renderTargetCount                             = 0;
+    grfx::Texture* pRenderTargetTextures[PPX_MAX_RENDER_TARGETS] = {};
+    grfx::Texture* pDepthStencilTexture                          = nullptr;
+};
+
 namespace internal {
 
 struct DrawPassCreateInfo
@@ -52,6 +67,7 @@ struct DrawPassCreateInfo
         CREATE_INFO_VERSION_UNDEFINED = 0,
         CREATE_INFO_VERSION_1         = 1,
         CREATE_INFO_VERSION_2         = 2,
+        CREATE_INFO_VERSION_3         = 3,
     };
 
     CreateInfoVersion version           = CREATE_INFO_VERSION_UNDEFINED;
@@ -59,22 +75,31 @@ struct DrawPassCreateInfo
     uint32_t          height            = 0;
     uint32_t          renderTargetCount = 0;
 
-    // Data unique to grfx::DrawPassCreateInfo2
+    // Data unique to grfx::DrawPassCreateInfo1
     struct
     {
-        grfx::SampleCount     sampleCount                                    = grfx::SAMPLE_COUNT_1;
-        grfx::Format          renderTargetFormats[PPX_MAX_RENDER_TARGETS]    = {};
-        grfx::Format          depthStencilFormat                             = grfx::FORMAT_UNDEFINED;
-        grfx::ImageUsageFlags renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS] = {};
-        grfx::ImageUsageFlags depthStencilUsageFlags                         = {};
+        grfx::SampleCount     sampleCount                                       = grfx::SAMPLE_COUNT_1;
+        grfx::Format          renderTargetFormats[PPX_MAX_RENDER_TARGETS]       = {};
+        grfx::Format          depthStencilFormat                                = grfx::FORMAT_UNDEFINED;
+        grfx::ImageUsageFlags renderTargetUsageFlags[PPX_MAX_RENDER_TARGETS]    = {};
+        grfx::ImageUsageFlags depthStencilUsageFlags                            = {};
+        grfx::ResourceState   renderTargetInitialStates[PPX_MAX_RENDER_TARGETS] = {grfx::RESOURCE_STATE_RENDER_TARGET};
+        grfx::ResourceState   depthStencilInitialState                          = grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE;
     } V1;
 
-    // Data unique to grfx::DrawPassCreateInfo3
+    // Data unique to grfx::DrawPassCreateInfo2
     struct
     {
         grfx::Image* pRenderTargetImages[PPX_MAX_RENDER_TARGETS] = {};
         grfx::Image* pDepthStencilImage                          = nullptr;
     } V2;
+
+    // Data unique to grfx::DrawPassCreateInfo3
+    struct
+    {
+        grfx::Texture* pRenderTargetTextures[PPX_MAX_RENDER_TARGETS] = {};
+        grfx::Texture* pDepthStencilTexture                          = nullptr;
+    } V3;
 
     // Clear values
     grfx::RenderTargetClearValue renderTargetClearValues[PPX_MAX_RENDER_TARGETS] = {};
@@ -83,6 +108,7 @@ struct DrawPassCreateInfo
     DrawPassCreateInfo() {}
     DrawPassCreateInfo(const grfx::DrawPassCreateInfo& obj);
     DrawPassCreateInfo(const grfx::DrawPassCreateInfo2& obj);
+    DrawPassCreateInfo(const grfx::DrawPassCreateInfo3& obj);
 };
 
 } // namespace internal
@@ -97,14 +123,18 @@ public:
     DrawPass() {}
     virtual ~DrawPass() {}
 
-    const grfx::Rect& GetRenderArea() const { return mRenderArea; }
+    uint32_t              GetWidth() const { return mCreateInfo.width; }
+    uint32_t              GetHeight() const { return mCreateInfo.height; }
+    const grfx::Rect&     GetRenderArea() const;
+    const grfx::Rect&     GetScissor() const;
+    const grfx::Viewport& GetViewport() const;
 
     uint32_t       GetRenderTargetCount() const { return mCreateInfo.renderTargetCount; }
-    Result         GetRenderTarget(uint32_t index, grfx::Texture** ppRenderTarget) const;
-    grfx::Texture* GetRenderTarget(uint32_t index) const;
+    Result         GetRenderTargetTexture(uint32_t index, grfx::Texture** ppRenderTarget) const;
+    grfx::Texture* GetRenderTargetTexture(uint32_t index) const;
     bool           HasDepthStencil() const { return mDepthStencilTexture ? true : false; }
-    Result         GetDepthStencil(grfx::Texture** ppDepthStencil) const;
-    grfx::Texture* GetDepthStencil() const;
+    Result         GetDepthStencilTexture(grfx::Texture** ppDepthStencil) const;
+    grfx::Texture* GetDepthStencilTexture() const;
 
     void PrepareRenderPassBeginInfo(const grfx::DrawPassClearFlags& clearFlags, grfx::RenderPassBeginInfo* pBeginInfo) const;
 
@@ -115,6 +145,7 @@ protected:
 private:
     Result CreateTexturesV1(const grfx::internal::DrawPassCreateInfo* pCreateInfo);
     Result CreateTexturesV2(const grfx::internal::DrawPassCreateInfo* pCreateInfo);
+    Result CreateTexturesV3(const grfx::internal::DrawPassCreateInfo* pCreateInfo);
 
 private:
     grfx::Rect                    mRenderArea = {};

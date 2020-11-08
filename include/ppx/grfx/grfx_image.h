@@ -70,6 +70,7 @@ public:
     uint32_t                            GetArrayLayerCount() const { return mCreateInfo.arrayLayerCount; }
     const grfx::ImageUsageFlags&        GetUsageFlags() const { return mCreateInfo.usageFlags; }
     grfx::MemoryUsage                   GetMemoryUsage() const { return mCreateInfo.memoryUsage; }
+    grfx::ResourceState                 GetInitialState() const { return mCreateInfo.initialState; }
     const grfx::RenderTargetClearValue& GetRTVClearValue() const { return mCreateInfo.RTVClearValue; }
     const grfx::DepthStencilClearValue& GetDSVClearValue() const { return mCreateInfo.DSVClearValue; }
 

@@ -5,6 +5,43 @@
 namespace ppx {
 namespace grfx {
 
+Result Texture::Create(const grfx::TextureCreateInfo* pCreateInfo)
+{
+    // Copy in case view types and formats are specified:
+    //   - if an image is supplied, then the next section 
+    //     will overwrite all the image related fields with 
+    //     values from the supplied image.
+    //   - if an image is NOT supplied, then nothing gets
+    //     overwritten.
+    //
+    mCreateInfo = *pCreateInfo;
+
+    if (!IsNull(pCreateInfo->pImage)) {
+        mCreateInfo.imageType       = mImage->GetType();
+        mCreateInfo.width           = mImage->GetWidth();
+        mCreateInfo.height          = mImage->GetHeight();
+        mCreateInfo.depth           = mImage->GetDepth();
+        mCreateInfo.imageFormat     = mImage->GetFormat();
+        mCreateInfo.sampleCount     = mImage->GetSampleCount();
+        mCreateInfo.mipLevelCount   = mImage->GetMipLevelCount();
+        mCreateInfo.arrayLayerCount = mImage->GetArrayLayerCount();
+        mCreateInfo.usageFlags      = mImage->GetUsageFlags();
+        mCreateInfo.memoryUsage     = mImage->GetMemoryUsage();
+        mCreateInfo.initialState    = mImage->GetInitialState();
+        mCreateInfo.RTVClearValue   = mImage->GetRTVClearValue();
+        mCreateInfo.DSVClearValue   = mImage->GetDSVClearValue();
+    }
+
+    // Yes, mCreateInfo will self overwrite in the following function call.
+    //
+    Result ppxres = grfx::DeviceObject<grfx::TextureCreateInfo>::Create(pCreateInfo);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+   
+    return ppx::SUCCESS;
+}
+
 Result Texture::CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo)
 {
     // Image
@@ -56,6 +93,9 @@ Result Texture::CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo)
 
     if (pCreateInfo->usageFlags.bits.colorAttachment) {
         grfx::RenderTargetViewCreateInfo ci = grfx::RenderTargetViewCreateInfo::GuessFromImage(mImage);
+        if (pCreateInfo->renderTargetViewFormat != grfx::FORMAT_UNDEFINED) {
+            ci.format = pCreateInfo->renderTargetViewFormat;
+        }
 
         Result ppxres = GetDevice()->CreateRenderTargetView(&ci, &mRenderTargetView);
         if (Failed(ppxres)) {
@@ -66,6 +106,9 @@ Result Texture::CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo)
 
     if (pCreateInfo->usageFlags.bits.depthStencilAttachment) {
         grfx::DepthStencilViewCreateInfo ci = grfx::DepthStencilViewCreateInfo::GuessFromImage(mImage);
+        if (pCreateInfo->depthStencilViewFormat != grfx::FORMAT_UNDEFINED) {
+            ci.format = pCreateInfo->depthStencilViewFormat;
+        }
 
         Result ppxres = GetDevice()->CreateDepthStencilView(&ci, &mDepthStencilView);
         if (Failed(ppxres)) {
@@ -76,6 +119,9 @@ Result Texture::CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo)
 
     if (pCreateInfo->usageFlags.bits.storage) {
         grfx::StorageImageViewCreateInfo ci = grfx::StorageImageViewCreateInfo::GuessFromImage(mImage);
+        if (pCreateInfo->storageImageViewFormat != grfx::FORMAT_UNDEFINED) {
+            ci.format = pCreateInfo->storageImageViewFormat;
+        }
 
         Result ppxres = GetDevice()->CreateStorageImageView(&ci, &mStorageImageView);
         if (Failed(ppxres)) {

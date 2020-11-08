@@ -227,6 +227,8 @@ Result Geometry::Create(const GeometryCreateInfo& createInfo, Geometry* pGeometr
 {
     PPX_ASSERT_NULL_ARG(pGeometry);
 
+    *pGeometry = Geometry();
+
     if (createInfo.primtiveTopolgy != grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST) {
         PPX_ASSERT_MSG(false, "only triangle list is supported");
         return ppx::ERROR_INVALID_CREATE_ARGUMENT;
