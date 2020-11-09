@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(gbuffer)
+project(16_gbuffer)
 
 set(SHADER_DIR "${PPX_DIR}/assets/gbuffer/shaders")
 
