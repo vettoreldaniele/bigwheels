@@ -736,9 +736,9 @@ void ProjApp::UpdateConstants()
         mCamSwing += (mTargetCamSwing - mCamSwing) * 0.1f;
 
         float t = glm::radians(mCamSwing - kPi / 2.0f);
-        float x = 5.0f * cos(t);
-        float z = 5.0f * sin(t);
-        mCamera.LookAt(float3(x, 3, z), float3(0, 0, 0));
+        float x = 6.0f * cos(t);
+        float z = 6.0f * sin(t);
+        mCamera.LookAt(float3(x, 3, z), float3(0, 0.5f, 0));
 
         PPX_HLSL_PACK_BEGIN();
         struct HlslSceneData
