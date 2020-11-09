@@ -36,7 +36,7 @@ grfx::Format ToGrfxFormat(Bitmap::Format value)
     return grfx::FORMAT_UNDEFINED;
 }
 
-Result CreateTextureFromFile(
+Result CreateImageFromFile(
     grfx::Queue*                 pQueue,
     const fs::path&              path,
     grfx::Image**                ppImage,

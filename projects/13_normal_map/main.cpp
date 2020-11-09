@@ -166,8 +166,8 @@ void ProjApp::Setup()
 
     // Textures, views, and samplers
     {
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/albedo.jpg"), &mAlbedoTexture));
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/normal.jpg"), &mNormalMap));
+        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/albedo.jpg"), &mAlbedoTexture));
+        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/normal.jpg"), &mNormalMap));
 
         grfx::SampledImageViewCreateInfo sivCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mAlbedoTexture);
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&sivCreateInfo, &mAlbedoTextureView));

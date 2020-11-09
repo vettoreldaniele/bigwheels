@@ -161,7 +161,7 @@ struct CubeMapCreateInfo
 //! @fn CreateTextureFromFile
 //!
 //!
-Result CreateTextureFromFile(
+Result CreateImageFromFile(
     grfx::Queue*                 pQueue,
     const fs::path&              path,
     grfx::Image**                ppImage,
