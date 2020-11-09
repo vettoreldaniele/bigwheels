@@ -1,6 +1,7 @@
 #include "ppx/grfx/vk/vk_render_pass.h"
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_image.h"
+#include "ppx/grfx/vk/vk_util.h"
 
 namespace ppx {
 namespace grfx {
@@ -8,8 +9,21 @@ namespace vk {
 
 Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* pCreateInfo)
 {
-    bool   hasDepthSencil = mDepthStencilView ? true : false;
-    size_t rtvCount       = CountU32(mRenderTargetViews);
+    bool          hasDepthSencil     = mDepthStencilView ? true : false;
+    size_t        rtvCount           = CountU32(mRenderTargetViews);
+    VkImageLayout depthStencillayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    // Determine layout for depth/stencil
+    {
+        VkPipelineStageFlags stageMask  = 0; // Not used
+        VkAccessFlags        accessMask = 0; // Not used
+
+        Result ppxres = ToVkBarrierDst(pCreateInfo->depthStencilState, stageMask, accessMask, depthStencillayout);
+        if (Failed(ppxres)) {
+            PPX_ASSERT_MSG(false, "failed to determine layout for depth stencil state");
+            return ppxres;
+        }
+    }
 
     // Attachment descriptions
     std::vector<VkAttachmentDescription> attachmentDesc;
@@ -42,8 +56,8 @@ Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* 
             desc.storeOp                 = ToVkAttachmentStoreOp(dsv->GetDepthStoreOp());
             desc.stencilLoadOp           = ToVkAttachmentLoadOp(dsv->GetStencilLoadOp());
             desc.stencilStoreOp          = ToVkAttachmentStoreOp(dsv->GetStencilStoreOp());
-            desc.initialLayout           = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            desc.finalLayout             = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            desc.initialLayout           = depthStencillayout;
+            desc.finalLayout             = depthStencillayout;
 
             attachmentDesc.push_back(desc);
         }
@@ -62,7 +76,7 @@ Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* 
     VkAttachmentReference depthStencilRef = {};
     if (hasDepthSencil) {
         depthStencilRef.attachment = static_cast<uint32_t>(attachmentDesc.size() - 1);
-        depthStencilRef.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthStencilRef.layout     = depthStencillayout;
     }
 
     VkSubpassDescription subpassDescription    = {};

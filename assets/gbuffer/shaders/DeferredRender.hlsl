@@ -11,14 +11,12 @@ Texture2D    AlbedoTex      : register(ALBEDO_TEXTURE_REGISTER,     MATERIAL_RES
 Texture2D    RoughnessTex   : register(ROUGHNESS_TEXTURE_REGISTER,  MATERIAL_RESOURCES_SPACE);
 Texture2D    MetalnessTex   : register(METALNESS_TEXTURE_REGISTER,  MATERIAL_RESOURCES_SPACE);
 Texture2D    NormalMapTex   : register(NORMAL_MAP_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
-Texture2D    EnvMapTex      : register(ENV_MAP_TEXTURE_REGISTER,    MATERIAL_RESOURCES_SPACE);
-Texture2D    ReflMapTex     : register(REFL_MAP_TEXTURE_REGISTER,   MATERIAL_RESOURCES_SPACE);
 SamplerState ClampedSampler : register(CLAMPED_TEXTURE,             MATERIAL_RESOURCES_SPACE);
 
 PackedGBuffer psmain(VSOutput input)
 {
-    GBuffer gbuffer = (GBuffer)0;
-    gbuffer.position     = input.positionWS;
+    GBuffer gbuffer  = (GBuffer)0;
+    gbuffer.position = input.positionWS;
     
     float3 normal = input.normal;
     if (Material.normalSelect == 1) {
@@ -57,9 +55,9 @@ PackedGBuffer psmain(VSOutput input)
         gbuffer.metalness = MetalnessTex.Sample(ClampedSampler, input.texCoord).r;
     }
     
-    gbuffer.ambOcc       = 1;    
-    gbuffer.iblStrength  = (Material.iblSelect == 1) ? Material.iblStrength : 0.0;
-    gbuffer.reflStrength = (Material.envSelect == 1) ? Material.envStrength : 0.0;
+    gbuffer.ambOcc      = 1;    
+    gbuffer.iblStrength = Material.iblStrength;
+    gbuffer.envStrength = Material.envStrength;
         
     PackedGBuffer packed = PackGBuffer(gbuffer);
     return packed;

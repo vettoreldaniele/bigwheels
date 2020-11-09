@@ -51,6 +51,7 @@ DrawPassCreateInfo::DrawPassCreateInfo(const grfx::DrawPassCreateInfo2& obj)
     this->width             = obj.width;
     this->height            = obj.height;
     this->renderTargetCount = obj.renderTargetCount;
+    this->depthStencilState = obj.depthStencilState;
 
     // Images
     for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
@@ -71,6 +72,7 @@ DrawPassCreateInfo::DrawPassCreateInfo(const grfx::DrawPassCreateInfo3& obj)
     this->width             = obj.width;
     this->height            = obj.height;
     this->renderTargetCount = obj.renderTargetCount;
+    this->depthStencilState = obj.depthStencilState;
 
     // Textures
     for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
@@ -261,10 +263,38 @@ Result DrawPass::CreateApiObjects(const grfx::internal::DrawPassCreateInfo* pCre
             stencilLoadOp = grfx::ATTACHMENT_LOAD_OP_CLEAR;
         }
 
+        // If the the depth/stencil state has READ for either depth or stecil
+        // then skip creating any LOAD_OP_CLEAR render passes for it.
+        // Not skipping will result in API errors.
+        //
+        bool skip = false;
+        if (depthLoadOp == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
+            switch (pCreateInfo->depthStencilState) {
+                default: break;
+                case grfx::RESOURCE_STATE_DEPTH_STENCIL_READ:
+                case grfx::RESOURCE_STATE_DEPTH_READ_STENCIL_WRITE: {
+                    skip = true;
+                } break;
+            }
+        }
+        if (stencilLoadOp == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
+            switch (pCreateInfo->depthStencilState) {
+                default: break;
+                case grfx::RESOURCE_STATE_DEPTH_STENCIL_READ:
+                case grfx::RESOURCE_STATE_DEPTH_WRITE_STENCIL_READ: {
+                    skip = true;
+                } break;
+            }
+        }
+        if (skip) {
+            continue;
+        }
+
         grfx::RenderPassCreateInfo3 rpCreateInfo = {};
         rpCreateInfo.width                       = pCreateInfo->width;
         rpCreateInfo.height                      = pCreateInfo->height;
         rpCreateInfo.renderTargetCount           = pCreateInfo->renderTargetCount;
+        rpCreateInfo.depthStencilState           = pCreateInfo->depthStencilState;
 
         for (uint32_t i = 0; i < rpCreateInfo.renderTargetCount; ++i) {
             if (!mRenderTargetTextures[i]) {
@@ -403,11 +433,15 @@ void DrawPass::PrepareRenderPassBeginInfo(const grfx::DrawPassClearFlags& clearF
     pBeginInfo->renderArea    = GetRenderArea();
     pBeginInfo->RTVClearCount = mCreateInfo.renderTargetCount;
 
-    for (uint32_t i = 0; i < mCreateInfo.renderTargetCount; ++i) {
-        pBeginInfo->RTVClearValues[i] = mCreateInfo.renderTargetClearValues[i];
+    if (clearFlags & grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_RENDER_TARGETS) {
+        for (uint32_t i = 0; i < mCreateInfo.renderTargetCount; ++i) {
+            pBeginInfo->RTVClearValues[i] = mCreateInfo.renderTargetClearValues[i];
+        }
     }
 
-    pBeginInfo->DSVClearValue = mCreateInfo.depthStencilClearValue;
+    if ((clearFlags & grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_DEPTH) || (clearFlags & grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_STENCIL)) {
+        pBeginInfo->DSVClearValue = mCreateInfo.depthStencilClearValue;
+    }
 }
 
 } // namespace grfx

@@ -216,6 +216,7 @@ struct FullscreenQuadCreateInfo
 
     uint32_t     renderTargetCount                           = 0;
     grfx::Format renderTargetFormats[PPX_MAX_RENDER_TARGETS] = {grfx::FORMAT_UNDEFINED};
+    grfx::Format depthStencilFormat                          = grfx::FORMAT_UNDEFINED;
 };
 
 class FullscreenQuad

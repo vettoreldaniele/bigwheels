@@ -12,8 +12,8 @@
 #define NORMAL_MAP_TEXTURE_REGISTER t3 
 #define AMB_OCC_TEXTURE_REGISTER    t4
 #define HEIGHT_MAP_TEXTURE_REGISTER t5
-#define ENV_MAP_TEXTURE_REGISTER    t6
-#define REFL_MAP_TEXTURE_REGISTER   t7
+#define IBL_MAP_TEXTURE_REGISTER    t6
+#define ENV_MAP_TEXTURE_REGISTER    t7
 
 #define CLAMPED_TEXTURE s8
 
@@ -44,13 +44,13 @@ struct MaterialData
     float  roughness;
     float  metalness;
     float  iblStrength;
-    float  reflectionStrength;
+    float  envStrength;
     uint   albedoSelect;     // 0 = value, 1 = texture
     uint   roughnessSelect;  // 0 = value, 1 = texture
     uint   metalnessSelect;  // 0 = value, 1 = texture
     uint   normalSelect;     // 0 = attrb, 1 = texture
     uint   iblSelect;        // 0 = white, 1 = texture
-    uint   reflectionSelect; // 0 = none,  1 = texture
+    uint   envSelect;        // 0 = none,  1 = texture
 };
 
 struct ModelData

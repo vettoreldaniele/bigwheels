@@ -29,6 +29,9 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         if (pCreateInfo->usageFlags.bits.storage) {
             flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
         }
+        if (pCreateInfo->usageFlags.bits.colorAttachment) {
+            flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+        }
         if (pCreateInfo->usageFlags.bits.depthStencilAttachment) {
             flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
         }

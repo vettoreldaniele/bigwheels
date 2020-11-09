@@ -104,8 +104,8 @@ void FillOutGraphicsPipelineCreateInfo(
 
     // Depth/stencil
     {
-        pDstCreateInfo->depthStencilState.depthTestEnable       = pSrcCreateInfo->depthEnable;
-        pDstCreateInfo->depthStencilState.depthWriteEnable      = pSrcCreateInfo->depthEnable;
+        pDstCreateInfo->depthStencilState.depthTestEnable       = pSrcCreateInfo->depthReadEnable;
+        pDstCreateInfo->depthStencilState.depthWriteEnable      = pSrcCreateInfo->depthWriteEnable;
         pDstCreateInfo->depthStencilState.depthCompareOp        = grfx::COMPARE_OP_LESS;
         pDstCreateInfo->depthStencilState.depthBoundsTestEnable = false;
         pDstCreateInfo->depthStencilState.minDepthBounds        = 0.0f;

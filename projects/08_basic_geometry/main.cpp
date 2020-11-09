@@ -147,7 +147,8 @@ void ProjApp::Setup()
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
         gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
-        gpCreateInfo.depthEnable                        = true;
+        gpCreateInfo.depthReadEnable                    = true;
+        gpCreateInfo.depthWriteEnable                   = true;
         gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
         gpCreateInfo.outputState.renderTargetCount      = 1;
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
@@ -267,7 +268,7 @@ void ProjApp::Render()
             frame.cmd->BindVertexBuffers(mInterleavedU32.model);
             frame.cmd->DrawIndexed(mInterleavedU32.model->GetIndexCount());
 
-            // Interleaved 
+            // Interleaved
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleaved.descriptorSet);
             frame.cmd->BindVertexBuffers(mInterleaved.model);
             frame.cmd->Draw(mInterleaved.model->GetVertexCount());
@@ -289,7 +290,7 @@ void ProjApp::Render()
             frame.cmd->BindVertexBuffers(mPlanarU32.model);
             frame.cmd->DrawIndexed(mPlanarU32.model->GetIndexCount());
 
-            // Planar 
+            // Planar
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanar.descriptorSet);
             frame.cmd->BindVertexBuffers(mPlanar.model);
             frame.cmd->Draw(mPlanar.model->GetVertexCount());

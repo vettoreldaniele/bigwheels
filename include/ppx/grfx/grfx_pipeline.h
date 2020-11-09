@@ -167,7 +167,8 @@ struct GraphicsPipelineCreateInfo2
     grfx::PolygonMode              polygonMode                        = grfx::POLYGON_MODE_FILL;
     grfx::CullMode                 cullMode                           = grfx::CULL_MODE_NONE;
     grfx::FrontFace                frontFace                          = grfx::FRONT_FACE_CCW;
-    bool                           depthEnable                        = true; // Depth read AND write state
+    bool                           depthReadEnable                    = true;
+    bool                           depthWriteEnable                   = true;
     grfx::BlendMode                blendModes[PPX_MAX_RENDER_TARGETS] = {grfx::BLEND_MODE_NONE};
     grfx::OutputState              outputState                        = {};
     const grfx::PipelineInterface* pPipelineInterface                 = nullptr;

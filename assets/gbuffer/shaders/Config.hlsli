@@ -12,8 +12,8 @@
 #define NORMAL_MAP_TEXTURE_REGISTER t3 
 #define AMB_OCC_TEXTURE_REGISTER    t4
 #define HEIGHT_MAP_TEXTURE_REGISTER t5
-#define ENV_MAP_TEXTURE_REGISTER    t6
-#define REFL_MAP_TEXTURE_REGISTER   t7
+#define IBL_MAP_TEXTURE_REGISTER    t6
+#define ENV_MAP_TEXTURE_REGISTER    t7
 
 #define CLAMPED_TEXTURE s8
 
@@ -49,8 +49,6 @@ struct MaterialData
     uint   roughnessSelect;  // 0 = value, 1 = texture
     uint   metalnessSelect;  // 0 = value, 1 = texture
     uint   normalSelect;     // 0 = attrb, 1 = texture
-    uint   iblSelect;        // 0 = white, 1 = texture
-    uint   envSelect;        // 0 = none,  1 = texture
 };
 
 struct ModelData
@@ -70,6 +68,7 @@ struct VSInput
     float3 bitangnet : BITANGENT;
 };
 
+#if ! defined(CUSTOM_VS_OUTPUT)
 struct VSOutput
 {
     float4 position    : SV_POSITION;
@@ -81,6 +80,7 @@ struct VSOutput
     float3 tangentTS   : TANGENTTS;
     float3 bitangnetTS : BITANGENTTS;
 };
+#endif // ! defined(CUSTOM_VS_OUTPUT)
 
 // circular atan2 - converts (x,y) on a unit circle to [0, 2pi]
 //

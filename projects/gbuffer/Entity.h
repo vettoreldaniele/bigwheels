@@ -28,13 +28,13 @@ public:
     ppx::Transform&       GetTransform() { return mTransform; }
     const ppx::Transform& GetTransform() const { return mTransform; }
 
-    void UpdateConstants();
+    void UpdateConstants(ppx::grfx::Queue* pQueue);
     void Draw(ppx::grfx::DescriptorSet* pSceneDataSet, ppx::grfx::CommandBuffer* pCmd);
 
 private:
     ppx::Transform              mTransform;
     ppx::grfx::ModelPtr         mModel;
-    Material*                   mMaterial = nullptr;
+    const Material*             mMaterial = nullptr;
     ppx::grfx::BufferPtr        mCpuModelConstants;
     ppx::grfx::BufferPtr        mGpuModelConstants;
     ppx::grfx::DescriptorSetPtr mModelDataSet;

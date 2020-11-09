@@ -87,12 +87,13 @@ namespace internal {
 
 RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo& obj)
 {
-    this->version = CREATE_INFO_VERSION_1;
-    this->width   = obj.width;
-    this->height  = obj.height;
+    this->version           = CREATE_INFO_VERSION_1;
+    this->width             = obj.width;
+    this->height            = obj.height;
+    this->renderTargetCount = obj.renderTargetCount;
+    this->depthStencilState = obj.depthStencilState;
 
     // Views
-    this->renderTargetCount = obj.renderTargetCount;
     for (uint32_t i = 0; i < this->renderTargetCount; ++i) {
         this->V1.pRenderTargetViews[i] = obj.pRenderTargetViews[i];
     }
@@ -156,6 +157,7 @@ RenderPassCreateInfo::RenderPassCreateInfo(const grfx::RenderPassCreateInfo3& ob
     this->width             = obj.width;
     this->height            = obj.height;
     this->renderTargetCount = obj.renderTargetCount;
+    this->depthStencilState = obj.depthStencilState;
 
     // Images
     for (uint32_t i = 0; i < this->renderTargetCount; ++i) {

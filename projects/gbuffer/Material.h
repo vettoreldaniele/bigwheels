@@ -13,7 +13,6 @@ using ppx::hlsl_float4;
 using ppx::hlsl_int;
 using ppx::hlsl_int2;
 using ppx::hlsl_int3;
-using ppx::hlsl_uint4;
 using ppx::hlsl_uint;
 using ppx::hlsl_uint2;
 using ppx::hlsl_uint3;
@@ -50,8 +49,6 @@ struct MaterialConstants
     hlsl_uint<4>    roughnessSelect;
     hlsl_uint<4>    metalnessSelect;
     hlsl_uint<4>    normalSelect;
-    hlsl_uint<4>    iblSelect;
-    hlsl_uint<4>    envSelect;
 };
 PPX_HLSL_PACK_END();
 
@@ -67,8 +64,6 @@ struct MaterialCreateInfo
     ppx::fs::path roughnessTexturePath;
     ppx::fs::path metalnessTexturePath;
     ppx::fs::path normalTexturePath;
-    ppx::fs::path iblTexturePath;
-    ppx::fs::path envTexturePath;
 };
 
 class Material
@@ -88,26 +83,27 @@ public:
     static Material* GetMaterialCopper() { return &sCopper; }
     static Material* GetMaterialGold() { return &sGold; }
     static Material* GetMaterialTitanium() { return &sTitanium; }
+    static Material* GetMaterialWhiteRoughPlastic() { return &sWhiteRoughPlastic; }
+    static Material* GetMaterialStoneTile() { return &sStoneTile; }
 
     static ppx::grfx::DescriptorSetLayout* GetMaterialResourcesLayout() { return sMaterialResourcesLayout.Get(); }
     static ppx::grfx::DescriptorSetLayout* GetMaterialDataLayout() { return sMaterialDataLayout.Get(); }
 
-    ppx::grfx::DescriptorSet* GetSet1() const { return mMaterialResourcesSet.Get(); }
-    ppx::grfx::DescriptorSet* GetSet2() const { return mMaterialDataSet.Get(); }
+    ppx::grfx::DescriptorSet* GetMaterialResourceSet() const { return mMaterialResourcesSet.Get(); }
+    ppx::grfx::DescriptorSet* GetMaterialDataSet() const { return mMaterialDataSet.Get(); }
 
 private:
-    ppx::grfx::BufferPtr        mMateriaConstants;
+    ppx::grfx::BufferPtr        mMaterialConstants;
     ppx::grfx::TexturePtr       mAlbedoTexture;
     ppx::grfx::TexturePtr       mRoughnessTexture;
     ppx::grfx::TexturePtr       mMetalnessTexture;
-    ppx::grfx::TexturePtr       mNormaMapTexture;
-    ppx::grfx::TexturePtr       mIBLTexture;
-    ppx::grfx::TexturePtr       mEnvTexture;
+    ppx::grfx::TexturePtr       mNormalMapTexture;
     ppx::grfx::DescriptorSetPtr mMaterialResourcesSet;
     ppx::grfx::DescriptorSetPtr mMaterialDataSet;
 
     static ppx::grfx::TexturePtr             s1x1BlackTexture;
     static ppx::grfx::TexturePtr             s1x1WhiteTexture;
+    static ppx::grfx::SamplerPtr             sClampedSampler;
     static ppx::grfx::DescriptorSetLayoutPtr sMaterialResourcesLayout;
     static ppx::grfx::DescriptorSetLayoutPtr sMaterialDataLayout;
 
@@ -117,6 +113,8 @@ private:
     static Material sGold;
     static Material sTitanium;
     static Material sZinc;
+    static Material sWhiteRoughPlastic;
+    static Material sStoneTile;
 };
 
 #endif // MATERIAL_H

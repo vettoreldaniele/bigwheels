@@ -67,8 +67,8 @@ private:
     grfx::DescriptorSetLayoutPtr  mIBLLayout;
     grfx::DescriptorSetPtr        mIBLSet;
     grfx::BufferPtr               mIBLConstants;
+    std::vector<grfx::TexturePtr> mIBLMaps;
     std::vector<grfx::TexturePtr> mIBLEnvMaps;
-    std::vector<grfx::TexturePtr> mIBLReflMaps;
     grfx::PipelineInterfacePtr    mIBLPipelineInterface;
     grfx::GraphicsPipelinePtr     mIBLPipeline;
 
@@ -121,17 +121,17 @@ private:
 
     struct MaterialData
     {
-        float3 albedo             = float3(0.4f, 0.4f, 0.7f);
-        float  roughness          = 0.5f; // 0 = smooth, 1 = rough
-        float  metalness          = 0.5f; // 0 = dielectric, 1 = metal
-        float  iblStrength        = 1.0f; // 0 = nocontrib, 5 = max
-        float  reflectionStrength = 0.4f; // 0 = nocontrig, 1 = max
-        bool   albedoSelect       = 1;    // 0 = value, 1 = texture
-        bool   roughnessSelect    = 1;    // 0 = value, 1 = texture
-        bool   metalnessSelect    = 1;    // 0 = value, 1 = texture
-        bool   normalSelect       = 0;    // 0 = attrb, 1 = texture
-        bool   iblSelect          = 1;    // 0 = white, 1 = texture
-        bool   reflectionSelect   = 1;    // 0 = none,  1 = texture
+        float3 albedo          = float3(0.4f, 0.4f, 0.7f);
+        float  roughness       = 0.5f; // 0 = smooth, 1 = rough
+        float  metalness       = 0.5f; // 0 = dielectric, 1 = metal
+        float  iblStrength     = 1.0f; // 0 = nocontrib, 5 = max
+        float  envStrength     = 0.4f; // 0 = nocontrig, 1 = max
+        bool   albedoSelect    = 1;    // 0 = value, 1 = texture
+        bool   roughnessSelect = 1;    // 0 = value, 1 = texture
+        bool   metalnessSelect = 1;    // 0 = value, 1 = texture
+        bool   normalSelect    = 0;    // 0 = attrb, 1 = texture
+        bool   iblSelect       = 1;    // 0 = white, 1 = texture
+        bool   envSelect       = 1;    // 0 = none,  1 = texture
     };
 
     float        mRotY         = 0;
@@ -289,55 +289,55 @@ void ProjApp::SetupIBLResources()
     {
         grfx::TexturePtr env;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/ibl.hdr"), &env));
-        mIBLEnvMaps.push_back(env);
+        mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &refl));
-        mIBLReflMaps.push_back(refl);
+        mIBLEnvMaps.push_back(refl);
     }
 
     // PaperMill
     {
         grfx::TexturePtr env;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/ibl.hdr"), &env));
-        mIBLEnvMaps.push_back(env);
+        mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &refl));
-        mIBLReflMaps.push_back(refl);
+        mIBLEnvMaps.push_back(refl);
     }
 
     // UenoShrine
     {
         grfx::TexturePtr env;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/ibl.hdr"), &env));
-        mIBLEnvMaps.push_back(env);
+        mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &refl));
-        mIBLReflMaps.push_back(refl);
+        mIBLEnvMaps.push_back(refl);
     }
 
     // TokyoBigSight
     {
         grfx::TexturePtr env;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/ibl.hdr"), &env));
-        mIBLEnvMaps.push_back(env);
+        mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &refl));
-        mIBLReflMaps.push_back(refl);
+        mIBLEnvMaps.push_back(refl);
     }
 
     // TropicalBeach
     {
         grfx::TexturePtr env;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/ibl.hdr"), &env));
-        mIBLEnvMaps.push_back(env);
+        mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &refl));
-        mIBLReflMaps.push_back(refl);
+        mIBLEnvMaps.push_back(refl);
     }
 
     // Allocate descriptor set
@@ -356,7 +356,7 @@ void ProjApp::SetupIBLResources()
         write            = {};
         write.binding    = 1;
         write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView = mIBLReflMaps[mCurrentIBLIndex]->GetSampledImageView();
+        write.pImageView = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
 
         write          = {};
@@ -396,7 +396,8 @@ void ProjApp::SetupIBLResources()
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_FRONT;
         gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
-        gpCreateInfo.depthEnable                        = true;
+        gpCreateInfo.depthReadEnable                    = true;
+        gpCreateInfo.depthWriteEnable                   = true;
         gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
         gpCreateInfo.outputState.renderTargetCount      = 1;
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
@@ -473,7 +474,7 @@ void ProjApp::SetupMaterialResources(
         write.binding               = 6;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
+        write.pImageView            = mIBLMaps[mCurrentIBLIndex]->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
@@ -483,7 +484,7 @@ void ProjApp::SetupMaterialResources(
         write.binding               = 7;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView            = mIBLReflMaps[mCurrentIBLIndex]->GetSampledImageView();
+        write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
@@ -790,7 +791,8 @@ void ProjApp::Setup()
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
         gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
-        gpCreateInfo.depthEnable                        = true;
+        gpCreateInfo.depthReadEnable                    = true;
+        gpCreateInfo.depthWriteEnable                   = true;
         gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
         gpCreateInfo.outputState.renderTargetCount      = 1;
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
@@ -917,7 +919,7 @@ void ProjApp::UpdateEnvDescriptors()
             write                       = {};
             write.binding               = 1;
             write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            write.pImageView            = mIBLReflMaps[mCurrentIBLIndex]->GetSampledImageView();
+            write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
             PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
         }
 
@@ -929,7 +931,7 @@ void ProjApp::UpdateEnvDescriptors()
                 write.binding               = 6;
                 write.arrayIndex            = 0;
                 write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-                write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
+                write.pImageView            = mIBLMaps[mCurrentIBLIndex]->GetSampledImageView();
                 PPX_CHECKED_CALL(ppxres = mMaterialResourcesSets[i]->UpdateDescriptors(1, &write));
             }
 
@@ -939,7 +941,7 @@ void ProjApp::UpdateEnvDescriptors()
                 write.binding               = 7;
                 write.arrayIndex            = 0;
                 write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-                write.pImageView            = mIBLReflMaps[mCurrentIBLIndex]->GetSampledImageView();
+                write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
                 PPX_CHECKED_CALL(ppxres = mMaterialResourcesSets[i]->UpdateDescriptors(1, &write));
             }
         }
@@ -1042,32 +1044,32 @@ void ProjApp::Render()
             hlsl_float<4>   roughness;
             hlsl_float<4>   metalness;
             hlsl_float<4>   iblStrength;
-            hlsl_float<4>   reflectionStrength;
+            hlsl_float<4>   envStrength;
             hlsl_uint<4>    albedoSelect;
             hlsl_uint<4>    roughnessSelect;
             hlsl_uint<4>    metalnessSelect;
             hlsl_uint<4>    normalSelect;
             hlsl_uint<4>    iblSelect;
-            hlsl_uint<4>    reflectionSelect;
+            hlsl_uint<4>    envSelect;
         };
         PPX_HLSL_PACK_END();
 
         void* pMappedAddress = nullptr;
         PPX_CHECKED_CALL(ppxres = mCpuMaterialConstants->MapMemory(0, &pMappedAddress));
 
-        HlslMaterial* pMaterial       = static_cast<HlslMaterial*>(pMappedAddress);
-        pMaterial->F0                 = mF0[mF0Index];
-        pMaterial->albedo             = (mF0Index <= 10) ? mF0[mF0Index] : mAlbedoColor;
-        pMaterial->roughness          = mMaterialData.roughness;
-        pMaterial->metalness          = mMaterialData.metalness;
-        pMaterial->iblStrength        = mMaterialData.iblStrength;
-        pMaterial->reflectionStrength = mMaterialData.reflectionStrength;
-        pMaterial->albedoSelect       = mMaterialData.albedoSelect;
-        pMaterial->roughnessSelect    = mMaterialData.roughnessSelect;
-        pMaterial->metalnessSelect    = mMaterialData.metalnessSelect;
-        pMaterial->normalSelect       = mMaterialData.normalSelect;
-        pMaterial->iblSelect          = mMaterialData.iblSelect;
-        pMaterial->reflectionSelect   = mMaterialData.reflectionSelect;
+        HlslMaterial* pMaterial    = static_cast<HlslMaterial*>(pMappedAddress);
+        pMaterial->F0              = mF0[mF0Index];
+        pMaterial->albedo          = (mF0Index <= 10) ? mF0[mF0Index] : mAlbedoColor;
+        pMaterial->roughness       = mMaterialData.roughness;
+        pMaterial->metalness       = mMaterialData.metalness;
+        pMaterial->iblStrength     = mMaterialData.iblStrength;
+        pMaterial->envStrength     = mMaterialData.envStrength;
+        pMaterial->albedoSelect    = mMaterialData.albedoSelect;
+        pMaterial->roughnessSelect = mMaterialData.roughnessSelect;
+        pMaterial->metalnessSelect = mMaterialData.metalnessSelect;
+        pMaterial->normalSelect    = mMaterialData.normalSelect;
+        pMaterial->iblSelect       = mMaterialData.iblSelect;
+        pMaterial->envSelect       = mMaterialData.envSelect;
 
         mCpuMaterialConstants->UnmapMemory();
 
@@ -1103,7 +1105,7 @@ void ProjApp::Render()
         GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants);
     }
 
-    // Update environment constants
+    // Update IBL environment constants
     {
         void* pMappedAddress = nullptr;
         PPX_CHECKED_CALL(ppxres = mIBLConstants->MapMemory(0, &pMappedAddress));
@@ -1266,7 +1268,7 @@ void ProjApp::DrawGui()
     ImGui::Checkbox("PBR Use Metalness Texture", &mMaterialData.metalnessSelect);
     ImGui::Checkbox("PBR Use Normal Map", &mMaterialData.normalSelect);
     ImGui::Checkbox("PBR Use IBL", &mMaterialData.iblSelect);
-    ImGui::Checkbox("PBR Use Reflection Map", &mMaterialData.reflectionSelect);
+    ImGui::Checkbox("PBR Use Reflection Map", &mMaterialData.envSelect);
 
     ImGui::Separator();
 
@@ -1286,7 +1288,7 @@ void ProjApp::DrawGui()
     }
 
     ImGui::SliderFloat("PBR IBL Strength", &mMaterialData.iblStrength, 0.0f, 25.0f, "%.03f");
-    ImGui::SliderFloat("PBR Reflection Strength", &mMaterialData.reflectionStrength, 0.0f, 5.0f, "%.03f");
+    ImGui::SliderFloat("PBR Reflection Strength", &mMaterialData.envStrength, 0.0f, 5.0f, "%.03f");
 }
 
 int main(int argc, char** argv)

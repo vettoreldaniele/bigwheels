@@ -10,8 +10,8 @@ Texture2D    AlbedoTex      : register(ALBEDO_TEXTURE_REGISTER,     MATERIAL_RES
 Texture2D    RoughnessTex   : register(ROUGHNESS_TEXTURE_REGISTER,  MATERIAL_RESOURCES_SPACE);
 Texture2D    MetalnessTex   : register(METALNESS_TEXTURE_REGISTER,  MATERIAL_RESOURCES_SPACE);
 Texture2D    NormalMapTex   : register(NORMAL_MAP_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
+Texture2D    IBLTex         : register(IBL_MAP_TEXTURE_REGISTER,    MATERIAL_RESOURCES_SPACE);
 Texture2D    EnvMapTex      : register(ENV_MAP_TEXTURE_REGISTER,    MATERIAL_RESOURCES_SPACE);
-Texture2D    ReflMapTex     : register(REFL_MAP_TEXTURE_REGISTER,   MATERIAL_RESOURCES_SPACE);
 SamplerState ClampedSampler : register(CLAMPED_TEXTURE,             MATERIAL_RESOURCES_SPACE);
 
 float DistributionGGX(float3 N, float3 H, float roughness)
@@ -160,16 +160,16 @@ float4 psmain(VSOutput input) : SV_TARGET
     
     float3 irradiance = (float3)1.0; 
     if (Material.iblSelect == 1) {
-        irradiance = Environment(EnvMapTex, R) * Material.iblStrength;
+        irradiance = Environment(IBLTex, R) * Material.iblStrength;
     }
     
     float3 diffuse    = irradiance * albedo +  Scene.ambient;
     float3 ambient    = (kD * diffuse) * ao;    
         
-    // Reflection
+    // Environment reflection
     float3 reflection = (float3)0.0;
-    if (Material.reflectionSelect) {
-        reflection = Environment(ReflMapTex, R) * Material.reflectionStrength;
+    if (Material.envSelect) {
+        reflection = Environment(EnvMapTex, R) * Material.envStrength;
     }    
     
     // Final color

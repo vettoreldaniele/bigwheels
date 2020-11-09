@@ -777,8 +777,11 @@ Result FullscreenQuad::InternalCreate(grfx::Device* pDevice, FullscreenQuadCreat
         grfx::GraphicsPipelineCreateInfo2 createInfo = {};
         createInfo.VS                                = {pCreateInfo->VS, "vsmain"};
         createInfo.PS                                = {pCreateInfo->PS, "psmain"};
+        createInfo.depthReadEnable                   = false;
+        createInfo.depthWriteEnable                  = false;
         createInfo.pPipelineInterface                = mPipelineInterface;
-        // Render target
+        createInfo.outputState.depthStencilFormat    = pCreateInfo->depthStencilFormat;
+        // Render target formats
         createInfo.outputState.renderTargetCount = pCreateInfo->renderTargetCount;
         for (uint32_t i = 0; i < createInfo.outputState.renderTargetCount; ++i) {
             createInfo.blendModes[i]                      = grfx::BLEND_MODE_NONE;

@@ -1,4 +1,5 @@
 #include "Material.h"
+#include "Render.h"
 
 #include "ppx/grfx/grfx_device.h"
 #include "ppx/grfx/grfx_scope.h"
@@ -29,6 +30,7 @@ const float3 F0_DiletricDiamond = float3(0.150f);
 
 ppx::grfx::TexturePtr             Material::s1x1BlackTexture;
 ppx::grfx::TexturePtr             Material::s1x1WhiteTexture;
+ppx::grfx::SamplerPtr             Material::sClampedSampler;
 ppx::grfx::DescriptorSetLayoutPtr Material::sMaterialResourcesLayout;
 ppx::grfx::DescriptorSetLayoutPtr Material::sMaterialDataLayout;
 
@@ -38,6 +40,8 @@ Material Material::sCopper;
 Material Material::sGold;
 Material Material::sTitanium;
 Material Material::sZinc;
+Material Material::sWhiteRoughPlastic;
+Material Material::sStoneTile;
 
 static std::map<std::string, grfx::TexturePtr> mTextureCache;
 
@@ -71,9 +75,6 @@ ppx::Result Material::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool
 
     grfx::Device* pDevice = pQueue->GetDevice();
 
-    // Scoped destroy
-    grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
-
     // Material constants temp buffer
     grfx::BufferPtr    tmpCpuMaterialConstants;
     MaterialConstants* pMaterialConstants = nullptr;
@@ -83,7 +84,6 @@ ppx::Result Material::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool
         bufferCreateInfo.usageFlags.bits.transferSrc = true;
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
         PPX_CHECKED_CALL(ppxres = pDevice->CreateBuffer(&bufferCreateInfo, &tmpCpuMaterialConstants));
-        SCOPED_DESTROYER.AddObject(tmpCpuMaterialConstants);
 
         PPX_CHECKED_CALL(ppxres = tmpCpuMaterialConstants->MapMemory(0, reinterpret_cast<void**>(&pMaterialConstants)));
         if (Failed(ppxres)) {
@@ -91,40 +91,40 @@ ppx::Result Material::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool
         }
     }
 
-    // Albedo
+    // Values
+    pMaterialConstants->F0          = pCreateInfo->F0;
+    pMaterialConstants->albedo      = pCreateInfo->albedo;
+    pMaterialConstants->roughness   = pCreateInfo->roughness;
+    pMaterialConstants->metalness   = pCreateInfo->metalness;
+    pMaterialConstants->iblStrength = pCreateInfo->iblStrength;
+    pMaterialConstants->envStrength = pCreateInfo->envStrength;
+
+    // Albedo texture
+    mAlbedoTexture = s1x1WhiteTexture;
     if (!pCreateInfo->albedoTexturePath.empty()) {
         PPX_CHECKED_CALL(ppxres = LoadTexture(pQueue, pCreateInfo->albedoTexturePath, &mAlbedoTexture));
         pMaterialConstants->albedoSelect = 1;
     }
 
-    // Roughness
+    // Roughness texture
+    mRoughnessTexture = s1x1BlackTexture;
     if (!pCreateInfo->roughnessTexturePath.empty()) {
         PPX_CHECKED_CALL(ppxres = LoadTexture(pQueue, pCreateInfo->roughnessTexturePath, &mRoughnessTexture));
         pMaterialConstants->roughnessSelect = 1;
     }
 
-    // Metalness
+    // Metalness texture
+    mMetalnessTexture = s1x1BlackTexture;
     if (!pCreateInfo->metalnessTexturePath.empty()) {
         PPX_CHECKED_CALL(ppxres = LoadTexture(pQueue, pCreateInfo->metalnessTexturePath, &mMetalnessTexture));
         pMaterialConstants->metalnessSelect = 1;
     }
 
-    // Normal map
+    // Normal map texture
+    mNormalMapTexture = s1x1BlackTexture;
     if (!pCreateInfo->normalTexturePath.empty()) {
-        PPX_CHECKED_CALL(ppxres = LoadTexture(pQueue, pCreateInfo->normalTexturePath, &mNormaMapTexture));
+        PPX_CHECKED_CALL(ppxres = LoadTexture(pQueue, pCreateInfo->normalTexturePath, &mNormalMapTexture));
         pMaterialConstants->normalSelect = 1;
-    }
-
-    // IBL
-    if (!pCreateInfo->iblTexturePath.empty()) {
-        PPX_CHECKED_CALL(ppxres = LoadTexture(pQueue, pCreateInfo->iblTexturePath, &mIBLTexture));
-        pMaterialConstants->iblStrength = pCreateInfo->iblStrength;
-    }
-
-    // Environment map
-    if (!pCreateInfo->envTexturePath.empty()) {
-        PPX_CHECKED_CALL(ppxres = LoadTexture(pQueue, pCreateInfo->envTexturePath, &mEnvTexture));
-        pMaterialConstants->envStrength = pCreateInfo->envStrength;
     }
 
     // Unmap since we're done
@@ -136,20 +136,63 @@ ppx::Result Material::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool
         bufferCreateInfo.size                          = tmpCpuMaterialConstants->GetSize();
         bufferCreateInfo.usageFlags.bits.transferDst   = true;
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
-        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-        PPX_CHECKED_CALL(ppxres = pDevice->CreateBuffer(&bufferCreateInfo, &mMateriaConstants));
-        SCOPED_DESTROYER.AddObject(mMateriaConstants);
+        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_GPU_ONLY;
+        PPX_CHECKED_CALL(ppxres = pDevice->CreateBuffer(&bufferCreateInfo, &mMaterialConstants));
 
         grfx::BufferToBufferCopyInfo copyInfo = {tmpCpuMaterialConstants->GetSize()};
 
-        ppxres = pQueue->CopyBufferToBuffer(&copyInfo, tmpCpuMaterialConstants, mMateriaConstants);
+        ppxres = pQueue->CopyBufferToBuffer(&copyInfo, tmpCpuMaterialConstants, mMaterialConstants);
         if (Failed(ppxres)) {
             return ppxres;
         }
     }
 
-    // Change ownership to reference so object doesn't get destroyed
-    mMateriaConstants->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+    // Allocate descriptor sets
+    PPX_CHECKED_CALL(ppxres = pDevice->AllocateDescriptorSet(pPool, sMaterialResourcesLayout, &mMaterialResourcesSet));
+    PPX_CHECKED_CALL(ppxres = pDevice->AllocateDescriptorSet(pPool, sMaterialDataLayout, &mMaterialDataSet));
+
+    // Update material resource descriptors
+    {
+        grfx::WriteDescriptor writes[5] = {};
+        writes[0].binding               = MATERIAL_ALBEDO_TEXTURE_REGISTER;
+        writes[0].arrayIndex            = 0;
+        writes[0].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        writes[0].pImageView            = mAlbedoTexture->GetSampledImageView();
+        writes[1].binding               = MATERIAL_ROUGHNESS_TEXTURE_REGISTER;
+        writes[1].arrayIndex            = 0;
+        writes[1].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        writes[1].pImageView            = mRoughnessTexture->GetSampledImageView();
+        writes[2].binding               = MATERIAL_METALNESS_TEXTURE_REGISTER;
+        writes[2].arrayIndex            = 0;
+        writes[2].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        writes[2].pImageView            = mMetalnessTexture->GetSampledImageView();
+        writes[3].binding               = MATERIAL_NORMAL_MAP_TEXTURE_REGISTER;
+        writes[3].arrayIndex            = 0;
+        writes[3].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        writes[3].pImageView            = mNormalMapTexture->GetSampledImageView();
+        writes[4].binding               = MATERILA_CLAMPED_SAMPLER_REGISTER;
+        writes[4].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
+        writes[4].pSampler              = sClampedSampler;
+
+        PPX_CHECKED_CALL(ppxres = mMaterialResourcesSet->UpdateDescriptors(5, writes));
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    // Update material data descriptors
+    {
+        grfx::WriteDescriptor write = {};
+        write.binding               = MODEL_CONSTANTS_REGISTER;
+        write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write.bufferOffset          = 0;
+        write.bufferRange           = PPX_WHOLE_SIZE;
+        write.pBuffer               = mMaterialConstants;
+        PPX_CHECKED_CALL(ppxres = mMaterialDataSet->UpdateDescriptors(1, &write));
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
 
     return ppx::SUCCESS;
 }
@@ -170,17 +213,26 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         PPX_CHECKED_CALL(ppxres = CreateTexture1x1(pQueue, float4(1), &s1x1WhiteTexture));
     }
 
+    // Create sampler
+    {
+        grfx::SamplerCreateInfo createInfo = {};
+        createInfo.magFilter               = grfx::FILTER_LINEAR;
+        createInfo.minFilter               = grfx::FILTER_LINEAR;
+        createInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
+        PPX_CHECKED_CALL(ppxres = pDevice->CreateSampler(&createInfo, &sClampedSampler));
+    }
+
     // Material resources layout
     {
+        // clang-format off
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-        createInfo.bindings.push_back({grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{2, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{3, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{6, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{7, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{8, grfx::DESCRIPTOR_TYPE_SAMPLER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_ALBEDO_TEXTURE_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_ROUGHNESS_TEXTURE_REGISTER,  grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_METALNESS_TEXTURE_REGISTER,  grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_NORMAL_MAP_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{MATERILA_CLAMPED_SAMPLER_REGISTER,    grfx::DESCRIPTOR_TYPE_SAMPLER,       1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = pDevice->CreateDescriptorSetLayout(&createInfo, &sMaterialResourcesLayout));
+        // clang-format on
     }
 
     // Material data layout
@@ -198,13 +250,11 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         createInfo.roughness            = 0;
         createInfo.metalness            = 1;
         createInfo.iblStrength          = 1;
-        createInfo.envStrength          = 0.3f;
+        createInfo.envStrength          = 0.2f;
         createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/RustedIron/albedo.png");
         createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/RustedIron/roughness.png");
         createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/RustedIron/metalness.png");
         createInfo.normalTexturePath    = Application::Get()->GetAssetPath("materials/textures/RustedIron/normal.png");
-        createInfo.iblTexturePath       = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/ibl.hdr");
-        createInfo.envTexturePath       = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/env.hdr");
 
         PPX_CHECKED_CALL(ppxres = sRustedIron.Create(pQueue, pPool, &createInfo));
     }
@@ -217,13 +267,11 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         createInfo.roughness            = 0;
         createInfo.metalness            = 1;
         createInfo.iblStrength          = 1;
-        createInfo.envStrength          = 0.3f;
+        createInfo.envStrength          = 0.2f;
         createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/PaintedMetal/albedo.jpg");
         createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/PaintedMetal/roughness.jpg");
         createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/PaintedMetal/metalness.jpg");
         createInfo.normalTexturePath    = Application::Get()->GetAssetPath("materials/textures/PaintedMetal/normal.jpg");
-        createInfo.iblTexturePath       = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/ibl.hdr");
-        createInfo.envTexturePath       = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/env.hdr");
 
         PPX_CHECKED_CALL(ppxres = sPaintedMetal.Create(pQueue, pPool, &createInfo));
     }
@@ -233,14 +281,12 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         MaterialCreateInfo createInfo = {};
         createInfo.F0                 = F0_Generic;
         createInfo.albedo             = F0_MetalCopper;
-        createInfo.roughness          = 0;
+        createInfo.roughness          = 0.5f;
         createInfo.metalness          = 1;
         createInfo.iblStrength        = 1;
-        createInfo.envStrength        = 0.3f;
-        createInfo.iblTexturePath     = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/ibl.hdr");
-        createInfo.envTexturePath     = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/env.hdr");
+        createInfo.envStrength        = 0.1f;
 
-        PPX_CHECKED_CALL(ppxres = sPaintedMetal.Create(pQueue, pPool, &createInfo));
+        PPX_CHECKED_CALL(ppxres = sCopper.Create(pQueue, pPool, &createInfo));
     }
 
     // Gold
@@ -248,14 +294,12 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         MaterialCreateInfo createInfo = {};
         createInfo.F0                 = F0_Generic;
         createInfo.albedo             = F0_MetalGold;
-        createInfo.roughness          = 0;
+        createInfo.roughness          = 0.25f;
         createInfo.metalness          = 1;
         createInfo.iblStrength        = 1;
         createInfo.envStrength        = 0.3f;
-        createInfo.iblTexturePath     = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/ibl.hdr");
-        createInfo.envTexturePath     = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/env.hdr");
 
-        PPX_CHECKED_CALL(ppxres = sPaintedMetal.Create(pQueue, pPool, &createInfo));
+        PPX_CHECKED_CALL(ppxres = sGold.Create(pQueue, pPool, &createInfo));
     }
 
     // Titanium
@@ -263,14 +307,12 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         MaterialCreateInfo createInfo = {};
         createInfo.F0                 = F0_Generic;
         createInfo.albedo             = F0_MetalTitanium;
-        createInfo.roughness          = 0;
+        createInfo.roughness          = 0.25f;
         createInfo.metalness          = 1;
         createInfo.iblStrength        = 1;
         createInfo.envStrength        = 0.3f;
-        createInfo.iblTexturePath     = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/ibl.hdr");
-        createInfo.envTexturePath     = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/env.hdr");
 
-        PPX_CHECKED_CALL(ppxres = sPaintedMetal.Create(pQueue, pPool, &createInfo));
+        PPX_CHECKED_CALL(ppxres = sTitanium.Create(pQueue, pPool, &createInfo));
     }
 
     // Zinc
@@ -278,14 +320,42 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         MaterialCreateInfo createInfo = {};
         createInfo.F0                 = F0_Generic;
         createInfo.albedo             = F0_MetalZinc;
-        createInfo.roughness          = 0;
+        createInfo.roughness          = 0.15f;
         createInfo.metalness          = 1;
         createInfo.iblStrength        = 1;
         createInfo.envStrength        = 0.3f;
-        createInfo.iblTexturePath     = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/ibl.hdr");
-        createInfo.envTexturePath     = Application::Get()->GetAssetPath("materials/ibl/UenoShrine/env.hdr");
 
-        PPX_CHECKED_CALL(ppxres = sPaintedMetal.Create(pQueue, pPool, &createInfo));
+        PPX_CHECKED_CALL(ppxres = sZinc.Create(pQueue, pPool, &createInfo));
+    }
+
+    // White Rough Plastic
+    {
+        MaterialCreateInfo createInfo = {};
+        createInfo.F0                 = F0_DiletricPlastic.x;
+        createInfo.albedo             = float3(1.0f, 1.0f, 1.0f);
+        createInfo.roughness          = 0.9f;
+        createInfo.metalness          = 0;
+        createInfo.iblStrength        = 0.025f;
+        createInfo.envStrength        = 0.0f;
+
+        PPX_CHECKED_CALL(ppxres = sWhiteRoughPlastic.Create(pQueue, pPool, &createInfo));
+    }
+
+    // Stone Tile
+    {
+        MaterialCreateInfo createInfo   = {};
+        createInfo.F0                   = F0_Generic;
+        createInfo.albedo               = F0_DiletricPlastic;
+        createInfo.roughness            = 0;
+        createInfo.metalness            = 0;
+        createInfo.iblStrength          = 0.6f;
+        createInfo.envStrength          = 0.05f;
+        createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/albedo.png");
+        createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/roughness.png");
+        //createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/metalness.png");
+        createInfo.normalTexturePath    = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/normal.png");
+
+        PPX_CHECKED_CALL(ppxres = sStoneTile.Create(pQueue, pPool, &createInfo));
     }
 
     return ppx::SUCCESS;
