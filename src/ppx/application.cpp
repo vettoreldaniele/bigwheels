@@ -545,7 +545,6 @@ Application* Application::Get()
     return sApplicationInstance;
 }
 
-
 void Application::InitializeAssetDirs()
 {
     fs::path appPath = GetApplicationPath();
@@ -669,6 +668,23 @@ Result Application::InitializeGrfxSurface()
         if (mSettings.grfx.swapchain.imageCount < surfaceMinImageCount) {
             PPX_LOG_WARN("readjusting swapchain's image count from " << mSettings.grfx.swapchain.imageCount << " to " << surfaceMinImageCount << " to match surface requirements");
             mSettings.grfx.swapchain.imageCount = surfaceMinImageCount;
+        }
+
+        //
+        // Cap the image width/height to what the surface caps are.
+        // The reason for this is that on Windows the TaskBar 
+        // affect the maximum size of the window if it has borders.
+        // For example an application can request a 1920x1080 window
+        // but because of the task bar, the window may get created
+        // at 1920x1061. This limits the swapchain's max image extents
+        // to 1920x1061.
+        //
+        const uint32_t surfaceMaxImageWidth  = mSurface->GetMaxImageWidth();
+        const uint32_t surfaceMaxImageHeight = mSurface->GetMaxImageHeight();
+        if ((mSettings.window.width > surfaceMaxImageWidth) || (mSettings.window.height > surfaceMaxImageHeight)) {
+            PPX_LOG_WARN("readjusting swapchain/window size from " << mSettings.window.width << "x" << mSettings.window.height << " to " << surfaceMaxImageWidth << "x" << surfaceMaxImageHeight << " to match surface requirements");
+            mSettings.window.width  = std::min(mSettings.window.width, surfaceMaxImageWidth);
+            mSettings.window.height = std::min(mSettings.window.height, surfaceMaxImageHeight);
         }
 
 #if defined(PPX_GGP)
@@ -1012,14 +1028,14 @@ int Application::Run(int argc, char** argv)
 
     // Update the window size if the settings got changed due to surface requiremetns
     {
-        int windowWidth = 0;
+        int windowWidth  = 0;
         int windowHeight = 0;
         glfwGetWindowSize(static_cast<GLFWwindow*>(mWindow), &windowWidth, &windowHeight);
         if ((static_cast<uint32_t>(windowWidth) != mSettings.window.width) || (static_cast<uint32_t>(windowHeight) != mSettings.window.width)) {
-           glfwSetWindowSize(
-              static_cast<GLFWwindow*>(mWindow),
-              static_cast<int>(mSettings.window.width),
-              static_cast<int>(mSettings.window.height));
+            glfwSetWindowSize(
+                static_cast<GLFWwindow*>(mWindow),
+                static_cast<int>(mSettings.window.width),
+                static_cast<int>(mSettings.window.height));
         }
     }
 
@@ -1297,6 +1313,21 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
             ImGui::Text("Previous Frame Time");
             ImGui::NextColumn();
             ImGui::Text("%f ms", mPreviousFrameTime);
+            ImGui::NextColumn();
+        }
+
+        ImGui::Separator();
+
+        // Swapchain
+        {
+            ImGui::Text("Swapchain Resolution");
+            ImGui::NextColumn();
+            ImGui::Text("%dx%d", mSwapchain->GetWidth(), mSwapchain->GetHeight());
+            ImGui::NextColumn();
+
+            ImGui::Text("Swapchain Image Count");
+            ImGui::NextColumn();
+            ImGui::Text("%d", mSwapchain->GetImageCount());
             ImGui::NextColumn();
         }
 

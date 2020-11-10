@@ -20,6 +20,9 @@ public:
     virtual uint32_t GetMinImageWidth() const override { return 0; }
     virtual uint32_t GetMinImageHeight() const override { return 0; }
     virtual uint32_t GetMinImageCount() const override { return 1; }
+    virtual uint32_t GetMaxImageWidth() const  override { return 65536; }
+    virtual uint32_t GetMaxImageHeight() const override { return 65536; }
+    virtual uint32_t GetMaxImageCount() const  override { return DXGI_MAX_SWAP_CHAIN_BUFFERS; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo) override;

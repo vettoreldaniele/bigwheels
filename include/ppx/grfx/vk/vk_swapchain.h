@@ -26,6 +26,9 @@ public:
     virtual uint32_t GetMinImageWidth() const override;
     virtual uint32_t GetMinImageHeight() const override;
     virtual uint32_t GetMinImageCount() const override;
+    virtual uint32_t GetMaxImageWidth() const override;
+    virtual uint32_t GetMaxImageHeight() const override;
+    virtual uint32_t GetMaxImageCount() const override;
 
 protected:
     virtual Result CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo) override;

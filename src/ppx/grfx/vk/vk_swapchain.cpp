@@ -64,8 +64,10 @@ Result Surface::CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo)
         return ppx::ERROR_API_FAILURE;
     }
     PPX_LOG_INFO("Vulkan swapchain surface info");
-    PPX_LOG_INFO("   " << "minImageCount : " << mCapabilities.minImageCount);
-    PPX_LOG_INFO("   " << "maxImageCount : " << mCapabilities.maxImageCount);
+    PPX_LOG_INFO("   "
+                 << "minImageCount : " << mCapabilities.minImageCount);
+    PPX_LOG_INFO("   "
+                 << "maxImageCount : " << mCapabilities.maxImageCount);
 
     // Surface formats
     {
@@ -104,7 +106,7 @@ Result Surface::CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo)
                 mPresentableQueueFamilies.push_back(queueFamilyIndex);
             }
         }
-        
+
         if (mPresentableQueueFamilies.empty()) {
             PPX_ASSERT_MSG(false, "no presentable queue family found");
             return ppx::ERROR_API_FAILURE;
@@ -161,6 +163,21 @@ uint32_t Surface::GetMinImageCount() const
     return mCapabilities.minImageCount;
 }
 
+uint32_t Surface::GetMaxImageWidth() const
+{
+    return mCapabilities.maxImageExtent.width;
+}
+
+uint32_t Surface::GetMaxImageHeight() const
+{
+    return mCapabilities.maxImageExtent.height;
+}
+
+uint32_t Surface::GetMaxImageCount() const
+{
+    return mCapabilities.maxImageCount;
+}
+
 // -------------------------------------------------------------------------------------------------
 // Swapchain
 // -------------------------------------------------------------------------------------------------
@@ -168,8 +185,8 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
 {
     // Surface capabilities check
     {
-        bool isImageCountValid = false;
-        const VkSurfaceCapabilitiesKHR& caps = ToApi(pCreateInfo->pSurface)->GetCapabilities();
+        bool                            isImageCountValid = false;
+        const VkSurfaceCapabilitiesKHR& caps              = ToApi(pCreateInfo->pSurface)->GetCapabilities();
         if (caps.maxImageCount > 0) {
             bool isInBoundsMin = (pCreateInfo->imageCount >= caps.minImageCount);
             bool isInBoundsMax = (pCreateInfo->imageCount <= caps.maxImageCount);

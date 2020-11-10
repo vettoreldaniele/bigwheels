@@ -58,6 +58,9 @@ public:
     virtual uint32_t GetMinImageWidth() const  = 0;
     virtual uint32_t GetMinImageHeight() const = 0;
     virtual uint32_t GetMinImageCount() const  = 0;
+    virtual uint32_t GetMaxImageWidth() const  = 0;
+    virtual uint32_t GetMaxImageHeight() const = 0;
+    virtual uint32_t GetMaxImageCount() const  = 0;
 };
 
 // -------------------------------------------------------------------------------------------------
