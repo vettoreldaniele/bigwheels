@@ -61,7 +61,7 @@ static Result LoadTexture(grfx::Queue* pQueue, const fs::path& path, grfx::Textu
     }
     else {
         PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(pQueue, path, ppTexture));
-        if (FAILED(ppxres)) {
+        if (Failed(ppxres)) {
             return ppxres;
         }
     }
