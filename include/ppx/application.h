@@ -270,6 +270,8 @@ protected:
 public:
     int Run(int argc, char** argv);
 
+    std::vector<const char*> GetCommandLineArgs() const;
+
     uint32_t       GetWindowWidth() const { return mSettings.window.width; }
     uint32_t       GetWindowHeight() const { return mSettings.window.height; }
     float          GetWindowAspect() const { return static_cast<float>(mSettings.window.width) / static_cast<float>(mSettings.window.height); }
@@ -362,6 +364,7 @@ private:
     void MouseUpCallback(int32_t x, int32_t y, uint32_t buttons);
 
 private:
+    std::vector<std::string>   mCommandLineArgs;
     ApplicationSettings        mSettings = {};
     std::string                mDecoratedApiName;
     std::vector<fs::path>      mAssetDirs;

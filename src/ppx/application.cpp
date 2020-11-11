@@ -672,7 +672,7 @@ Result Application::InitializeGrfxSurface()
 
         //
         // Cap the image width/height to what the surface caps are.
-        // The reason for this is that on Windows the TaskBar 
+        // The reason for this is that on Windows the TaskBar
         // affect the maximum size of the window if it has borders.
         // For example an application can request a 1920x1080 window
         // but because of the task bar, the window may get created
@@ -999,6 +999,11 @@ int Application::Run(int argc, char** argv)
         return false;
     }
 
+    // Copy args
+    for (int i = 0; i < argc; ++i) {
+        mCommandLineArgs.push_back(argv[i]);
+    }
+
     // Initialize the platform
     Result ppxres = InitializePlatform();
     if (Failed(ppxres)) {
@@ -1120,6 +1125,15 @@ int Application::Run(int argc, char** argv)
 
     // Success
     return EXIT_SUCCESS;
+}
+
+std::vector<const char*> Application::GetCommandLineArgs() const
+{
+    std::vector<const char*> args;
+    for (size_t i = 0; i < mCommandLineArgs.size(); ++i) {
+        args.push_back(mCommandLineArgs[i].c_str());
+    }
+    return args;
 }
 
 grfx::Rect Application::GetScissor() const
