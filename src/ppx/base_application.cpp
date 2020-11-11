@@ -16,45 +16,71 @@ ppx::Platform BaseApplication::GetPlatform() const
     return platform;
 }
 
-void BaseApplication::AddAssetDir(const fs::path& dir)
+uint32_t BaseApplication::GetProcessId() const
 {
-    auto it = std::find(std::begin(mAssetDirs), std::end(mAssetDirs), dir);
-    if (it == std::end(mAssetDirs)) {
-        mAssetDirs.push_back(dir);
+    uint32_t pid = UINT32_MAX;
+#if defined(PPX_LINUX)
+    pid = static_cast<uint32_t>(getpid());
+#elif defined(PPX_MSW)
+    pid = static_cast<uint32_t>(::GetCurrentProcessId());
+#endif
+    return pid;
+}
+
+fs::path BaseApplication::GetApplicationPath() const
+{
+    fs::path path;
+#if defined(PPX_LINUX) || defined(PPX_GGP)
+    char buf[PATH_MAX];
+    std::memset(buf, 0, PATH_MAX);
+    readlink("/proc/self/exe", buf, PATH_MAX);
+    path = fs::path(buf);
+#elif defined(PPX_MSW)
+    HMODULE this_win32_module = GetModuleHandleA(nullptr);
+    char buf[MAX_PATH];
+    std::memset(buf, 0, MAX_PATH);
+    GetModuleFileNameA(this_win32_module, buf, MAX_PATH);
+    path = fs::path(buf);
+#else
+#error "not implemented"
+#endif
+    return path;
+}
+
+void BaseApplication::AddAssetDir(const fs::path& path, bool insertAtFront)
+{
+    auto it = Find(mAssetDirs, path);
+    if (it != std::end(mAssetDirs)) {
+        return;
+    }
+
+    if (!fs::is_directory(path)) {
+        return;
+    }
+
+    mAssetDirs.push_back(path);
+
+    if (insertAtFront) {
+        // Rotate to front
+        std::rotate(
+            std::rbegin(mAssetDirs),
+            std::rbegin(mAssetDirs) + 1,
+            std::rend(mAssetDirs));
     }
 }
 
-bool BaseApplication::GetAssetPath(const fs::path& searchPath, fs::path* pFoundPath) const
+fs::path BaseApplication::GetAssetPath(const fs::path& subPath) const
 {
-    bool found = false;
-    for (size_t i = 0; i < mAssetDirs.size(); ++i) {
-        fs::path path = mAssetDirs[i] / searchPath;
+    fs::path assetPath;
+    for (auto& assetDir : mAssetDirs) {
+        fs::path path = assetDir / subPath;
         if (fs::exists(path)) {
-            if (!IsNull(pFoundPath)) {
-                *pFoundPath = path;
-                found       = true;
-                break;
-            }
+            assetPath = path;
+            break;
         }
     }
-    return found;
+    return assetPath;
 }
 
-bool BaseApplication::LoadAsset(const fs::path& path, std::vector<char>* pData) const
-{
-    if (IsNull(pData)) {
-        return false;
-    }
-
-    fs::path resolvedPath;
-    bool found = GetAssetPath(path, &resolvedPath);
-    if (!found) {
-        return false;
-    }
-
-    *pData = fs::load_file(path);
-
-    return true;
-}
 
 } // namespace ppx

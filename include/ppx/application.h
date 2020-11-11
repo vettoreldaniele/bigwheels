@@ -278,29 +278,6 @@ public:
     grfx::Rect     GetScissor() const;
     grfx::Viewport GetViewport(float minDepth = 0.0f, float maxDepth = 1.0f) const;
 
-    uint32_t                     GetProcessId() const;
-    fs::path                     GetApplicationPath() const;
-    const std::vector<fs::path>& GetAssetDirs() const { return mAssetDirs; }
-    void                         AddAssetDir(const fs::path& path, bool insertAtFront = false);
-
-    // Returns the first valid subPath in the asset directories list
-    //
-    // Example(s):
-    //
-    //    mAssetDirs = {"/a/valid/system/path",
-    //                  "/another/valid/system/path",
-    //                  "/some/valid/system/path"};
-    //
-    //    GetAssetPath("file.ext") - returns the full path to file.ext if it exists
-    //      in any of the paths in mAssetDirs on the file system.
-    //      Search starts with mAssetsDir[0].
-    //
-    //    GetAssetPath("subdir") - returns the full path to subdir if it exists
-    //      in any of the paths in mAssetDirs on the file system.
-    //      Search starts with mAssetsDir[0].
-    //
-    fs::path GetAssetPath(const fs::path& subPath) const;
-
     // Loads a DXBC, DXIL, or SPV shader from baseDir
     //
     // 'baseDir' is path to the directory that contains dxbc, dxil, and spv subdirectories.
@@ -367,7 +344,6 @@ private:
     std::vector<std::string>   mCommandLineArgs;
     ApplicationSettings        mSettings = {};
     std::string                mDecoratedApiName;
-    std::vector<fs::path>      mAssetDirs;
     Timer                      mTimer;
     void*                      mWindow                     = nullptr;
     bool                       mWindowSurfaceInvalid       = false;
