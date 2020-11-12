@@ -276,7 +276,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
                 const dx::SampledImageView*            pView = static_cast<const dx::SampledImageView*>(srcWrite.pImageView);
                 const D3D12_SHADER_RESOURCE_VIEW_DESC& desc  = pView->GetDesc();
 
-                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeSampler * srcWrite.arrayIndex);
+                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeCBVSRVUAV * srcWrite.arrayIndex);
                 D3D12_CPU_DESCRIPTOR_HANDLE handle = D3D12_CPU_DESCRIPTOR_HANDLE{ptr};
 
                 device->CreateShaderResourceView(ToApi(pView->GetImage())->GetDxResource(), &desc, handle);
@@ -292,7 +292,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
                 desc.Buffer.StructureByteStride      = static_cast<UINT>(srcWrite.structuredElementStride);
                 desc.Buffer.Flags                    = D3D12_BUFFER_SRV_FLAG_NONE;
 
-                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeSampler * srcWrite.arrayIndex);
+                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeCBVSRVUAV * srcWrite.arrayIndex);
                 D3D12_CPU_DESCRIPTOR_HANDLE handle = D3D12_CPU_DESCRIPTOR_HANDLE{ptr};
 
                 device->CreateShaderResourceView(ToApi(srcWrite.pBuffer)->GetDxResource(), &desc, handle);
@@ -306,7 +306,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
                 const dx::StorageImageView*             pView = static_cast<const dx::StorageImageView*>(srcWrite.pImageView);
                 const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc  = pView->GetDesc();
 
-                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeSampler * srcWrite.arrayIndex);
+                SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeCBVSRVUAV * srcWrite.arrayIndex);
                 D3D12_CPU_DESCRIPTOR_HANDLE handle = D3D12_CPU_DESCRIPTOR_HANDLE{ptr};
 
                 device->CreateUnorderedAccessView(ToApi(pView->GetImage())->GetDxResource(), nullptr, &desc, handle);
