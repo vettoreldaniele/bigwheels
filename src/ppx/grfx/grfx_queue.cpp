@@ -10,6 +10,8 @@ Result Queue::CreateCommandBuffer(
     uint32_t              resourceDescriptorCount,
     uint32_t              samplerDescriptorCount)
 {
+    std::lock_guard lock(mCommandSetMutex);
+
     CommandSet set = {};
 
     grfx::CommandPoolCreateInfo ci = {};
@@ -35,6 +37,8 @@ Result Queue::CreateCommandBuffer(
 
 void Queue::DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)
 {
+    std::lock_guard lock(mCommandSetMutex);
+
     auto it = std::find_if(
         std::begin(mCommandSets),
         std::end(mCommandSets),
@@ -49,6 +53,14 @@ void Queue::DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)
 
     GetDevice()->FreeCommandBuffer(set.commandBuffer);
     GetDevice()->DestroyCommandPool(set.commandPool);
+
+    RemoveElementIf(
+        mCommandSets,
+        [set](const CommandSet& elem) -> bool {
+            bool isSamePool = (elem.commandPool == set.commandPool);
+            bool isSameBuffer = (elem.commandBuffer == set.commandBuffer); 
+            bool isSame = isSamePool && isSameBuffer; 
+            return isSame; });
 }
 
 Result Queue::CopyBufferToBuffer(

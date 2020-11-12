@@ -173,6 +173,14 @@ void RemoveElement(const T& elem, std::vector<T>& container)
         container.end());
 }
 
+template <typename T, class UnaryPredicate>
+void RemoveElementIf(std::vector<T>& container, UnaryPredicate predicate)
+{
+    container.erase(
+        std::remove_if(std::begin(container), std::end(container), predicate),
+        container.end());
+}
+
 template <typename T>
 void Unique(std::vector<T>& container)
 {

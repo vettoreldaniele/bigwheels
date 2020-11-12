@@ -80,6 +80,7 @@ private:
         grfx::CommandBufferPtr commandBuffer;
     };
     std::vector<CommandSet> mCommandSets;
+    std::mutex              mCommandSetMutex;
 };
 
 } // namespace grfx
