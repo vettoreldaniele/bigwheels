@@ -271,9 +271,15 @@ public:
     SampledImageView() {}
     virtual ~SampledImageView() {}
 
-    grfx::ImagePtr    GetImage() const { return mCreateInfo.pImage; }
-    grfx::Format      GetFormat() const { return mCreateInfo.format; }
-    grfx::SampleCount GetSampleCount() const { return mCreateInfo.sampleCount; }
+    grfx::ImagePtr                GetImage() const { return mCreateInfo.pImage; }
+    grfx::ImageViewType           GetImageViewType() const { return mCreateInfo.imageViewType; }
+    grfx::Format                  GetFormat() const { return mCreateInfo.format; }
+    grfx::SampleCount             GetSampleCount() const { return mCreateInfo.sampleCount; }
+    uint32_t                      GetMipLevel() const { return mCreateInfo.mipLevel; }
+    uint32_t                      GetMipLevelCount() const { return mCreateInfo.mipLevelCount; }
+    uint32_t                      GetArrayLayer() const { return mCreateInfo.arrayLayer; }
+    uint32_t                      GetArrayLayerCount() const { return mCreateInfo.arrayLayerCount; }
+    const grfx::ComponentMapping& GetComponents() const { return mCreateInfo.components; }
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -308,9 +314,14 @@ public:
     StorageImageView() {}
     virtual ~StorageImageView() {}
 
-    grfx::ImagePtr    GetImage() const { return mCreateInfo.pImage; }
-    grfx::Format      GetFormat() const { return mCreateInfo.format; }
-    grfx::SampleCount GetSampleCount() const { return mCreateInfo.sampleCount; }
+    grfx::ImagePtr      GetImage() const { return mCreateInfo.pImage; }
+    grfx::ImageViewType GetImageViewType() const { return mCreateInfo.imageViewType; }
+    grfx::Format        GetFormat() const { return mCreateInfo.format; }
+    grfx::SampleCount   GetSampleCount() const { return mCreateInfo.sampleCount; }
+    uint32_t            GetMipLevel() const { return mCreateInfo.mipLevel; }
+    uint32_t            GetMipLevelCount() const { return mCreateInfo.mipLevelCount; }
+    uint32_t            GetArrayLayer() const { return mCreateInfo.arrayLayer; }
+    uint32_t            GetArrayLayerCount() const { return mCreateInfo.arrayLayerCount; }
 };
 
 } // namespace grfx
