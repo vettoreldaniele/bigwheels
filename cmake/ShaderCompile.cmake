@@ -29,7 +29,7 @@ if (NOT DXC_PATH)
     message(FATAL_ERROR "Could not locate DXC executable - DXC is required")
 endif()
 
-if (NOT PPX_LINUX AND NOT FXC_PATH)
+if (PPX_MSW AND NOT FXC_PATH)
     message("CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is set to: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}.")
     if (NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
         message(FATAL_ERROR "Windows SDK not found on this system. Make sure that CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is set.")
