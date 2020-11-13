@@ -112,9 +112,15 @@ void CommandBuffer::TransitionImageLayout(
     uint32_t            arrayLayer,
     uint32_t            arrayLayerCount,
     grfx::ResourceState beforeState,
-    grfx::ResourceState afterState)
+    grfx::ResourceState afterState,
+    const grfx::Queue*  pSrcQueue,
+    const grfx::Queue*  pDstQueue)
 {
     PPX_ASSERT_NULL_ARG(pImage);
+
+    if ((!IsNull(pSrcQueue) && IsNull(pDstQueue)) || (IsNull(pSrcQueue) && !IsNull(pDstQueue))) {
+        PPX_ASSERT_MSG(false, "queue family transfer requires both pSrcQueue and pDstQueue to be NOT NULL");
+    }
 
     if (beforeState == afterState) {
         return;
@@ -130,13 +136,28 @@ void CommandBuffer::TransitionImageLayout(
 
     const vk::Image* pApiImage = ToApi(pImage);
 
-    VkPipelineStageFlags srcStageMask    = InvalidValue<VkPipelineStageFlags>();
-    VkPipelineStageFlags dstStageMask    = InvalidValue<VkPipelineStageFlags>();
-    VkAccessFlags        srcAccessMask   = InvalidValue<VkAccessFlags>();
-    VkAccessFlags        dstAccessMask   = InvalidValue<VkAccessFlags>();
-    VkImageLayout        oldLayout       = InvalidValue<VkImageLayout>();
-    VkImageLayout        newLayout       = InvalidValue<VkImageLayout>();
-    VkDependencyFlags    dependencyFlags = 0;
+    VkPipelineStageFlags srcStageMask        = InvalidValue<VkPipelineStageFlags>();
+    VkPipelineStageFlags dstStageMask        = InvalidValue<VkPipelineStageFlags>();
+    VkAccessFlags        srcAccessMask       = InvalidValue<VkAccessFlags>();
+    VkAccessFlags        dstAccessMask       = InvalidValue<VkAccessFlags>();
+    VkImageLayout        oldLayout           = InvalidValue<VkImageLayout>();
+    VkImageLayout        newLayout           = InvalidValue<VkImageLayout>();
+    uint32_t             srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    uint32_t             dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    VkDependencyFlags    dependencyFlags     = 0;
+
+    if (!IsNull(pSrcQueue)) {
+        srcQueueFamilyIndex = ToApi(pSrcQueue)->GetQueueFamilyIndex();
+    }
+
+    if (!IsNull(pDstQueue)) {
+        dstQueueFamilyIndex = ToApi(pDstQueue)->GetQueueFamilyIndex();
+    }
+
+    if (srcQueueFamilyIndex == dstQueueFamilyIndex) {
+        srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    }
 
     Result ppxres = ToVkBarrierSrc(beforeState, srcStageMask, srcAccessMask, oldLayout);
     PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "couldn't get src barrier data");
@@ -149,8 +170,8 @@ void CommandBuffer::TransitionImageLayout(
     barrier.dstAccessMask                   = dstAccessMask;
     barrier.oldLayout                       = oldLayout;
     barrier.newLayout                       = newLayout;
-    barrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+    barrier.srcQueueFamilyIndex             = srcQueueFamilyIndex;
+    barrier.dstQueueFamilyIndex             = dstQueueFamilyIndex;
     barrier.image                           = pApiImage->GetVkImage();
     barrier.subresourceRange.aspectMask     = pApiImage->GetVkImageAspectFlags();
     barrier.subresourceRange.baseMipLevel   = mipLevel;
@@ -169,6 +190,74 @@ void CommandBuffer::TransitionImageLayout(
         nullptr,         // pBufferMemoryBarriers
         1,               // imageMemoryBarrierCount
         &barrier);       // pImageMemoryBarriers);
+}
+
+void CommandBuffer::BufferResourceBarrier(
+    const grfx::Buffer* pBuffer,
+    grfx::ResourceState beforeState,
+    grfx::ResourceState afterState,
+    const grfx::Queue*  pSrcQueue,
+    const grfx::Queue*  pDstQueue)
+{
+    PPX_ASSERT_NULL_ARG(pBuffer);
+
+    if ((!IsNull(pSrcQueue) && IsNull(pDstQueue)) || (IsNull(pSrcQueue) && !IsNull(pDstQueue))) {
+        PPX_ASSERT_MSG(false, "queue family transfer requires both pSrcQueue and pDstQueue to be NOT NULL");
+    }
+
+    if (beforeState == afterState) {
+        return;
+    }
+
+    VkPipelineStageFlags srcStageMask        = InvalidValue<VkPipelineStageFlags>();
+    VkPipelineStageFlags dstStageMask        = InvalidValue<VkPipelineStageFlags>();
+    VkAccessFlags        srcAccessMask       = InvalidValue<VkAccessFlags>();
+    VkAccessFlags        dstAccessMask       = InvalidValue<VkAccessFlags>();
+    VkImageLayout        oldLayout           = InvalidValue<VkImageLayout>();
+    VkImageLayout        newLayout           = InvalidValue<VkImageLayout>();
+    uint32_t             srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    uint32_t             dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    VkDependencyFlags    dependencyFlags     = 0;
+
+    if (!IsNull(pSrcQueue)) {
+        srcQueueFamilyIndex = ToApi(pSrcQueue)->GetQueueFamilyIndex();
+    }
+
+    if (!IsNull(pDstQueue)) {
+        dstQueueFamilyIndex = ToApi(pDstQueue)->GetQueueFamilyIndex();
+    }
+
+    if (srcQueueFamilyIndex == dstQueueFamilyIndex) {
+        srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    }
+
+    Result ppxres = ToVkBarrierSrc(beforeState, srcStageMask, srcAccessMask, oldLayout);
+    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "couldn't get src barrier data");
+
+    ppxres = ToVkBarrierDst(afterState, dstStageMask, dstAccessMask, newLayout);
+    PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "couldn't get dst barrier data");
+
+    VkBufferMemoryBarrier barrier = {VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
+    barrier.srcAccessMask         = srcAccessMask;
+    barrier.dstAccessMask         = dstAccessMask;
+    barrier.srcQueueFamilyIndex   = srcQueueFamilyIndex;
+    barrier.dstQueueFamilyIndex   = dstQueueFamilyIndex;
+    barrier.buffer                = ToApi(pBuffer)->GetVkBuffer();
+    barrier.offset                = static_cast<VkDeviceSize>(0);
+    barrier.size                  = static_cast<VkDeviceSize>(pBuffer->GetSize());
+
+    vkCmdPipelineBarrier(
+        mCommandBuffer,  // commandBuffer
+        srcStageMask,    // srcStageMask
+        dstStageMask,    // dstStageMask
+        dependencyFlags, // dependencyFlags
+        0,               // memoryBarrierCount
+        nullptr,         // pMemoryBarriers
+        1,               // bufferMemoryBarrierCount
+        &barrier,        // pBufferMemoryBarriers
+        0,               // imageMemoryBarrierCount
+        nullptr);        // pImageMemoryBarriers);
 }
 
 void CommandBuffer::SetViewports(uint32_t viewportCount, const grfx::Viewport* pViewports)

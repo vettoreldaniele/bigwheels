@@ -163,26 +163,39 @@ public:
     virtual void BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo) = 0;
     virtual void EndRenderPass()                                              = 0;
 
+    //! @fn TransitionImageLayout
+    //!
+    //! Vulkan requires a queue ownership transfer if a resource
+    //! is used by queues in different queue families:
+    //!  - Use \b pSrcQueue to specify a queue in the source queue family
+    //!  - Use \b pDstQueue to specify a queue in the destination queue family
+    //!  - If \b pSrcQueue and \b pDstQueue belong to the same queue family
+    //!    then the queue ownership transfer won't happen.
+    //!
+    //! D3D12 ignores both \b pSrcQueue and \b pDstQueue since they're not
+    //! relevant.
+    //!
     virtual void TransitionImageLayout(
-        const grfx::Image*  pImage,
-        uint32_t            mipLevel,
-        uint32_t            mipLevelCount,
-        uint32_t            arrayLayer,
-        uint32_t            arrayLayerCount,
-        grfx::ResourceState beforeState,
-        grfx::ResourceState afterState) = 0;
+        const grfx::Image*   pImage,
+        uint32_t             mipLevel,
+        uint32_t             mipLevelCount,
+        uint32_t             arrayLayer,
+        uint32_t             arrayLayerCount,
+        grfx::ResourceState  beforeState,
+        grfx::ResourceState  afterState,
+        const grfx::Queue*   pSrcQueue = nullptr,
+        const grfx::Queue*   pDstQueue = nullptr) = 0;
 
-    //virtual void TransitionImageLayout(
-    //    const grfx::Image*   pImage,
-    //    uint32_t             mipLevel,
-    //    uint32_t             mipLevelCount,
-    //    uint32_t             arrayLayer,
-    //    uint32_t             arrayLayerCount,
-    //    grfx::ResourceState  beforeState,
-    //    grfx::ResourceState  afterState,
-    //    const grfx::Queue*   pSrcQueue = nullptr,
-    //    const grfx::Queue*   pDstQueue = nullptr,
-    //    grfx::TransitionFlag flag      = grfx::TRANSITION_FLAG_API_REQUIRED) = 0;
+    //
+    // See comment at function \b TransitionImageLayout for details
+    // on queue ownership transfer.
+    //
+    virtual void BufferResourceBarrier(
+        const grfx::Buffer*  pBuffer,
+        grfx::ResourceState  beforeState,
+        grfx::ResourceState  afterState,
+        const grfx::Queue*   pSrcQueue = nullptr,
+        const grfx::Queue*   pDstQueue = nullptr) = 0;
 
     virtual void SetViewports(
         uint32_t              viewportCount,

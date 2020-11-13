@@ -24,13 +24,22 @@ public:
     virtual void EndRenderPass() override;
 
     virtual void TransitionImageLayout(
-        const grfx::Image*  pImage,
-        uint32_t            mipLevel,
-        uint32_t            mipLevelCount,
-        uint32_t            arrayLayer,
-        uint32_t            arrayLayerCount,
-        grfx::ResourceState beforeState,
-        grfx::ResourceState afterState) override;
+        const grfx::Image*   pImage,
+        uint32_t             mipLevel,
+        uint32_t             mipLevelCount,
+        uint32_t             arrayLayer,
+        uint32_t             arrayLayerCount,
+        grfx::ResourceState  beforeState,
+        grfx::ResourceState  afterState,
+        const grfx::Queue*   pSrcQueue,
+        const grfx::Queue*   pDstQueue) override;
+
+    virtual void BufferResourceBarrier(
+        const grfx::Buffer*  pBuffer,
+        grfx::ResourceState  beforeState,
+        grfx::ResourceState  afterState,
+        const grfx::Queue*   pSrcQueue = nullptr,
+        const grfx::Queue*   pDstQueue = nullptr) override;
 
     virtual void SetViewports(
         uint32_t              viewportCount,

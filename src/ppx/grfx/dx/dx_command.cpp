@@ -202,19 +202,92 @@ void CommandBuffer::TransitionImageLayout(
     uint32_t            arrayLayer,
     uint32_t            arrayLayerCount,
     grfx::ResourceState beforeState,
-    grfx::ResourceState afterState)
+    grfx::ResourceState afterState,
+    const grfx::Queue*  pSrcQueue,
+    const grfx::Queue*  pDstQueue)
 {
+    PPX_ASSERT_NULL_ARG(pImage);
+
+    (void)pSrcQueue;
+    (void)pDstQueue;
+
     if (beforeState == afterState) {
         return;
     }
 
+    bool allMipLevels    = (mipLevel == 0) && (mipLevelCount == PPX_ALL_MIP_LEVELS);
+    bool allArrayLayers  = (arrayLayer == 0) && (arrayLayerCount == PPX_ALL_ARRAY_LAYERS);
+    bool allSubresources = allMipLevels && allArrayLayers;
+
+    std::vector<D3D12_RESOURCE_BARRIER> barriers;
+    if (allSubresources) {
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Transition.pResource   = ToApi(pImage)->GetDxResource();
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState);
+        barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState);
+
+        barriers.push_back(barrier);
+    }
+    else {
+        // 
+        // For details about subresource indexing see this:
+        //   https://docs.microsoft.com/en-us/windows/win32/direct3d12/subresources
+        //
+
+        uint32_t mipSpan = pImage->GetMipLevelCount();
+
+        for (uint32_t i = 0; i < arrayLayerCount; ++i) {
+            uint32_t baseSubresource = (arrayLayer + i) * mipSpan;
+            for (uint32_t j = 0; j < mipLevelCount; ++j) {
+                uint32_t targetSubResource = baseSubresource + (mipLevel + j);
+
+                D3D12_RESOURCE_BARRIER barrier = {};
+                barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+                barrier.Transition.pResource   = ToApi(pImage)->GetDxResource();
+                barrier.Transition.Subresource = static_cast<UINT>(targetSubResource);
+                barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState);
+                barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState);
+
+                barriers.push_back(barrier);
+            }
+        }
+    }
+
+    if (barriers.empty()) {
+        PPX_ASSERT_MSG(false, "parameters resulted in no barriers - try not to do this!")
+    }
+
+    mCommandList->ResourceBarrier(
+        static_cast<UINT>(barriers.size()),
+        DataPtr(barriers));
+}
+
+void CommandBuffer::BufferResourceBarrier(
+    const grfx::Buffer* pBuffer,
+    grfx::ResourceState beforeState,
+    grfx::ResourceState afterState,
+    const grfx::Queue*  pSrcQueue,
+    const grfx::Queue*  pDstQueue)
+{
+    PPX_ASSERT_NULL_ARG(pBuffer);
+
+    (void)pSrcQueue;
+    (void)pDstQueue;
+
+    if (beforeState == afterState) {
+        return;
+    }
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Transition.pResource   = ToApi(pImage)->GetDxResource();
+    barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    barrier.Transition.pResource   = ToApi(pBuffer)->GetDxResource();
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState);
     barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState);
-
     mCommandList->ResourceBarrier(1, &barrier);
 }
 
