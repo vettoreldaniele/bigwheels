@@ -72,7 +72,7 @@ Result Queue::CopyBufferToBuffer(
 
     // Create command buffer
     grfx::CommandBufferPtr cmd;
-    Result                 ppxres = CreateCommandBuffer(&cmd);
+    Result                 ppxres = CreateCommandBuffer(&cmd, 0, 0);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -127,7 +127,7 @@ Result Queue::CopyBufferToImage(
 
     // Create command buffer
     grfx::CommandBufferPtr cmd;
-    Result                 ppxres = CreateCommandBuffer(&cmd);
+    Result                 ppxres = CreateCommandBuffer(&cmd, 0, 0);
     if (Failed(ppxres)) {
         return ppxres;
     }

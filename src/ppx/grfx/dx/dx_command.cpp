@@ -114,8 +114,19 @@ Result CommandBuffer::Begin()
     }
 
     // Set descriptor heaps
-    ID3D12DescriptorHeap* heaps[2] = {mHeapCBVSRVUAV.Get(), mHeapSampler.Get()};
-    mCommandList->SetDescriptorHeaps(2, heaps);
+    ID3D12DescriptorHeap* heaps[2]  = {nullptr};
+    uint32_t              heapCount = 0;
+    if (mHeapCBVSRVUAV) {
+        heaps[heapCount] = mHeapCBVSRVUAV.Get();
+        ++heapCount;
+    }
+    if (mHeapSampler) {
+        heaps[heapCount] = mHeapSampler.Get();
+        ++heapCount;
+    }
+    if (heapCount > 0) {
+        mCommandList->SetDescriptorHeaps(heapCount, heaps);
+    }
 
     // Reset heap offsets
     mHeapOffsetCBVSRVUAV = 0;
@@ -232,7 +243,7 @@ void CommandBuffer::TransitionImageLayout(
         barriers.push_back(barrier);
     }
     else {
-        // 
+        //
         // For details about subresource indexing see this:
         //   https://docs.microsoft.com/en-us/windows/win32/direct3d12/subresources
         //
