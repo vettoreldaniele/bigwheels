@@ -607,7 +607,7 @@ void ProjApp::Setup()
 
         {
             Geometry geo;
-            TriMesh  mesh = TriMesh::CreateSphere(0.75f, 128, 64, TriMesh::Options(options).TexCoordScale(float2(4)));
+            TriMesh  mesh = TriMesh::CreateSphere(0.75f, 128, 64, TriMesh::Options(options).TexCoordScale(float2(2)));
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
             PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
             mModels.push_back(mSphere);

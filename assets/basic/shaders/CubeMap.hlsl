@@ -27,13 +27,14 @@ VSOutput vsmain(float4 Position : POSITION, float3 Normal : NORMAL)
 	VSOutput result;
 	result.Position = mul(Transform.MVPMatrix, Position);
     result.PositionWS = mul(Transform.ModelMatrix, Position).xyz;
-    result.NormalWS = normalize(mul(Transform.NormalMatrix, Normal));
+    result.NormalWS = mul(Transform.NormalMatrix, Normal);
 	return result;
 }
 
 float4 psmain(VSOutput input) : SV_TARGET
 {
+    float3 N = normalize(input.NormalWS);
     float3 I = normalize(input.PositionWS - Transform.EyePos);
-    float3 R = reflect(I, input.NormalWS);
-	return Tex0.Sample(Sampler0, R);
+    float3 R = reflect(I, N);
+    return Tex0.Sample(Sampler0, R);
 }

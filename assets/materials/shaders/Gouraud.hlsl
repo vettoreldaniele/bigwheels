@@ -17,7 +17,7 @@ float Lambert(float3 N, float3 L)
 
 float4 psmain(VSOutput input) : SV_TARGET
 {
-    float3 N = input.normal; 
+    float3 N = normalize(input.normal); 
     
     float3 albedo = Material.albedo;
     if (Material.albedoSelect == 1)

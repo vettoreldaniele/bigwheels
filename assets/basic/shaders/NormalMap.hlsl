@@ -45,14 +45,14 @@ VSOutput vsmain(
     
     // Color and normal
 	result.Color  = Color;
-    result.Normal = normalize(mul(Scene.ModelMatrix, float4(Normal, 0)).xyz);
+    result.Normal = mul(Scene.ModelMatrix, float4(Normal, 0)).xyz;
     
     // Texture coordinates
     result.TexCoord = TexCoord;
     
     // Tangent and bitangent
-    result.Tangent   = normalize(mul(Scene.ModelMatrix, float4(Tangent, 0)).xyz);
-    result.Bitangent = normalize(mul(Scene.ModelMatrix, float4(Bitangent, 0)).xyz);
+    result.Tangent   = mul(Scene.ModelMatrix, float4(Tangent, 0)).xyz;
+    result.Bitangent = mul(Scene.ModelMatrix, float4(Bitangent, 0)).xyz;
     
 	return result;
 }
@@ -61,9 +61,9 @@ VSOutput vsmain(
 float4 psmain(VSOutput input) : SV_TARGET
 {
     // Construct TBN matrix to transform from tangent space into world space
-    float3   N = input.Normal;
-    float3   T = input.Tangent;
-    float3   B = input.Bitangent;
+    float3   N = normalize(input.Normal);
+    float3   T = normalize(input.Tangent);
+    float3   B = normalize(input.Bitangent);
     float3x3 TBN = float3x3(T.x, B.x, N.x,
                             T.y, B.y, N.y,
                             T.z, B.z, N.z);    

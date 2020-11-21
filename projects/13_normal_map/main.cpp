@@ -187,7 +187,7 @@ void ProjApp::Setup()
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mDrawObjectSetLayout, &mCube);
         mEntities.push_back(&mCube);
 
-        mesh = TriMesh::CreateSphere(2, 16, 8, TriMesh::Options(options).ObjectColor(float3(0.7f)).TexCoordScale(float2(8)));
+        mesh = TriMesh::CreateSphere(2, 16, 8, TriMesh::Options(options).ObjectColor(float3(0.7f)).TexCoordScale(float2(3)));
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mDrawObjectSetLayout, &mSphere);
         mEntities.push_back(&mSphere);
     }

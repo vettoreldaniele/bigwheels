@@ -28,7 +28,7 @@ float BlinnPhong(float3 N, float3 L, float3 V, float hardness)
 
 float4 psmain(VSOutput input) : SV_TARGET
 {
-    float3 N = input.normal;  
+    float3 N = normalize(input.normal);  
     float3 V = normalize(Scene.eyePosition.xyz - input.positionWS);
 
     float3 albedo = Material.albedo;

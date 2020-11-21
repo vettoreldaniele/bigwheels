@@ -18,11 +18,11 @@ PackedGBuffer psmain(VSOutput input)
     GBuffer gbuffer  = (GBuffer)0;
     gbuffer.position = input.positionWS;
     
-    float3 normal = input.normal;
+    float3 normal = normalize(input.normal);
     if (Material.normalSelect == 1) {
-        float3   nTS = input.normalTS;
-        float3   tTS = input.tangentTS;
-        float3   bTS = input.bitangnetTS;
+        float3   nTS = normalize(input.normalTS);
+        float3   tTS = normalize(input.tangentTS);
+        float3   bTS = normalize(input.bitangnetTS);
         float3x3 TBN = float3x3(tTS.x, bTS.x, nTS.x,
                                 tTS.y, bTS.y, nTS.y,
                                 tTS.z, bTS.z, nTS.z);

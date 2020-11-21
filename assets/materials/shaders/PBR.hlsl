@@ -65,7 +65,7 @@ float3 Environment(Texture2D tex, float3 coord)
 
 float4 psmain(VSOutput input) : SV_TARGET
 {
-    float3 N  = input.normal;  
+    float3 N  = normalize(input.normal);  
     float3 V  = normalize(Scene.eyePosition.xyz - input.positionWS);
     float  ao = 0.4f;    
     
@@ -85,9 +85,9 @@ float4 psmain(VSOutput input) : SV_TARGET
     }
     
     if (Material.normalSelect == 1) {
-        float3   nTS = input.normalTS;
-        float3   tTS = input.tangentTS;
-        float3   bTS = input.bitangnetTS;
+        float3   nTS = normalize(input.normalTS);
+        float3   tTS = normalize(input.tangentTS);
+        float3   bTS = normalize(input.bitangnetTS);
         float3x3 TBN = float3x3(tTS.x, bTS.x, nTS.x,
                                 tTS.y, bTS.y, nTS.y,
                                 tTS.z, bTS.z, nTS.z);
