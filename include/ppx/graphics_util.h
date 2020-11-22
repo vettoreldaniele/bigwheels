@@ -158,6 +158,8 @@ struct CubeMapCreateInfo
     uint32_t             negZ   = PPX_VALUE_IGNORED;
 };
 
+// -------------------------------------------------------------------------------------------------
+
 //! @fn CreateTextureFromFile
 //!
 //!
@@ -182,6 +184,8 @@ Result CreateTexture1x1(
     grfx::Texture**              ppTexture,
     const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
 
+// -------------------------------------------------------------------------------------------------
+
 //! @fn CreateCubeMapFromFile
 //!
 //!
@@ -192,6 +196,8 @@ Result CreateCubeMapFromFile(
     grfx::Image**                 ppImage,
     const grfx::ImageUsageFlags&  additionalImageUsage = grfx::ImageUsageFlags());
 
+// -------------------------------------------------------------------------------------------------
+
 //! @fn CreateModelFromGeometry
 //!
 //!
@@ -199,6 +205,23 @@ Result CreateModelFromGeometry(
     grfx::Queue*    pQueue,
     const Geometry* pGeometry,
     grfx::Model**   ppModel);
+
+//! @fn CreateModelFromMesh
+//!
+//!
+Result CreateModelFromMesh(
+    grfx::Queue*   pQueue,
+    const TriMesh* pMesh,
+    grfx::Model**  ppModel);
+
+//! @fn CreateModelFromFile
+//!
+//!
+Result CreateModelFromFile(
+    grfx::Queue*            pQueue,
+    const fs::path&         path,
+    grfx::Model**           ppModel,
+    const TriMesh::Options& options = TriMesh::Options());
 
 // -------------------------------------------------------------------------------------------------
 
