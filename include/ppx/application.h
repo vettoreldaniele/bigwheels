@@ -295,6 +295,7 @@ public:
     //     - loads shader file: some/path/shaders/spv/Texture.vs.spv   for API_VK_1_1, API_VK_1_2
     //
     std::vector<char> LoadShader(const fs::path& baseDir, const std::string& baseName) const;
+    Result            CreateShader(const fs::path& baseDir, const std::string& baseName, grfx::ShaderModule** ppShaderModule) const;
 
     void*              GetWindow() const { return mWindow; }
     grfx::InstancePtr  GetInstance() const { return mInstance; }
@@ -348,8 +349,8 @@ private:
     void*                      mWindow                     = nullptr;
     bool                       mWindowSurfaceInvalid       = false;
     KeyState                   mKeyStates[TOTAL_KEY_COUNT] = {false, 0.0f};
-    int32_t                    mPrevMouseX                 = INT32_MAX;
-    int32_t                    mPrevMouseY                 = INT32_MAX;
+    int32_t                    mPreviousMouseX             = INT32_MAX;
+    int32_t                    mPreviousMouseY             = INT32_MAX;
     bool                       mRunning                    = true;
     grfx::InstancePtr          mInstance;
     grfx::DevicePtr            mDevice;

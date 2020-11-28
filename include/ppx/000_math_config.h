@@ -17,6 +17,8 @@
 #endif
 // clang-format on
 
+#include "pcg32.h"
+
 namespace ppx {
 
 // clang-format off
@@ -173,6 +175,112 @@ template <size_t Size> using hlsl_uint4 = hlsl_type<uint4, Size>;
 // clang-format on
 
 PPX_HLSL_PACK_END();
+
+// -------------------------------------------------------------------------------------------------
+
+template <typename T>
+T pi() 
+{
+    return static_cast<T>(3.1415926535897932384626433832795);
+}
+
+// -------------------------------------------------------------------------------------------------
+
+class Random
+{
+public:
+    Random()
+    {
+        Seed(0xDEAD, 0xBEEF);
+    }
+
+    Random(uint64_t initialState, uint64_t initialSequence)
+    {
+        Seed(initialSequence, initialSequence);
+    }
+
+    ~Random() {}
+
+    void Seed(uint64_t initialState, uint64_t initialSequence)
+    {
+        mRng.seed(initialSequence, initialSequence);
+    }
+
+    uint32_t UInt32()
+    {
+        uint32_t value = mRng.nextUInt();
+        return value;
+    }
+
+    float Float()
+    {
+        float value = mRng.nextFloat();
+        return value;
+    }
+
+    float Float(float a, float b)
+    {
+        float value = glm::lerp(a, b, Float());
+        return value;
+    }
+
+    float2 Float2()
+    {
+        float2 value(
+            Float(),
+            Float());
+        return value;
+    }
+
+    float2 Float2(const float2& a, const float2& b)
+    {
+        float2 value(
+            Float(a.x, b.x),
+            Float(a.y, b.y));
+        return value;
+    }
+
+    float3 Float3()
+    {
+        float3 value(
+            Float(),
+            Float(),
+            Float());
+        return value;
+    }
+
+    float3 Float3(const float3& a, const float3& b)
+    {
+        float3 value(
+            Float(a.x, b.x),
+            Float(a.y, b.y),
+            Float(a.z, b.z));
+        return value;
+    }
+
+    float4 Float4()
+    {
+        float4 value(
+            Float(),
+            Float(),
+            Float(),
+            Float());
+        return value;
+    }
+
+    float4 Float4(const float4& a, const float4& b)
+    {
+        float4 value(
+            Float(a.x, b.x),
+            Float(a.y, b.y),
+            Float(a.z, b.z),
+            Float(a.w, b.w));
+        return value;
+    }
+
+private:
+    pcg32 mRng;
+};
 
 } // namespace ppx
 

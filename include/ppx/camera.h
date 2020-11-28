@@ -61,7 +61,7 @@ public:
         float         farClip  = 10000.0f);
     ~PerspCamera();
 
-    void SetPerspective(float fov_degrees, float aspect, float nearClip, float farClip);
+    void SetPerspective(float fovDegrees, float aspect, float nearClip = 0.1f, float farClip = 10000.0f);
 
 private:
     bool  mPixelAligned = false;

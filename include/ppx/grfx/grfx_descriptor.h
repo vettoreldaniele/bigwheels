@@ -37,7 +37,7 @@ struct WriteDescriptor
     uint32_t               binding                 = PPX_VALUE_IGNORED;
     uint32_t               arrayIndex              = 0;
     grfx::DescriptorType   type                    = grfx::DESCRIPTOR_TYPE_UNDEFINED;
-    uint32_t               bufferOffset            = 0;
+    uint64_t               bufferOffset            = 0;
     uint64_t               bufferRange             = 0;
     uint32_t               structuredElementCount  = 0;
     uint32_t               structuredElementStride = 0;
@@ -107,6 +107,23 @@ public:
     const grfx::DescriptorSetLayout* GetLayout() const { return mCreateInfo.pLayout; }
 
     virtual Result UpdateDescriptors(uint32_t writeCount, const grfx::WriteDescriptor* pWrites) = 0;
+
+    Result UpdateSampledImage(
+        uint32_t             binding,
+        uint32_t             arrayIndex,
+        const grfx::Texture* pTexture);
+
+    Result UpdateStorageImage(
+        uint32_t             binding,
+        uint32_t             arrayIndex,
+        const grfx::Texture* pTexture);
+
+    Result UpdateUniformBuffer(
+        uint32_t            binding,
+        uint32_t            arrayIndex,
+        const grfx::Buffer* pBuffer,
+        uint64_t            offset = 0,
+        uint64_t            range  = PPX_WHOLE_SIZE);
 };
 
 // -------------------------------------------------------------------------------------------------

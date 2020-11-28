@@ -78,6 +78,29 @@ void CommandBuffer::TransitionImageLayout(
 }
 
 void CommandBuffer::TransitionImageLayout(
+    const grfx::Texture* pTexture,
+    uint32_t             mipLevel,
+    uint32_t             mipLevelCount,
+    uint32_t             arrayLayer,
+    uint32_t             arrayLayerCount,
+    grfx::ResourceState  beforeState,
+    grfx::ResourceState  afterState,
+    const grfx::Queue*   pSrcQueue,
+    const grfx::Queue*   pDstQueue)
+{
+    TransitionImageLayout(
+        pTexture->GetImage(),
+        mipLevel,
+        mipLevelCount,
+        arrayLayer,
+        arrayLayerCount,
+        beforeState,
+        afterState,
+        pSrcQueue,
+        pDstQueue);
+}
+
+void CommandBuffer::TransitionImageLayout(
     grfx::DrawPass*     pDrawPass,
     grfx::ResourceState renderTargetBeforeState,
     grfx::ResourceState renderTargetAfterState,

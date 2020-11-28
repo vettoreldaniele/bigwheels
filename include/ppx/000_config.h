@@ -35,19 +35,25 @@
 #define PPX_VAR_VALUE(var)  #var << ":" << var
 #define PPX_ENDL            std::endl
 
-#define PPX_ASSERT_MSG(COND, MSG)                                \
-    if ((COND) == false) {                                       \
-        PPX_LOG_ERROR(MSG << " "                                 \
-                          << "(" << PPX_SOURCE_LOCATION << ")"); \
-        assert(false);                                           \
+#define PPX_ASSERT_MSG(COND, MSG)                                            \
+    if ((COND) == false) {                                                   \
+        PPX_LOG_RAW(PPX_ENDL                                                 \
+            << "*** PPX ASSERT ***" << PPX_ENDL                              \
+            << "Message   : " << MSG << " " << PPX_ENDL                      \
+            << "Condition : " << #COND << " " << PPX_ENDL                    \
+            << "Function  : " << __FUNCTION__ << PPX_ENDL                    \
+            << "Location  : " << __FILE__ << " : " << PPX_LINE << PPX_ENDL); \
+        assert(false);                                                       \
     }
 
-#define PPX_ASSERT_NULL_ARG(ARG)                             \
-    if ((ARG) == nullptr) {                                  \
-        PPX_LOG_ERROR(#ARG " is NULL"                        \
-                      << " "                                 \
-                      << "(" << PPX_SOURCE_LOCATION << ")"); \
-        assert(false);                                       \
+#define PPX_ASSERT_NULL_ARG(ARG)                                             \
+    if ((ARG) == nullptr) {                                                  \
+        PPX_LOG_RAW(PPX_ENDL                                                 \
+            << "*** PPX NULL ARGUMNET ***" << PPX_ENDL                       \
+            << "Argument  : " << #ARG << " " << PPX_ENDL                     \
+            << "Function  : " << __FUNCTION__ << PPX_ENDL                    \
+            << "Location  : " << __FILE__ << " : " << PPX_LINE << PPX_ENDL); \
+        assert(false);                                                       \
     }
 
 #define PPX_CHECKED_CALL(EXPR)                                                         \
@@ -106,6 +112,8 @@ enum Result
     ERROR_GRFX_BINDING_NOT_IN_SET                   = -1009,
     ERROR_GRFX_NON_UNIQUE_SET                       = -1010,
     ERROR_GRFX_MINIMUM_BUFFER_SIZE_NOT_MET          = -1011,
+    ERROR_GRFX_INVALID_SHADER_BYTE_CODE             = -1012,
+    ERROR_INVALID_PIPELINE_INTERFACE                = -1013,
 
     ERROR_IMAGE_FILE_LOAD_FAILED               = -2000,
     ERROR_IMAGE_CANNOT_RESIZE_EXTERNAL_STORAGE = -2001,

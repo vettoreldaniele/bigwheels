@@ -60,6 +60,8 @@ public:
         Options& Scale(const float3& scale) { mScale = scale; return *this; }
         //! Sets the UV texture coordinate scale, default is (1, 1)
         Options& TexCoordScale(const float2& scale) { mTexCoordScale = scale; return *this; }
+        //! Enable all attributes
+        Options& AllAttributes() { mEnableVertexColors = true; mEnableNormals = true; mEnableTexCoords = true; mEnableTangents = true; return *this; }
         // clang-format on
     private:
         bool   mEnableIndices      = false;

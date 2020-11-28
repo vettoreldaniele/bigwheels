@@ -22,3 +22,6 @@
 [submodule "third_party/gli"]
 	path = third_party/gli
 	url = git@github.com:g-truc/gli.git
+[submodule "third_party/pcg32"]
+	path = third_party/pcg32
+	url = git@github.com:wjakob/pcg32.git

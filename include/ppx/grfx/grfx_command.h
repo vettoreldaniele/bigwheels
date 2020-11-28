@@ -176,26 +176,26 @@ public:
     //! relevant.
     //!
     virtual void TransitionImageLayout(
-        const grfx::Image*   pImage,
-        uint32_t             mipLevel,
-        uint32_t             mipLevelCount,
-        uint32_t             arrayLayer,
-        uint32_t             arrayLayerCount,
-        grfx::ResourceState  beforeState,
-        grfx::ResourceState  afterState,
-        const grfx::Queue*   pSrcQueue = nullptr,
-        const grfx::Queue*   pDstQueue = nullptr) = 0;
+        const grfx::Image*  pImage,
+        uint32_t            mipLevel,
+        uint32_t            mipLevelCount,
+        uint32_t            arrayLayer,
+        uint32_t            arrayLayerCount,
+        grfx::ResourceState beforeState,
+        grfx::ResourceState afterState,
+        const grfx::Queue*  pSrcQueue = nullptr,
+        const grfx::Queue*  pDstQueue = nullptr) = 0;
 
     //
     // See comment at function \b TransitionImageLayout for details
     // on queue ownership transfer.
     //
     virtual void BufferResourceBarrier(
-        const grfx::Buffer*  pBuffer,
-        grfx::ResourceState  beforeState,
-        grfx::ResourceState  afterState,
-        const grfx::Queue*   pSrcQueue = nullptr,
-        const grfx::Queue*   pDstQueue = nullptr) = 0;
+        const grfx::Buffer* pBuffer,
+        grfx::ResourceState beforeState,
+        grfx::ResourceState afterState,
+        const grfx::Queue*  pSrcQueue = nullptr,
+        const grfx::Queue*  pDstQueue = nullptr) = 0;
 
     virtual void SetViewports(
         uint32_t              viewportCount,
@@ -266,6 +266,17 @@ public:
     void BeginRenderPass(
         const grfx::DrawPass*           pDrawPass,
         const grfx::DrawPassClearFlags& clearFlags = grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_ALL);
+
+    virtual void TransitionImageLayout(
+        const grfx::Texture* pTexture,
+        uint32_t             mipLevel,
+        uint32_t             mipLevelCount,
+        uint32_t             arrayLayer,
+        uint32_t             arrayLayerCount,
+        grfx::ResourceState  beforeState,
+        grfx::ResourceState  afterState,
+        const grfx::Queue*   pSrcQueue = nullptr,
+        const grfx::Queue*   pDstQueue = nullptr);
 
     void TransitionImageLayout(
         grfx::RenderPass*   pRenderPass,

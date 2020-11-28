@@ -4,6 +4,7 @@
 #include "ppx/grfx/grfx_image.h"
 #include "ppx/grfx/grfx_queue.h"
 #include "ppx/grfx/grfx_texture.h"
+#include "ppx/bitmap.h"
 #include "ppx/fs.h"
 #include "ppx/geometry.h"
 
@@ -160,13 +161,33 @@ struct CubeMapCreateInfo
 
 // -------------------------------------------------------------------------------------------------
 
-//! @fn CreateTextureFromFile
+//! @fn CreateImageFromBitmap
+//!
+//!
+Result CreateImageFromBitmap(
+    grfx::Queue*                 pQueue,
+    const Bitmap*                pBitmap,
+    grfx::Image**                ppImage,
+    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
+
+//! @fn CreateImageFromFile
 //!
 //!
 Result CreateImageFromFile(
     grfx::Queue*                 pQueue,
     const fs::path&              path,
     grfx::Image**                ppImage,
+    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
+
+// -------------------------------------------------------------------------------------------------
+
+//! @fn CreateTextureFromBitmap
+//!
+//!
+Result CreateTextureFromBitmap(
+    grfx::Queue*                 pQueue,
+    const Bitmap*                pBitmap,
+    grfx::Texture**              ppTexture,
     const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
 
 //! @fn CreateTextureFromFile

@@ -127,11 +127,95 @@ void Bitmap::Fill(float r, float g, float b, float a)
                     case Bitmap::DATA_TYPE_UINT32 : pDataU32[c] = rgbaU32[c]; break;
                     case Bitmap::DATA_TYPE_FLOAT  : pDataF32[c] = rgbaF32[c]; break;
                 }
-                // clang-foramt on
+                // clang-format on
             }
             pData += mPixelStride;
         }
     }
+}
+
+char* Bitmap::GetPixelAddress(uint32_t x, uint32_t y)
+{
+    char* pPixel = nullptr;
+    if (!IsNull(mData) && (x >= 0) && (x < mWidth) && (y >= 0) && (y < mHeight)) {
+        size_t offset = (y * mRowStride) + (x * mPixelStride);
+        pPixel        = mData + offset;
+    }
+    return pPixel;
+}
+
+const char* Bitmap::GetPixelAddress(uint32_t x, uint32_t y) const
+{
+    const char* pPixel = nullptr;
+    if (!IsNull(mData) && (x >= 0) && (x < mWidth) && (y >= 0) && (y < mHeight)) {
+        size_t offset = (y * mRowStride) + (x * mPixelStride);
+        pPixel        = mData + offset;
+    }
+    return pPixel;
+}
+
+uint8_t* Bitmap::GetPixel8u(uint32_t x, uint32_t y)
+{
+    if (Bitmap::ChannelDataType(mFormat) != Bitmap::DATA_TYPE_UINT8) {
+        return nullptr;
+    }
+    return reinterpret_cast<uint8_t*>(GetPixelAddress(x, y));
+}
+
+const uint8_t* Bitmap::GetPixel8u(uint32_t x, uint32_t y) const
+{
+    if (Bitmap::ChannelDataType(mFormat) != Bitmap::DATA_TYPE_UINT8) {
+        return nullptr;
+    }
+    return reinterpret_cast<const uint8_t*>(GetPixelAddress(x, y));
+}
+
+uint16_t* Bitmap::GetPixel16u(uint32_t x, uint32_t y)
+{
+    if (Bitmap::ChannelDataType(mFormat) != Bitmap::DATA_TYPE_UINT16) {
+        return nullptr;
+    }
+    return reinterpret_cast<uint16_t*>(GetPixelAddress(x, y));
+}
+
+const uint16_t* Bitmap::GetPixel16u(uint32_t x, uint32_t y) const
+{
+    if (Bitmap::ChannelDataType(mFormat) != Bitmap::DATA_TYPE_UINT16) {
+        return nullptr;
+    }
+    return reinterpret_cast<const uint16_t*>(GetPixelAddress(x, y));
+}
+
+uint32_t* Bitmap::GetPixel32u(uint32_t x, uint32_t y)
+{
+    if (Bitmap::ChannelDataType(mFormat) != Bitmap::DATA_TYPE_UINT32) {
+        return nullptr;
+    }
+    return reinterpret_cast<uint32_t*>(GetPixelAddress(x, y));
+}
+
+const uint32_t* Bitmap::GetPixel32u(uint32_t x, uint32_t y) const
+{
+    if (Bitmap::ChannelDataType(mFormat) != Bitmap::DATA_TYPE_UINT32) {
+        return nullptr;
+    }
+    return reinterpret_cast<const uint32_t*>(GetPixelAddress(x, y));
+}
+
+float* Bitmap::GetPixel32f(uint32_t x, uint32_t y)
+{
+    if (Bitmap::ChannelDataType(mFormat) != Bitmap::DATA_TYPE_FLOAT) {
+        return nullptr;
+    }
+    return reinterpret_cast<float*>(GetPixelAddress(x, y));
+}
+
+const float* Bitmap::GetPixel32f(uint32_t x, uint32_t y) const
+{
+    if (Bitmap::ChannelDataType(mFormat) != Bitmap::DATA_TYPE_FLOAT) {
+        return nullptr;
+    }
+    return reinterpret_cast<const float*>(GetPixelAddress(x, y));
 }
 
 uint32_t Bitmap::ChannelSize(Bitmap::Format value)

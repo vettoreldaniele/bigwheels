@@ -43,6 +43,8 @@ public:
         FORMAT_RGBA_FLOAT,
     };
 
+    // ---------------------------------------------------------------------------------------------
+
     Bitmap(Bitmap::Format format = Bitmap::FORMAT_UNDEFINED);
 
     // If 'pExternalStorage' is not null then it must point to a valid
@@ -67,6 +69,23 @@ public:
 
     void Fill(float r, float g, float b, float a);
 
+    // Returns byte address of pixel at (x,y)
+    char*       GetPixelAddress(uint32_t x, uint32_t y);
+    const char* GetPixelAddress(uint32_t x, uint32_t y) const;
+
+    // These functions will return null if the Bitmap's format doesn't
+    // the function. For example, GetPixel8u() returns null if the format
+    // is FORMAT_RGBA_FLOAT.
+    //
+    uint8_t*        GetPixel8u(uint32_t x, uint32_t y);
+    const uint8_t*  GetPixel8u(uint32_t x, uint32_t y) const;
+    uint16_t*       GetPixel16u(uint32_t x, uint32_t y);
+    const uint16_t* GetPixel16u(uint32_t x, uint32_t y) const;
+    uint32_t*       GetPixel32u(uint32_t x, uint32_t y);
+    const uint32_t* GetPixel32u(uint32_t x, uint32_t y) const;
+    float*          GetPixel32f(uint32_t x, uint32_t y);
+    const float*    GetPixel32f(uint32_t x, uint32_t y) const;
+
     static uint32_t         ChannelSize(Bitmap::Format value);
     static uint32_t         ChannelCount(Bitmap::Format value);
     static Bitmap::DataType ChannelDataType(Bitmap::Format value);
@@ -74,6 +93,69 @@ public:
     static uint64_t         StorageFootprint(uint32_t width, uint32_t height, Bitmap::Format format);
 
     static Result LoadFile(const fs::path& path, Bitmap* pBitmap);
+
+    // ---------------------------------------------------------------------------------------------
+
+    class PixelIterator
+    {
+    private:
+        friend class ppx::Bitmap;
+
+        PixelIterator(Bitmap* pBitmap)
+            : mBitmap(pBitmap)
+        {
+            Reset();
+        }
+
+    public:
+        void Reset()
+        {
+            mX            = 0;
+            mY            = 0;
+            mPixelAddress = mBitmap->GetPixelAddress(mX, mY);
+        }
+
+        bool Done() const
+        {
+            bool done = (mY >= mBitmap->GetHeight());
+            return done;
+        }
+
+        bool Next()
+        {
+            if (Done()) {
+                return false;
+            }
+
+            mX += 1;
+            mPixelAddress += mBitmap->GetPixelStride();
+            if (mX == mBitmap->GetWidth()) {
+                mY += 1;
+                mX            = 0;
+                mPixelAddress = mBitmap->GetPixelAddress(mX, mY);
+            }
+
+            return Done() ? false : true;
+        }
+
+        uint32_t       GetX() const { return mX; }
+        uint32_t       GetY() const { return mY; }
+        Bitmap::Format GetFormat() const { return mBitmap->GetFormat(); }
+        uint32_t       GetChannelCount() const { return Bitmap::ChannelCount(GetFormat()); }
+
+        template <typename T>
+        T* GetPixelAddress() const { return reinterpret_cast<T*>(mPixelAddress); }
+
+    private:
+        Bitmap*  mBitmap       = nullptr;
+        uint32_t mX            = 0;
+        uint32_t mY            = 0;
+        char*    mPixelAddress = nullptr;
+    };
+
+    // ---------------------------------------------------------------------------------------------
+
+    PixelIterator GetPixelIterator() { return PixelIterator(this); }
 
 private:
     uint32_t          mWidth           = 0;

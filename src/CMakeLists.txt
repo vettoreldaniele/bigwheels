@@ -355,6 +355,7 @@ target_include_directories(
             ${PPX_THIRD_PARTY_DIR}/stb
             ${PPX_THIRD_PARTY_DIR}/imgui
             ${PPX_THIRD_PARTY_DIR}/tinyobjloader
+            ${PPX_THIRD_PARTY_DIR}/pcg32
 )
 
 # Include D3D12 directories if D3D12 is enabled

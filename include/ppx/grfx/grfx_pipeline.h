@@ -32,6 +32,10 @@ class ComputePipeline
 public:
     ComputePipeline() {}
     virtual ~ComputePipeline() {}
+
+protected:
+    virtual Result Create(const grfx::ComputePipelineCreateInfo* pCreateInfo) override;
+    friend class grfx::Device;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -169,6 +173,7 @@ struct GraphicsPipelineCreateInfo2
     grfx::FrontFace                frontFace                          = grfx::FRONT_FACE_CCW;
     bool                           depthReadEnable                    = true;
     bool                           depthWriteEnable                   = true;
+    grfx::CompareOp                depthCompareOp                     = grfx::COMPARE_OP_LESS;
     grfx::BlendMode                blendModes[PPX_MAX_RENDER_TARGETS] = {grfx::BLEND_MODE_NONE};
     grfx::OutputState              outputState                        = {};
     const grfx::PipelineInterface* pPipelineInterface                 = nullptr;

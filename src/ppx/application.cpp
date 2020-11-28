@@ -946,11 +946,11 @@ void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
         return;
     }
 
-    int32_t dx = (mPrevMouseX != INT32_MAX) ? (x - mPrevMouseX) : 0;
-    int32_t dy = (mPrevMouseY != INT32_MAX) ? (y - mPrevMouseY) : 0;
+    int32_t dx = (mPreviousMouseX != INT32_MAX) ? (x - mPreviousMouseX) : 0;
+    int32_t dy = (mPreviousMouseY != INT32_MAX) ? (y - mPreviousMouseY) : 0;
     DispatchMouseMove(x, y, dx, dy, buttons);
-    mPrevMouseX = x;
-    mPrevMouseY = y;
+    mPreviousMouseX = x;
+    mPreviousMouseY = y;
 }
 
 void Application::KeyUpCallback(KeyCode key)
@@ -1190,6 +1190,22 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
     return bytecode;
 }
 
+Result Application::CreateShader(const fs::path& baseDir, const std::string& baseName, grfx::ShaderModule** ppShaderModule) const
+{
+    std::vector<char> bytecode = LoadShader(baseDir, baseName);
+    if (bytecode.empty()) {
+        return ppx::ERROR_GRFX_INVALID_SHADER_BYTE_CODE;
+    }
+
+    grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
+    Result ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, ppShaderModule);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
 float Application::GetElapsedSeconds() const
 {
     return static_cast<float>(mTimer.SecondsSinceStart());
@@ -1265,6 +1281,17 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
         }
 
         ImGui::Separator();
+
+        // Num Frame In Flight
+        {
+            ImGui::Text("Num Frames In Flight");
+            ImGui::NextColumn();
+            ImGui::Text("%d", mSettings.grfx.numFramesInFlight);
+            ImGui::NextColumn();
+        }
+
+        ImGui::Separator();
+
 
         // Swapchain
         {

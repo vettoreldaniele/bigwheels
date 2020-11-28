@@ -236,8 +236,8 @@ public:
     VertexBinding(uint32_t binding, grfx::VertexInputRate inputRate)
         : mBinding(binding), mInputRate(inputRate) {}
 
-    VertexBinding(uint32_t binding, grfx::VertexInputRate inputRate, const VertexAttribute& attribute)
-        : mBinding(binding), mInputRate(inputRate)
+    VertexBinding(const VertexAttribute& attribute)
+        : mBinding(attribute.binding), mInputRate(attribute.inputRate)
     {
         AppendAttribute(attribute);
     }

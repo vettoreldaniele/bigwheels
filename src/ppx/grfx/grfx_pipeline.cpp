@@ -106,7 +106,7 @@ void FillOutGraphicsPipelineCreateInfo(
     {
         pDstCreateInfo->depthStencilState.depthTestEnable       = pSrcCreateInfo->depthReadEnable;
         pDstCreateInfo->depthStencilState.depthWriteEnable      = pSrcCreateInfo->depthWriteEnable;
-        pDstCreateInfo->depthStencilState.depthCompareOp        = grfx::COMPARE_OP_LESS;
+        pDstCreateInfo->depthStencilState.depthCompareOp        = pSrcCreateInfo->depthCompareOp;
         pDstCreateInfo->depthStencilState.depthBoundsTestEnable = false;
         pDstCreateInfo->depthStencilState.minDepthBounds        = 0.0f;
         pDstCreateInfo->depthStencilState.maxDepthBounds        = 1.0f;
@@ -158,29 +158,23 @@ void FillOutGraphicsPipelineCreateInfo(
 
 } // namespace internal
 
-//// -------------------------------------------------------------------------------------------------
-//// GraphicsPipeline::VertexInputBinding
-//// -------------------------------------------------------------------------------------------------
-//void GraphicsPipeline::VertexInputBinding::CalculateOffsetsAndStride()
-//{
-//    for (size_t i = 0; i < attributes.size(); ++i) {
-//        if (attributes[i].offset == PPX_APPEND_OFFSET_ALIGNED) {
-//            if (i > 0) {
-//                uint32_t formatSize  = grfx::FormatSize(attributes[i - 1].format);
-//                attributes[i].offset = attributes[i - 1].offset + formatSize;
-//            }
-//            else {
-//                attributes[i].offset = 0;
-//            }
-//        }
-//
-//        uint32_t formatSize = grfx::FormatSize(attributes[i].format);
-//        uint32_t ub         = attributes[i].offset + formatSize;
-//        if (ub > stride) {
-//            stride = ub;
-//        }
-//    }
-//}
+// -------------------------------------------------------------------------------------------------
+// ComputePipeline
+// -------------------------------------------------------------------------------------------------
+Result ComputePipeline::Create(const grfx::ComputePipelineCreateInfo* pCreateInfo)
+{
+    if (IsNull(pCreateInfo->pPipelineInterface)) {
+        PPX_ASSERT_MSG(false, "pipeline interface is null (compute pipeline)");
+        return ppx::ERROR_INVALID_PIPELINE_INTERFACE;
+    }
+
+    Result ppxres = grfx::DeviceObject<grfx::ComputePipelineCreateInfo>::Create(pCreateInfo);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
 
 // -------------------------------------------------------------------------------------------------
 // GraphicsPipeline
@@ -242,6 +236,11 @@ Result GraphicsPipeline::Create(const grfx::GraphicsPipelineCreateInfo* pCreateI
     //        }
     //    }
     //}
+
+    if (IsNull(pCreateInfo->pPipelineInterface)) {
+        PPX_ASSERT_MSG(false, "pipeline interface is null (graphics pipeline)");
+        return ppx::ERROR_INVALID_PIPELINE_INTERFACE;
+    }
 
     Result ppxres = grfx::DeviceObject<grfx::GraphicsPipelineCreateInfo>::Create(pCreateInfo);
     if (Failed(ppxres)) {
