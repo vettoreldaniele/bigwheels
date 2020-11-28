@@ -1,6 +1,12 @@
 #include "FishTornado.h"
 #include "ppx/graphics_util.h"
 
+#define kWindowWidth  1920
+#define kWindowHeight 1080
+
+static const float3 kFogColor   = float3(15.0f, 86.0f, 107.0f) / 255.0f;
+static const float3 kFloorColor = float3(145.0f, 189.0f, 155.0f) / 255.0f;
+
 FishTornadoApp* FishTornadoApp::GetThisApp()
 {
     FishTornadoApp* pApp = static_cast<FishTornadoApp*>(Application::Get());
@@ -24,12 +30,20 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, vsBaseName, &VS));
     PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, psBaseName, &PS));
 
+    const grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX;
+    grfx::VertexDescription     vertexDescription;
+    // clang-format off
+    vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_POSITION , 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, inputRate});
+    vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_COLOR    , 1, grfx::FORMAT_R32G32B32_FLOAT, 1, PPX_APPEND_OFFSET_ALIGNED, inputRate});
+    vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_NORMAL   , 2, grfx::FORMAT_R32G32B32_FLOAT, 2, PPX_APPEND_OFFSET_ALIGNED, inputRate});
+    vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_TEXCOORD , 3, grfx::FORMAT_R32G32_FLOAT,    3, PPX_APPEND_OFFSET_ALIGNED, inputRate});
+    vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_TANGENT  , 4, grfx::FORMAT_R32G32B32_FLOAT, 4, PPX_APPEND_OFFSET_ALIGNED, inputRate});
+    vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_BITANGENT, 5, grfx::FORMAT_R32G32B32_FLOAT, 5, PPX_APPEND_OFFSET_ALIGNED, inputRate});
+    // clang-format on
+
     grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
     gpCreateInfo.VS                                 = {VS, "vsmain"};
     gpCreateInfo.PS                                 = {PS, "psmain"};
-    gpCreateInfo.vertexInputState.bindingCount      = 2;
-    gpCreateInfo.vertexInputState.bindings[0]       = grfx::VertexAttribute{PPX_SEMANTIC_NAME_POSITION, 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
-    gpCreateInfo.vertexInputState.bindings[1]       = grfx::VertexAttribute{PPX_SEMANTIC_NAME_COLOR, 1, grfx::FORMAT_R32G32B32_FLOAT, 1, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
     gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
     gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
@@ -41,6 +55,11 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
     gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
     gpCreateInfo.pPipelineInterface                 = IsNull(pPipelineInterface) ? mForwardPipelineInterface : pPipelineInterface;
+    // Vertex description
+    gpCreateInfo.vertexInputState.bindingCount = vertexDescription.GetBindingCount();
+    for (uint32_t i = 0; i < vertexDescription.GetBindingCount(); ++i) {
+        gpCreateInfo.vertexInputState.bindings[i] = *vertexDescription.GetBinding(i);
+    }
 
     grfx::GraphicsPipelinePtr pipeline;
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &pipeline));
@@ -53,13 +72,13 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
 
 void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 {
-    settings.appName                   = "fishtornado";
-    settings.window.width              = kWindowWidth;
-    settings.window.height             = kWindowHeight;
-    settings.grfx.api                  = kApi;
-    settings.grfx.numFramesInFlight    = 2;
-    settings.grfx.enableDebug          = true;
-    settings.grfx.swapchain.imageCount = 3;
+    settings.appName                    = "Fish Tornado";
+    settings.window.width               = kWindowWidth;
+    settings.window.height              = kWindowHeight;
+    settings.grfx.api                   = kApi;
+    settings.grfx.numFramesInFlight     = 2;
+    settings.grfx.enableDebug           = true;
+    settings.grfx.swapchain.imageCount  = 3;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
@@ -83,10 +102,18 @@ void FishTornadoApp::SetupSetLayouts()
 {
     Result ppxres = ppx::ERROR_FAILED;
 
-    grfx::DescriptorSetLayoutCreateInfo dslCreateInfo = {};
-    dslCreateInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&dslCreateInfo, &mSceneDataSetLayout));
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&dslCreateInfo, &mModelDataSetLayout));
+    grfx::DescriptorSetLayoutCreateInfo createInfo = {};
+    createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataSetLayout));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mModelDataSetLayout));
+
+    createInfo = {};
+    createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{2, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{3, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{4, grfx::DESCRIPTOR_TYPE_SAMPLER});
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialSetLayout));
 }
 
 void FishTornadoApp::SetupPipelineInterfaces()
@@ -96,11 +123,13 @@ void FishTornadoApp::SetupPipelineInterfaces()
     // Forward render pipeline interface
     {
         grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
-        piCreateInfo.setCount                          = 2;
+        piCreateInfo.setCount                          = 3;
         piCreateInfo.sets[0].set                       = 0;
         piCreateInfo.sets[0].pLayout                   = mSceneDataSetLayout;
         piCreateInfo.sets[1].set                       = 1;
         piCreateInfo.sets[1].pLayout                   = mModelDataSetLayout;
+        piCreateInfo.sets[2].set                       = 2;
+        piCreateInfo.sets[2].pLayout                   = mMaterialSetLayout;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mForwardPipelineInterface));
     }
 }
@@ -138,6 +167,17 @@ void FishTornadoApp::SetupPerFrame()
         // Update descriptor
         PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateUniformBuffer(0, 0, frame.sceneConstants.GetGpuBuffer()));
     }
+}
+
+void FishTornadoApp::SetupSamplers()
+{
+    Result ppxres = ppx::ERROR_FAILED;
+
+    grfx::SamplerCreateInfo createInfo = {};
+    createInfo.magFilter               = grfx::FILTER_LINEAR;
+    createInfo.minFilter               = grfx::FILTER_LINEAR;
+    createInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mClampedSampler));
 }
 
 void FishTornadoApp::SetupDebug()
@@ -178,7 +218,7 @@ void FishTornadoApp::SetupDebug()
 
 void FishTornadoApp::SetupScene()
 {
-    mCamera.SetPerspective(60.0f, GetWindowAspect());
+    mCamera.SetPerspective(45.0f, GetWindowAspect());
     mCamera.LookAt(float3(135.312f, 64.086f, -265.332f), float3(0.0f, 100.0f, 0.0f));
 }
 
@@ -188,6 +228,7 @@ void FishTornadoApp::Setup()
     SetupSetLayouts();
     SetupPipelineInterfaces();
     SetupPerFrame();
+    SetupSamplers();
     SetupDebug();
 
     const uint32_t numFramesInFlight = GetNumFramesInFlight();
@@ -208,6 +249,11 @@ void FishTornadoApp::Shutdown()
         PerFrame& frame = mPerFrame[i];
         frame.sceneConstants.Destroy();
     }
+}
+
+void FishTornadoApp::Scroll(float dx, float dy)
+{
+    mCamera.MoveAlongViewDirection(dy * -5.0f);
 }
 
 void FishTornadoApp::UpdateTime()
@@ -231,6 +277,12 @@ void FishTornadoApp::UpdateScene(uint32_t frameIndex)
     pSceneData->viewMatrix           = mCamera.GetViewMatrix();
     pSceneData->projectionMatrix     = mCamera.GetProjectionMatrix();
     pSceneData->viewProjectionMatrix = mCamera.GetViewProjectionMatrix();
+    pSceneData->fogNearDistance      = 20.0f;
+    pSceneData->fogFarDistance       = 900.0f;
+    pSceneData->fogPower             = 1.0f;
+    pSceneData->fogColor             = kFogColor;
+    pSceneData->lightPosition        = float3(0.0f, 5000.0, 500.0f);
+    pSceneData->ambient              = float3(0.25f, 0.45f, 0.5f);
 }
 
 void FishTornadoApp::Render()
@@ -264,6 +316,8 @@ void FishTornadoApp::Render()
 
         // Scene constants
         {
+            frame.cmd->BufferResourceBarrier(frame.sceneConstants.GetGpuBuffer(), grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_COPY_DST);
+
             grfx::BufferToBufferCopyInfo copyInfo = {};
             copyInfo.size                         = frame.sceneConstants.GetSize();
 
@@ -271,6 +325,8 @@ void FishTornadoApp::Render()
                 &copyInfo,
                 frame.sceneConstants.GetCpuBuffer(),
                 frame.sceneConstants.GetGpuBuffer());
+
+            frame.cmd->BufferResourceBarrier(frame.sceneConstants.GetGpuBuffer(), grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
         }
 
         // -----------------------------------------------------------------------------------------
@@ -287,7 +343,7 @@ void FishTornadoApp::Render()
         beginInfo.pRenderPass               = renderPass;
         beginInfo.renderArea                = renderPass->GetRenderArea();
         beginInfo.RTVClearCount             = 1;
-        beginInfo.RTVClearValues[0]         = {{0, 0, 0, 0}};
+        beginInfo.RTVClearValues[0]         = {{kFogColor.r, kFogColor.g, kFogColor.b, 1.0f}};
 
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);

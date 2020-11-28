@@ -18,6 +18,7 @@ endforeach()
 # ------------------------------------------------------------------------------
 list(APPEND HLSL_INCLUDE_FILES
     "${PPX_DIR}/assets/fishtornado/shaders/Config.hlsli"
+    "${PPX_DIR}/assets/fishtornado/shaders/Lighting.hlsli"
 )
 
 list(APPEND VSPS_HLSL_FILES

@@ -249,6 +249,7 @@ public:
     virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) {} // Mouse move event
     virtual void MouseDown(int32_t x, int32_t y, uint32_t buttons) {}                         // Mouse down event
     virtual void MouseUp(int32_t x, int32_t y, uint32_t buttons) {}                           // Mouse up event
+    virtual void Scroll(float dx, float dy) {}                                                // Mouse wheel or touchpad scroll event
     virtual void Render() {}
 
 protected:
@@ -262,6 +263,7 @@ protected:
     virtual void DispatchMouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons);
     virtual void DispatchMouseDown(int32_t x, int32_t y, uint32_t buttons);
     virtual void DispatchMouseUp(int32_t x, int32_t y, uint32_t buttons);
+    virtual void DispatchScroll(float dx, float dy);
     virtual void DispatchRender();
 
     void DrawImGui(grfx::CommandBuffer* pCommandBuffer);
@@ -340,6 +342,7 @@ private:
     void MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons);
     void MouseDownCallback(int32_t x, int32_t y, uint32_t buttons);
     void MouseUpCallback(int32_t x, int32_t y, uint32_t buttons);
+    void ScrollCallback(float dx, float dy);
 
 private:
     std::vector<std::string>   mCommandLineArgs;

@@ -35,12 +35,21 @@ void Shark::Setup(uint32_t numFramesInFlight)
 
     mForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "Shark.vs", "Shark.ps");
 
-    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes();
+    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV();
     PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/shark/shark.obj"), &mModel, options));
 
     PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mAlbedoTexture));
     PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkRoughness.png"), &mRoughnessTexture));
     PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkNormal.png"), &mNormalMapTexture));
+
+    PPX_CHECKED_CALL(ppxres = mMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+
+    PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mMaterialSet));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateUniformBuffer(0, 0, mMaterialConstants.GetGpuBuffer()));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(1, 0, mAlbedoTexture));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(2, 0, mRoughnessTexture));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(3, 0, mNormalMapTexture));    
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(4, 0, pApp->GetClampedSampler()));
 }
 
 void Shark::Shutdown()
@@ -48,6 +57,8 @@ void Shark::Shutdown()
     for (size_t i = 0; i < mPerFrame.size(); ++i) {
         mPerFrame[i].modelConstants.Destroy();
     }
+
+    mMaterialConstants.Destroy();
 }
 
 void Shark::Update(uint32_t frameIndex)
@@ -85,6 +96,8 @@ void Shark::CopyConstantsToGpu(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 {
     PerFrame& frame = mPerFrame[frameIndex];
 
+    pCmd->BufferResourceBarrier(frame.modelConstants.GetGpuBuffer(), grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_COPY_DST);
+
     grfx::BufferToBufferCopyInfo copyInfo = {};
     copyInfo.size                         = frame.modelConstants.GetSize();
 
@@ -92,6 +105,8 @@ void Shark::CopyConstantsToGpu(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
         &copyInfo,
         frame.modelConstants.GetCpuBuffer(),
         frame.modelConstants.GetGpuBuffer());
+
+    pCmd->BufferResourceBarrier(frame.modelConstants.GetGpuBuffer(), grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
 }
 
 void Shark::DrawDebug(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
@@ -116,11 +131,12 @@ void Shark::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 {
     grfx::PipelineInterfacePtr pipelineInterface = FishTornadoApp::GetThisApp()->GetForwardPipelineInterface();
 
-    grfx::DescriptorSet* sets[2] = {nullptr};
+    grfx::DescriptorSet* sets[3] = {nullptr};
     sets[0]                      = FishTornadoApp::GetThisApp()->GetSceneSet(frameIndex);
     sets[1]                      = mPerFrame[frameIndex].modelSet;
+    sets[2]                      = mMaterialSet;
 
-    pCmd->BindGraphicsDescriptorSets(pipelineInterface, 2, sets);
+    pCmd->BindGraphicsDescriptorSets(pipelineInterface, 3, sets);
 
     pCmd->BindGraphicsPipeline(mForwardPipeline);
 

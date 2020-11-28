@@ -57,6 +57,8 @@ private:
     grfx::PipelineInterfacePtr   mForwardPipelineInterface;
     grfx::GraphicsPipelinePtr    mForwardPipeline;
     std::vector<PerFrame>        mPerFrame;
+    ConstantBuffer               mMaterialConstants;
+    grfx::DescriptorSetPtr       mMaterialSet;
     grfx::ModelPtr               mModel;
     grfx::TexturePtr             mAlbedoTexture;
     grfx::TexturePtr             mRoughnessTexture;

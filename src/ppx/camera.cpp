@@ -14,7 +14,10 @@ Camera::Camera(float nearClip, float farClip)
 void Camera::LookAt(const float3& eye, const float3& center, const float3& up)
 {
     mEyePosition          = eye;
-    mViewMatrix           = glm::lookAt(mEyePosition, center, up);
+    mLookAt               = center;
+    mWorldUp              = up;
+    mViewDirection        = glm::normalize(mEyePosition - mLookAt);
+    mViewMatrix           = glm::lookAt(mEyePosition, mLookAt, mWorldUp);
     mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
 }
 
@@ -28,6 +31,12 @@ float3 Camera::WorldToViewVector(const float3& worldVector) const
 {
     float3 viewPoint = float3(mViewMatrix * float4(worldVector, 0.0f));
     return viewPoint;
+}
+
+void Camera::MoveAlongViewDirection(float distance)
+{
+    float3 eyePosition = mEyePosition + (distance * mViewDirection);
+    LookAt(eyePosition, mLookAt, mWorldUp);
 }
 
 // -------------------------------------------------------------------------------------------------

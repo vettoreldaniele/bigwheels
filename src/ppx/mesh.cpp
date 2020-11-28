@@ -848,6 +848,12 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
                 i0            = 2 * dataIdx2.texcoord_index + 0;
                 i1            = 2 * dataIdx2.texcoord_index + 1;
                 vtx2.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
+
+                if (options.mInvertTexCoordsV) {
+                    vtx0.texCoord.y = 1.0f - vtx0.texCoord.y;
+                    vtx1.texCoord.y = 1.0f - vtx1.texCoord.y;
+                    vtx2.texCoord.y = 1.0f - vtx2.texCoord.y;
+                }
             }
 
             uint32_t triVtx0 = mesh.AppendPosition(vtx0.position * options.mScale) - 1;

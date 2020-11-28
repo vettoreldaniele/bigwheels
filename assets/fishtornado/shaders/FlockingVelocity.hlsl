@@ -13,7 +13,7 @@ void csmain(uint3 tid : SV_DispatchThreadID)
     float4 vPos       = InPositionTexture[tid.xy];
     float3 myPos      = vPos.xyz;
     float  leadership = vPos.a;
-    float  accMulti   = leadership * Flocking.timeDelta * 1.0; // Cinder version used 0.5 multiplier
+    float  accMulti   = leadership * Flocking.timeDelta * 1.5; // Cinder version used 0.5 multiplier
 
     float4 vVel    = InVelocityTexture[tid.xy];
     float3 myVel   = vVel.xyz;
@@ -92,10 +92,10 @@ void csmain(uint3 tid : SV_DispatchThreadID)
 
     // Pull to center line
     float2 centerLine = float2(sin(Flocking.time * 0.0002 + myPos.y * 0.01), sin(Flocking.time * 0.0002 - 1.5 + myPos.y * 0.01)) * 80.0;
-    myVel.xz -= (myPos.xz - centerLine) * Flocking.timeDelta * 0.005;
+    myVel.xz -= (myPos.xz - centerLine) * Flocking.timeDelta * 0.0025; //0.005;
 
     // Pull to center point
-    myVel -= normalize(myPos - float3(0.0, 150.0, 0.0)) * Flocking.timeDelta * 0.2;
+    myVel -= normalize(myPos - float3(0.0, 150.0, 0.0)) * Flocking.timeDelta * 0.1; //0.2;
 
     myVel += acc * Flocking.timeDelta;
     myCrowd -= (myCrowd - crowded) * (Flocking.timeDelta);

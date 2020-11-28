@@ -4,14 +4,15 @@
 #define SCENE_SPACE    space0
 #define MODEL_SPACE    space1
 #define MATERIAL_SPACE space2
-#define FLOCKING_SPACE space2
+#define FLOCKING_SPACE space3
                                            
 #define RENDER_SCENE_DATA_REGISTER                 b0 // SCENE_SPCE
 #define RENDER_MODEL_DATA_REGISTER                 b0 // MODEL_SPACE
 #define RENDER_MATERIAL_DATA_REGISTER              b0 // MATERIAL_SPACE
 #define RENDER_ALBEDO_TEXTURE_REGISTER             t1 // MATERIAL_SPACE
-#define RENDER_ROUGHNESS_TEXTURE_REGISTER          t1 // MATERIAL_SPACE
-#define RENDER_NORMAL_MAP_TEXTURE_REGISTER         t1 // MATERIAL_SPACE
+#define RENDER_ROUGHNESS_TEXTURE_REGISTER          t2 // MATERIAL_SPACE
+#define RENDER_NORMAL_MAP_TEXTURE_REGISTER         t3 // MATERIAL_SPACE
+#define RENDER_CLAMPED_SAMPLER_REGISTER            s4 // MATERIAL_SPACE
 #define RENDER_FLOCKING_DATA_REGISTER              b0 // FLOCKING_SPACE
 #define RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER  t1 // FLOCKING_SPACE
 #define RENDER_CURRENT_POSITION_TEXTURE_REGISTER   t2 // FLOCKING_SPACE
@@ -41,6 +42,7 @@ struct VSOutput
     float3 normalTS    : NORMALTS;
     float3 tangentTS   : TANGENTTS;
     float3 bitangnetTS : BITANGENTTS;
+    float3 fogAmount   : FOGAMOUNT;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -56,7 +58,10 @@ struct SceneData
     float4x4 viewProjectionMatrix;
     float    fogNearDistance;
     float    fogFarDistance;
-    float    fogPower;    
+    float    fogPower;
+    float3   fogColor;
+    float3   lightPosition;
+    float3   ambient;
 };
 
 // -------------------------------------------------------------------------------------------------

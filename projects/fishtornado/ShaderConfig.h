@@ -20,7 +20,10 @@ struct SceneData
     hlsl_float4x4<64> viewProjectionMatrix;
     hlsl_float<4>     fogNearDistance;
     hlsl_float<4>     fogFarDistance;
-    hlsl_float<4>     fogPower;
+    hlsl_float<8>     fogPower;
+    hlsl_float3<16>   fogColor;
+    hlsl_float3<16>   lightPosition;
+    hlsl_float3<12>   ambient;
 };
 PPX_HLSL_PACK_END();
 

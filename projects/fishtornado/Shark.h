@@ -32,6 +32,8 @@ private:
     };
 
     std::vector<PerFrame>     mPerFrame;
+    ConstantBuffer            mMaterialConstants;
+    grfx::DescriptorSetPtr    mMaterialSet;
     grfx::GraphicsPipelinePtr mForwardPipeline;
     grfx::ModelPtr            mModel;
     grfx::TexturePtr          mAlbedoTexture;

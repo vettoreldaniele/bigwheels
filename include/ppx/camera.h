@@ -26,6 +26,8 @@ public:
     float3 WorldToViewPoint(const float3& worldPoint) const;
     float3 WorldToViewVector(const float3& worldVector) const;
 
+    void MoveAlongViewDirection(float distance);
+
 protected:
     float            mAspect               = 0;
     float            mNearClip             = 0.1f;

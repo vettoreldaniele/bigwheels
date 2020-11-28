@@ -62,6 +62,8 @@ public:
         Options& TexCoordScale(const float2& scale) { mTexCoordScale = scale; return *this; }
         //! Enable all attributes
         Options& AllAttributes() { mEnableVertexColors = true; mEnableNormals = true; mEnableTexCoords = true; mEnableTangents = true; return *this; }
+        //! Invert tex coords vertically
+        Options& InvertTexCoordsV() { mInvertTexCoordsV = true; return *this; }
         // clang-format on
     private:
         bool   mEnableIndices      = false;
@@ -70,6 +72,7 @@ public:
         bool   mEnableTexCoords    = false;
         bool   mEnableTangents     = false;
         bool   mEnableObjectColor  = false;
+        bool   mInvertTexCoordsV   = false;
         float3 mObjectColor        = float3(0.7f);
         float3 mScale              = float3(1, 1, 1);
         float2 mTexCoordScale      = float2(1, 1);

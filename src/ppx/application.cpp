@@ -435,6 +435,12 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
+        
+        Application* p_application = it->second;
+        p_application->ScrollCallback(
+            static_cast<float>(xoffset),
+            static_cast<float>(yoffset));
+
         ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
     }
 
@@ -900,6 +906,11 @@ void Application::DispatchMouseUp(int32_t x, int32_t y, uint32_t buttons)
     MouseUp(x, y, buttons);
 }
 
+void Application::DispatchScroll(float dx, float dy)
+{
+    Scroll(dx, dy);
+}
+
 void Application::DispatchRender()
 {
     Render();
@@ -922,6 +933,41 @@ void Application::ResizeCallback(uint32_t width, uint32_t height)
     }
 }
 
+void Application::KeyDownCallback(KeyCode key)
+{
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
+
+    mKeyStates[key].down     = true;
+    mKeyStates[key].timeDown = GetElapsedSeconds();
+    DispatchKeyDown(key);
+}
+
+void Application::KeyUpCallback(KeyCode key)
+{
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
+
+    mKeyStates[key].down     = false;
+    mKeyStates[key].timeDown = FLT_MAX;
+    DispatchKeyUp(key);
+}
+
+void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
+{
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
+
+    int32_t dx = (mPreviousMouseX != INT32_MAX) ? (x - mPreviousMouseX) : 0;
+    int32_t dy = (mPreviousMouseY != INT32_MAX) ? (y - mPreviousMouseY) : 0;
+    DispatchMouseMove(x, y, dx, dy, buttons);
+    mPreviousMouseX = x;
+    mPreviousMouseY = y;
+}
+
 void Application::MouseDownCallback(int32_t x, int32_t y, uint32_t buttons)
 {
     if (ImGui::GetIO().WantCaptureMouse) {
@@ -940,39 +986,13 @@ void Application::MouseUpCallback(int32_t x, int32_t y, uint32_t buttons)
     DispatchMouseUp(x, y, buttons);
 }
 
-void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
+void Application::ScrollCallback(float dx, float dy)
 {
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
 
-    int32_t dx = (mPreviousMouseX != INT32_MAX) ? (x - mPreviousMouseX) : 0;
-    int32_t dy = (mPreviousMouseY != INT32_MAX) ? (y - mPreviousMouseY) : 0;
-    DispatchMouseMove(x, y, dx, dy, buttons);
-    mPreviousMouseX = x;
-    mPreviousMouseY = y;
-}
-
-void Application::KeyUpCallback(KeyCode key)
-{
-    if (ImGui::GetIO().WantCaptureKeyboard) {
-        return;
-    }
-
-    mKeyStates[key].down     = false;
-    mKeyStates[key].timeDown = FLT_MAX;
-    DispatchKeyUp(key);
-}
-
-void Application::KeyDownCallback(KeyCode key)
-{
-    if (ImGui::GetIO().WantCaptureKeyboard) {
-        return;
-    }
-
-    mKeyStates[key].down     = true;
-    mKeyStates[key].timeDown = GetElapsedSeconds();
-    DispatchKeyDown(key);
+    DispatchScroll(dx, dy);
 }
 
 void Application::DrawImGui(grfx::CommandBuffer* pCommandBuffer)

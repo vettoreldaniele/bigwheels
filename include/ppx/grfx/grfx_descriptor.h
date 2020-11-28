@@ -108,6 +108,11 @@ public:
 
     virtual Result UpdateDescriptors(uint32_t writeCount, const grfx::WriteDescriptor* pWrites) = 0;
 
+    Result UpdateSampler(
+        uint32_t             binding,
+        uint32_t             arrayIndex,
+        const grfx::Sampler* pSampler);
+
     Result UpdateSampledImage(
         uint32_t             binding,
         uint32_t             arrayIndex,

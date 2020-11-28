@@ -17,9 +17,6 @@ constexpr grfx::Api kApi = grfx::API_DX_12_0;
 constexpr grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth  1920
-#define kWindowHeight 1080
-
 class FishTornadoApp
     : public ppx::Application
 {
@@ -33,7 +30,9 @@ public:
     grfx::DescriptorPoolPtr      GetDescriptorPool() const { return mDescriptorPool; }
     grfx::DescriptorSetLayoutPtr GetSceneDataSetLayout() const { return mSceneDataSetLayout; }
     grfx::DescriptorSetLayoutPtr GetModelDataSetLayout() const { return mModelDataSetLayout; }
+    grfx::DescriptorSetLayoutPtr GetMaterialSetLayout() const { return mMaterialSetLayout; }
     grfx::DescriptorSetPtr       GetSceneSet(uint32_t frameIndex) const;
+    grfx::SamplerPtr             GetClampedSampler() const { return mClampedSampler; }
     grfx::PipelineInterfacePtr   GetForwardPipelineInterface() const { return mForwardPipelineInterface; }
     grfx::GraphicsPipelinePtr    GetDebugDrawPipeline() const { return mDebugDrawPipeline; }
 
@@ -46,6 +45,7 @@ public:
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
     virtual void Shutdown() override;
+    virtual void Scroll(float dx, float dy) override;
     virtual void Render() override;
 
 private:
@@ -53,6 +53,7 @@ private:
     void SetupSetLayouts();
     void SetupPipelineInterfaces();
     void SetupPerFrame();
+    void SetupSamplers();
     void SetupDebug();
     void SetupScene();
     void UpdateTime();
@@ -73,7 +74,9 @@ private:
     grfx::DescriptorPoolPtr      mDescriptorPool;
     grfx::DescriptorSetLayoutPtr mSceneDataSetLayout;
     grfx::DescriptorSetLayoutPtr mModelDataSetLayout;
+    grfx::DescriptorSetLayoutPtr mMaterialSetLayout;
     std::vector<PerFrame>        mPerFrame;
+    grfx::SamplerPtr             mClampedSampler;
     grfx::PipelineInterfacePtr   mForwardPipelineInterface;
     grfx::GraphicsPipelinePtr    mDebugDrawPipeline;
     PerspCamera                  mCamera;

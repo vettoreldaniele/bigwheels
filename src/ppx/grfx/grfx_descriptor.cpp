@@ -8,6 +8,25 @@ namespace grfx {
 // -------------------------------------------------------------------------------------------------
 // DescriptorSet
 // -------------------------------------------------------------------------------------------------
+Result DescriptorSet::UpdateSampler(
+    uint32_t             binding,
+    uint32_t             arrayIndex,
+    const grfx::Sampler* pSampler)
+{
+    grfx::WriteDescriptor write = {};
+    write.binding               = binding;
+    write.arrayIndex            = arrayIndex;
+    write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
+    write.pSampler              = pSampler;
+
+    Result ppxres = UpdateDescriptors(1, &write);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
 Result DescriptorSet::UpdateSampledImage(
     uint32_t             binding,
     uint32_t             arrayIndex,
