@@ -50,11 +50,11 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
     gpCreateInfo.depthReadEnable                    = true;
     gpCreateInfo.depthWriteEnable                   = true;
-    gpCreateInfo.blendModes[PPX_MAX_RENDER_TARGETS] = {grfx::BLEND_MODE_NONE};
+    gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
     gpCreateInfo.outputState.renderTargetCount      = 1;
     gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
     gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
-    gpCreateInfo.pPipelineInterface                 = IsNull(pPipelineInterface) ? mForwardPipelineInterface : pPipelineInterface;
+    gpCreateInfo.pPipelineInterface                 = IsNull(pPipelineInterface) ? mForwardPipelineInterface.Get() : pPipelineInterface;
     // Vertex description
     gpCreateInfo.vertexInputState.bindingCount = vertexDescription.GetBindingCount();
     for (uint32_t i = 0; i < vertexDescription.GetBindingCount(); ++i) {

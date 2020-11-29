@@ -16,6 +16,8 @@ grfx::Api kApi = grfx::API_VK_1_1;
 #define kWindowWidth  1920
 #define kWindowHeight 1080
 
+bool gUpdateOnce = false;
+
 class ProjApp
     : public ppx::Application
 {
