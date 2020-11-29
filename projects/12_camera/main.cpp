@@ -185,7 +185,7 @@ void ProjApp::Setup()
     // Setup entities
     {
         TriMesh::Options options = TriMesh::Options().Indices().VertexColors().Normals();
-        TriMesh          mesh    = TriMesh::CreatePlane(float2(50, 50), TriMesh::Options(options).ObjectColor(float3(0.7f)));
+        TriMesh          mesh    = TriMesh::CreatePlane(TRI_MESH_PLANE_POSITIVE_Y, float2(50, 50), 1, 1, TriMesh::Options(options).ObjectColor(float3(0.7f)));
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mShadowSetLayout, &mGroundPlane);
         mEntities.push_back(&mGroundPlane);
 
