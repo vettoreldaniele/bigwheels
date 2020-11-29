@@ -35,21 +35,21 @@ void Shark::Setup(uint32_t numFramesInFlight)
 
     mForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "Shark.vs", "Shark.ps");
 
-    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV();
+    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();;
     PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/shark/shark.obj"), &mModel, options));
 
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mAlbedoTexture));
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkRoughness.png"), &mRoughnessTexture));
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkNormal.png"), &mNormalMapTexture));
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mFloorAlbedoTexture));
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkRoughness.png"), &mFloorRoughnessTexture));
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkNormal.png"), &mFloorNormalMapTexture));
 
-    PPX_CHECKED_CALL(ppxres = mMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+    PPX_CHECKED_CALL(ppxres = mFloorMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
-    PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mMaterialSet));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateUniformBuffer(0, 0, mMaterialConstants.GetGpuBuffer()));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(1, 0, mAlbedoTexture));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(2, 0, mRoughnessTexture));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(3, 0, mNormalMapTexture));    
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(4, 0, pApp->GetClampedSampler()));
+    PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mFloorMaterialSet));
+    PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateUniformBuffer(0, 0, mFloorMaterialConstants.GetGpuBuffer()));
+    PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(1, 0, mFloorAlbedoTexture));
+    PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(2, 0, mFloorRoughnessTexture));
+    PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(3, 0, mFloorNormalMapTexture));    
+    PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampler(4, 0, pApp->GetClampedSampler()));
 }
 
 void Shark::Shutdown()
@@ -58,7 +58,7 @@ void Shark::Shutdown()
         mPerFrame[i].modelConstants.Destroy();
     }
 
-    mMaterialConstants.Destroy();
+    mFloorMaterialConstants.Destroy();
 }
 
 void Shark::Update(uint32_t frameIndex)
@@ -134,7 +134,7 @@ void Shark::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     grfx::DescriptorSet* sets[3] = {nullptr};
     sets[0]                      = FishTornadoApp::GetThisApp()->GetSceneSet(frameIndex);
     sets[1]                      = mPerFrame[frameIndex].modelSet;
-    sets[2]                      = mMaterialSet;
+    sets[2]                      = mFloorMaterialSet;
 
     pCmd->BindGraphicsDescriptorSets(pipelineInterface, 3, sets);
 

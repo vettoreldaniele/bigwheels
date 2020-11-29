@@ -46,7 +46,7 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     gpCreateInfo.PS                                 = {PS, "psmain"};
     gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
-    gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
+    gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
     gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
     gpCreateInfo.depthReadEnable                    = true;
     gpCreateInfo.depthWriteEnable                   = true;
@@ -159,7 +159,7 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         // Scene constants buffer
-        PPX_CHECKED_CALL(ppxres = frame.sceneConstants.Create(GetDevice(), PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(ppxres = frame.sceneConstants.Create(GetDevice(), 2 * PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
         // Allocate descriptor set
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneSet));
@@ -177,7 +177,19 @@ void FishTornadoApp::SetupSamplers()
     createInfo.magFilter               = grfx::FILTER_LINEAR;
     createInfo.minFilter               = grfx::FILTER_LINEAR;
     createInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
+    createInfo.addressModeU            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.addressModeV            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.addressModeW            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mClampedSampler));
+
+    createInfo              = {};
+    createInfo.magFilter    = grfx::FILTER_LINEAR;
+    createInfo.minFilter    = grfx::FILTER_LINEAR;
+    createInfo.mipmapMode   = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
+    createInfo.addressModeU = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    createInfo.addressModeV = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    createInfo.addressModeW = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mRepeatSampler));
 }
 
 void FishTornadoApp::SetupDebug()
@@ -187,39 +199,15 @@ void FishTornadoApp::SetupDebug()
     // Debug draw
     {
         mDebugDrawPipeline = CreateForwardPipeline(GetAssetPath("fishtornado/shaders"), "DebugDraw.vs", "DebugDraw.ps");
-
-        //grfx::ShaderModulePtr VS, PS;
-        //PPX_CHECKED_CALL(ppxres = CreateShader(GetAssetPath("fishtornado/shaders"), "DebugDraw.vs", &VS));
-        //PPX_CHECKED_CALL(ppxres = CreateShader(GetAssetPath("fishtornado/shaders"), "DebugDraw.ps", &PS));
-        //
-        //grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
-        //gpCreateInfo.VS                                 = {VS, "vsmain"};
-        //gpCreateInfo.PS                                 = {PS, "psmain"};
-        //gpCreateInfo.vertexInputState.bindingCount      = 2;
-        //gpCreateInfo.vertexInputState.bindings[0]       = grfx::VertexAttribute{PPX_SEMANTIC_NAME_POSITION, 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
-        //gpCreateInfo.vertexInputState.bindings[1]       = grfx::VertexAttribute{PPX_SEMANTIC_NAME_COLOR, 1, grfx::FORMAT_R32G32B32_FLOAT, 1, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX};
-        //gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        //gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
-        //gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
-        //gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
-        //gpCreateInfo.depthReadEnable                    = true;
-        //gpCreateInfo.depthWriteEnable                   = true;
-        //gpCreateInfo.blendModes[PPX_MAX_RENDER_TARGETS] = {grfx::BLEND_MODE_NONE};
-        //gpCreateInfo.outputState.renderTargetCount      = 1;
-        //gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
-        //gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
-        //gpCreateInfo.pPipelineInterface                 = mForwardPipelineInterface;
-        //PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mDebugDrawPipeline));
-        //
-        //GetDevice()->DestroyShaderModule(VS);
-        //GetDevice()->DestroyShaderModule(PS);
     }
 }
 
 void FishTornadoApp::SetupScene()
 {
     mCamera.SetPerspective(45.0f, GetWindowAspect());
-    mCamera.LookAt(float3(135.312f, 64.086f, -265.332f), float3(0.0f, 100.0f, 0.0f));
+    mCamera.LookAt(float3(135.312f, 64.086f, -265.332f), float3(0.0f, 100.0f, 0.0f)); 
+
+    mCamera.MoveAlongViewDirection(300.0f);
 }
 
 void FishTornadoApp::Setup()
@@ -282,7 +270,7 @@ void FishTornadoApp::UpdateScene(uint32_t frameIndex)
     pSceneData->fogPower             = 1.0f;
     pSceneData->fogColor             = kFogColor;
     pSceneData->lightPosition        = float3(0.0f, 5000.0, 500.0f);
-    pSceneData->ambient              = float3(0.25f, 0.45f, 0.5f);
+    pSceneData->ambient              = float3(0.45f, 0.45f, 0.5f) * 0.25f;
 }
 
 void FishTornadoApp::Render()
@@ -313,6 +301,7 @@ void FishTornadoApp::Render()
     {
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
         mFlocking.CopyConstantsToGpu(frameIndex, frame.cmd);
+        mOcean.CopyConstantsToGpu(frameIndex, frame.cmd);
 
         // Scene constants
         {
@@ -353,6 +342,7 @@ void FishTornadoApp::Render()
 
             mShark.DrawForward(frameIndex, frame.cmd);
             mFlocking.DrawForward(frameIndex, frame.cmd);
+            mOcean.DrawForward(frameIndex, frame.cmd);
 
             //frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 0, nullptr);
             //frame.cmd->BindGraphicsPipeline(mPipeline);

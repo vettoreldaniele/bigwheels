@@ -43,6 +43,13 @@ struct ModelData
 };
 PPX_HLSL_PACK_END();
 
+PPX_HLSL_PACK_BEGIN();
+struct BeamModelData
+{
+    hlsl_float4x4<64> modelMatrix[2];
+};
+PPX_HLSL_PACK_END();
+
 } // namespace hlsl
 
 // -------------------------------------------------------------------------------------------------

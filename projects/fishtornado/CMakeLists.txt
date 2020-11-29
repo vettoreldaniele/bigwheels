@@ -24,6 +24,9 @@ list(APPEND HLSL_INCLUDE_FILES
 list(APPEND VSPS_HLSL_FILES
     "${PPX_DIR}/assets/fishtornado/shaders/DebugDraw.hlsl"
     "${PPX_DIR}/assets/fishtornado/shaders/FlockingRender.hlsl"
+    "${PPX_DIR}/assets/fishtornado/shaders/OceanBeam.hlsl"
+    "${PPX_DIR}/assets/fishtornado/shaders/OceanFloor.hlsl"
+    "${PPX_DIR}/assets/fishtornado/shaders/OceanSurface.hlsl"
     "${PPX_DIR}/assets/fishtornado/shaders/Shark.hlsl"
 )
 

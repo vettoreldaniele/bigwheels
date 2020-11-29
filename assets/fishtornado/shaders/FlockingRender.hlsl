@@ -108,7 +108,7 @@ float4 psmain(VSOutput input) : SV_TARGET
     float hardness  = lerp(5.0, 30.0, 1.0 - saturate(roughness));
     
     float diffuse  = Lambert(N, L);
-    float specular = 0.7 * BlinnPhong(N, L, V, roughness);
+    float specular = 0.5 * BlinnPhong(N, L, V, roughness);
     
     float3 color = AlbedoTexture.Sample(ClampedSampler, input.texCoord).rgb;
     color = color * ((float3)(diffuse + specular) + Scene.ambient);

@@ -19,6 +19,18 @@ enum TriMeshAttributeDim
     TRI_MESH_ATTRIBUTE_DIM_4         = 4,
 };
 
+//! @enum TriMeshPlane
+//!
+//! 
+enum TriMeshPlane {
+    TRI_MESH_PLANE_POSITIVE_X = 0,
+    TRI_MESH_PLANE_NEGATIVE_X = 1,
+    TRI_MESH_PLANE_POSITIVE_Y = 2,
+    TRI_MESH_PLANE_NEGATIVE_Y = 3,
+    TRI_MESH_PLANE_POSITIVE_Z = 4,
+    TRI_MESH_PLANE_NEGATIVE_Z = 5,
+};
+
 //! @struct VertexData
 //!
 //!
@@ -62,8 +74,10 @@ public:
         Options& TexCoordScale(const float2& scale) { mTexCoordScale = scale; return *this; }
         //! Enable all attributes
         Options& AllAttributes() { mEnableVertexColors = true; mEnableNormals = true; mEnableTexCoords = true; mEnableTangents = true; return *this; }
-        //! Invert tex coords vertically
+        //! Inverts tex coords vertically
         Options& InvertTexCoordsV() { mInvertTexCoordsV = true; return *this; }
+        //! Inverts winding order of ONLY indices
+        Options& InvertWinding() { mInvertWinding = true; return *this; }
         // clang-format on
     private:
         bool   mEnableIndices      = false;
@@ -73,6 +87,7 @@ public:
         bool   mEnableTangents     = false;
         bool   mEnableObjectColor  = false;
         bool   mInvertTexCoordsV   = false;
+        bool   mInvertWinding      = false;
         float3 mObjectColor        = float3(0.7f);
         float3 mScale              = float3(1, 1, 1);
         float2 mTexCoordScale      = float2(1, 1);
@@ -135,7 +150,7 @@ public:
     Result GetTriangle(uint32_t triIndex, uint32_t& v0, uint32_t& v1, uint32_t& v2) const;
     Result GetVertexData(uint32_t vtxIndex, VertexData* pVertexData) const;
 
-    static TriMesh CreatePlane(const float2& size, const TriMesh::Options& options = TriMesh::Options());
+    static TriMesh CreatePlane(TriMeshPlane plane, const float2& size, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options = TriMesh::Options());
     static TriMesh CreateCube(const float3& size, const TriMesh::Options& options = TriMesh::Options());
     static TriMesh CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options = TriMesh::Options());
     static TriMesh CreateFromOBJ(const fs::path& path, const TriMesh::Options& options = TriMesh::Options());

@@ -33,6 +33,7 @@ public:
     grfx::DescriptorSetLayoutPtr GetMaterialSetLayout() const { return mMaterialSetLayout; }
     grfx::DescriptorSetPtr       GetSceneSet(uint32_t frameIndex) const;
     grfx::SamplerPtr             GetClampedSampler() const { return mClampedSampler; }
+    grfx::SamplerPtr             GetRepeatSampler() const { return mRepeatSampler; }
     grfx::PipelineInterfacePtr   GetForwardPipelineInterface() const { return mForwardPipelineInterface; }
     grfx::GraphicsPipelinePtr    GetDebugDrawPipeline() const { return mDebugDrawPipeline; }
 
@@ -77,6 +78,7 @@ private:
     grfx::DescriptorSetLayoutPtr mMaterialSetLayout;
     std::vector<PerFrame>        mPerFrame;
     grfx::SamplerPtr             mClampedSampler;
+    grfx::SamplerPtr             mRepeatSampler;
     grfx::PipelineInterfacePtr   mForwardPipelineInterface;
     grfx::GraphicsPipelinePtr    mDebugDrawPipeline;
     PerspCamera                  mCamera;

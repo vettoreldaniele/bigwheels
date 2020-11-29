@@ -249,7 +249,7 @@ void Flocking::Setup(uint32_t numFramesInFlight)
     }
 
     // Create model
-    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV();
+    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();
     PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/trevallie/trevallie.obj"), &mModel, options));
 
     // Create textures

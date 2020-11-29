@@ -528,10 +528,142 @@ void TriMesh::AppendIndexAndVertexData(
     }
 }
 
-TriMesh TriMesh::CreatePlane(const float2& size, const TriMesh::Options& options)
+TriMesh TriMesh::CreatePlane(TriMeshPlane plane, const float2& size, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options)
 {
-    float hx = size.x / 2.0f;
-    float hz = size.y / 2.0f;
+    const float    hs     = size.x / 2.0f;
+    const float    ht     = size.y / 2.0f;
+    const float    ds     = size.x / static_cast<float>(usegs);
+    const float    dt     = size.y / static_cast<float>(vsegs);
+    const uint32_t uverts = usegs + 1;
+    const uint32_t vverts = vsegs + 1;
+
+    std::vector<float> vertexData;
+    for (uint32_t j = 0; j < vverts; ++j) {
+        for (uint32_t i = 0; i < uverts; ++i) {
+            float s = i * ds / size.x;
+            float t = j * dt / size.y;
+            float u = options.mTexCoordScale.x * s;
+            float v = options.mTexCoordScale.y * t;
+
+            //float3 position  = float3(s - hx, 0, t - hz);
+            float3 position = float3(0);
+            switch (plane) {
+                default: {
+                    PPX_ASSERT_MSG(false, "unknown plane orientation");
+                } break;
+
+                //case TRI_MESH_PLANE_POSITIVE_X: {
+                //} break;
+                //
+                //case TRI_MESH_PLANE_NEGATIVE_X: {
+                //} break;
+                //
+                case TRI_MESH_PLANE_POSITIVE_Y: {
+                    position = float3(s * size.x - hs, 0, t * size.y - ht);
+                } break;
+
+                case TRI_MESH_PLANE_NEGATIVE_Y: {
+                    position = float3((1.0f - s) * size.x - hs, 0, (1.0f - t) * size.y - ht);
+                } break;
+
+                //case TRI_MESH_PLANE_POSITIVE_Z: {
+                //} break;
+                //
+                //case TRI_MESH_PLANE_NEGATIVE_Z: {
+                //} break;
+            }
+
+            float3 color     = float3(u, v, 0);
+            float3 normal    = float3(0, 1, 0);
+            float2 texcoord  = float2(u, v);
+            float4 tangent   = float4(0.0f, 0.0f, 0.0f, 1.0f);
+            float3 bitangent = glm::cross(normal, float3(tangent));
+
+            vertexData.push_back(position.x);
+            vertexData.push_back(position.y);
+            vertexData.push_back(position.z);
+            vertexData.push_back(color.r);
+            vertexData.push_back(color.g);
+            vertexData.push_back(color.b);
+            vertexData.push_back(normal.x);
+            vertexData.push_back(normal.y);
+            vertexData.push_back(normal.z);
+            vertexData.push_back(texcoord.x);
+            vertexData.push_back(texcoord.y);
+            vertexData.push_back(tangent.x);
+            vertexData.push_back(tangent.y);
+            vertexData.push_back(tangent.z);
+            vertexData.push_back(tangent.w);
+            vertexData.push_back(bitangent.x);
+            vertexData.push_back(bitangent.y);
+            vertexData.push_back(bitangent.z);
+        }
+    }
+
+    std::vector<uint32_t> indexData;
+    for (uint32_t i = 1; i < uverts; ++i) {
+        for (uint32_t j = 1; j < vverts; ++j) {
+            uint32_t i0 = i - 1;
+            uint32_t i1 = i;
+            uint32_t j0 = j - 1;
+            uint32_t j1 = j;
+            uint32_t v0 = i1 * vverts + j0;
+            uint32_t v1 = i1 * vverts + j1;
+            uint32_t v2 = i0 * vverts + j1;
+            uint32_t v3 = i0 * vverts + j0;
+
+            switch (plane) {
+                default: {
+                    PPX_ASSERT_MSG(false, "unknown plane orientation");
+                } break;
+
+                //case TRI_MESH_PLANE_POSITIVE_X: {
+                //} break;
+                //
+                //case TRI_MESH_PLANE_NEGATIVE_X: {
+                //} break;
+
+                case TRI_MESH_PLANE_POSITIVE_Y: {
+                    indexData.push_back(v0);
+                    indexData.push_back(v1);
+                    indexData.push_back(v2);
+
+                    indexData.push_back(v0);
+                    indexData.push_back(v2);
+                    indexData.push_back(v3);
+                } break;
+
+                case TRI_MESH_PLANE_NEGATIVE_Y: {
+                    indexData.push_back(v0);
+                    indexData.push_back(v2);
+                    indexData.push_back(v1);
+
+                    indexData.push_back(v0);
+                    indexData.push_back(v3);
+                    indexData.push_back(v2);
+                } break;
+
+                //case TRI_MESH_PLANE_POSITIVE_Z: {
+                //} break;
+                //
+                //case TRI_MESH_PLANE_NEGATIVE_Z: {
+                //} break;
+            }
+        }
+    }
+
+    grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
+    TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
+    TriMesh             mesh        = TriMesh(indexType, texCoordDim);
+
+    uint32_t expectedVertexCount = uverts * vverts;
+    AppendIndexAndVertexData(indexData, vertexData, expectedVertexCount, options, mesh);
+
+    return mesh;
+
+    /*
+    const float hx = size.x / 2.0f;
+    const float hz = size.y / 2.0f;
     // clang-format off
     std::vector<float> vertexData = {
         // position       // vertex color     // normal           // texcoord   // tangent                // bitangent
@@ -554,13 +686,14 @@ TriMesh TriMesh::CreatePlane(const float2& size, const TriMesh::Options& options
     AppendIndexAndVertexData(indexData, vertexData, 4, options, mesh);
 
     return mesh;
+    */
 }
 
 TriMesh TriMesh::CreateCube(const float3& size, const TriMesh::Options& options)
 {
-    float hx = size.x / 2.0f;
-    float hy = size.y / 2.0f;
-    float hz = size.z / 2.0f;
+    const float hx = size.x / 2.0f;
+    const float hy = size.y / 2.0f;
+    const float hz = size.z / 2.0f;
 
     // clang-format off
     std::vector<float> vertexData = {  
@@ -643,7 +776,7 @@ TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, cons
             float  theta     = i * dt;
             float  phi       = j * dp;
             float  u         = options.mTexCoordScale.x * theta / kTwoPi;
-            float  v         = options.mTexCoordScale.x * phi / kPi;
+            float  v         = options.mTexCoordScale.y * phi / kPi;
             float3 P         = SphericalToCartesian(theta, phi);
             float3 position  = radius * P;
             float3 color     = float3(u, v, 0);
@@ -849,6 +982,11 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
                 i1            = 2 * dataIdx2.texcoord_index + 1;
                 vtx2.texCoord = float2(attrib.texcoords[i0], attrib.texcoords[i1]);
 
+                // Scale tex coords
+                vtx0.texCoord *= options.mTexCoordScale;
+                vtx1.texCoord *= options.mTexCoordScale;
+                vtx2.texCoord *= options.mTexCoordScale;
+
                 if (options.mInvertTexCoordsV) {
                     vtx0.texCoord.y = 1.0f - vtx0.texCoord.y;
                     vtx1.texCoord.y = 1.0f - vtx1.texCoord.y;
@@ -912,7 +1050,12 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& opt
             }
 
             if (indexType != grfx::INDEX_TYPE_UNDEFINED) {
-                mesh.AppendTriangle(triVtx0, triVtx1, triVtx2);
+                if (options.mInvertWinding) {
+                    mesh.AppendTriangle(triVtx0, triVtx2, triVtx1);
+                }
+                else {
+                    mesh.AppendTriangle(triVtx0, triVtx1, triVtx2);
+                }
             }
         }
     }
