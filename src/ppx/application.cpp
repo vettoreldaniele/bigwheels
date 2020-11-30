@@ -668,6 +668,7 @@ Result Application::InitializeGrfxSurface()
     // Swapchain
     {
         PPX_LOG_INFO("Creating application swapchain");
+        PPX_LOG_INFO("   resolution  : " << mSettings.window.width << "x" << mSettings.window.height);
         PPX_LOG_INFO("   image count : " << mSettings.grfx.swapchain.imageCount);
 
         const uint32_t surfaceMinImageCount = mSurface->GetMinImageCount();
