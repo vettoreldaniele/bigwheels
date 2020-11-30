@@ -7,7 +7,9 @@ ConstantBuffer<MaterialData> Material         : register(RENDER_MATERIAL_DATA_RE
 Texture2D                    AlbedoTexture    : register(RENDER_ALBEDO_TEXTURE_REGISTER,            MATERIAL_SPACE);
 Texture2D                    RoughnessTexture : register(RENDER_ROUGHNESS_TEXTURE_REGISTER,         MATERIAL_SPACE);
 Texture2D                    NormalMapTexture : register(RENDER_NORMAL_MAP_TEXTURE_REGISTER,        MATERIAL_SPACE);
-SamplerState                 ClampedSampler   : register(RENDER_CLAMPED_SAMPLER_REGISTER,    MATERIAL_SPACE);
+SamplerState                 ClampedSampler   : register(RENDER_CLAMPED_SAMPLER_REGISTER,           MATERIAL_SPACE);
+Texture2DArray               CausticsTexture  : register(RENDER_CAUSTICS_TEXTURE_REGISTER,          MATERIAL_SPACE);
+SamplerState                 RepeatSampler    : register(RENDER_REPEAT_SAMPLER_REGISTER,            MATERIAL_SPACE);
 ConstantBuffer<FlockingData> Flocking         : register(RENDER_FLOCKING_DATA_REGISTER,             FLOCKING_SPACE);
 Texture2D<float4>            PrevPositionTex  : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, FLOCKING_SPACE);
 Texture2D<float4>            CurrPositionTex  : register(RENDER_CURRENT_POSITION_TEXTURE_REGISTER,  FLOCKING_SPACE);
@@ -79,7 +81,8 @@ VSOutput vsmain(VSInput input, uint instanceId : SV_InstanceID)
     result.tangentTS   = mul(normalMatrix, input.tangent);
     result.bitangnetTS = mul(normalMatrix, input.bitangnet);
     result.fogAmount   = pow(1.0 - min(max(length(VertPosVS.xyz) - Scene.fogNearDistance, 0.0) / Scene.fogFarDistance, 1.0), Scene.fogPower);
-
+    result.instanceId  = instanceId;
+    
     return result;
 }
 
@@ -107,11 +110,14 @@ float4 psmain(VSOutput input) : SV_TARGET
     float roughness = RoughnessTexture.Sample(ClampedSampler, input.texCoord).r;
     float hardness  = lerp(5.0, 30.0, 1.0 - saturate(roughness));
     
-    float diffuse  = Lambert(N, L);
-    float specular = 0.5 * BlinnPhong(N, L, V, roughness);
+    float  diffuse  = Lambert(N, L);
+    float  specular = 0.5 * BlinnPhong(N, L, V, roughness);
     
+    float2 tc       = input.positionWS.xz / 25.0 + 0.25 * sin((float)input.instanceId);
+    float3 caustics = 0.4 * CalculateCaustics(Scene.time, tc, CausticsTexture, RepeatSampler);
+
     float3 color = AlbedoTexture.Sample(ClampedSampler, input.texCoord).rgb;
-    color = color * ((float3)(diffuse + specular) + Scene.ambient);
+    color = color * ((float3)(diffuse + specular) + Scene.ambient + caustics);
     
     color = lerp(Scene.fogColor, color, input.fogAmount);
         

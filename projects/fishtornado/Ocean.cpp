@@ -63,7 +63,9 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(1, 0, mFloorAlbedoTexture));
         PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(2, 0, mFloorRoughnessTexture));
         PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(3, 0, mFloorNormalMapTexture));
-        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampler(4, 0, pApp->GetRepeatSampler()));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(4, 0, pApp->GetCausticsTexture()));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampler(5, 0, pApp->GetClampedSampler()));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampler(6, 0, pApp->GetRepeatSampler()));
     }
 
     // Surface
@@ -85,7 +87,9 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(1, 0, mSurfaceAlbedoTexture));
         PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(2, 0, mSurfaceRoughnessTexture));
         PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(3, 0, mSurfaceNormalMapTexture));
-        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampler(4, 0, pApp->GetRepeatSampler()));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(4, 0, pApp->GetCausticsTexture()));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampler(5, 0, pApp->GetClampedSampler()));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampler(6, 0, pApp->GetRepeatSampler()));
     }
 
     // Beam

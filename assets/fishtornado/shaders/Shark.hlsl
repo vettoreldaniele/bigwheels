@@ -7,7 +7,9 @@ ConstantBuffer<MaterialData> Material         : register(RENDER_MATERIAL_DATA_RE
 Texture2D                    AlbedoTexture    : register(RENDER_ALBEDO_TEXTURE_REGISTER,     MATERIAL_SPACE);
 Texture2D                    RoughnessTexture : register(RENDER_ROUGHNESS_TEXTURE_REGISTER,  MATERIAL_SPACE);
 Texture2D                    NormalMapTexture : register(RENDER_NORMAL_MAP_TEXTURE_REGISTER, MATERIAL_SPACE);
+Texture2DArray               CausticsTexture  : register(RENDER_CAUSTICS_TEXTURE_REGISTER,   MATERIAL_SPACE);
 SamplerState                 ClampedSampler   : register(RENDER_CLAMPED_SAMPLER_REGISTER,    MATERIAL_SPACE);
+SamplerState                 RepeatSampler    : register(RENDER_REPEAT_SAMPLER_REGISTER,     MATERIAL_SPACE);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -90,8 +92,11 @@ float4 psmain(VSOutput input) : SV_TARGET
     float diffuse  = Lambert(N, L);
     float specular = 0.6 * BlinnPhong(N, L, V, roughness);
     
+    float2 tc       = input.positionWS.xz / 5.0;
+    float3 caustics = 2.6 * CalculateCaustics(Scene.time, tc, CausticsTexture, RepeatSampler) * Lambert(N, float3(0, 1, 0));
+    
     float3 color = AlbedoTexture.Sample(ClampedSampler, input.texCoord).rgb;
-    color = color * ((float3)(diffuse + specular) + Scene.ambient);
+    color = color * ((float3)(diffuse + specular) + Scene.ambient + caustics);
     
     color = lerp(Scene.fogColor, color, input.fogAmount);    
     

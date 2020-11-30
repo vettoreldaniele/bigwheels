@@ -1,13 +1,15 @@
 #include "Config.hlsli"
 #include "Lighting.hlsli"
 
-ConstantBuffer<SceneData>    Scene            : register(RENDER_SCENE_DATA_REGISTER, SCENE_SPACE);
-ConstantBuffer<ModelData>    Model            : register(RENDER_MODEL_DATA_REGISTER, MODEL_SPACE);
-ConstantBuffer<MaterialData> Material         : register(RENDER_MATERIAL_DATA_REGISTER, MATERIAL_SPACE);
-Texture2D                    AlbedoTexture    : register(RENDER_ALBEDO_TEXTURE_REGISTER, MATERIAL_SPACE);
-Texture2D                    RoughnessTexture : register(RENDER_ROUGHNESS_TEXTURE_REGISTER, MATERIAL_SPACE);
+ConstantBuffer<SceneData>    Scene            : register(RENDER_SCENE_DATA_REGISTER,         SCENE_SPACE);
+ConstantBuffer<ModelData>    Model            : register(RENDER_MODEL_DATA_REGISTER,         MODEL_SPACE);
+ConstantBuffer<MaterialData> Material         : register(RENDER_MATERIAL_DATA_REGISTER,      MATERIAL_SPACE);
+Texture2D                    AlbedoTexture    : register(RENDER_ALBEDO_TEXTURE_REGISTER,     MATERIAL_SPACE);
+Texture2D                    RoughnessTexture : register(RENDER_ROUGHNESS_TEXTURE_REGISTER,  MATERIAL_SPACE);
 Texture2D                    NormalMapTexture : register(RENDER_NORMAL_MAP_TEXTURE_REGISTER, MATERIAL_SPACE);
-SamplerState                 RepeatSampler    : register(RENDER_CLAMPED_SAMPLER_REGISTER, MATERIAL_SPACE);
+Texture2DArray               CausticsTexture  : register(RENDER_CAUSTICS_TEXTURE_REGISTER,   MATERIAL_SPACE);
+SamplerState                 ClampedSampler   : register(RENDER_CLAMPED_SAMPLER_REGISTER,    MATERIAL_SPACE);
+SamplerState                 RepeatSampler    : register(RENDER_REPEAT_SAMPLER_REGISTER,     MATERIAL_SPACE);
 
 // -------------------------------------------------------------------------------------------------
 

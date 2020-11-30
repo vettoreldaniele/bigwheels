@@ -12,11 +12,14 @@
 #define RENDER_ALBEDO_TEXTURE_REGISTER             t1 // MATERIAL_SPACE
 #define RENDER_ROUGHNESS_TEXTURE_REGISTER          t2 // MATERIAL_SPACE
 #define RENDER_NORMAL_MAP_TEXTURE_REGISTER         t3 // MATERIAL_SPACE
-#define RENDER_CLAMPED_SAMPLER_REGISTER            s4 // MATERIAL_SPACE
+#define RENDER_CAUSTICS_TEXTURE_REGISTER           t4 // MATERIAL_SPACE
+#define RENDER_CLAMPED_SAMPLER_REGISTER            s5 // MATERIAL_SPACE
+#define RENDER_REPEAT_SAMPLER_REGISTER             s6 // MATERIAL_SPACE
 #define RENDER_FLOCKING_DATA_REGISTER              b0 // FLOCKING_SPACE
 #define RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER  t1 // FLOCKING_SPACE
 #define RENDER_CURRENT_POSITION_TEXTURE_REGISTER   t2 // FLOCKING_SPACE
 #define RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER   t3 // FLOCKING_SPACE
+
 
 // -------------------------------------------------------------------------------------------------
 // VS/PS Input and Output
@@ -43,6 +46,7 @@ struct VSOutput
     float3 tangentTS   : TANGENTTS;
     float3 bitangnetTS : BITANGENTTS;
     float3 fogAmount   : FOGAMOUNT;
+    uint   instanceId  : INSTANCEID;
 };
 
 // -------------------------------------------------------------------------------------------------

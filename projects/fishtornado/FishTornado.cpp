@@ -1,8 +1,9 @@
 #include "FishTornado.h"
 #include "ppx/graphics_util.h"
 
-#define kWindowWidth  1920
-#define kWindowHeight 1080
+#define kWindowWidth        1920
+#define kWindowHeight       1080
+#define kCausticsImageCount 32
 
 static const float3 kFogColor   = float3(15.0f, 86.0f, 107.0f) / 255.0f;
 static const float3 kFloorColor = float3(145.0f, 189.0f, 155.0f) / 255.0f;
@@ -112,7 +113,9 @@ void FishTornadoApp::SetupSetLayouts()
     createInfo.bindings.push_back(grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
     createInfo.bindings.push_back(grfx::DescriptorBinding{2, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
     createInfo.bindings.push_back(grfx::DescriptorBinding{3, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
-    createInfo.bindings.push_back(grfx::DescriptorBinding{4, grfx::DESCRIPTOR_TYPE_SAMPLER});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{4, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{5, grfx::DESCRIPTOR_TYPE_SAMPLER});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{6, grfx::DESCRIPTOR_TYPE_SAMPLER});
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialSetLayout));
 }
 
@@ -194,47 +197,48 @@ void FishTornadoApp::SetupSamplers()
 
 void FishTornadoApp::SetupCaustics()
 {
-    Result         ppxres      = ppx::ERROR_FAILED;
-    const uint32_t kImageCount = 32;
+    Result ppxres = ppx::ERROR_FAILED;
 
-    // Load first file to get properties
-    Bitmap bitmap;
-    PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(GetAssetPath("fishtornado/textures/ocean/caustics/save.00.png"), &bitmap));
+    // Texture
+    {
+        // Load first file to get properties
+        Bitmap bitmap;
+        PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(GetAssetPath("fishtornado/textures/ocean/caustics/save.00.png"), &bitmap));
 
-    grfx::TextureCreateInfo createInfo = {};
-    createInfo.imageType               = grfx::IMAGE_TYPE_2D;
-    createInfo.width                   = bitmap.GetWidth();
-    createInfo.height                  = bitmap.GetHeight();
-    createInfo.depth                   = 1;
-    createInfo.imageFormat             = ToGrfxFormat(bitmap.GetFormat());
-    createInfo.sampleCount             = grfx::SAMPLE_COUNT_1;
-    createInfo.mipLevelCount           = 1;
-    createInfo.arrayLayerCount         = kImageCount;
-    createInfo.usageFlags              = grfx::ImageUsageFlags::SampledImage() | grfx::IMAGE_USAGE_TRANSFER_DST;
-    createInfo.memoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY;
-    createInfo.initialState            = grfx::RESOURCE_STATE_SHADER_RESOURCE;
+        grfx::TextureCreateInfo createInfo = {};
+        createInfo.imageType               = grfx::IMAGE_TYPE_2D;
+        createInfo.width                   = bitmap.GetWidth();
+        createInfo.height                  = bitmap.GetHeight();
+        createInfo.depth                   = 1;
+        createInfo.imageFormat             = ToGrfxFormat(bitmap.GetFormat());
+        createInfo.sampleCount             = grfx::SAMPLE_COUNT_1;
+        createInfo.mipLevelCount           = 1;
+        createInfo.arrayLayerCount         = kCausticsImageCount;
+        createInfo.usageFlags              = grfx::ImageUsageFlags::SampledImage() | grfx::IMAGE_USAGE_TRANSFER_DST;
+        createInfo.memoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY;
+        createInfo.initialState            = grfx::RESOURCE_STATE_SHADER_RESOURCE;
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateTexture(&createInfo, &mCausticsTexture));
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateTexture(&createInfo, &mCausticsTexture));
+    }
+}
 
-    for (uint32_t i = 0; i < kImageCount; ++i) {
+void FishTornadoApp::UploadCaustics()
+{
+    Result ppxres = ppx::ERROR_FAILED;
+
+    for (uint32_t i = 0; i < kCausticsImageCount; ++i) {
         Timer timer;
         PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
         double fnStartTime = timer.SecondsSinceStart();
 
         std::stringstream filename;
         filename << "fishtornado/textures/ocean/caustics/save." << std::setw(2) << std::setfill('0') << i << ".png";
-
         fs::path path = GetAssetPath(filename.str());
+
+        Bitmap bitmap;
         PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(path, &bitmap));
 
-        PPX_CHECKED_CALL(ppxres = CopyBitmapToTexture(
-            GetGraphicsQueue(), 
-            &bitmap, 
-            mCausticsTexture, 
-            0, 
-            i, 
-            grfx::RESOURCE_STATE_SHADER_RESOURCE,
-            grfx::RESOURCE_STATE_SHADER_RESOURCE));
+        PPX_CHECKED_CALL(ppxres = CopyBitmapToTexture(GetGraphicsQueue(), &bitmap, mCausticsTexture, 0, i, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE));
 
         double fnEndTime = timer.SecondsSinceStart();
         float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);
@@ -274,6 +278,11 @@ void FishTornadoApp::Setup()
     mFlocking.Setup(numFramesInFlight);
     mOcean.Setup(numFramesInFlight);
     mShark.Setup(numFramesInFlight);
+
+    // Caustic iamge copy to GPU texture is giving Vulkan some grief
+    // so we split up for now.
+    //
+    UploadCaustics();
 
     SetupScene();
 }

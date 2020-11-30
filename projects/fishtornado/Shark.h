@@ -32,13 +32,13 @@ private:
     };
 
     std::vector<PerFrame>     mPerFrame;
-    ConstantBuffer            mFloorMaterialConstants;
-    grfx::DescriptorSetPtr    mFloorMaterialSet;
+    ConstantBuffer            mMaterialConstants;
+    grfx::DescriptorSetPtr    mMaterialSet;
     grfx::GraphicsPipelinePtr mForwardPipeline;
     grfx::ModelPtr            mModel;
-    grfx::TexturePtr          mFloorAlbedoTexture;
-    grfx::TexturePtr          mFloorRoughnessTexture;
-    grfx::TexturePtr          mFloorNormalMapTexture;
+    grfx::TexturePtr          mAlbedoTexture;
+    grfx::TexturePtr          mRoughnessTexture;
+    grfx::TexturePtr          mNormalMapTexture;
 
     float3 mPos = float3(3000.0f, 100.0f, 0.0f);
     float3 mVel;

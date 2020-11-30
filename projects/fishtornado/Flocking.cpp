@@ -139,7 +139,9 @@ void Flocking::SetupSets()
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(1, 0, mAlbedoTexture));
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(2, 0, mRoughnessTexture));
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(3, 0, mNormalMapTexture));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(4, 0, pApp->GetClampedSampler()));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(4, 0, pApp->GetCausticsTexture()));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(5, 0, pApp->GetClampedSampler()));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(6, 0, pApp->GetRepeatSampler()));
 }
 
 void Flocking::SetupPipelineInterfaces()

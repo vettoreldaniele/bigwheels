@@ -405,46 +405,6 @@ Result CreateTextureFromBitmap(
     // Scoped destroy
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
-    // Row stride alignment to handle DX's requirement
-    uint32_t rowStrideAlignement = grfx::IsDx(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
-    uint32_t alignedRowStride    = RoundUp<uint32_t>(pBitmap->GetRowStride(), rowStrideAlignement);
-
-    // Create staging buffer
-    grfx::BufferPtr stagingBuffer;
-    {
-        uint64_t bitmapFootprintSize = pBitmap->GetFootprintSize(rowStrideAlignement);
-
-        grfx::BufferCreateInfo ci      = {};
-        ci.size                        = bitmapFootprintSize;
-        ci.usageFlags.bits.transferSrc = true;
-        ci.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
-
-        ppxres = pQueue->GetDevice()->CreateBuffer(&ci, &stagingBuffer);
-        if (Failed(ppxres)) {
-            return ppxres;
-        }
-        SCOPED_DESTROYER.AddObject(stagingBuffer);
-
-        // Map and copy to staging buffer
-        void* pBufferAddress = nullptr;
-        ppxres               = stagingBuffer->MapMemory(0, &pBufferAddress);
-        if (Failed(ppxres)) {
-            return ppxres;
-        }
-
-        const char*    pSrc         = pBitmap->GetData();
-        char*          pDst         = static_cast<char*>(pBufferAddress);
-        const uint32_t srcRowStride = pBitmap->GetRowStride();
-        const uint32_t dstRowStride = alignedRowStride;
-        for (uint32_t y = 0; y < pBitmap->GetHeight(); ++y) {
-            memcpy(pDst, pSrc, srcRowStride);
-            pSrc += srcRowStride;
-            pDst += dstRowStride;
-        }
-
-        stagingBuffer->UnmapMemory();
-    }
-
     // Create target texture
     grfx::TexturePtr targetTexture;
     {
@@ -480,33 +440,8 @@ Result CreateTextureFromBitmap(
         SCOPED_DESTROYER.AddObject(targetTexture);
     }
 
-    // Copy info
-    grfx::BufferToImageCopyInfo copyInfo = {};
-    copyInfo.srcBuffer.imageWidth        = pBitmap->GetWidth();
-    copyInfo.srcBuffer.imageHeight       = pBitmap->GetHeight();
-    copyInfo.srcBuffer.imageRowStride    = alignedRowStride;
-    copyInfo.srcBuffer.footprintOffset   = 0;
-    copyInfo.srcBuffer.footprintWidth    = pBitmap->GetWidth();
-    copyInfo.srcBuffer.footprintHeight   = pBitmap->GetHeight();
-    copyInfo.srcBuffer.footprintDepth    = 1;
-    copyInfo.dstImage.mipLevel           = 0;
-    copyInfo.dstImage.arrayLayer         = 0;
-    copyInfo.dstImage.arrayLayerCount    = 1;
-    copyInfo.dstImage.x                  = 0;
-    copyInfo.dstImage.y                  = 0;
-    copyInfo.dstImage.z                  = 0;
-    copyInfo.dstImage.width              = pBitmap->GetWidth();
-    copyInfo.dstImage.height             = pBitmap->GetHeight();
-    copyInfo.dstImage.depth              = 1;
-
-    // Copy to GPU image
-    ppxres = pQueue->CopyBufferToImage(
-        &copyInfo,
-        stagingBuffer,
-        targetTexture->GetImage(),
-        PPX_ALL_SUBRESOURCES,
-        grfx::RESOURCE_STATE_UNDEFINED,
-        grfx::RESOURCE_STATE_SHADER_RESOURCE);
+    // Copy bitmap to texture
+    ppxres = CopyBitmapToTexture(pQueue, pBitmap, targetTexture, 0, 0, grfx::RESOURCE_STATE_GENERAL, grfx::RESOURCE_STATE_SHADER_RESOURCE);
     if (Failed(ppxres)) {
         return ppxres;
     }

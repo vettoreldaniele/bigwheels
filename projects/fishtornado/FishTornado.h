@@ -32,6 +32,7 @@ public:
     grfx::DescriptorSetLayoutPtr GetModelDataSetLayout() const { return mModelDataSetLayout; }
     grfx::DescriptorSetLayoutPtr GetMaterialSetLayout() const { return mMaterialSetLayout; }
     grfx::DescriptorSetPtr       GetSceneSet(uint32_t frameIndex) const;
+    grfx::TexturePtr             GetCausticsTexture() const { return mCausticsTexture; }
     grfx::SamplerPtr             GetClampedSampler() const { return mClampedSampler; }
     grfx::SamplerPtr             GetRepeatSampler() const { return mRepeatSampler; }
     grfx::PipelineInterfacePtr   GetForwardPipelineInterface() const { return mForwardPipelineInterface; }
@@ -58,6 +59,7 @@ private:
     void SetupCaustics();
     void SetupDebug();
     void SetupScene();
+    void UploadCaustics();
     void UpdateTime();
     void UpdateScene(uint32_t frameIndex);
 
