@@ -333,7 +333,7 @@ void FishTornadoApp::SetupScene()
     mCamera.MoveAlongViewDirection(-300.0f);
 
     mShadowCamera.LookAt(float3(0.0f, 5000.0, 500.0f), float3(0.0f, 0.0f, 0.0f));
-    mShadowCamera.SetPerspective(15.0f, 1.0f, 3500.0f, 5500.0f);
+    mShadowCamera.SetPerspective(10.0f, 1.0f, 3500.0f, 5500.0f);
 }
 
 void FishTornadoApp::Setup()

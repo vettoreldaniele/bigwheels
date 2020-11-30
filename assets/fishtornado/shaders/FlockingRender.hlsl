@@ -116,13 +116,13 @@ float4 psmain(VSOutput input) : SV_TARGET
     float  diffuse  = Lambert(N, L);
     float  specular = 0.5 * BlinnPhong(N, L, V, roughness);
     
-    float2 tc       = input.positionWS.xz / 50.0 + 8.0 * sin((float)input.instanceId);
-    float3 caustics = 0.3 * CalculateCaustics(0.5 * Scene.time, tc, CausticsTexture, RepeatSampler);
+    float2 tc       = input.positionWS.xz / 50.0 + sin(input.positionWS.y / 10.0); // + 8.0 * sin((float)input.instanceId);
+    float3 caustics = 0.5 * CalculateCaustics(0.5 * Scene.time, tc, CausticsTexture, RepeatSampler) * min(Lambert(N, float3(0, 1, 0) + 0.5), 1.0);
     
     float  shadow   = CalculateShadow(input.positionLS, Scene.shadowTextureDim, ShadowTexture, ShadowSampler, Scene.usePCF);
 
     float3 color = AlbedoTexture.Sample(ClampedSampler, input.texCoord).rgb;
-    color = color * ((float3)(diffuse + specular) * shadow + Scene.ambient + caustics);
+    color = color * ((float3)(diffuse + specular) * min(shadow + 0.1, 1.0) + Scene.ambient + caustics);
     
     color = lerp(Scene.fogColor, color, input.fogAmount);
         
