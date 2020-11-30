@@ -31,7 +31,7 @@ struct BeamVSOutput
 
 BeamVSOutput vsmain(float3 position : POSITION, float3 normal : NORMAL, float2 texCoord : TEXCOORD, uint instanceId : SV_InstanceID)
 {
-    float3x3 normalMatrix = (float3x3)Model.modelMatrix[instanceId];
+    float3x3 normalMatrix = (float3x3)mul(Scene.viewMatrix, Model.modelMatrix[instanceId]);
     
     float4 positionWS = mul(Model.modelMatrix[instanceId], float4(position, 1.0));
     float4 positionVS = mul(Scene.viewMatrix, positionWS);
@@ -53,8 +53,8 @@ float4 psmain(BeamVSOutput input) : SV_TARGET
 {
     float camDistPer = clamp(length(input.positionVS) / 400.0, 0.0, 1.0);
 
-    float falloff = sin((1.0 - input.texCoord.y) * 3.14159) * 0.1;
-    float eyeDiff = abs(dot(input.normal, normalize(input.positionVS)));
+    float falloff    = sin((1.0 - input.texCoord.y) * 3.14159) * 0.1;
+    float eyeDiff    = abs(dot(input.normal, normalize(input.positionVS)));
 
     float  vDistPer = 0.5;
     float3 rgb = pow(eyeDiff, 1.0) * FOG_COLOR;

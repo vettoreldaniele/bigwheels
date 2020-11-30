@@ -116,8 +116,8 @@ float4 psmain(VSOutput input) : SV_TARGET
     float  diffuse  = Lambert(N, L);
     float  specular = 0.5 * BlinnPhong(N, L, V, roughness);
     
-    float2 tc       = input.positionWS.xz / 25.0 + 2 * sin((float)input.instanceId);
-    float3 caustics = 0.4 * CalculateCaustics(Scene.time, tc, CausticsTexture, RepeatSampler);
+    float2 tc       = input.positionWS.xz / 50.0 + 8.0 * sin((float)input.instanceId);
+    float3 caustics = 0.3 * CalculateCaustics(0.5 * Scene.time, tc, CausticsTexture, RepeatSampler);
     
     float  shadow   = CalculateShadow(input.positionLS, Scene.shadowTextureDim, ShadowTexture, ShadowSampler, Scene.usePCF);
 
