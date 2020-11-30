@@ -2,6 +2,7 @@
 #include "Lighting.hlsli"
 
 ConstantBuffer<SceneData>    Scene            : register(RENDER_SCENE_DATA_REGISTER,         SCENE_SPACE);
+Texture2D                    ShadowTexture    : register(RENDER_SHADOW_TEXTURE_REGISTER,     SCENE_SPACE);
 ConstantBuffer<ModelData>    Model            : register(RENDER_MODEL_DATA_REGISTER,         MODEL_SPACE);
 ConstantBuffer<MaterialData> Material         : register(RENDER_MATERIAL_DATA_REGISTER,      MATERIAL_SPACE);
 Texture2D                    AlbedoTexture    : register(RENDER_ALBEDO_TEXTURE_REGISTER,     MATERIAL_SPACE);

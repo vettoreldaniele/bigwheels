@@ -210,6 +210,9 @@ void Flocking::SetupPipelines()
 
     // Foward
     mForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "FlockingRender.vs", "FlockingRender.ps", mForwardPipelineInterface);
+
+    // Shadow
+    mShadowPipeline = pApp->CreateShadowPipeline(pApp->GetAssetPath("fishtornado/shaders"), "FlockingShadow.vs", mForwardPipelineInterface);
 }
 
 void Flocking::Setup(uint32_t numFramesInFlight)
@@ -379,6 +382,27 @@ void Flocking::Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
 void Flocking::DrawDebug(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 {
+}
+
+void Flocking::DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
+{
+    FishTornadoApp* pApp = FishTornadoApp::GetThisApp();
+    
+    PerFrame& frame = mPerFrame[frameIndex];
+    
+    grfx::DescriptorSet* sets[4] = {nullptr};
+    sets[0]                      = pApp->GetSceneSet(frameIndex);
+    sets[1]                      = frame.modelSet;
+    sets[2]                      = mMaterialSet;
+    sets[3]                      = frame.renderSet;
+    
+    pCmd->BindGraphicsDescriptorSets(mForwardPipelineInterface, 4, sets);
+    
+    pCmd->BindGraphicsPipeline(mShadowPipeline);
+    
+    pCmd->BindIndexBuffer(mModel);
+    pCmd->BindVertexBuffers(mModel);
+    pCmd->DrawIndexed(mModel->GetIndexCount(), mResX * mResY);
 }
 
 void Flocking::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)

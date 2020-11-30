@@ -2,6 +2,8 @@
 #include "Lighting.hlsli"
 
 ConstantBuffer<SceneData>    Scene            : register(RENDER_SCENE_DATA_REGISTER,                SCENE_SPACE);
+Texture2D                    ShadowTexture    : register(RENDER_SHADOW_TEXTURE_REGISTER,            SCENE_SPACE);
+SamplerComparisonState       ShadowSampler    : register(RENDER_SHADOW_SAMPLER_REGISTER,            SCENE_SPACE);
 ConstantBuffer<ModelData>    Model            : register(RENDER_MODEL_DATA_REGISTER,                MODEL_SPACE);
 ConstantBuffer<MaterialData> Material         : register(RENDER_MATERIAL_DATA_REGISTER,             MATERIAL_SPACE);
 Texture2D                    AlbedoTexture    : register(RENDER_ALBEDO_TEXTURE_REGISTER,            MATERIAL_SPACE);
@@ -48,8 +50,8 @@ VSOutput vsmain(VSInput input, uint instanceId : SV_InstanceID)
     float3 pathNormal = normalize(cross(pathUp, pathDir));
     float3x3 basis    = float3x3(pathNormal, pathUp, pathDir);
 
-    float3 spoke   = float3(input.position.xy, 0.0);
-    float3 VertPos = currCenter + mul(basis, spoke);
+    float3 spoke    = float3(input.position.xy, 0.0);
+    float3 vertPos  = currCenter + mul(basis, spoke);
 
     // Calculate matrix
     float3   worldUp = float3(0, 1, 0);
@@ -60,11 +62,11 @@ VSOutput vsmain(VSInput input, uint instanceId : SV_InstanceID)
     float3x3 m       = float3x3(right, up, dir);
 
     // Set final vertex
-    VertPos = mul(m, VertPos);
-    VertPos.xyz += currPos.xyz;
+    vertPos = mul(m, vertPos);
+    vertPos.xyz += currPos.xyz;
 
-    // Position in view space
-    float4 VertPosVS = mul(Scene.viewMatrix, float4(VertPos, 1.0));
+    float4 vertPos4  = float4(vertPos, 1.0);
+    float4 vertPosVS = mul(Scene.viewMatrix, vertPos4);
     
     // NOTE: modelMatrix is an identity matrix for flocking
     //
@@ -72,15 +74,16 @@ VSOutput vsmain(VSInput input, uint instanceId : SV_InstanceID)
     float3x3 normalMatrix = mul((float3x3)Model.modelMatrix, m);
 
     VSOutput result    = (VSOutput)0;
-    result.position    = mul(mvpMatrix, float4(VertPos, 1.0));
-    result.positionWS  = VertPos;
+    result.position    = mul(mvpMatrix, vertPos4);
+    result.positionWS  = vertPos;
+    result.positionLS  = mul(Scene.shadowViewProjectionMatrix, vertPos4);
     result.color       = input.color;
     result.normal      = mul(normalMatrix, input.normal);
     result.texCoord    = input.texCoord;
     result.normalTS    = mul(normalMatrix, input.normal);
     result.tangentTS   = mul(normalMatrix, input.tangent);
     result.bitangnetTS = mul(normalMatrix, input.bitangnet);
-    result.fogAmount   = pow(1.0 - min(max(length(VertPosVS.xyz) - Scene.fogNearDistance, 0.0) / Scene.fogFarDistance, 1.0), Scene.fogPower);
+    result.fogAmount   = pow(1.0 - min(max(length(vertPosVS.xyz) - Scene.fogNearDistance, 0.0) / Scene.fogFarDistance, 1.0), Scene.fogPower);
     result.instanceId  = instanceId;
     
     return result;
@@ -113,11 +116,13 @@ float4 psmain(VSOutput input) : SV_TARGET
     float  diffuse  = Lambert(N, L);
     float  specular = 0.5 * BlinnPhong(N, L, V, roughness);
     
-    float2 tc       = input.positionWS.xz / 25.0 + 0.25 * sin((float)input.instanceId);
+    float2 tc       = input.positionWS.xz / 25.0 + 2 * sin((float)input.instanceId);
     float3 caustics = 0.4 * CalculateCaustics(Scene.time, tc, CausticsTexture, RepeatSampler);
+    
+    float  shadow   = CalculateShadow(input.positionLS, Scene.shadowTextureDim, ShadowTexture, ShadowSampler, Scene.usePCF);
 
     float3 color = AlbedoTexture.Sample(ClampedSampler, input.texCoord).rgb;
-    color = color * ((float3)(diffuse + specular) + Scene.ambient + caustics);
+    color = color * ((float3)(diffuse + specular) * shadow + Scene.ambient + caustics);
     
     color = lerp(Scene.fogColor, color, input.fogAmount);
         

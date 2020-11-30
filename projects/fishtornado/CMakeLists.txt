@@ -30,6 +30,11 @@ list(APPEND VSPS_HLSL_FILES
     "${PPX_DIR}/assets/fishtornado/shaders/Shark.hlsl"
 )
 
+list(APPEND VS_HLSL_FILES
+    "${PPX_DIR}/assets/fishtornado/shaders/FlockingShadow.hlsl"
+    "${PPX_DIR}/assets/fishtornado/shaders/SharkShadow.hlsl"
+)
+ 
 list(APPEND CS_HLSL_FILES
     "${PPX_DIR}/assets/fishtornado/shaders/FlockingPosition.hlsl"
     "${PPX_DIR}/assets/fishtornado/shaders/FlockingVelocity.hlsl"
@@ -39,7 +44,9 @@ foreach(HLSL_PATH ${VSPS_HLSL_FILES})
     CompileShaderVSPS("${HLSL_PATH}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
 endforeach()
 
-
+foreach(HLSL_PATH ${VS_HLSL_FILES})
+    CompileShaderVS("${HLSL_PATH}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
+endforeach()
 
 foreach(HLSL_PATH ${CS_HLSL_FILES})
     CompileShaderCS("${HLSL_PATH}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
@@ -68,6 +75,7 @@ list(APPEND ADDITIONAL_FILES
     ${BASIC_VSPS_HLSL_FILES}
     ${HLSL_INCLUDE_FILES}
     ${VSPS_HLSL_FILES}
+    ${VS_HLSL_FILES}
     ${CS_HLSL_FILES}
     ${CPP_FILES}
 )

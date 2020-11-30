@@ -7,6 +7,8 @@
 #define FLOCKING_SPACE space3
                                            
 #define RENDER_SCENE_DATA_REGISTER                 b0 // SCENE_SPCE
+#define RENDER_SHADOW_TEXTURE_REGISTER             t1 // SCENE_SPCE
+#define RENDER_SHADOW_SAMPLER_REGISTER             s2 // SCENE_SPCE
 #define RENDER_MODEL_DATA_REGISTER                 b0 // MODEL_SPACE
 #define RENDER_MATERIAL_DATA_REGISTER              b0 // MATERIAL_SPACE
 #define RENDER_ALBEDO_TEXTURE_REGISTER             t1 // MATERIAL_SPACE
@@ -39,6 +41,7 @@ struct VSOutput
 {
     float4 position    : SV_POSITION;
     float3 positionWS  : POSITIONWS;
+    float4 positionLS  : POSITIONLS;
     float3 color       : COLOR;
     float3 normal      : NORMAL;
     float2 texCoord    : TEXCOORD;
@@ -66,6 +69,9 @@ struct SceneData
     float3   fogColor;
     float3   lightPosition;
     float3   ambient;
+    float4x4 shadowViewProjectionMatrix;
+    float2   shadowTextureDim;
+    bool     usePCF;
 };
 
 // -------------------------------------------------------------------------------------------------

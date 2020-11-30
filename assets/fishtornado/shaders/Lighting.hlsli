@@ -37,4 +37,54 @@ float3 CalculateCaustics(float time, float2 texCoord, Texture2DArray tex, Sample
     return caustics;
 }
 
+#define PCF_SIZE 4
+
+float ShadowPCF(float2 uv, float lightDepth, float2 texDim, Texture2D tex, SamplerComparisonState sam)
+{
+    float2 invDim = 1.0 / texDim;
+    
+    float sum = 0.0;
+    for (uint y = 0; y < PCF_SIZE; ++y) {
+        for (uint x = 0; x < PCF_SIZE; ++x) {
+            float2 offset = (float2(x, y) - (float2(PCF_SIZE, PCF_SIZE) / 2.0f)) * invDim;
+            sum += tex.SampleCmpLevelZero(sam, uv + offset, lightDepth).r;  
+        }    
+    }
+      
+    sum = sum / (PCF_SIZE * PCF_SIZE);
+    return sum;
+}
+
+
+float CalculateShadow(float4 positionLS, float2 texDim, Texture2D tex, SamplerComparisonState sam, bool usePCF)
+{
+    // Lower values may introduce artifacts
+    const float bias = 0.0015;
+
+    // Complete projection into NDC
+    positionLS.xyz = positionLS.xyz / positionLS.w;
+    
+    // Readjust to [0, 1] for texture sampling
+    positionLS.x =  positionLS.x / 2.0 + 0.5;
+    positionLS.y = -positionLS.y / 2.0 + 0.5;
+    
+    // Calculate depth in light space
+    float depth = positionLS.z - bias;
+
+    // Assume 
+    float shadowFactor = 1.0;
+
+    bool isInBoundsX = (positionLS.x >= 0) && (positionLS.x < 1);
+    bool isInBoundsY = (positionLS.y >= 0) && (positionLS.y < 1);
+    bool isInBoundsZ = (positionLS.z >= 0) && (positionLS.z < 1);
+    if (isInBoundsX && isInBoundsY && isInBoundsZ) {
+        shadowFactor = tex.SampleCmpLevelZero(sam, positionLS.xy, depth);
+        if (usePCF) {
+            shadowFactor = ShadowPCF(positionLS.xy, depth, texDim, tex, sam);
+        }
+    }
+    
+    return shadowFactor;
+}
+
 #endif // LIGHTING_HLSLI

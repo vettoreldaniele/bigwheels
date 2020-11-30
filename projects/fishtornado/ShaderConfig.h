@@ -23,7 +23,10 @@ struct SceneData
     hlsl_float<8>     fogPower;
     hlsl_float3<16>   fogColor;
     hlsl_float3<16>   lightPosition;
-    hlsl_float3<12>   ambient;
+    hlsl_float3<16>   ambient;
+    hlsl_float4x4<64> shadowViewProjectionMatrix;
+    hlsl_float2<8>    shadowTextureDim;
+    hlsl_uint<4>      usePCF;
 };
 PPX_HLSL_PACK_END();
 

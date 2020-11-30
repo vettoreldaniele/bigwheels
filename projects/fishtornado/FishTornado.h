@@ -33,6 +33,7 @@ public:
     grfx::DescriptorSetLayoutPtr GetMaterialSetLayout() const { return mMaterialSetLayout; }
     grfx::DescriptorSetPtr       GetSceneSet(uint32_t frameIndex) const;
     grfx::TexturePtr             GetCausticsTexture() const { return mCausticsTexture; }
+    grfx::TexturePtr             GetShadowTexture(uint32_t frameIndex) const;
     grfx::SamplerPtr             GetClampedSampler() const { return mClampedSampler; }
     grfx::SamplerPtr             GetRepeatSampler() const { return mRepeatSampler; }
     grfx::PipelineInterfacePtr   GetForwardPipelineInterface() const { return mForwardPipelineInterface; }
@@ -42,6 +43,11 @@ public:
         const fs::path&          baseDir,
         const std::string&       vsBaseName,
         const std::string&       psBaseName,
+        grfx::PipelineInterface* pPipelineInterface = nullptr);
+
+    grfx::GraphicsPipelinePtr CreateShadowPipeline(
+        const fs::path&          baseDir,
+        const std::string&       vsBaseName,
         grfx::PipelineInterface* pPipelineInterface = nullptr);
 
     virtual void Config(ppx::ApplicationSettings& settings) override;
@@ -54,14 +60,15 @@ private:
     void SetupDescriptorPool();
     void SetupSetLayouts();
     void SetupPipelineInterfaces();
-    void SetupPerFrame();
     void SetupSamplers();
+    void SetupPerFrame();
     void SetupCaustics();
     void SetupDebug();
     void SetupScene();
     void UploadCaustics();
     void UpdateTime();
     void UpdateScene(uint32_t frameIndex);
+    void DrawGui();
 
 private:
     struct PerFrame
@@ -72,6 +79,7 @@ private:
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
         ConstantBuffer         sceneConstants;
+        grfx::DrawPassPtr      shadowDrawPass;
         grfx::DescriptorSetPtr sceneSet;
     };
 
@@ -83,14 +91,17 @@ private:
     grfx::TexturePtr             mCausticsTexture;
     grfx::SamplerPtr             mClampedSampler;
     grfx::SamplerPtr             mRepeatSampler;
+    grfx::SamplerPtr             mShadowSampler;
     grfx::PipelineInterfacePtr   mForwardPipelineInterface;
     grfx::GraphicsPipelinePtr    mDebugDrawPipeline;
     PerspCamera                  mCamera;
+    PerspCamera                  mShadowCamera;
     float                        mTime = 0;
     float                        mDt   = 0;
     Flocking                     mFlocking;
     Ocean                        mOcean;
     Shark                        mShark;
+    bool                         mUsePCF = true;
 };
 
 #endif // FISHTORNADO_H

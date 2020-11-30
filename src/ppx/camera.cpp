@@ -35,7 +35,7 @@ float3 Camera::WorldToViewVector(const float3& worldVector) const
 
 void Camera::MoveAlongViewDirection(float distance)
 {
-    float3 eyePosition = mEyePosition + (distance * mViewDirection);
+    float3 eyePosition = mEyePosition + (distance * -mViewDirection);
     LookAt(eyePosition, mLookAt, mWorldUp);
 }
 

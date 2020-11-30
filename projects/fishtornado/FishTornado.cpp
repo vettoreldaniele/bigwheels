@@ -3,6 +3,7 @@
 
 #define kWindowWidth        1920
 #define kWindowHeight       1080
+#define kShadowRes          1024
 #define kCausticsImageCount 32
 
 static const float3 kFogColor   = float3(15.0f, 86.0f, 107.0f) / 255.0f;
@@ -17,6 +18,11 @@ FishTornadoApp* FishTornadoApp::GetThisApp()
 grfx::DescriptorSetPtr FishTornadoApp::GetSceneSet(uint32_t frameIndex) const
 {
     return mPerFrame[frameIndex].sceneSet;
+}
+
+grfx::TexturePtr FishTornadoApp::GetShadowTexture(uint32_t frameIndex) const
+{
+    return mPerFrame[frameIndex].shadowDrawPass->GetDepthStencilTexture();
 }
 
 grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
@@ -71,6 +77,39 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     return pipeline;
 }
 
+grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
+    const fs::path&          baseDir,
+    const std::string&       vsBaseName,
+    grfx::PipelineInterface* pPipelineInterface)
+{
+    Result ppxres = ppx::ERROR_FAILED;
+
+    grfx::ShaderModulePtr VS;
+    PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, vsBaseName, &VS));
+
+    grfx::GraphicsPipelineCreateInfo2 gpCreateInfo = {};
+    gpCreateInfo.VS                                = {VS.Get(), "vsmain"};
+    gpCreateInfo.vertexInputState.bindingCount     = 1;
+    gpCreateInfo.vertexInputState.bindings[0]      = grfx::VertexBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_POSITION, 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
+    gpCreateInfo.topology                          = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    gpCreateInfo.polygonMode                       = grfx::POLYGON_MODE_FILL;
+    gpCreateInfo.cullMode                          = grfx::CULL_MODE_FRONT;
+    gpCreateInfo.frontFace                         = grfx::FRONT_FACE_CCW;
+    gpCreateInfo.depthReadEnable                   = true;
+    gpCreateInfo.depthWriteEnable                  = true;
+    gpCreateInfo.blendModes[0]                     = grfx::BLEND_MODE_NONE;
+    gpCreateInfo.outputState.renderTargetCount     = 0;
+    gpCreateInfo.outputState.depthStencilFormat    = grfx::FORMAT_D32_FLOAT;
+    gpCreateInfo.pPipelineInterface                = IsNull(pPipelineInterface) ? mForwardPipelineInterface.Get() : pPipelineInterface;
+
+    grfx::GraphicsPipelinePtr pipeline;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &pipeline));
+
+    GetDevice()->DestroyShaderModule(VS);
+
+    return pipeline;
+}
+
 void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "Fish Tornado";
@@ -105,9 +144,16 @@ void FishTornadoApp::SetupSetLayouts()
 
     grfx::DescriptorSetLayoutCreateInfo createInfo = {};
     createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
+    createInfo.bindings.push_back(grfx::DescriptorBinding{2, grfx::DESCRIPTOR_TYPE_SAMPLER});
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataSetLayout));
+
+    // Model
+    createInfo = {};
+    createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mModelDataSetLayout));
 
+    // Material
     createInfo = {};
     createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
     createInfo.bindings.push_back(grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
@@ -162,13 +208,28 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         // Scene constants buffer
-        PPX_CHECKED_CALL(ppxres = frame.sceneConstants.Create(GetDevice(), 2 * PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(ppxres = frame.sceneConstants.Create(GetDevice(), 3 * PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+
+        // Shadow draw pass
+        {
+            grfx::DrawPassCreateInfo drawPassCreateInfo = {};
+            drawPassCreateInfo.width                    = kShadowRes;
+            drawPassCreateInfo.height                   = kShadowRes;
+            drawPassCreateInfo.depthStencilFormat       = grfx::FORMAT_D32_FLOAT;
+            drawPassCreateInfo.depthStencilUsageFlags   = grfx::IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT | grfx::IMAGE_USAGE_SAMPLED;
+            drawPassCreateInfo.depthStencilInitialState = grfx::RESOURCE_STATE_SHADER_RESOURCE;
+            drawPassCreateInfo.depthStencilClearValue   = {1.0f, 0xFF};
+
+            PPX_CHECKED_CALL(ppxres = ppxres = GetDevice()->CreateDrawPass(&drawPassCreateInfo, &frame.shadowDrawPass));
+        }
 
         // Allocate descriptor set
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneSet));
 
         // Update descriptor
         PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateUniformBuffer(0, 0, frame.sceneConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateSampledImage(1, 0, frame.shadowDrawPass->GetDepthStencilTexture()));
+        PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateSampler(2, 0, mShadowSampler));
     }
 }
 
@@ -193,6 +254,15 @@ void FishTornadoApp::SetupSamplers()
     createInfo.addressModeV = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
     createInfo.addressModeW = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mRepeatSampler));
+
+    createInfo               = {};
+    createInfo.addressModeU  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.addressModeV  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.addressModeW  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.compareEnable = true;
+    createInfo.compareOp     = grfx::COMPARE_OP_LESS_OR_EQUAL;
+    createInfo.borderColor   = grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mShadowSampler));
 }
 
 void FishTornadoApp::SetupCaustics()
@@ -260,8 +330,10 @@ void FishTornadoApp::SetupScene()
 {
     mCamera.SetPerspective(45.0f, GetWindowAspect());
     mCamera.LookAt(float3(135.312f, 64.086f, -265.332f), float3(0.0f, 100.0f, 0.0f));
+    mCamera.MoveAlongViewDirection(-300.0f);
 
-    mCamera.MoveAlongViewDirection(300.0f);
+    mShadowCamera.LookAt(float3(0.0f, 5000.0, 500.0f), float3(0.0f, 0.0f, 0.0f));
+    mShadowCamera.SetPerspective(15.0f, 1.0f, 3500.0f, 5500.0f);
 }
 
 void FishTornadoApp::Setup()
@@ -269,8 +341,8 @@ void FishTornadoApp::Setup()
     SetupDescriptorPool();
     SetupSetLayouts();
     SetupPipelineInterfaces();
-    SetupPerFrame();
     SetupSamplers();
+    SetupPerFrame();
     SetupCaustics();
     SetupDebug();
 
@@ -319,18 +391,21 @@ void FishTornadoApp::UpdateScene(uint32_t frameIndex)
 {
     PerFrame& frame = mPerFrame[frameIndex];
 
-    hlsl::SceneData* pSceneData      = static_cast<hlsl::SceneData*>(frame.sceneConstants.GetMappedAddress());
-    pSceneData->time                 = GetTime();
-    pSceneData->eyePosition          = mCamera.GetEyePosition();
-    pSceneData->viewMatrix           = mCamera.GetViewMatrix();
-    pSceneData->projectionMatrix     = mCamera.GetProjectionMatrix();
-    pSceneData->viewProjectionMatrix = mCamera.GetViewProjectionMatrix();
-    pSceneData->fogNearDistance      = 20.0f;
-    pSceneData->fogFarDistance       = 900.0f;
-    pSceneData->fogPower             = 1.0f;
-    pSceneData->fogColor             = kFogColor;
-    pSceneData->lightPosition        = float3(0.0f, 5000.0, 500.0f);
-    pSceneData->ambient              = float3(0.45f, 0.45f, 0.5f) * 0.25f;
+    hlsl::SceneData* pSceneData            = static_cast<hlsl::SceneData*>(frame.sceneConstants.GetMappedAddress());
+    pSceneData->time                       = GetTime();
+    pSceneData->eyePosition                = mCamera.GetEyePosition();
+    pSceneData->viewMatrix                 = mCamera.GetViewMatrix();
+    pSceneData->projectionMatrix           = mCamera.GetProjectionMatrix();
+    pSceneData->viewProjectionMatrix       = mCamera.GetViewProjectionMatrix();
+    pSceneData->fogNearDistance            = 20.0f;
+    pSceneData->fogFarDistance             = 900.0f;
+    pSceneData->fogPower                   = 1.0f;
+    pSceneData->fogColor                   = kFogColor;
+    pSceneData->lightPosition              = float3(0.0f, 5000.0, 500.0f);
+    pSceneData->ambient                    = float3(0.45f, 0.45f, 0.5f) * 0.25f;
+    pSceneData->shadowViewProjectionMatrix = mShadowCamera.GetViewProjectionMatrix();
+    pSceneData->shadowTextureDim           = float2(kShadowRes);
+    pSceneData->usePCF                     = static_cast<uint32_t>(mUsePCF);
 }
 
 void FishTornadoApp::Render()
@@ -385,6 +460,20 @@ void FishTornadoApp::Render()
 
         // -----------------------------------------------------------------------------------------
 
+        frame.cmd->TransitionImageLayout(frame.shadowDrawPass, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE);
+        frame.cmd->BeginRenderPass(frame.shadowDrawPass);
+        {
+            frame.cmd->SetScissors(frame.shadowDrawPass->GetScissor());
+            frame.cmd->SetViewports(frame.shadowDrawPass->GetViewport());
+
+            mShark.DrawShadow(frameIndex, frame.cmd);
+            mFlocking.DrawShadow(frameIndex, frame.cmd);
+        }
+        frame.cmd->EndRenderPass();
+        frame.cmd->TransitionImageLayout(frame.shadowDrawPass, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE, grfx::RESOURCE_STATE_SHADER_RESOURCE);
+
+        // -----------------------------------------------------------------------------------------
+
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
 
@@ -410,7 +499,7 @@ void FishTornadoApp::Render()
             //frame.cmd->Draw(3, 1, 0, 0);
 
             // Draw ImGui
-            DrawDebugInfo();
+            DrawDebugInfo([this]() { this->DrawGui(); });
             DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
@@ -430,4 +519,11 @@ void FishTornadoApp::Render()
     PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
 
     PPX_CHECKED_CALL(ppxres = swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
+}
+
+void FishTornadoApp::DrawGui()
+{
+    ImGui::Separator();
+
+    ImGui::Checkbox("Use PCF Shadows", &mUsePCF);
 }

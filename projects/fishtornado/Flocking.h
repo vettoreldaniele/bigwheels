@@ -20,6 +20,7 @@ public:
     void CopyConstantsToGpu(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
     void Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
     void DrawDebug(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
+    void DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
     void DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
 
 private:
@@ -56,6 +57,7 @@ private:
     grfx::DescriptorSetLayoutPtr mRenderSetLayout;
     grfx::PipelineInterfacePtr   mForwardPipelineInterface;
     grfx::GraphicsPipelinePtr    mForwardPipeline;
+    grfx::GraphicsPipelinePtr    mShadowPipeline;
     std::vector<PerFrame>        mPerFrame;
     ConstantBuffer               mMaterialConstants;
     grfx::DescriptorSetPtr       mMaterialSet;

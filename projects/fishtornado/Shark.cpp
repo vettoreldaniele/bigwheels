@@ -34,8 +34,9 @@ void Shark::Setup(uint32_t numFramesInFlight)
     }
 
     mForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "Shark.vs", "Shark.ps");
+    mShadowPipeline  = pApp->CreateShadowPipeline(pApp->GetAssetPath("fishtornado/shaders"), "SharkShadow.vs");
 
-    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();;
+    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();
     PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/shark/shark.obj"), &mModel, options));
 
     PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mAlbedoTexture));
@@ -48,7 +49,7 @@ void Shark::Setup(uint32_t numFramesInFlight)
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateUniformBuffer(0, 0, mMaterialConstants.GetGpuBuffer()));
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(1, 0, mAlbedoTexture));
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(2, 0, mRoughnessTexture));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(3, 0, mNormalMapTexture));    
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(3, 0, mNormalMapTexture));
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(4, 0, pApp->GetCausticsTexture()));
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(5, 0, pApp->GetClampedSampler()));
     PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(6, 0, pApp->GetRepeatSampler()));
@@ -123,6 +124,23 @@ void Shark::DrawDebug(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     pCmd->BindGraphicsDescriptorSets(pipelineInterface, 2, sets);
 
     pCmd->BindGraphicsPipeline(pipeline);
+
+    pCmd->BindIndexBuffer(mModel);
+    pCmd->BindVertexBuffers(mModel);
+    pCmd->DrawIndexed(mModel->GetIndexCount());
+}
+
+void Shark::DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
+{
+    FishTornadoApp* pApp = FishTornadoApp::GetThisApp();
+
+    grfx::DescriptorSet* sets[2] = {nullptr};
+    sets[0]                      = FishTornadoApp::GetThisApp()->GetSceneSet(frameIndex);
+    sets[1]                      = mPerFrame[frameIndex].modelSet;
+
+    pCmd->BindGraphicsDescriptorSets(pApp->GetForwardPipelineInterface(), 2, sets);
+
+    pCmd->BindGraphicsPipeline(mShadowPipeline);
 
     pCmd->BindIndexBuffer(mModel);
     pCmd->BindVertexBuffers(mModel);

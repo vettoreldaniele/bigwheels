@@ -22,6 +22,7 @@ public:
     void Update(uint32_t frameIndex);
     void CopyConstantsToGpu(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
     void DrawDebug(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
+    void DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
     void DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
 
 private:
@@ -35,6 +36,7 @@ private:
     ConstantBuffer            mMaterialConstants;
     grfx::DescriptorSetPtr    mMaterialSet;
     grfx::GraphicsPipelinePtr mForwardPipeline;
+    grfx::GraphicsPipelinePtr mShadowPipeline;
     grfx::ModelPtr            mModel;
     grfx::TexturePtr          mAlbedoTexture;
     grfx::TexturePtr          mRoughnessTexture;
