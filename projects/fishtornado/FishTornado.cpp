@@ -192,6 +192,56 @@ void FishTornadoApp::SetupSamplers()
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mRepeatSampler));
 }
 
+void FishTornadoApp::SetupCaustics()
+{
+    Result         ppxres      = ppx::ERROR_FAILED;
+    const uint32_t kImageCount = 32;
+
+    // Load first file to get properties
+    Bitmap bitmap;
+    PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(GetAssetPath("fishtornado/textures/ocean/caustics/save.00.png"), &bitmap));
+
+    grfx::TextureCreateInfo createInfo = {};
+    createInfo.imageType               = grfx::IMAGE_TYPE_2D;
+    createInfo.width                   = bitmap.GetWidth();
+    createInfo.height                  = bitmap.GetHeight();
+    createInfo.depth                   = 1;
+    createInfo.imageFormat             = ToGrfxFormat(bitmap.GetFormat());
+    createInfo.sampleCount             = grfx::SAMPLE_COUNT_1;
+    createInfo.mipLevelCount           = 1;
+    createInfo.arrayLayerCount         = kImageCount;
+    createInfo.usageFlags              = grfx::ImageUsageFlags::SampledImage() | grfx::IMAGE_USAGE_TRANSFER_DST;
+    createInfo.memoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY;
+    createInfo.initialState            = grfx::RESOURCE_STATE_SHADER_RESOURCE;
+
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateTexture(&createInfo, &mCausticsTexture));
+
+    for (uint32_t i = 0; i < kImageCount; ++i) {
+        Timer timer;
+        PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
+        double fnStartTime = timer.SecondsSinceStart();
+
+        std::stringstream filename;
+        filename << "fishtornado/textures/ocean/caustics/save." << std::setw(2) << std::setfill('0') << i << ".png";
+
+        fs::path path = GetAssetPath(filename.str());
+        PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(path, &bitmap));
+
+        PPX_CHECKED_CALL(ppxres = CopyBitmapToTexture(
+            GetGraphicsQueue(), 
+            &bitmap, 
+            mCausticsTexture, 
+            0, 
+            i, 
+            grfx::RESOURCE_STATE_SHADER_RESOURCE,
+            grfx::RESOURCE_STATE_SHADER_RESOURCE));
+
+        double fnEndTime = timer.SecondsSinceStart();
+        float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);
+        PPX_LOG_INFO("Created image from image file: " << path << " (" << FloatString(fnElapsed) << " seconds)");
+    }
+}
+
 void FishTornadoApp::SetupDebug()
 {
     Result ppxres = ppx::ERROR_FAILED;
@@ -205,7 +255,7 @@ void FishTornadoApp::SetupDebug()
 void FishTornadoApp::SetupScene()
 {
     mCamera.SetPerspective(45.0f, GetWindowAspect());
-    mCamera.LookAt(float3(135.312f, 64.086f, -265.332f), float3(0.0f, 100.0f, 0.0f)); 
+    mCamera.LookAt(float3(135.312f, 64.086f, -265.332f), float3(0.0f, 100.0f, 0.0f));
 
     mCamera.MoveAlongViewDirection(300.0f);
 }
@@ -217,6 +267,7 @@ void FishTornadoApp::Setup()
     SetupPipelineInterfaces();
     SetupPerFrame();
     SetupSamplers();
+    SetupCaustics();
     SetupDebug();
 
     const uint32_t numFramesInFlight = GetNumFramesInFlight();

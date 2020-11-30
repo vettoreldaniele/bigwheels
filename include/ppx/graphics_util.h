@@ -184,6 +184,18 @@ Result CreateImageFromFile(
 //! @fn CreateTextureFromBitmap
 //!
 //!
+Result CopyBitmapToTexture(
+    grfx::Queue*        pQueue,
+    const Bitmap*       pBitmap,
+    grfx::Texture*      pTexture,
+    uint32_t            mipLevel,
+    uint32_t            arrayLayer,
+    grfx::ResourceState stateBefore,
+    grfx::ResourceState stateAfter);
+
+//! @fn CreateTextureFromBitmap
+//!
+//!
 Result CreateTextureFromBitmap(
     grfx::Queue*                 pQueue,
     const Bitmap*                pBitmap,
@@ -281,6 +293,10 @@ private:
     grfx::PipelineInterfacePtr mPipelineInterface;
     grfx::GraphicsPipelinePtr  mPipeline;
 };
+
+// -------------------------------------------------------------------------------------------------
+
+grfx::Format ToGrfxFormat(Bitmap::Format value);
 
 } // namespace ppx
 

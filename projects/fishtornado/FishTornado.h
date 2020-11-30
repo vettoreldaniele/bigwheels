@@ -55,6 +55,7 @@ private:
     void SetupPipelineInterfaces();
     void SetupPerFrame();
     void SetupSamplers();
+    void SetupCaustics();
     void SetupDebug();
     void SetupScene();
     void UpdateTime();
@@ -77,6 +78,7 @@ private:
     grfx::DescriptorSetLayoutPtr mModelDataSetLayout;
     grfx::DescriptorSetLayoutPtr mMaterialSetLayout;
     std::vector<PerFrame>        mPerFrame;
+    grfx::TexturePtr             mCausticsTexture;
     grfx::SamplerPtr             mClampedSampler;
     grfx::SamplerPtr             mRepeatSampler;
     grfx::PipelineInterfacePtr   mForwardPipelineInterface;

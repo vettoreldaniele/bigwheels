@@ -121,15 +121,15 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         vk::Queue* pQueue = ToApi(grfxQueue.Get());
 
         VkResult vkres = pQueue->TransitionImageLayout(
-            mImage,                    // image
-            mImageAspect,              // aspectMask
-            0,                         // baseMipLevel
-            1,                         // levelCount
-            0,                         // baseArrayLayer
-            1,                         // layerCount
-            VK_IMAGE_LAYOUT_UNDEFINED, // oldLayout
-            layout,                    // newLayout
-            pipelineStage);            // newPipelineStage)
+            mImage,                       // image
+            mImageAspect,                 // aspectMask
+            0,                            // baseMipLevel
+            pCreateInfo->mipLevelCount,   // levelCount
+            0,                            // baseArrayLayer
+            pCreateInfo->arrayLayerCount, // layerCount
+            VK_IMAGE_LAYOUT_UNDEFINED,    // oldLayout
+            layout,                       // newLayout
+            pipelineStage);               // newPipelineStage)
         if (vkres != VK_SUCCESS) {
             PPX_ASSERT_MSG(false, "vk::Queue::TransitionImageLayout failed: " << ToString(vkres));
             return ppx::ERROR_API_FAILURE;
