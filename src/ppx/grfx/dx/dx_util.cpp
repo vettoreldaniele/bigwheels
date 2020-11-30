@@ -285,13 +285,29 @@ D3D12_SRV_DIMENSION ToD3D12SRVDimension(grfx::ImageViewType value, uint32_t arra
     // clang-format off
     switch (value) {
         default: break;
+        case IMAGE_VIEW_TYPE_1D         : return D3D12_SRV_DIMENSION_TEXTURE1D; break;
+        case IMAGE_VIEW_TYPE_2D         : return D3D12_SRV_DIMENSION_TEXTURE2D; break;
+        case IMAGE_VIEW_TYPE_3D         : return D3D12_SRV_DIMENSION_TEXTURE3D; break;
+        case IMAGE_VIEW_TYPE_CUBE       : return D3D12_SRV_DIMENSION_TEXTURECUBE; break;
+        case IMAGE_VIEW_TYPE_1D_ARRAY   : return D3D12_SRV_DIMENSION_TEXTURE1DARRAY; break;
+        case IMAGE_VIEW_TYPE_2D_ARRAY   : return D3D12_SRV_DIMENSION_TEXTURE2DARRAY; break;
+        case IMAGE_VIEW_TYPE_CUBE_ARRAY : return D3D12_SRV_DIMENSION_TEXTURECUBEARRAY; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_SRV_DIMENSION>();
+
+/*
+    // clang-format off
+    switch (value) {
+        default: break;
         case IMAGE_VIEW_TYPE_1D   : return (arrayLayerCount > 1) ? D3D12_SRV_DIMENSION_TEXTURE1DARRAY : D3D12_SRV_DIMENSION_TEXTURE1D; break;
         case IMAGE_VIEW_TYPE_2D   : return (arrayLayerCount > 1) ? D3D12_SRV_DIMENSION_TEXTURE2DARRAY : D3D12_SRV_DIMENSION_TEXTURE2D; break;
-        case IMAGE_VIEW_TYPE_3D   : return D3D12_SRV_DIMENSION_TEXTURE3D;
+        case IMAGE_VIEW_TYPE_3D   : return D3D12_SRV_DIMENSION_TEXTURE3D; break;
         case IMAGE_VIEW_TYPE_CUBE : return (arrayLayerCount > 6) ? D3D12_SRV_DIMENSION_TEXTURECUBEARRAY : D3D12_SRV_DIMENSION_TEXTURECUBE; break;
     }
     // clang-format on
     return ppx::InvalidValue<D3D12_SRV_DIMENSION>();
+*/
 }
 
 D3D12_STENCIL_OP ToD3D12StencilOp(grfx::StencilOp value)
