@@ -87,12 +87,12 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
     return F0 + (1.0 - F0) * (float3)pow(1.0f - cosTheta, 5.0f);
 }
 
-float3 Environment(Texture2D tex, float3 coord)
+float3 Environment(Texture2D tex, float3 coord, float lod)
 {
     float2 uv = CartesianToSphereical(normalize(coord));
     uv.x = saturate(uv.x / (2.0 * PI));
-    uv.y = saturate(uv.y / PI);
-    float3 color = tex.Sample(ClampedSampler, uv).rgb;
+    uv.y = saturate(uv.y / PI);   
+    float3 color = tex.SampleLevel(ClampedSampler, uv, lod).rgb;
     return color;
 }
 
@@ -163,8 +163,9 @@ float3 PBR(GBuffer gbuffer)
     
     float3 irradiance = (float3)1.0; 
     if (enableIBL == 1) {    
-        float  iblStrength = gbuffer.iblStrength;
-        irradiance = Environment(IBLTex, R) * iblStrength;
+        float iblStrength = gbuffer.iblStrength;
+        float lod = roughness * (Scene.iblLevelCount - 1.0);
+        irradiance = Environment(IBLTex, R, lod) * iblStrength;
     }
     
     float3 diffuse    = irradiance * albedo +  Scene.ambient;
@@ -174,7 +175,8 @@ float3 PBR(GBuffer gbuffer)
     float3 reflection = (float3)0.0;
     if (enableEnv) {
         float envStrength = gbuffer.envStrength;
-        reflection = Environment(EnvMapTex, R) * envStrength;
+        float lod = roughness * (Scene.envLevelCount - 1.0);
+        reflection = Environment(EnvMapTex, R, lod) * envStrength;
     }    
     
     // Final color

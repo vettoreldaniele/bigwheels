@@ -39,9 +39,11 @@ void Shark::Setup(uint32_t numFramesInFlight)
     TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();
     PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/shark/shark.obj"), &mModel, options));
 
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mAlbedoTexture));
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkRoughness.png"), &mRoughnessTexture));
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkNormal.png"), &mNormalMapTexture));
+    
+    TextureCreateOptions textureCreateOptions = TextureCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mAlbedoTexture, textureCreateOptions));
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkRoughness.png"), &mRoughnessTexture, textureCreateOptions));
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkNormal.png"), &mNormalMapTexture, textureCreateOptions));
 
     PPX_CHECKED_CALL(ppxres = mMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
@@ -135,7 +137,7 @@ void Shark::DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     FishTornadoApp* pApp = FishTornadoApp::GetThisApp();
 
     grfx::DescriptorSet* sets[2] = {nullptr};
-    sets[0]                      = FishTornadoApp::GetThisApp()->GetSceneSet(frameIndex);
+    sets[0]                      = FishTornadoApp::GetThisApp()->GetSceneShadowSet(frameIndex);
     sets[1]                      = mPerFrame[frameIndex].modelSet;
 
     pCmd->BindGraphicsDescriptorSets(pApp->GetForwardPipelineInterface(), 2, sets);

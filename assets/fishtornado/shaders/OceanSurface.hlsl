@@ -60,15 +60,15 @@ float4 psmain(VSOutput input) : SV_TARGET
 
     float  t  = 0.008 * Scene.time;
     float3 N1 = NormalMapTexture.Sample(RepeatSampler, input.texCoord * 0.50 - t * 0.07).rbg * 2.0 - 1.0;
-    float3 N2 = NormalMapTexture.Sample(RepeatSampler, input.texCoord * 1.00 - t * 0.09).rbg * 2.0 - 1.0;
-    float3 N3 = NormalMapTexture.Sample(RepeatSampler, input.texCoord * 3.00 + t * 0.08).rbg * 2.0 - 1.0;
+    float3 N2 = NormalMapTexture.Sample(RepeatSampler, input.texCoord * 1.40 - t * 0.10).rbg * 2.0 - 1.0;
+    float3 N3 = NormalMapTexture.Sample(RepeatSampler, input.texCoord * 2.50 + t * 0.08).rbg * 2.0 - 1.0;
     float3 N  = normalize(N1 + N2 + N3);
 
     float specular = Phong(N, L, V, 10.0);
     float diffuse  = saturate(dot(N, L));
     float rim      = pow(1.0 - diffuse, 10.0);
    
-    float3 color = (specular * 0.8 + pow(diffuse, 10.0) + rim * 10.0 * SURFACE_COL) * 5.0;
+    float3 color = (specular * 5.0 + pow(diffuse, 10.0) + rim * 10.0 * SURFACE_COL) * 4.0; //(specular * 0.8 + pow(diffuse, 10.0) + rim * 5.0 * SURFACE_COL) * 2.0;
     color = lerp(Scene.fogColor, color, input.fogAmount);
 
     return float4(color, 1);

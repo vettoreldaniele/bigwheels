@@ -27,6 +27,8 @@ struct SceneData
     float3   eyePosition;
     uint     lightCount;
     float    ambient;
+    float    iblLevelCount;
+    float    envLevelCount;
 };
 
 struct Light

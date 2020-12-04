@@ -158,6 +158,18 @@ struct ImageUsageFlags
         return *this;
     }
 
+    ImageUsageFlags& operator|=(const ImageUsageFlags& rhs) 
+    {
+        this->flags |= rhs.flags;
+        return *this;
+    }
+
+    ImageUsageFlags& operator|=(uint32_t rhs) 
+    {
+        this->flags |= rhs;
+        return *this;
+    }
+
     operator uint32_t() const
     {
         return flags;

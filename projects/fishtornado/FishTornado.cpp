@@ -20,6 +20,11 @@ grfx::DescriptorSetPtr FishTornadoApp::GetSceneSet(uint32_t frameIndex) const
     return mPerFrame[frameIndex].sceneSet;
 }
 
+grfx::DescriptorSetPtr FishTornadoApp::GetSceneShadowSet(uint32_t frameIndex) const
+{
+    return mPerFrame[frameIndex].sceneShadowSet;
+}
+
 grfx::TexturePtr FishTornadoApp::GetShadowTexture(uint32_t frameIndex) const
 {
     return mPerFrame[frameIndex].shadowDrawPass->GetDepthStencilTexture();
@@ -142,6 +147,7 @@ void FishTornadoApp::SetupSetLayouts()
 {
     Result ppxres = ppx::ERROR_FAILED;
 
+    // Scene
     grfx::DescriptorSetLayoutCreateInfo createInfo = {};
     createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
     createInfo.bindings.push_back(grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
@@ -181,6 +187,49 @@ void FishTornadoApp::SetupPipelineInterfaces()
         piCreateInfo.sets[2].pLayout                   = mMaterialSetLayout;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mForwardPipelineInterface));
     }
+}
+
+void FishTornadoApp::SetupTextures()
+{
+    Result ppxres = ppx::ERROR_FAILED;
+
+    PPX_CHECKED_CALL(ppxres = CreateTexture1x1(GetGraphicsQueue(), {0, 0, 0, 0}, &m1x1BlackTexture));
+}
+
+void FishTornadoApp::SetupSamplers()
+{
+    Result ppxres = ppx::ERROR_FAILED;
+
+    grfx::SamplerCreateInfo createInfo = {};
+    createInfo.magFilter               = grfx::FILTER_LINEAR;
+    createInfo.minFilter               = grfx::FILTER_LINEAR;
+    createInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
+    createInfo.addressModeU            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.addressModeV            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.addressModeW            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.minLod                  = 0.0f;
+    createInfo.maxLod                  = FLT_MAX;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mClampedSampler));
+
+    createInfo              = {};
+    createInfo.magFilter    = grfx::FILTER_LINEAR;
+    createInfo.minFilter    = grfx::FILTER_LINEAR;
+    createInfo.mipmapMode   = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
+    createInfo.addressModeU = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    createInfo.addressModeV = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    createInfo.addressModeW = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
+    createInfo.minLod       = 0.0f;
+    createInfo.maxLod       = FLT_MAX;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mRepeatSampler));
+
+    createInfo               = {};
+    createInfo.addressModeU  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.addressModeV  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.addressModeW  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    createInfo.compareEnable = true;
+    createInfo.compareOp     = grfx::COMPARE_OP_LESS_OR_EQUAL;
+    createInfo.borderColor   = grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mShadowSampler));
 }
 
 void FishTornadoApp::SetupPerFrame()
@@ -223,46 +272,28 @@ void FishTornadoApp::SetupPerFrame()
             PPX_CHECKED_CALL(ppxres = ppxres = GetDevice()->CreateDrawPass(&drawPassCreateInfo, &frame.shadowDrawPass));
         }
 
-        // Allocate descriptor set
+        // Allocate scene descriptor set
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneSet));
-
-        // Update descriptor
+        // Update scene descriptor
         PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateUniformBuffer(0, 0, frame.sceneConstants.GetGpuBuffer()));
         PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateSampledImage(1, 0, frame.shadowDrawPass->GetDepthStencilTexture()));
         PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateSampler(2, 0, mShadowSampler));
+
+        // Scene shadow
+        //
+        // NOTE: We store a separate just for the scene constants when rendering shadows because
+        //       DX12 will throw a validation error if we don't set the descriptor to
+        //       D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE in the descriptor table range.
+        //       The default value is D3D12_DESCRIPTOR_RANGE_FLAG_NONE which sets the descriptor and
+        //       data to static.
+        //
+        // Allocate scene shadow descriptor set
+        PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneShadowSet));
+        // Update scene shadow descriptor
+        PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateUniformBuffer(0, 0, frame.sceneConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampledImage(1, 0, m1x1BlackTexture));
+        PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampler(2, 0, mClampedSampler));
     }
-}
-
-void FishTornadoApp::SetupSamplers()
-{
-    Result ppxres = ppx::ERROR_FAILED;
-
-    grfx::SamplerCreateInfo createInfo = {};
-    createInfo.magFilter               = grfx::FILTER_LINEAR;
-    createInfo.minFilter               = grfx::FILTER_LINEAR;
-    createInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
-    createInfo.addressModeU            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    createInfo.addressModeV            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    createInfo.addressModeW            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mClampedSampler));
-
-    createInfo              = {};
-    createInfo.magFilter    = grfx::FILTER_LINEAR;
-    createInfo.minFilter    = grfx::FILTER_LINEAR;
-    createInfo.mipmapMode   = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
-    createInfo.addressModeU = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
-    createInfo.addressModeV = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
-    createInfo.addressModeW = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mRepeatSampler));
-
-    createInfo               = {};
-    createInfo.addressModeU  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    createInfo.addressModeV  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    createInfo.addressModeW  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    createInfo.compareEnable = true;
-    createInfo.compareOp     = grfx::COMPARE_OP_LESS_OR_EQUAL;
-    createInfo.borderColor   = grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mShadowSampler));
 }
 
 void FishTornadoApp::SetupCaustics()
@@ -341,6 +372,7 @@ void FishTornadoApp::Setup()
     SetupDescriptorPool();
     SetupSetLayouts();
     SetupPipelineInterfaces();
+    SetupTextures();
     SetupSamplers();
     SetupPerFrame();
     SetupCaustics();

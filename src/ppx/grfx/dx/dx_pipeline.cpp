@@ -286,7 +286,7 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
             range->NumDescriptors                    = static_cast<UINT>(binding.arrayCount);
             range->BaseShaderRegister                = static_cast<UINT>(binding.binding);
             range->RegisterSpace                     = static_cast<UINT>(set);
-            range->Flags                             = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
+            range->Flags                             = (range->RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV) ? D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE : D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
             range->OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
             // Fill out parameter

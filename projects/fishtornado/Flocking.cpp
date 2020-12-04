@@ -228,11 +228,11 @@ void Flocking::Setup(uint32_t numFramesInFlight)
     mResY = RoundUp<uint32_t>(mResX, NUM_THREADS_Y);
 
     // Fill initial data for velocity texture
-    Bitmap velocityData = Bitmap(mResX, mResY, ppx::Bitmap::FORMAT_RGBA_FLOAT);
+    Bitmap velocityData = Bitmap::Create(mResX, mResY, ppx::Bitmap::FORMAT_RGBA_FLOAT);
     FillInitialVelocityData(&velocityData);
 
     // Fill initial data for position texture
-    Bitmap positionData = Bitmap(mResX, mResY, ppx::Bitmap::FORMAT_RGBA_FLOAT);
+    Bitmap positionData = Bitmap::Create(mResX, mResY, ppx::Bitmap::FORMAT_RGBA_FLOAT);
     FillInitialPositionData(&velocityData, &positionData);
 
     // Create layouts, interfaces, and pipelines
@@ -246,8 +246,10 @@ void Flocking::Setup(uint32_t numFramesInFlight)
         PerFrame& frame = mPerFrame[i];
         PPX_CHECKED_CALL(ppxres = frame.modelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
         PPX_CHECKED_CALL(ppxres = frame.flockingConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
-        PPX_CHECKED_CALL(ppxres = ppx::CreateTextureFromBitmap(queue, &positionData, &frame.positionTexture, grfx::IMAGE_USAGE_STORAGE));
-        PPX_CHECKED_CALL(ppxres = ppx::CreateTextureFromBitmap(queue, &velocityData, &frame.velocityTexture, grfx::IMAGE_USAGE_STORAGE));
+
+        TextureCreateOptions textureCreateOptions = TextureCreateOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE);
+        PPX_CHECKED_CALL(ppxres = ppx::CreateTextureFromBitmap(queue, &positionData, &frame.positionTexture, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = ppx::CreateTextureFromBitmap(queue, &velocityData, &frame.velocityTexture, textureCreateOptions));
 
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingSetLayout, &frame.positionSet));
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingSetLayout, &frame.velocitySet));
@@ -258,9 +260,10 @@ void Flocking::Setup(uint32_t numFramesInFlight)
     PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/trevallie/trevallie.obj"), &mModel, options));
 
     // Create textures
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieDiffuse.png"), &mAlbedoTexture));
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieRoughness.png"), &mRoughnessTexture));
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieNormal.png"), &mNormalMapTexture));
+    TextureCreateOptions textureCreateOptions = TextureCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieDiffuse.png"), &mAlbedoTexture, textureCreateOptions));
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieRoughness.png"), &mRoughnessTexture, textureCreateOptions));
+    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieNormal.png"), &mNormalMapTexture, textureCreateOptions));
 
     // Descriptor sets
     SetupSets();
@@ -391,7 +394,7 @@ void Flocking::DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     PerFrame& frame = mPerFrame[frameIndex];
     
     grfx::DescriptorSet* sets[4] = {nullptr};
-    sets[0]                      = pApp->GetSceneSet(frameIndex);
+    sets[0]                      = pApp->GetSceneShadowSet(frameIndex);
     sets[1]                      = frame.modelSet;
     sets[2]                      = mMaterialSet;
     sets[3]                      = frame.renderSet;

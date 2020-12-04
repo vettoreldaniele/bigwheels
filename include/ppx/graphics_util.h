@@ -10,6 +10,138 @@
 
 namespace ppx {
 
+class ImageCreateOptions
+{
+public:
+    ImageCreateOptions() {}
+    ~ImageCreateOptions() {}
+
+    // clang-format off
+    ImageCreateOptions& AdditionalUsage(grfx::ImageUsageFlags flags) { mAdditionalUsage = flags; return *this; }
+    ImageCreateOptions& MipLevelCount(uint32_t levelCount) { mMipLevelCount = levelCount; return *this; }
+    // clang-format on
+
+private:
+    grfx::ImageUsageFlags mAdditionalUsage = grfx::ImageUsageFlags();
+    uint32_t              mMipLevelCount   = 1;
+
+    friend Result CreateImageFromBitmap(
+        grfx::Queue*              pQueue,
+        const Bitmap*             pBitmap,
+        grfx::Image**             ppImage,
+        const ImageCreateOptions& options);
+
+    friend Result CreateImageFromFile(
+        grfx::Queue*              pQueue,
+        const fs::path&           path,
+        grfx::Image**             ppImage,
+        const ImageCreateOptions& options);
+};
+
+//! @fn CopyBitmapToImage
+//!
+//!
+Result CopyBitmapToImage(
+    grfx::Queue*        pQueue,
+    const Bitmap*       pBitmap,
+    grfx::Image*        pImage,
+    uint32_t            mipLevel,
+    uint32_t            arrayLayer,
+    grfx::ResourceState stateBefore,
+    grfx::ResourceState stateAfter);
+
+//! @fn CreateImageFromBitmap
+//!
+//!
+Result CreateImageFromBitmap(
+    grfx::Queue*              pQueue,
+    const Bitmap*             pBitmap,
+    grfx::Image**             ppImage,
+    const ImageCreateOptions& options = ImageCreateOptions());
+
+//! @fn CreateImageFromFile
+//!
+//!
+Result CreateImageFromFile(
+    grfx::Queue*              pQueue,
+    const fs::path&           path,
+    grfx::Image**             ppImage,
+    const ImageCreateOptions& options = ImageCreateOptions());
+
+// -------------------------------------------------------------------------------------------------
+
+class TextureCreateOptions
+{
+public:
+    TextureCreateOptions() {}
+    ~TextureCreateOptions() {}
+
+    // clang-format off
+    TextureCreateOptions& AdditionalUsage(grfx::ImageUsageFlags flags) { mAdditionalUsage = flags; return *this; }
+    TextureCreateOptions& MipLevelCount(uint32_t levelCount) { mMipLevelCount = levelCount; return *this; }
+    // clang-format on
+
+private:
+    grfx::ImageUsageFlags mAdditionalUsage = grfx::ImageUsageFlags();
+    uint32_t              mMipLevelCount   = 1;
+
+    friend Result CreateTextureFromBitmap(
+        grfx::Queue*                pQueue,
+        const Bitmap*               pBitmap,
+        grfx::Texture**             ppTexture,
+        const TextureCreateOptions& options);
+
+    friend Result CreateTextureFromFile(
+        grfx::Queue*                pQueue,
+        const fs::path&             path,
+        grfx::Texture**             ppTexture,
+        const TextureCreateOptions& options);
+
+    friend Result CreateTexture1x1(
+        grfx::Queue*                pQueue,
+        const float4&               color,
+        grfx::Texture**             ppTexture,
+        const TextureCreateOptions& options);
+};
+
+//! @fn CreateTextureFromBitmap
+//!
+//!
+Result CopyBitmapToTexture(
+    grfx::Queue*        pQueue,
+    const Bitmap*       pBitmap,
+    grfx::Texture*      pTexture,
+    uint32_t            mipLevel,
+    uint32_t            arrayLayer,
+    grfx::ResourceState stateBefore,
+    grfx::ResourceState stateAfter);
+
+//! @fn CreateTextureFromBitmap
+//!
+//!
+Result CreateTextureFromBitmap(
+    grfx::Queue*                pQueue,
+    const Bitmap*               pBitmap,
+    grfx::Texture**             ppTexture,
+    const TextureCreateOptions& options = TextureCreateOptions());
+
+//! @fn CreateTextureFromFile
+//!
+//!
+Result CreateTextureFromFile(
+    grfx::Queue*                pQueue,
+    const fs::path&             path,
+    grfx::Texture**             ppTexture,
+    const TextureCreateOptions& options = TextureCreateOptions());
+
+Result CreateTexture1x1(
+    grfx::Queue*                pQueue,
+    const float4&               color,
+    grfx::Texture**             ppTexture,
+    const TextureCreateOptions& options = TextureCreateOptions());
+
+// -------------------------------------------------------------------------------------------------
+
 // clang-format off
 /*
  
@@ -158,66 +290,6 @@ struct CubeMapCreateInfo
     uint32_t             posZ   = PPX_VALUE_IGNORED;
     uint32_t             negZ   = PPX_VALUE_IGNORED;
 };
-
-// -------------------------------------------------------------------------------------------------
-
-//! @fn CreateImageFromBitmap
-//!
-//!
-Result CreateImageFromBitmap(
-    grfx::Queue*                 pQueue,
-    const Bitmap*                pBitmap,
-    grfx::Image**                ppImage,
-    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
-
-//! @fn CreateImageFromFile
-//!
-//!
-Result CreateImageFromFile(
-    grfx::Queue*                 pQueue,
-    const fs::path&              path,
-    grfx::Image**                ppImage,
-    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
-
-// -------------------------------------------------------------------------------------------------
-
-//! @fn CreateTextureFromBitmap
-//!
-//!
-Result CopyBitmapToTexture(
-    grfx::Queue*        pQueue,
-    const Bitmap*       pBitmap,
-    grfx::Texture*      pTexture,
-    uint32_t            mipLevel,
-    uint32_t            arrayLayer,
-    grfx::ResourceState stateBefore,
-    grfx::ResourceState stateAfter);
-
-//! @fn CreateTextureFromBitmap
-//!
-//!
-Result CreateTextureFromBitmap(
-    grfx::Queue*                 pQueue,
-    const Bitmap*                pBitmap,
-    grfx::Texture**              ppTexture,
-    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
-
-//! @fn CreateTextureFromFile
-//!
-//!
-Result CreateTextureFromFile(
-    grfx::Queue*                 pQueue,
-    const fs::path&              path,
-    grfx::Texture**              ppTexture,
-    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
-
-Result CreateTexture1x1(
-    grfx::Queue*                 pQueue,
-    const float4&                color,
-    grfx::Texture**              ppTexture,
-    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
-
-// -------------------------------------------------------------------------------------------------
 
 //! @fn CreateCubeMapFromFile
 //!

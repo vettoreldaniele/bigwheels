@@ -60,7 +60,8 @@ static Result LoadTexture(grfx::Queue* pQueue, const fs::path& path, grfx::Textu
         *ppTexture = it->second;
     }
     else {
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(pQueue, path, ppTexture));
+        TextureCreateOptions textureCreateOptions = TextureCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(pQueue, path, ppTexture, textureCreateOptions));
         if (Failed(ppxres)) {
             return ppxres;
         }

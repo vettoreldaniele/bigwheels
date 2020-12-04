@@ -32,6 +32,7 @@ public:
     grfx::DescriptorSetLayoutPtr GetModelDataSetLayout() const { return mModelDataSetLayout; }
     grfx::DescriptorSetLayoutPtr GetMaterialSetLayout() const { return mMaterialSetLayout; }
     grfx::DescriptorSetPtr       GetSceneSet(uint32_t frameIndex) const;
+    grfx::DescriptorSetPtr       GetSceneShadowSet(uint32_t frameIndex) const;
     grfx::TexturePtr             GetCausticsTexture() const { return mCausticsTexture; }
     grfx::TexturePtr             GetShadowTexture(uint32_t frameIndex) const;
     grfx::SamplerPtr             GetClampedSampler() const { return mClampedSampler; }
@@ -60,6 +61,7 @@ private:
     void SetupDescriptorPool();
     void SetupSetLayouts();
     void SetupPipelineInterfaces();
+    void SetupTextures();
     void SetupSamplers();
     void SetupPerFrame();
     void SetupCaustics();
@@ -81,6 +83,7 @@ private:
         ConstantBuffer         sceneConstants;
         grfx::DrawPassPtr      shadowDrawPass;
         grfx::DescriptorSetPtr sceneSet;
+        grfx::DescriptorSetPtr sceneShadowSet; // See note in SetupSetLayouts()
     };
 
     grfx::DescriptorPoolPtr      mDescriptorPool;
@@ -89,6 +92,7 @@ private:
     grfx::DescriptorSetLayoutPtr mMaterialSetLayout;
     std::vector<PerFrame>        mPerFrame;
     grfx::TexturePtr             mCausticsTexture;
+    grfx::TexturePtr             m1x1BlackTexture;
     grfx::SamplerPtr             mClampedSampler;
     grfx::SamplerPtr             mRepeatSampler;
     grfx::SamplerPtr             mShadowSampler;

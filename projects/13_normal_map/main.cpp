@@ -166,8 +166,9 @@ void ProjApp::Setup()
 
     // Textures, views, and samplers
     {
-        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/albedo.jpg"), &mAlbedoTexture));
-        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/normal.jpg"), &mNormalMap));
+        ImageCreateOptions options = ImageCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/albedo.jpg"), &mAlbedoTexture, options));
+        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/normal.jpg"), &mNormalMap, options));
 
         grfx::SampledImageViewCreateInfo sivCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mAlbedoTexture);
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&sivCreateInfo, &mAlbedoTextureView));
@@ -367,6 +368,7 @@ void ProjApp::Render()
     {
         Entity* pEntity = mEntities[mEntityIndex];
 
+        pEntity->translate = float3(0, 0, -10 * (1 + sin(t / 2)));
         pEntity->rotate = float3(t, t, 2*t);
 
         float4x4 T = glm::translate(pEntity->translate);

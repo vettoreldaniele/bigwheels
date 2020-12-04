@@ -1,5 +1,6 @@
 #include "ppx/graphics_util.h"
 #include "ppx/bitmap.h"
+#include "ppx/mipmap.h"
 #include "ppx/timer.h"
 #include "ppx/grfx/grfx_buffer.h"
 #include "ppx/grfx/grfx_command.h"
@@ -135,10 +136,10 @@ Result CopyBitmapToImage(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateImageFromBitmap(
-    grfx::Queue*                 pQueue,
-    const Bitmap*                pBitmap,
-    grfx::Image**                ppImage,
-    const grfx::ImageUsageFlags& additionalImageUsage)
+    grfx::Queue*              pQueue,
+    const Bitmap*             pBitmap,
+    grfx::Image**             ppImage,
+    const ImageCreateOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(pBitmap);
@@ -148,6 +149,10 @@ Result CreateImageFromBitmap(
 
     // Scoped destroy
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
+
+    // Cap mip level count
+    uint32_t mipLevelCount = options.mMipLevelCount;
+    mipLevelCount          = Mipmap::CalculateLevelCount(pBitmap->GetWidth(), pBitmap->GetHeight());
 
     // Create target image
     grfx::ImagePtr targetImage;
@@ -159,14 +164,14 @@ Result CreateImageFromBitmap(
         ci.depth                       = 1;
         ci.format                      = ToGrfxFormat(pBitmap->GetFormat());
         ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
-        ci.mipLevelCount               = 1;
+        ci.mipLevelCount               = mipLevelCount;
         ci.arrayLayerCount             = 1;
         ci.usageFlags.bits.transferDst = true;
         ci.usageFlags.bits.sampled     = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
-        ci.initialState                = grfx::RESOURCE_STATE_GENERAL;
+        ci.initialState                = grfx::RESOURCE_STATE_SHADER_RESOURCE;
 
-        ci.usageFlags.flags |= additionalImageUsage.flags;
+        ci.usageFlags.flags |= options.mAdditionalUsage;
 
         ppxres = pQueue->GetDevice()->CreateImage(&ci, &targetImage);
         if (Failed(ppxres)) {
@@ -175,17 +180,26 @@ Result CreateImageFromBitmap(
         SCOPED_DESTROYER.AddObject(targetImage);
     }
 
-    // Copy bitmap to image
-    ppxres = CopyBitmapToImage(
-        pQueue,
-        pBitmap,
-        targetImage,
-        0,
-        0,
-        grfx::RESOURCE_STATE_GENERAL,
-        grfx::RESOURCE_STATE_SHADER_RESOURCE);
-    if (Failed(ppxres)) {
-        return ppxres;
+    Mipmap mipmap = Mipmap(*pBitmap, mipLevelCount);
+    if (!mipmap.IsOk()) {
+        return ppx::ERROR_FAILED;
+    }
+
+    // Copy mips to image
+    for (uint32_t mipLevel = 0; mipLevel < mipLevelCount; ++mipLevel) {
+        const Bitmap* pMip = mipmap.GetMip(mipLevel);
+
+        ppxres = CopyBitmapToImage(
+            pQueue,
+            pMip,
+            targetImage,
+            mipLevel,
+            0,
+            grfx::RESOURCE_STATE_SHADER_RESOURCE,
+            grfx::RESOURCE_STATE_SHADER_RESOURCE);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
     }
 
     // Change ownership to reference so object doesn't get destroyed
@@ -200,10 +214,10 @@ Result CreateImageFromBitmap(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateImageFromFile(
-    grfx::Queue*                 pQueue,
-    const fs::path&              path,
-    grfx::Image**                ppImage,
-    const grfx::ImageUsageFlags& additionalImageUsage)
+    grfx::Queue*              pQueue,
+    const fs::path&           path,
+    grfx::Image**             ppImage,
+    const ImageCreateOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppImage);
@@ -219,7 +233,7 @@ Result CreateImageFromFile(
         return ppxres;
     }
 
-    ppxres = CreateImageFromBitmap(pQueue, &bitmap, ppImage, additionalImageUsage);
+    ppxres = CreateImageFromBitmap(pQueue, &bitmap, ppImage, options);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -264,10 +278,10 @@ Result CopyBitmapToTexture(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateTextureFromBitmap(
-    grfx::Queue*                 pQueue,
-    const Bitmap*                pBitmap,
-    grfx::Texture**              ppTexture,
-    const grfx::ImageUsageFlags& additionalImageUsage)
+    grfx::Queue*                pQueue,
+    const Bitmap*               pBitmap,
+    grfx::Texture**             ppTexture,
+    const TextureCreateOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(pBitmap);
@@ -277,6 +291,10 @@ Result CreateTextureFromBitmap(
 
     // Scoped destroy
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
+
+    // Cap mip level count
+    uint32_t mipLevelCount = options.mMipLevelCount;
+    mipLevelCount          = Mipmap::CalculateLevelCount(pBitmap->GetWidth(), pBitmap->GetHeight());
 
     // Create target texture
     grfx::TexturePtr targetTexture;
@@ -289,12 +307,12 @@ Result CreateTextureFromBitmap(
         ci.depth                       = 1;
         ci.imageFormat                 = ToGrfxFormat(pBitmap->GetFormat());
         ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
-        ci.mipLevelCount               = 1;
+        ci.mipLevelCount               = mipLevelCount;
         ci.arrayLayerCount             = 1;
         ci.usageFlags.bits.transferDst = true;
         ci.usageFlags.bits.sampled     = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
-        ci.initialState                = grfx::RESOURCE_STATE_GENERAL;
+        ci.initialState                = grfx::RESOURCE_STATE_SHADER_RESOURCE;
         ci.RTVClearValue               = {0, 0, 0, 0};
         ci.DSVClearValue               = {1.0f, 0xFF};
         ci.sampledImageViewType        = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
@@ -304,7 +322,7 @@ Result CreateTextureFromBitmap(
         ci.storageImageViewFormat      = grfx::FORMAT_UNDEFINED;
         ci.ownership                   = grfx::OWNERSHIP_REFERENCE;
 
-        ci.usageFlags.flags |= additionalImageUsage.flags;
+        ci.usageFlags.flags |= options.mAdditionalUsage;
 
         ppxres = pQueue->GetDevice()->CreateTexture(&ci, &targetTexture);
         if (Failed(ppxres)) {
@@ -313,17 +331,26 @@ Result CreateTextureFromBitmap(
         SCOPED_DESTROYER.AddObject(targetTexture);
     }
 
-    // Copy bitmap to texture
-    ppxres = CopyBitmapToTexture(
-        pQueue,
-        pBitmap,
-        targetTexture,
-        0,
-        0,
-        grfx::RESOURCE_STATE_GENERAL,
-        grfx::RESOURCE_STATE_SHADER_RESOURCE);
-    if (Failed(ppxres)) {
-        return ppxres;
+    Mipmap mipmap = Mipmap(*pBitmap, mipLevelCount);
+    if (!mipmap.IsOk()) {
+        return ppx::ERROR_FAILED;
+    }
+
+    // Copy mips to texture
+    for (uint32_t mipLevel = 0; mipLevel < mipLevelCount; ++mipLevel) {
+        const Bitmap* pMip = mipmap.GetMip(mipLevel);
+
+        ppxres = CopyBitmapToTexture(
+            pQueue,
+            pMip,
+            targetTexture,
+            mipLevel,
+            0,
+            grfx::RESOURCE_STATE_SHADER_RESOURCE,
+            grfx::RESOURCE_STATE_SHADER_RESOURCE);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
     }
 
     // Change ownership to reference so object doesn't get destroyed
@@ -338,10 +365,10 @@ Result CreateTextureFromBitmap(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateTextureFromFile(
-    grfx::Queue*                 pQueue,
-    const fs::path&              path,
-    grfx::Texture**              ppTexture,
-    const grfx::ImageUsageFlags& additionalImageUsage)
+    grfx::Queue*                pQueue,
+    const fs::path&             path,
+    grfx::Texture**             ppTexture,
+    const TextureCreateOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppTexture);
@@ -357,7 +384,7 @@ Result CreateTextureFromFile(
         return ppxres;
     }
 
-    ppxres = CreateTextureFromBitmap(pQueue, &bitmap, ppTexture, additionalImageUsage);
+    ppxres = CreateTextureFromBitmap(pQueue, &bitmap, ppTexture, options);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -372,10 +399,10 @@ Result CreateTextureFromFile(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateTexture1x1(
-    grfx::Queue*                 pQueue,
-    const float4&                color,
-    grfx::Texture**              ppTexture,
-    const grfx::ImageUsageFlags& additionalImageUsage)
+    grfx::Queue*                pQueue,
+    const float4&               color,
+    grfx::Texture**             ppTexture,
+    const TextureCreateOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppTexture);
@@ -383,10 +410,15 @@ Result CreateTexture1x1(
     Result ppxres = ppx::SUCCESS;
 
     // Create bitmap
-    Bitmap bitmap = Bitmap(1, 1, Bitmap::FORMAT_RGBA_UINT8);
+    Bitmap bitmap = Bitmap::Create(1, 1, Bitmap::FORMAT_RGBA_UINT8, &ppxres);
+    if (Failed(ppxres)) {
+        return ppx::ERROR_BITMAP_CREATE_FAILED;
+    }
+
+    // Fill color
     bitmap.Fill(color.r, color.g, color.b, color.a);
 
-    ppxres = CreateTextureFromBitmap(pQueue, &bitmap, ppTexture, additionalImageUsage);
+    ppxres = CreateTextureFromBitmap(pQueue, &bitmap, ppTexture, options);
     if (Failed(ppxres)) {
         return ppxres;
     }

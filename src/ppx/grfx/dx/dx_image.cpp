@@ -42,7 +42,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         resourceDesc.Width               = static_cast<UINT64>(pCreateInfo->width);
         resourceDesc.Height              = static_cast<UINT64>(pCreateInfo->height);
         resourceDesc.DepthOrArraySize    = static_cast<UINT16>((pCreateInfo->type == grfx::IMAGE_TYPE_3D) ? pCreateInfo->depth : pCreateInfo->arrayLayerCount);
-        resourceDesc.MipLevels           = 1;
+        resourceDesc.MipLevels           = static_cast<UINT16>(pCreateInfo->mipLevelCount);
         resourceDesc.Format              = ToDxgiFormat(pCreateInfo->format);
         resourceDesc.SampleDesc.Count    = static_cast<UINT>(pCreateInfo->sampleCount);
         resourceDesc.SampleDesc.Quality  = 0;

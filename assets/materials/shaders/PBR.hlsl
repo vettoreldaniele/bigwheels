@@ -54,12 +54,12 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
     return F0 + (1.0 - F0) * (float3)pow(1.0f - cosTheta, 5.0f);
 }
 
-float3 Environment(Texture2D tex, float3 coord)
+float3 Environment(Texture2D tex, float3 coord, float lod)
 {
     float2 uv = CartesianToSphereical(normalize(coord));
     uv.x = saturate(uv.x / (2.0 * PI));
-    uv.y = saturate(uv.y / PI);
-    float3 color = tex.Sample(ClampedSampler, uv).rgb;
+    uv.y = saturate(uv.y / PI);   
+    float3 color = tex.SampleLevel(ClampedSampler, uv, lod).rgb;
     return color;
 }
 
@@ -160,7 +160,8 @@ float4 psmain(VSOutput input) : SV_TARGET
     
     float3 irradiance = (float3)1.0; 
     if (Material.iblSelect == 1) {
-        irradiance = Environment(IBLTex, R) * Material.iblStrength;
+        float lod = roughness * (Scene.iblLevelCount - 1.0);
+        irradiance = Environment(IBLTex, R, lod) * Material.iblStrength;
     }
     
     float3 diffuse    = irradiance * albedo +  Scene.ambient;
@@ -169,7 +170,8 @@ float4 psmain(VSOutput input) : SV_TARGET
     // Environment reflection
     float3 reflection = (float3)0.0;
     if (Material.envSelect) {
-        reflection = Environment(EnvMapTex, R) * Material.envStrength;
+        float lod = roughness * (Scene.envLevelCount - 1.0);
+        reflection = Environment(EnvMapTex, R, lod) * Material.envStrength;
     }    
     
     // Final color

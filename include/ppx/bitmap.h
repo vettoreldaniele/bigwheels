@@ -45,14 +45,18 @@ public:
 
     // ---------------------------------------------------------------------------------------------
 
-    Bitmap(Bitmap::Format format = Bitmap::FORMAT_UNDEFINED);
+    Bitmap();
+    Bitmap(const Bitmap& obj);
+    ~Bitmap() {}
 
-    // If 'pExternalStorage' is not null then it must point to a valid
-    // allocation with enough storage for the bitmap.
-    //
-    Bitmap(uint32_t width, uint32_t height, Bitmap::Format format, char* pExternalStorage = nullptr);
+    Bitmap& operator=(const Bitmap& rhs);
 
-    // Returns true if dimensions are greater than one, format is valid, and storage isvalid
+    static Result Create(uint32_t width, uint32_t height, Bitmap::Format format, Bitmap* pBitmap);
+    static Result Create(uint32_t width, uint32_t height, Bitmap::Format format, char* pExternalStorage, Bitmap* pBitmap);
+    static Bitmap Create(uint32_t width, uint32_t height, Bitmap::Format format, Result* pResult = nullptr);
+    static Bitmap Create(uint32_t width, uint32_t height, Bitmap::Format format, char* pExternalStorage, Result* pResult = nullptr);
+
+    // Returns true if dimensions are greater than one, format is valid, and storage is valid
     bool IsOk() const;
 
     uint32_t       GetWidth() const { return mWidth; }
@@ -64,8 +68,7 @@ public:
     uint64_t       GetFootprintSize(uint32_t rowStrideAlignment = 1) const;
 
     Result Resize(uint32_t width, uint32_t height);
-    //Result Resize(uint32_t widht, uint32_t height, Bitmap* pBitmap) const;
-    //Result CopyTo(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Bitmap* pBitmap) const;
+    Result ScaleTo(Bitmap* pTargetBitmap) const;
 
     void Fill(float r, float g, float b, float a);
 
@@ -92,6 +95,7 @@ public:
     static uint32_t         FormatSize(Bitmap::Format value);
     static uint64_t         StorageFootprint(uint32_t width, uint32_t height, Bitmap::Format format);
 
+    static Result GetFileProperties(const fs::path& path, uint32_t* pWidth, uint32_t* pHeight, Bitmap::Format* pFormat);
     static Result LoadFile(const fs::path& path, Bitmap* pBitmap);
 
     // ---------------------------------------------------------------------------------------------
@@ -156,6 +160,11 @@ public:
     // ---------------------------------------------------------------------------------------------
 
     PixelIterator GetPixelIterator() { return PixelIterator(this); }
+
+private:
+    void   InternalCtor();
+    Result InternalInitialize(uint32_t width, uint32_t height, Bitmap::Format format, char* pExternalStorage);
+    Result InternalCopy(const Bitmap& obj);
 
 private:
     uint32_t          mWidth           = 0;
