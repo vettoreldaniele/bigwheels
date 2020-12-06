@@ -14,6 +14,11 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # ------------------------------------------------------------------------------
+# Options
+# ------------------------------------------------------------------------------
+option(PPX_BUILD_PROJECTS "Build sample projets" ON)
+
+# ------------------------------------------------------------------------------
 # Configure target platform
 # ------------------------------------------------------------------------------
 
@@ -117,4 +122,7 @@ add_subdirectory(src)
 # Add projects
 # ------------------------------------------------------------------------------
 
-add_subdirectory(projects)
+if (PPX_BUILD_PROJECTS)
+    message("Building sample projects")
+    add_subdirectory(projects)
+endif()    
