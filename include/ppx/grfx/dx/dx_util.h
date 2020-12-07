@@ -17,6 +17,8 @@ D3D12_COMPARISON_FUNC          ToD3D12ComparisonFunc(grfx::CompareOp value);
 D3D12_CULL_MODE                ToD3D12CullMode(grfx::CullMode value);
 D3D12_DSV_DIMENSION            ToD3D12DSVDimension(grfx::ImageViewType value);
 D3D12_FILL_MODE                ToD3D12FillMode(grfx::PolygonMode value);
+D3D12_FILTER_TYPE              ToD3D12FilterType(grfx::Filter value);
+D3D12_FILTER_TYPE              ToD3D12FilterType(grfx::SamplerMipmapMode value);
 D3D12_HEAP_TYPE                ToD3D12HeapType(grfx::MemoryUsage value);
 DXGI_FORMAT                    ToD3D12IndexFormat(grfx::IndexType value);
 D3D12_LOGIC_OP                 ToD3D12LogicOp(grfx::LogicOp value);

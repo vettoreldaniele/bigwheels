@@ -106,6 +106,31 @@ D3D12_FILL_MODE ToD3D12FillMode(grfx::PolygonMode value)
     return ppx::InvalidValue<D3D12_FILL_MODE>();
 }
 
+D3D12_FILTER_TYPE ToD3D12FilterType(grfx::Filter value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case FILTER_NEAREST : return D3D12_FILTER_TYPE_POINT; break;
+        case FILTER_LINEAR  : return D3D12_FILTER_TYPE_LINEAR; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_FILTER_TYPE>();
+}
+
+
+D3D12_FILTER_TYPE ToD3D12FilterType(grfx::SamplerMipmapMode value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case SAMPLER_MIPMAP_MODE_NEAREST : return D3D12_FILTER_TYPE_POINT; break;
+        case SAMPLER_MIPMAP_MODE_LINEAR  : return D3D12_FILTER_TYPE_LINEAR; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_FILTER_TYPE>();
+}
+
 D3D12_HEAP_TYPE ToD3D12HeapType(grfx::MemoryUsage value)
 {
     // clang-format off
@@ -296,7 +321,7 @@ D3D12_SRV_DIMENSION ToD3D12SRVDimension(grfx::ImageViewType value, uint32_t arra
     // clang-format on
     return ppx::InvalidValue<D3D12_SRV_DIMENSION>();
 
-/*
+    /*
     // clang-format off
     switch (value) {
         default: break;

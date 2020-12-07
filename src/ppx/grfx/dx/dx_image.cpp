@@ -147,59 +147,16 @@ Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
     mDesc.MinLOD         = static_cast<FLOAT>(pCreateInfo->minLod);
     mDesc.MaxLOD         = static_cast<FLOAT>(pCreateInfo->maxLod);
 
+    D3D12_FILTER_TYPE           minFilter = ToD3D12FilterType(pCreateInfo->minFilter);
+    D3D12_FILTER_TYPE           magFilter = ToD3D12FilterType(pCreateInfo->magFilter);
+    D3D12_FILTER_TYPE           mipFilter = ToD3D12FilterType(pCreateInfo->mipmapMode);
+    D3D12_FILTER_REDUCTION_TYPE reduction = pCreateInfo->compareEnable ? D3D12_FILTER_REDUCTION_TYPE_COMPARISON : D3D12_FILTER_REDUCTION_TYPE_STANDARD;
     if (pCreateInfo->anisotropyEnable) {
-        mDesc.Filter        = D3D12_FILTER_ANISOTROPIC;
+        mDesc.Filter        = D3D12_ENCODE_ANISOTROPIC_FILTER(reduction);
         mDesc.MaxAnisotropy = static_cast<UINT>(std::max(1.0f, std::min(16.0f, pCreateInfo->maxAnisotropy)));
     }
     else {
-        // These are best guesses :)
-        //
-        if (pCreateInfo->mipmapMode == SAMPLER_MIPMAP_MODE_NEAREST) {
-            // Use point sampling for minification
-            // Use linear interpolation for magnification
-            // Use point sampling for mip-level sampling
-            if ((pCreateInfo->minFilter == grfx::FILTER_NEAREST) || (pCreateInfo->minFilter == grfx::FILTER_LINEAR)) {
-                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT : D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
-            }
-            // Use linear interpolation for minification
-            // Use point sampling for magnification
-            // Use point sampling for mip-level sampling
-            else if ((pCreateInfo->minFilter == grfx::FILTER_LINEAR) || (pCreateInfo->minFilter == grfx::FILTER_NEAREST)) {
-                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT : D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
-            }
-            // Use linear interpolation for minification
-            // Use linear interpolation for magnification
-            // Use point sampling for mip-level sampling
-            else if ((pCreateInfo->minFilter == grfx::FILTER_LINEAR) || (pCreateInfo->minFilter == grfx::FILTER_LINEAR)) {
-                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT : D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-            }
-        }
-        else if (pCreateInfo->mipmapMode == SAMPLER_MIPMAP_MODE_LINEAR) {
-            // Use point sampling for minification
-            // Use point sampling for magnification
-            // Use linear interpolation for mip-level sampling
-            if ((pCreateInfo->minFilter == grfx::FILTER_NEAREST) || (pCreateInfo->minFilter == grfx::FILTER_NEAREST)) {
-                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
-            }
-            // Use point sampling for minification
-            // Use linear interpolation for magnification
-            // Use linear interpolation for magnification mip-level sampling
-            else if ((pCreateInfo->minFilter == grfx::FILTER_NEAREST) || (pCreateInfo->minFilter == grfx::FILTER_LINEAR)) {
-                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR : D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR;
-            }
-            // Use linear interpolation for minification
-            // Use point sampling for magnification
-            // Use linear interpolation for mip-level sampling
-            else if ((pCreateInfo->minFilter == grfx::FILTER_LINEAR) || (pCreateInfo->minFilter == grfx::FILTER_NEAREST)) {
-                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
-            }
-            // Use linear interpolation for minification
-            // Use linear interpolation for magnification
-            // Use linear interpolation for mip-level sampling
-            else if ((pCreateInfo->minFilter == grfx::FILTER_LINEAR) || (pCreateInfo->minFilter == grfx::FILTER_LINEAR)) {
-                mDesc.Filter = pCreateInfo->compareEnable ? D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-            }
-        }
+        mDesc.Filter = D3D12_ENCODE_BASIC_FILTER(minFilter, magFilter, mipFilter, reduction);
     }
 
     if ((pCreateInfo->borderColor == grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE) || (pCreateInfo->borderColor == grfx::BORDER_COLOR_INT_OPAQUE_WHITE)) {
