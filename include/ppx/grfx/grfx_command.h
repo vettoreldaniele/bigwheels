@@ -307,6 +307,22 @@ public:
         const uint64_t*            pOffsets = nullptr);
 
     void BindVertexBuffers(const grfx::Model* pModel, const uint64_t* pOffsets = nullptr);
+
+    //
+    // NOTE: If you're running into an issue where VS2019 is incorrectly
+    //       resolving call to this function to the Draw(vertexCount, ...)
+    //       function above - it might be that the last parameter isn't
+    //       explicitly the double pointer type. Possibly due to some casting.
+    //
+    //       For example this might give VS2019 some grief:
+    //          grfx::DescriptorSetPtr set;
+    //          Draw(quad, 1, set); 
+    //
+    //       Use this instead:
+    //          grfx::DescriptorSetPtr set;
+    //          Draw(quad, 1, &set); 
+    //
+    void Draw(const grfx::FullscreenQuad* pQuad, uint32_t setCount, const grfx::DescriptorSet* const* ppSets);
 };
 
 // -------------------------------------------------------------------------------------------------

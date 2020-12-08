@@ -22,6 +22,7 @@ class DescriptorSetLayout;
 class Device;
 class DrawPass;
 class Fence;
+class FullscreenQuad;
 class Gpu;
 class GraphicsPipeline;
 class Image;
@@ -65,6 +66,7 @@ using DescriptorSetLayoutPtr = ObjPtr<DescriptorSetLayout>;
 using DevicePtr              = ObjPtr<Device>;
 using DrawPassPtr            = ObjPtr<DrawPass>;
 using FencePtr               = ObjPtr<Fence>;
+using FullscreenQuadPtr      = ObjPtr<FullscreenQuad>;
 using GraphicsPipelinePtr    = ObjPtr<GraphicsPipeline>;
 using GpuPtr                 = ObjPtr<Gpu>;
 using ImagePtr               = ObjPtr<Image>;
@@ -202,7 +204,7 @@ public:
     }
 
 private:
-    grfx::Ownership mOwnership  = grfx::OWNERSHIP_REFERENCE;
+    grfx::Ownership mOwnership = grfx::OWNERSHIP_REFERENCE;
 };
 
 template <typename CreatInfoT>
@@ -236,7 +238,7 @@ protected:
     friend class grfx::Device;
 
 protected:
-    CreatInfoT      mCreateInfo = {};
+    CreatInfoT mCreateInfo = {};
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -311,7 +313,6 @@ inline bool IsVk(grfx::Api api)
     }
     return false;
 }
-
 
 } // namespace grfx
 } // namespace ppx

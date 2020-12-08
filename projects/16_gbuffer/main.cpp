@@ -67,12 +67,12 @@ private:
     grfx::BufferPtr              mGBufferDrawAttrConstants;
     bool                         mEnableIBL = true;
     bool                         mEnableEnv = true;
-    grfx_util::FullscreenQuad    mGBufferLightQuad;
-    grfx_util::FullscreenQuad    mDebugDrawQuad;
+    grfx::FullscreenQuadPtr      mGBufferLightQuad;
+    grfx::FullscreenQuadPtr      mDebugDrawQuad;
 
     grfx::DescriptorSetLayoutPtr mDrawToSwapchainLayout;
     grfx::DescriptorSetPtr       mDrawToSwapchainSet;
-    grfx_util::FullscreenQuad    mDrawToSwapchain;
+    grfx::FullscreenQuadPtr      mDrawToSwapchain;
 
     grfx::ModelPtr      mSphere;
     grfx::ModelPtr      mBox;
@@ -160,8 +160,8 @@ void ProjApp::SetupEntities()
     Result ppxres = ppx::SUCCESS;
 
     TriMeshOptions options = TriMeshOptions().Indices().Normals().VertexColors().TexCoords().Tangents();
-    TriMesh          mesh    = TriMesh::CreateSphere(1.0f, 128, 64, options);
-    Geometry         geo;
+    TriMesh        mesh    = TriMesh::CreateSphere(1.0f, 128, 64, options);
+    Geometry       geo;
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
     PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
 
@@ -447,19 +447,19 @@ void ProjApp::SetupGBufferLightQuad()
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
-    grfx_util::FullscreenQuadCreateInfo createInfo = {};
-    createInfo.VS                                  = VS;
-    createInfo.PS                                  = PS;
-    createInfo.setCount                            = 2;
-    createInfo.sets[0].set                         = 0;
-    createInfo.sets[0].pLayout                     = mSceneDataLayout;
-    createInfo.sets[1].set                         = 1;
-    createInfo.sets[1].pLayout                     = mGBufferReadLayout;
-    createInfo.renderTargetCount                   = 1;
-    createInfo.renderTargetFormats[0]              = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
-    createInfo.depthStencilFormat                  = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
+    grfx::FullscreenQuadCreateInfo createInfo = {};
+    createInfo.VS                             = VS;
+    createInfo.PS                             = PS;
+    createInfo.setCount                       = 2;
+    createInfo.sets[0].set                    = 0;
+    createInfo.sets[0].pLayout                = mSceneDataLayout;
+    createInfo.sets[1].set                    = 1;
+    createInfo.sets[1].pLayout                = mGBufferReadLayout;
+    createInfo.renderTargetCount              = 1;
+    createInfo.renderTargetFormats[0]         = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
+    createInfo.depthStencilFormat             = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
 
-    PPX_CHECKED_CALL(ppxres = mGBufferLightQuad.Create(GetDevice(), &createInfo));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFullscreenQuad(&createInfo, &mGBufferLightQuad));
 }
 
 void ProjApp::SetupDebugDraw()
@@ -478,19 +478,19 @@ void ProjApp::SetupDebugDraw()
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
-    grfx_util::FullscreenQuadCreateInfo createInfo = {};
-    createInfo.VS                                  = VS;
-    createInfo.PS                                  = PS;
-    createInfo.setCount                            = 2;
-    createInfo.sets[0].set                         = 0;
-    createInfo.sets[0].pLayout                     = mSceneDataLayout;
-    createInfo.sets[1].set                         = 1;
-    createInfo.sets[1].pLayout                     = mGBufferReadLayout;
-    createInfo.renderTargetCount                   = 1;
-    createInfo.renderTargetFormats[0]              = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
-    createInfo.depthStencilFormat                  = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
+    grfx::FullscreenQuadCreateInfo createInfo = {};
+    createInfo.VS                             = VS;
+    createInfo.PS                             = PS;
+    createInfo.setCount                       = 2;
+    createInfo.sets[0].set                    = 0;
+    createInfo.sets[0].pLayout                = mSceneDataLayout;
+    createInfo.sets[1].set                    = 1;
+    createInfo.sets[1].pLayout                = mGBufferReadLayout;
+    createInfo.renderTargetCount              = 1;
+    createInfo.renderTargetFormats[0]         = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
+    createInfo.depthStencilFormat             = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
 
-    PPX_CHECKED_CALL(ppxres = mDebugDrawQuad.Create(GetDevice(), &createInfo));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFullscreenQuad(&createInfo, &mDebugDrawQuad));
 }
 
 void ProjApp::SetupDrawToSwapchain()
@@ -520,17 +520,17 @@ void ProjApp::SetupDrawToSwapchain()
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
-        grfx_util::FullscreenQuadCreateInfo createInfo = {};
-        createInfo.VS                                  = VS;
-        createInfo.PS                                  = PS;
-        createInfo.setCount                            = 1;
-        createInfo.sets[0].set                         = 0;
-        createInfo.sets[0].pLayout                     = mDrawToSwapchainLayout;
-        createInfo.renderTargetCount                   = 1;
-        createInfo.renderTargetFormats[0]              = GetSwapchain()->GetColorFormat();
-        createInfo.depthStencilFormat                  = GetSwapchain()->GetDepthFormat();
+        grfx::FullscreenQuadCreateInfo createInfo = {};
+        createInfo.VS                             = VS;
+        createInfo.PS                             = PS;
+        createInfo.setCount                       = 1;
+        createInfo.sets[0].set                    = 0;
+        createInfo.sets[0].pLayout                = mDrawToSwapchainLayout;
+        createInfo.renderTargetCount              = 1;
+        createInfo.renderTargetFormats[0]         = GetSwapchain()->GetColorFormat();
+        createInfo.depthStencilFormat             = GetSwapchain()->GetDepthFormat();
 
-        PPX_CHECKED_CALL(ppxres = mDrawToSwapchain.Create(GetDevice(), &createInfo));
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFullscreenQuad(&createInfo, &mDrawToSwapchain));
     }
 
     // Allocate descriptor set
@@ -961,11 +961,11 @@ void ProjApp::Render()
             sets[0]                      = mSceneDataSet;
             sets[1]                      = mGBufferReadSet;
 
-            grfx_util::FullscreenQuad* pDrawQuad = &mGBufferLightQuad;
+            grfx::FullscreenQuad* pDrawQuad = mGBufferLightQuad;
             if (mDrawGBufferAttr) {
-                pDrawQuad = &mDebugDrawQuad;
+                pDrawQuad = mDebugDrawQuad;
             }
-            pDrawQuad->Draw(frame.cmd, 2, sets);
+            frame.cmd->Draw(pDrawQuad, 2, sets);
 
             // Draw IBL environment
             //
@@ -1001,7 +1001,7 @@ void ProjApp::Render()
         frame.cmd->BeginRenderPass(renderPass);
         {
             // Draw gbuffer light output to swapchain
-            mDrawToSwapchain.Draw(frame.cmd, 1, &mDrawToSwapchainSet);
+            frame.cmd->Draw(mDrawToSwapchain, 1, &mDrawToSwapchainSet);
 
             // Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });

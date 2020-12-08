@@ -1,6 +1,7 @@
 #include "ppx/grfx/grfx_command.h"
 #include "ppx/grfx/grfx_buffer.h"
 #include "ppx/grfx/grfx_draw_pass.h"
+#include "ppx/grfx/grfx_fullscreen_quad.h"
 #include "ppx/grfx/grfx_image.h"
 #include "ppx/grfx/grfx_model.h"
 #include "ppx/grfx/grfx_render_pass.h"
@@ -200,6 +201,13 @@ void CommandBuffer::BindVertexBuffers(const grfx::Model* pModel, const uint64_t*
     }
 
     BindVertexBuffers(bufferCount, buffers, strides, pOffsets);
+}
+
+void CommandBuffer::Draw(const grfx::FullscreenQuad* pQuad, uint32_t setCount, const grfx::DescriptorSet* const* ppSets)
+{
+    BindGraphicsDescriptorSets(pQuad->GetPipelineInterface(), setCount, ppSets);
+    BindGraphicsPipeline(pQuad->GetPipeline());
+    Draw(3, 1);
 }
 
 } // namespace grfx

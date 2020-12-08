@@ -25,6 +25,7 @@ void Device::Destroy()
 
     // Destroy helper objects first
     DestroyAllObjects(mDrawPasses);
+    DestroyAllObjects(mFullscreenQuads);
     DestroyAllObjects(mModels);
     DestroyAllObjects(mTextures);
 
@@ -150,6 +151,16 @@ void Device::DestroyAllObjects(std::vector<ObjPtr<ObjectT>>& container)
 Result Device::AllocateObject(grfx::DrawPass** ppObject)
 {
     grfx::DrawPass* pObject = new grfx::DrawPass();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
+Result Device::AllocateObject(grfx::FullscreenQuad** ppObject)
+{
+    grfx::FullscreenQuad* pObject = new grfx::FullscreenQuad();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -342,6 +353,23 @@ void Device::DestroyFence(const grfx::Fence* pFence)
 {
     PPX_ASSERT_NULL_ARG(pFence);
     DestroyObject(mFences, pFence);
+}
+
+Result Device::CreateFullscreenQuad(const grfx::FullscreenQuadCreateInfo* pCreateInfo, grfx::FullscreenQuad** ppFullscreenQuad)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppFullscreenQuad);
+    Result gxres = CreateObject(pCreateInfo, mFullscreenQuads, ppFullscreenQuad);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyFullscreenQuad(const grfx::FullscreenQuad* pFullscreenQuad)
+{
+    PPX_ASSERT_NULL_ARG(pFullscreenQuad);
+    DestroyObject(mFullscreenQuads, pFullscreenQuad);
 }
 
 Result Device::CreateGraphicsPipeline(const grfx::GraphicsPipelineCreateInfo* pCreateInfo, grfx::GraphicsPipeline** ppGraphicsPipeline)
