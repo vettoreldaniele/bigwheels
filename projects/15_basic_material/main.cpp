@@ -266,9 +266,9 @@ void ProjApp::SetupIBLResources()
     Result ppxres = ppx::SUCCESS;
 
     Geometry geo;
-    TriMesh  mesh = TriMesh::CreateSphere(5, 32, 16, TriMesh::Options().Indices().TexCoords());
+    TriMesh  mesh = TriMesh::CreateSphere(5, 32, 16, TriMeshOptions().Indices().TexCoords());
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
 
     // Layout
     grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
@@ -288,60 +288,60 @@ void ProjApp::SetupIBLResources()
     }
 
     // Texture create options
-    TextureCreateOptions textureCreateOptions = TextureCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+    grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
 
     // GoldenHour
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // PaperMill
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // UenoShrine
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // TokyoBigSight
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // TropicalBeach
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
@@ -427,7 +427,7 @@ void ProjApp::SetupMaterialResources(
 
     // Albedo
     {
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(albedoPath), &materialResources.albedoTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(albedoPath), &materialResources.albedoTexture));
 
         grfx::WriteDescriptor write = {};
         write.binding               = 0;
@@ -439,7 +439,7 @@ void ProjApp::SetupMaterialResources(
 
     // Roughness
     {
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(roughnessPath), &materialResources.roughnessTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(roughnessPath), &materialResources.roughnessTexture));
 
         grfx::WriteDescriptor write = {};
         write.binding               = 1;
@@ -451,7 +451,7 @@ void ProjApp::SetupMaterialResources(
 
     // Metalness
     {
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(metalnessPath), &materialResources.metalnessTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(metalnessPath), &materialResources.metalnessTexture));
 
         grfx::WriteDescriptor write = {};
         write.binding               = 2;
@@ -463,7 +463,7 @@ void ProjApp::SetupMaterialResources(
 
     // Normal map
     {
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(normalMapPath), &materialResources.normalMapTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(normalMapPath), &materialResources.normalMapTexture));
 
         grfx::WriteDescriptor write = {};
         write.binding               = 3;
@@ -579,8 +579,8 @@ void ProjApp::Setup()
 {
     Result ppxres = ppx::SUCCESS;
 
-    PPX_CHECKED_CALL(ppxres = CreateTexture1x1(GetDevice()->GetGraphicsQueue(), float4(0), &m1x1BlackTexture));
-    PPX_CHECKED_CALL(ppxres = CreateTexture1x1(GetDevice()->GetGraphicsQueue(), float4(1), &m1x1WhiteTexture));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(GetDevice()->GetGraphicsQueue(), float4(0), &m1x1BlackTexture));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(GetDevice()->GetGraphicsQueue(), float4(1), &m1x1WhiteTexture));
     mF0Index = static_cast<uint32_t>(mF0Names.size() - 1);
 
     // Cameras
@@ -600,21 +600,21 @@ void ProjApp::Setup()
 
     // Models
     {
-        TriMesh::Options options = TriMesh::Options().Indices().VertexColors().Normals().TexCoords().Tangents();
+        TriMeshOptions options = TriMeshOptions().Indices().VertexColors().Normals().TexCoords().Tangents();
 
         {
             Geometry geo;
             TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), options);
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mKnob));
+            PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mKnob));
             mModels.push_back(mKnob);
         }
 
         {
             Geometry geo;
-            TriMesh  mesh = TriMesh::CreateSphere(0.75f, 128, 64, TriMesh::Options(options).TexCoordScale(float2(2)));
+            TriMesh  mesh = TriMesh::CreateSphere(0.75f, 128, 64, TriMeshOptions(options).TexCoordScale(float2(2)));
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
+            PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
             mModels.push_back(mSphere);
         }
 
@@ -622,23 +622,23 @@ void ProjApp::Setup()
             Geometry geo;
             TriMesh  mesh = TriMesh::CreateCube(float3(1.0f), options);
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCube));
+            PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCube));
             mModels.push_back(mCube);
         }
 
         {
             Geometry geo;
-            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/monkey.obj"), TriMesh::Options(options).Scale(float3(0.75f)));
+            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/monkey.obj"), TriMeshOptions(options).Scale(float3(0.75f)));
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mMonkey));
+            PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mMonkey));
             mModels.push_back(mMonkey);
         }
 
         {
             Geometry geo;
-            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/cerberus.obj"), TriMesh::Options(options).Scale(float3(0.75f)));
+            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/cerberus.obj"), TriMeshOptions(options).Scale(float3(0.75f)));
             PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCeberusModel));
+            PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCeberusModel));
             mModels.push_back(mCeberusModel);
         }
     }

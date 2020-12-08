@@ -81,8 +81,8 @@ void ProjApp::Setup()
 
     // Texture image, view, and sampler
     {
-        ImageCreateOptions imageCreateOptions = ImageCreateOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE);
-        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/box_panel.jpg"), &mImage, imageCreateOptions));
+        grfx_util::ImageOptions imageOptions = grfx_util::ImageOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE);
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/box_panel.jpg"), &mImage, imageOptions));
 
         grfx::SampledImageViewCreateInfo sampledViewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage);
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&sampledViewCreateInfo, &mSampledImageView));

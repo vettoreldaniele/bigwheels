@@ -10,6 +10,7 @@
 #include "ppx/grfx/grfx_scope.h"
 
 namespace ppx {
+namespace grfx_util {
 
 grfx::Format ToGrfxFormat(Bitmap::Format value)
 {
@@ -136,10 +137,10 @@ Result CopyBitmapToImage(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateImageFromBitmap(
-    grfx::Queue*              pQueue,
-    const Bitmap*             pBitmap,
-    grfx::Image**             ppImage,
-    const ImageCreateOptions& options)
+    grfx::Queue*        pQueue,
+    const Bitmap*       pBitmap,
+    grfx::Image**       ppImage,
+    const ImageOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(pBitmap);
@@ -214,10 +215,10 @@ Result CreateImageFromBitmap(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateImageFromFile(
-    grfx::Queue*              pQueue,
-    const fs::path&           path,
-    grfx::Image**             ppImage,
-    const ImageCreateOptions& options)
+    grfx::Queue*        pQueue,
+    const fs::path&     path,
+    grfx::Image**       ppImage,
+    const ImageOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppImage);
@@ -278,10 +279,10 @@ Result CopyBitmapToTexture(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateTextureFromBitmap(
-    grfx::Queue*                pQueue,
-    const Bitmap*               pBitmap,
-    grfx::Texture**             ppTexture,
-    const TextureCreateOptions& options)
+    grfx::Queue*          pQueue,
+    const Bitmap*         pBitmap,
+    grfx::Texture**       ppTexture,
+    const TextureOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(pBitmap);
@@ -365,10 +366,10 @@ Result CreateTextureFromBitmap(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateTextureFromFile(
-    grfx::Queue*                pQueue,
-    const fs::path&             path,
-    grfx::Texture**             ppTexture,
-    const TextureCreateOptions& options)
+    grfx::Queue*          pQueue,
+    const fs::path&       path,
+    grfx::Texture**       ppTexture,
+    const TextureOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppTexture);
@@ -399,10 +400,10 @@ Result CreateTextureFromFile(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateTexture1x1(
-    grfx::Queue*                pQueue,
-    const float4&               color,
-    grfx::Texture**             ppTexture,
-    const TextureCreateOptions& options)
+    grfx::Queue*          pQueue,
+    const float4&         color,
+    grfx::Texture**       ppTexture,
+    const TextureOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppTexture);
@@ -495,11 +496,11 @@ SubImage CalcSubimageCrossHorizontalLeft(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateCubeMapFromFile(
-    grfx::Queue*                  pQueue,
-    const fs::path&               path,
-    const ppx::CubeMapCreateInfo* pCreateInfo,
-    grfx::Image**                 ppImage,
-    const grfx::ImageUsageFlags&  additionalImageUsage)
+    grfx::Queue*                 pQueue,
+    const fs::path&              path,
+    const CubeMapCreateInfo*     pCreateInfo,
+    grfx::Image**                ppImage,
+    const grfx::ImageUsageFlags& additionalImageUsage)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppImage);
@@ -772,7 +773,7 @@ Result CreateModelFromFile(
     grfx::Queue*            pQueue,
     const fs::path&         path,
     grfx::Model**           ppModel,
-    const TriMesh::Options& options)
+    const TriMeshOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppModel);
@@ -871,4 +872,5 @@ void FullscreenQuad::Draw(grfx::CommandBuffer* pCmd, uint32_t setCount, const gr
     pCmd->Draw(3, 1);
 }
 
+} // namespace grfx_util
 } // namespace ppx

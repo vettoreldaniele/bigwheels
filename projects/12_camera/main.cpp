@@ -107,7 +107,7 @@ void ProjApp::SetupEntity(
 
     Geometry geo;
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
 
     // Draw uniform buffer
     grfx::BufferCreateInfo bufferCreateInfo        = {};
@@ -184,17 +184,17 @@ void ProjApp::Setup()
 
     // Setup entities
     {
-        TriMesh::Options options = TriMesh::Options().Indices().VertexColors().Normals();
-        TriMesh          mesh    = TriMesh::CreatePlane(TRI_MESH_PLANE_POSITIVE_Y, float2(50, 50), 1, 1, TriMesh::Options(options).ObjectColor(float3(0.7f)));
+        TriMeshOptions options = TriMeshOptions().Indices().VertexColors().Normals();
+        TriMesh        mesh    = TriMesh::CreatePlane(TRI_MESH_PLANE_POSITIVE_Y, float2(50, 50), 1, 1, TriMeshOptions(options).ObjectColor(float3(0.7f)));
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mShadowSetLayout, &mGroundPlane);
         mEntities.push_back(&mGroundPlane);
 
-        mesh = TriMesh::CreateCube(float3(2, 2, 2), TriMesh::Options(options).ObjectColor(float3(0.5f, 0.5f, 0.7f)));
+        mesh = TriMesh::CreateCube(float3(2, 2, 2), TriMeshOptions(options).ObjectColor(float3(0.5f, 0.5f, 0.7f)));
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mShadowSetLayout, &mCube);
         mCube.translate = float3(-2, 1, 0);
         mEntities.push_back(&mCube);
 
-        mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMesh::Options(options).ObjectColor(float3(0.7f, 0.2f, 0.2f)));
+        mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMeshOptions(options).ObjectColor(float3(0.7f, 0.2f, 0.2f)));
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mShadowSetLayout, &mKnob);
         mKnob.translate = float3(2, 1, 0);
         mKnob.rotate    = float3(0, glm::radians(180.0f), 0);
@@ -272,8 +272,8 @@ void ProjApp::Setup()
         gpCreateInfo.polygonMode                       = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                          = grfx::CULL_MODE_BACK;
         gpCreateInfo.frontFace                         = grfx::FRONT_FACE_CCW;
-        gpCreateInfo.depthReadEnable                    = true;
-        gpCreateInfo.depthWriteEnable                   = true;
+        gpCreateInfo.depthReadEnable                   = true;
+        gpCreateInfo.depthWriteEnable                  = true;
         gpCreateInfo.blendModes[0]                     = grfx::BLEND_MODE_NONE;
         gpCreateInfo.outputState.renderTargetCount     = 0;
         gpCreateInfo.outputState.depthStencilFormat    = grfx::FORMAT_D32_FLOAT;
@@ -335,12 +335,12 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mLightSetLayout));
 
         // Model
-        TriMesh::Options options = TriMesh::Options().Indices().ObjectColor(float3(1, 1, 1));
-        TriMesh          mesh    = TriMesh::CreateCube(float3(0.25f, 0.25f, 0.25f), options);
+        TriMeshOptions options = TriMeshOptions().Indices().ObjectColor(float3(1, 1, 1));
+        TriMesh        mesh    = TriMesh::CreateCube(float3(0.25f, 0.25f, 0.25f), options);
 
         Geometry geo;
         PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-        PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mLight.model));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mLight.model));
 
         // Uniform buffer
         grfx::BufferCreateInfo bufferCreateInfo        = {};

@@ -60,8 +60,8 @@ static Result LoadTexture(grfx::Queue* pQueue, const fs::path& path, grfx::Textu
         *ppTexture = it->second;
     }
     else {
-        TextureCreateOptions textureCreateOptions = TextureCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(pQueue, path, ppTexture, textureCreateOptions));
+        grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(pQueue, path, ppTexture, textureOptions));
         if (Failed(ppxres)) {
             return ppxres;
         }
@@ -210,8 +210,8 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
 
     // Create 1x1 black and white textures
     {
-        PPX_CHECKED_CALL(ppxres = CreateTexture1x1(pQueue, float4(0), &s1x1BlackTexture));
-        PPX_CHECKED_CALL(ppxres = CreateTexture1x1(pQueue, float4(1), &s1x1WhiteTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(pQueue, float4(0), &s1x1BlackTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(pQueue, float4(1), &s1x1WhiteTexture));
     }
 
     // Create sampler

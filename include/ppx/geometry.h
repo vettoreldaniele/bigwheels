@@ -12,7 +12,7 @@ enum GeometryAttributeLayout
     GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR      = 2,
 };
 
-//! @struct GeometryCreateInfo
+//! @struct GeometryOptions
 //!
 //! primtiveTopolgy
 //!   - only TRIANGLE_LIST is currently supported
@@ -25,7 +25,7 @@ enum GeometryAttributeLayout
 //!   - if PLANAR bindings[0..bindingCount] are used
 //!   - if PLANAR bindings can only have 1 attribute
 //!
-struct GeometryCreateInfo
+struct GeometryOptions
 {
     GeometryAttributeLayout attributeLayout                         = ppx::GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
     grfx::IndexType         indexType                               = grfx::INDEX_TYPE_UNDEFINED;
@@ -36,15 +36,15 @@ struct GeometryCreateInfo
     // Creates a create info objects with a UINT16 or UINT32 index
     // type and position vertex attribute.
     //
-    static GeometryCreateInfo InterleavedU16();
-    static GeometryCreateInfo InterleavedU32();
-    static GeometryCreateInfo PlanarU16();
-    static GeometryCreateInfo PlanarU32();
+    static GeometryOptions InterleavedU16();
+    static GeometryOptions InterleavedU32();
+    static GeometryOptions PlanarU16();
+    static GeometryOptions PlanarU32();
 
     // Create a create info with a position vertex attribute.
     //
-    static GeometryCreateInfo Interleaved();
-    static GeometryCreateInfo Planar();
+    static GeometryOptions Interleaved();
+    static GeometryOptions Planar();
 
     // NOTE: Vertex input locations (Vulkan) are based on the order of
     //       when the attribute is added.
@@ -61,15 +61,15 @@ struct GeometryCreateInfo
     //          with the vertex bindings after or in between calling
     //          these functions can result in undefined behavior.
     //
-    GeometryCreateInfo& AddPosition(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
-    GeometryCreateInfo& AddNormal(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
-    GeometryCreateInfo& AddColor(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
-    GeometryCreateInfo& AddTexCoord(grfx::Format format = grfx::FORMAT_R32G32_FLOAT);
-    GeometryCreateInfo& AddTangent(grfx::Format format = grfx::FORMAT_R32G32B32A32_FLOAT);
-    GeometryCreateInfo& AddBitangent(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
+    GeometryOptions& AddPosition(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
+    GeometryOptions& AddNormal(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
+    GeometryOptions& AddColor(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
+    GeometryOptions& AddTexCoord(grfx::Format format = grfx::FORMAT_R32G32_FLOAT);
+    GeometryOptions& AddTangent(grfx::Format format = grfx::FORMAT_R32G32B32A32_FLOAT);
+    GeometryOptions& AddBitangent(grfx::Format format = grfx::FORMAT_R32G32B32_FLOAT);
 
 private:
-    GeometryCreateInfo& AddAttribute(grfx::VertexSemantic semantic, grfx::Format format);
+    GeometryOptions& AddAttribute(grfx::VertexSemantic semantic, grfx::Format format);
 };
 
 //! @class Geometry
@@ -153,11 +153,11 @@ private:
 
 public:
     // Create object using parameters from createInfo
-    static Result Create(const GeometryCreateInfo& createInfo, Geometry* pGeometry);
+    static Result Create(const GeometryOptions& createInfo, Geometry* pGeometry);
 
     // Create object using parameters from createInfo using data from mesh
     static Result Create(
-        const GeometryCreateInfo& createInfo,
+        const GeometryOptions& createInfo,
         const TriMesh&            mesh,
         Geometry*                 pGeometry);
 
@@ -206,7 +206,7 @@ private:
     uint32_t AppendVertexInterleaved(const VertexData& vtx);
 
 private:
-    GeometryCreateInfo            mCreateInfo = {};
+    GeometryOptions            mCreateInfo = {};
     Geometry::Buffer              mIndexBuffer;
     std::vector<Geometry::Buffer> mVertexBuffers;
     uint32_t                      mPositionBufferIndex  = PPX_VALUE_IGNORED;

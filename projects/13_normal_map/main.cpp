@@ -103,7 +103,7 @@ void ProjApp::SetupEntity(
 
     Geometry geo;
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
 
     // Draw uniform buffer
     grfx::BufferCreateInfo bufferCreateInfo        = {};
@@ -166,9 +166,9 @@ void ProjApp::Setup()
 
     // Textures, views, and samplers
     {
-        ImageCreateOptions options = ImageCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
-        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/albedo.jpg"), &mAlbedoTexture, options));
-        PPX_CHECKED_CALL(ppxres = CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/normal.jpg"), &mNormalMap, options));
+        grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/albedo.jpg"), &mAlbedoTexture, options));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/normal.jpg"), &mNormalMap, options));
 
         grfx::SampledImageViewCreateInfo sivCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mAlbedoTexture);
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&sivCreateInfo, &mAlbedoTextureView));
@@ -182,13 +182,13 @@ void ProjApp::Setup()
 
     // Setup entities
     {
-        TriMesh::Options options = TriMesh::Options().Indices().Normals().TexCoords().Tangents();
+        TriMeshOptions options = TriMeshOptions().Indices().Normals().TexCoords().Tangents();
 
-        TriMesh mesh = TriMesh::CreateCube(float3(2, 2, 2), TriMesh::Options(options).ObjectColor(float3(0.7f)));
+        TriMesh mesh = TriMesh::CreateCube(float3(2, 2, 2), TriMeshOptions(options).ObjectColor(float3(0.7f)));
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mDrawObjectSetLayout, &mCube);
         mEntities.push_back(&mCube);
 
-        mesh = TriMesh::CreateSphere(2, 16, 8, TriMesh::Options(options).ObjectColor(float3(0.7f)).TexCoordScale(float2(3)));
+        mesh = TriMesh::CreateSphere(2, 16, 8, TriMeshOptions(options).ObjectColor(float3(0.7f)).TexCoordScale(float2(3)));
         SetupEntity(mesh, mDescriptorPool, mDrawObjectSetLayout, mDrawObjectSetLayout, &mSphere);
         mEntities.push_back(&mSphere);
     }
@@ -250,12 +250,12 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mLightSetLayout));
 
         // Model
-        TriMesh::Options options = TriMesh::Options().Indices().ObjectColor(float3(1, 1, 1));
+        TriMeshOptions options = TriMeshOptions().Indices().ObjectColor(float3(1, 1, 1));
         TriMesh          mesh    = TriMesh::CreateCube(float3(0.25f, 0.25f, 0.25f), options);
 
         Geometry geo;
         PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-        PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mLight.model));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mLight.model));
 
         // Uniform buffer
         grfx::BufferCreateInfo bufferCreateInfo        = {};

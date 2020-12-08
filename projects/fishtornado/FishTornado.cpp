@@ -193,7 +193,7 @@ void FishTornadoApp::SetupTextures()
 {
     Result ppxres = ppx::ERROR_FAILED;
 
-    PPX_CHECKED_CALL(ppxres = CreateTexture1x1(GetGraphicsQueue(), {0, 0, 0, 0}, &m1x1BlackTexture));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(GetGraphicsQueue(), {0, 0, 0, 0}, &m1x1BlackTexture));
 }
 
 void FishTornadoApp::SetupSamplers()
@@ -311,7 +311,7 @@ void FishTornadoApp::SetupCaustics()
         createInfo.width                   = bitmap.GetWidth();
         createInfo.height                  = bitmap.GetHeight();
         createInfo.depth                   = 1;
-        createInfo.imageFormat             = ToGrfxFormat(bitmap.GetFormat());
+        createInfo.imageFormat             = grfx_util::ToGrfxFormat(bitmap.GetFormat());
         createInfo.sampleCount             = grfx::SAMPLE_COUNT_1;
         createInfo.mipLevelCount           = 1;
         createInfo.arrayLayerCount         = kCausticsImageCount;
@@ -339,7 +339,7 @@ void FishTornadoApp::UploadCaustics()
         Bitmap bitmap;
         PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(path, &bitmap));
 
-        PPX_CHECKED_CALL(ppxres = CopyBitmapToTexture(GetGraphicsQueue(), &bitmap, mCausticsTexture, 0, i, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CopyBitmapToTexture(GetGraphicsQueue(), &bitmap, mCausticsTexture, 0, i, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE));
 
         double fnEndTime = timer.SecondsSinceStart();
         float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);

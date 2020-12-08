@@ -36,14 +36,14 @@ void Shark::Setup(uint32_t numFramesInFlight)
     mForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "Shark.vs", "Shark.ps");
     mShadowPipeline  = pApp->CreateShadowPipeline(pApp->GetAssetPath("fishtornado/shaders"), "SharkShadow.vs");
 
-    TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();
-    PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/shark/shark.obj"), &mModel, options));
+    TriMeshOptions options = TriMeshOptions().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/shark/shark.obj"), &mModel, options));
 
     
-    TextureCreateOptions textureCreateOptions = TextureCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mAlbedoTexture, textureCreateOptions));
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkRoughness.png"), &mRoughnessTexture, textureCreateOptions));
-    PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkNormal.png"), &mNormalMapTexture, textureCreateOptions));
+    grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mAlbedoTexture, textureOptions));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkRoughness.png"), &mRoughnessTexture, textureOptions));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkNormal.png"), &mNormalMapTexture, textureOptions));
 
     PPX_CHECKED_CALL(ppxres = mMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 

@@ -67,12 +67,12 @@ private:
     grfx::BufferPtr              mGBufferDrawAttrConstants;
     bool                         mEnableIBL = true;
     bool                         mEnableEnv = true;
-    FullscreenQuad               mGBufferLightQuad;
-    FullscreenQuad               mDebugDrawQuad;
+    grfx_util::FullscreenQuad    mGBufferLightQuad;
+    grfx_util::FullscreenQuad    mDebugDrawQuad;
 
     grfx::DescriptorSetLayoutPtr mDrawToSwapchainLayout;
     grfx::DescriptorSetPtr       mDrawToSwapchainSet;
-    FullscreenQuad               mDrawToSwapchain;
+    grfx_util::FullscreenQuad    mDrawToSwapchain;
 
     grfx::ModelPtr      mSphere;
     grfx::ModelPtr      mBox;
@@ -159,11 +159,11 @@ void ProjApp::SetupEntities()
 {
     Result ppxres = ppx::SUCCESS;
 
-    TriMesh::Options options = TriMesh::Options().Indices().Normals().VertexColors().TexCoords().Tangents();
+    TriMeshOptions options = TriMeshOptions().Indices().Normals().VertexColors().TexCoords().Tangents();
     TriMesh          mesh    = TriMesh::CreateSphere(1.0f, 128, 64, options);
     Geometry         geo;
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
 
     mEntities.resize(7);
 
@@ -196,9 +196,9 @@ void ProjApp::SetupEntities()
     {
         Entity* pEntity = &mEntities[n];
 
-        mesh = TriMesh::CreateCube(float3(10, 1, 10), TriMesh::Options(options).TexCoordScale(float2(5)));
+        mesh = TriMesh::CreateCube(float3(10, 1, 10), TriMeshOptions(options).TexCoordScale(float2(5)));
         PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-        PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mBox));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mBox));
 
         EntityCreateInfo createInfo = {};
         createInfo.pModel           = mBox;
@@ -213,9 +213,9 @@ void ProjApp::SetupIBLResources()
     Result ppxres = ppx::SUCCESS;
 
     Geometry geo;
-    TriMesh  mesh = TriMesh::CreateSphere(32, 32, 16, TriMesh::Options().Indices().TexCoords());
+    TriMesh  mesh = TriMesh::CreateSphere(32, 32, 16, TriMeshOptions().Indices().TexCoords());
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
 
     // Layout
     grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
@@ -235,60 +235,60 @@ void ProjApp::SetupIBLResources()
     }
 
     // Texture create options
-    TextureCreateOptions textureCreateOptions = TextureCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+    grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
 
     // GoldenHour
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // PaperMill
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // UenoShrine
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // TokyoBigSight
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // TropicalBeach
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/ibl.hdr"), &env, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &refl, textureCreateOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
@@ -447,17 +447,17 @@ void ProjApp::SetupGBufferLightQuad()
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
-    FullscreenQuadCreateInfo createInfo = {};
-    createInfo.VS                       = VS;
-    createInfo.PS                       = PS;
-    createInfo.setCount                 = 2;
-    createInfo.sets[0].set              = 0;
-    createInfo.sets[0].pLayout          = mSceneDataLayout;
-    createInfo.sets[1].set              = 1;
-    createInfo.sets[1].pLayout          = mGBufferReadLayout;
-    createInfo.renderTargetCount        = 1;
-    createInfo.renderTargetFormats[0]   = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
-    createInfo.depthStencilFormat       = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
+    grfx_util::FullscreenQuadCreateInfo createInfo = {};
+    createInfo.VS                                  = VS;
+    createInfo.PS                                  = PS;
+    createInfo.setCount                            = 2;
+    createInfo.sets[0].set                         = 0;
+    createInfo.sets[0].pLayout                     = mSceneDataLayout;
+    createInfo.sets[1].set                         = 1;
+    createInfo.sets[1].pLayout                     = mGBufferReadLayout;
+    createInfo.renderTargetCount                   = 1;
+    createInfo.renderTargetFormats[0]              = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
+    createInfo.depthStencilFormat                  = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
 
     PPX_CHECKED_CALL(ppxres = mGBufferLightQuad.Create(GetDevice(), &createInfo));
 }
@@ -478,17 +478,17 @@ void ProjApp::SetupDebugDraw()
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
-    FullscreenQuadCreateInfo createInfo = {};
-    createInfo.VS                       = VS;
-    createInfo.PS                       = PS;
-    createInfo.setCount                 = 2;
-    createInfo.sets[0].set              = 0;
-    createInfo.sets[0].pLayout          = mSceneDataLayout;
-    createInfo.sets[1].set              = 1;
-    createInfo.sets[1].pLayout          = mGBufferReadLayout;
-    createInfo.renderTargetCount        = 1;
-    createInfo.renderTargetFormats[0]   = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
-    createInfo.depthStencilFormat       = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
+    grfx_util::FullscreenQuadCreateInfo createInfo = {};
+    createInfo.VS                                  = VS;
+    createInfo.PS                                  = PS;
+    createInfo.setCount                            = 2;
+    createInfo.sets[0].set                         = 0;
+    createInfo.sets[0].pLayout                     = mSceneDataLayout;
+    createInfo.sets[1].set                         = 1;
+    createInfo.sets[1].pLayout                     = mGBufferReadLayout;
+    createInfo.renderTargetCount                   = 1;
+    createInfo.renderTargetFormats[0]              = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
+    createInfo.depthStencilFormat                  = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
 
     PPX_CHECKED_CALL(ppxres = mDebugDrawQuad.Create(GetDevice(), &createInfo));
 }
@@ -520,15 +520,15 @@ void ProjApp::SetupDrawToSwapchain()
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
-        FullscreenQuadCreateInfo createInfo = {};
-        createInfo.VS                       = VS;
-        createInfo.PS                       = PS;
-        createInfo.setCount                 = 1;
-        createInfo.sets[0].set              = 0;
-        createInfo.sets[0].pLayout          = mDrawToSwapchainLayout;
-        createInfo.renderTargetCount        = 1;
-        createInfo.renderTargetFormats[0]   = GetSwapchain()->GetColorFormat();
-        createInfo.depthStencilFormat       = GetSwapchain()->GetDepthFormat();
+        grfx_util::FullscreenQuadCreateInfo createInfo = {};
+        createInfo.VS                                  = VS;
+        createInfo.PS                                  = PS;
+        createInfo.setCount                            = 1;
+        createInfo.sets[0].set                         = 0;
+        createInfo.sets[0].pLayout                     = mDrawToSwapchainLayout;
+        createInfo.renderTargetCount                   = 1;
+        createInfo.renderTargetFormats[0]              = GetSwapchain()->GetColorFormat();
+        createInfo.depthStencilFormat                  = GetSwapchain()->GetDepthFormat();
 
         PPX_CHECKED_CALL(ppxres = mDrawToSwapchain.Create(GetDevice(), &createInfo));
     }
@@ -961,7 +961,7 @@ void ProjApp::Render()
             sets[0]                      = mSceneDataSet;
             sets[1]                      = mGBufferReadSet;
 
-            FullscreenQuad* pDrawQuad = &mGBufferLightQuad;
+            grfx_util::FullscreenQuad* pDrawQuad = &mGBufferLightQuad;
             if (mDrawGBufferAttr) {
                 pDrawQuad = &mDebugDrawQuad;
             }

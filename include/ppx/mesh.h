@@ -21,8 +21,9 @@ enum TriMeshAttributeDim
 
 //! @enum TriMeshPlane
 //!
-//! 
-enum TriMeshPlane {
+//!
+enum TriMeshPlane
+{
     TRI_MESH_PLANE_POSITIVE_X = 0,
     TRI_MESH_PLANE_NEGATIVE_X = 1,
     TRI_MESH_PLANE_POSITIVE_Y = 2,
@@ -44,56 +45,59 @@ struct VertexData
     float3 bitangent;
 };
 
+//! @class TriMeshOptions
+//!
+//!
+class TriMeshOptions
+{
+public:
+    TriMeshOptions() {}
+    ~TriMeshOptions() {}
+    // clang-format off
+    //! Enable/disable indices
+    TriMeshOptions& Indices(bool value = true) { mEnableIndices = value; return *this; }
+    //! Enable/disable vertex colors
+    TriMeshOptions& VertexColors(bool value = true) { mEnableVertexColors = value; return *this; }
+    //! Enable/disable normals
+    TriMeshOptions& Normals(bool value = true) { mEnableNormals = value; return *this; }
+    //! Enable/disable texture coordinates, most geometry will have 2-dimensional texture coordinates
+    TriMeshOptions& TexCoords(bool value = true) { mEnableTexCoords = value; return *this; }
+    //! Enable/disable tangent and bitangent creation flag
+    TriMeshOptions& Tangents(bool value = true) { mEnableTangents = value; return *this; }
+    //! Set and/or enable/disable object color, object color will override vertex colors
+    TriMeshOptions& ObjectColor(const float3& color, bool enable = true) { mObjectColor = color; mEnableObjectColor = enable; return *this;}
+    //! Set the scale of geometry position, default is (1, 1, 1)
+    TriMeshOptions& Scale(const float3& scale) { mScale = scale; return *this; }
+    //! Sets the UV texture coordinate scale, default is (1, 1)
+    TriMeshOptions& TexCoordScale(const float2& scale) { mTexCoordScale = scale; return *this; }
+    //! Enable all attributes
+    TriMeshOptions& AllAttributes() { mEnableVertexColors = true; mEnableNormals = true; mEnableTexCoords = true; mEnableTangents = true; return *this; }
+    //! Inverts tex coords vertically
+    TriMeshOptions& InvertTexCoordsV() { mInvertTexCoordsV = true; return *this; }
+    //! Inverts winding order of ONLY indices
+    TriMeshOptions& InvertWinding() { mInvertWinding = true; return *this; }
+    // clang-format on
+private:
+    bool   mEnableIndices      = false;
+    bool   mEnableVertexColors = false;
+    bool   mEnableNormals      = false;
+    bool   mEnableTexCoords    = false;
+    bool   mEnableTangents     = false;
+    bool   mEnableObjectColor  = false;
+    bool   mInvertTexCoordsV   = false;
+    bool   mInvertWinding      = false;
+    float3 mObjectColor        = float3(0.7f);
+    float3 mScale              = float3(1, 1, 1);
+    float2 mTexCoordScale      = float2(1, 1);
+    friend class TriMesh;
+};
+
 //! @class TriMesh
 //!
 //!
 class TriMesh
 {
 public:
-    class Options
-    {
-    public:
-        Options() {}
-        ~Options() {}
-        // clang-format off
-        //! Enable/disable indices
-        Options& Indices(bool value = true) { mEnableIndices = value; return *this; }
-        //! Enable/disable vertex colors
-        Options& VertexColors(bool value = true) { mEnableVertexColors = value; return *this; }
-        //! Enable/disable normals
-        Options& Normals(bool value = true) { mEnableNormals = value; return *this; }
-        //! Enable/disable texture coordinates, most geometry will have 2-dimensional texture coordinates
-        Options& TexCoords(bool value = true) { mEnableTexCoords = value; return *this; }
-        //! Enable/disable tangent and bitangent creation flag
-        Options& Tangents(bool value = true) { mEnableTangents = value; return *this; }
-        //! Set and/or enable/disable object color, object color will override vertex colors
-        Options& ObjectColor(const float3& color, bool enable = true) { mObjectColor = color; mEnableObjectColor = enable; return *this;}
-        //! Set the scale of geometry position, default is (1, 1, 1)
-        Options& Scale(const float3& scale) { mScale = scale; return *this; }
-        //! Sets the UV texture coordinate scale, default is (1, 1)
-        Options& TexCoordScale(const float2& scale) { mTexCoordScale = scale; return *this; }
-        //! Enable all attributes
-        Options& AllAttributes() { mEnableVertexColors = true; mEnableNormals = true; mEnableTexCoords = true; mEnableTangents = true; return *this; }
-        //! Inverts tex coords vertically
-        Options& InvertTexCoordsV() { mInvertTexCoordsV = true; return *this; }
-        //! Inverts winding order of ONLY indices
-        Options& InvertWinding() { mInvertWinding = true; return *this; }
-        // clang-format on
-    private:
-        bool   mEnableIndices      = false;
-        bool   mEnableVertexColors = false;
-        bool   mEnableNormals      = false;
-        bool   mEnableTexCoords    = false;
-        bool   mEnableTangents     = false;
-        bool   mEnableObjectColor  = false;
-        bool   mInvertTexCoordsV   = false;
-        bool   mInvertWinding      = false;
-        float3 mObjectColor        = float3(0.7f);
-        float3 mScale              = float3(1, 1, 1);
-        float2 mTexCoordScale      = float2(1, 1);
-        friend class TriMesh;
-    };
-
     TriMesh();
     TriMesh(grfx::IndexType indexType);
     TriMesh(TriMeshAttributeDim texCoordDim);
@@ -150,10 +154,10 @@ public:
     Result GetTriangle(uint32_t triIndex, uint32_t& v0, uint32_t& v1, uint32_t& v2) const;
     Result GetVertexData(uint32_t vtxIndex, VertexData* pVertexData) const;
 
-    static TriMesh CreatePlane(TriMeshPlane plane, const float2& size, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options = TriMesh::Options());
-    static TriMesh CreateCube(const float3& size, const TriMesh::Options& options = TriMesh::Options());
-    static TriMesh CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options = TriMesh::Options());
-    static TriMesh CreateFromOBJ(const fs::path& path, const TriMesh::Options& options = TriMesh::Options());
+    static TriMesh CreatePlane(TriMeshPlane plane, const float2& size, uint32_t usegs, uint32_t vsegs, const TriMeshOptions& options = TriMeshOptions());
+    static TriMesh CreateCube(const float3& size, const TriMeshOptions& options = TriMeshOptions());
+    static TriMesh CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMeshOptions& options = TriMeshOptions());
+    static TriMesh CreateFromOBJ(const fs::path& path, const TriMeshOptions& options = TriMeshOptions());
 
 private:
     void AppendIndexU16(uint16_t value);
@@ -163,7 +167,7 @@ private:
         std::vector<uint32_t>&    indexData,
         const std::vector<float>& vertexData,
         const uint32_t            expectedVertexCount,
-        const TriMesh::Options&   options,
+        const TriMeshOptions&     options,
         TriMesh&                  mesh);
 
 private:

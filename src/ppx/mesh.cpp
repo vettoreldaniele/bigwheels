@@ -455,7 +455,7 @@ void TriMesh::AppendIndexAndVertexData(
     std::vector<uint32_t>&    indexData,
     const std::vector<float>& vertexData,
     const uint32_t            expectedVertexCount,
-    const TriMesh::Options&   options,
+    const TriMeshOptions&     options,
     TriMesh&                  mesh)
 {
     grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
@@ -528,7 +528,7 @@ void TriMesh::AppendIndexAndVertexData(
     }
 }
 
-TriMesh TriMesh::CreatePlane(TriMeshPlane plane, const float2& size, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options)
+TriMesh TriMesh::CreatePlane(TriMeshPlane plane, const float2& size, uint32_t usegs, uint32_t vsegs, const TriMeshOptions& options)
 {
     const float    hs     = size.x / 2.0f;
     const float    ht     = size.y / 2.0f;
@@ -566,11 +566,11 @@ TriMesh TriMesh::CreatePlane(TriMeshPlane plane, const float2& size, uint32_t us
                     position = float3((1.0f - s) * size.x - hs, 0, (1.0f - t) * size.y - ht);
                 } break;
 
-                //case TRI_MESH_PLANE_POSITIVE_Z: {
-                //} break;
-                //
-                //case TRI_MESH_PLANE_NEGATIVE_Z: {
-                //} break;
+                    //case TRI_MESH_PLANE_POSITIVE_Z: {
+                    //} break;
+                    //
+                    //case TRI_MESH_PLANE_NEGATIVE_Z: {
+                    //} break;
             }
 
             float3 color     = float3(u, v, 0);
@@ -617,11 +617,11 @@ TriMesh TriMesh::CreatePlane(TriMeshPlane plane, const float2& size, uint32_t us
                     PPX_ASSERT_MSG(false, "unknown plane orientation");
                 } break;
 
-                //case TRI_MESH_PLANE_POSITIVE_X: {
-                //} break;
-                //
-                //case TRI_MESH_PLANE_NEGATIVE_X: {
-                //} break;
+                    //case TRI_MESH_PLANE_POSITIVE_X: {
+                    //} break;
+                    //
+                    //case TRI_MESH_PLANE_NEGATIVE_X: {
+                    //} break;
 
                 case TRI_MESH_PLANE_POSITIVE_Y: {
                     indexData.push_back(v0);
@@ -643,11 +643,11 @@ TriMesh TriMesh::CreatePlane(TriMeshPlane plane, const float2& size, uint32_t us
                     indexData.push_back(v2);
                 } break;
 
-                //case TRI_MESH_PLANE_POSITIVE_Z: {
-                //} break;
-                //
-                //case TRI_MESH_PLANE_NEGATIVE_Z: {
-                //} break;
+                    //case TRI_MESH_PLANE_POSITIVE_Z: {
+                    //} break;
+                    //
+                    //case TRI_MESH_PLANE_NEGATIVE_Z: {
+                    //} break;
             }
         }
     }
@@ -689,7 +689,7 @@ TriMesh TriMesh::CreatePlane(TriMeshPlane plane, const float2& size, uint32_t us
     */
 }
 
-TriMesh TriMesh::CreateCube(const float3& size, const TriMesh::Options& options)
+TriMesh TriMesh::CreateCube(const float3& size, const TriMeshOptions& options)
 {
     const float hx = size.x / 2.0f;
     const float hy = size.y / 2.0f;
@@ -759,7 +759,7 @@ TriMesh TriMesh::CreateCube(const float3& size, const TriMesh::Options& options)
     return mesh;
 }
 
-TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMesh::Options& options)
+TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMeshOptions& options)
 {
     constexpr float kPi    = glm::pi<float>();
     constexpr float kTwoPi = 2.0f * kPi;
@@ -838,7 +838,7 @@ TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, cons
     return mesh;
 }
 
-TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMesh::Options& options)
+TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& options)
 {
     Timer timer;
     PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");

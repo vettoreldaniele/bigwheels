@@ -9,16 +9,17 @@
 #include "ppx/geometry.h"
 
 namespace ppx {
+namespace grfx_util {
 
-class ImageCreateOptions
+class ImageOptions
 {
 public:
-    ImageCreateOptions() {}
-    ~ImageCreateOptions() {}
+    ImageOptions() {}
+    ~ImageOptions() {}
 
     // clang-format off
-    ImageCreateOptions& AdditionalUsage(grfx::ImageUsageFlags flags) { mAdditionalUsage = flags; return *this; }
-    ImageCreateOptions& MipLevelCount(uint32_t levelCount) { mMipLevelCount = levelCount; return *this; }
+    ImageOptions& AdditionalUsage(grfx::ImageUsageFlags flags) { mAdditionalUsage = flags; return *this; }
+    ImageOptions& MipLevelCount(uint32_t levelCount) { mMipLevelCount = levelCount; return *this; }
     // clang-format on
 
 private:
@@ -26,16 +27,16 @@ private:
     uint32_t              mMipLevelCount   = 1;
 
     friend Result CreateImageFromBitmap(
-        grfx::Queue*              pQueue,
-        const Bitmap*             pBitmap,
-        grfx::Image**             ppImage,
-        const ImageCreateOptions& options);
+        grfx::Queue*        pQueue,
+        const Bitmap*       pBitmap,
+        grfx::Image**       ppImage,
+        const ImageOptions& options);
 
     friend Result CreateImageFromFile(
-        grfx::Queue*              pQueue,
-        const fs::path&           path,
-        grfx::Image**             ppImage,
-        const ImageCreateOptions& options);
+        grfx::Queue*        pQueue,
+        const fs::path&     path,
+        grfx::Image**       ppImage,
+        const ImageOptions& options);
 };
 
 //! @fn CopyBitmapToImage
@@ -54,31 +55,31 @@ Result CopyBitmapToImage(
 //!
 //!
 Result CreateImageFromBitmap(
-    grfx::Queue*              pQueue,
-    const Bitmap*             pBitmap,
-    grfx::Image**             ppImage,
-    const ImageCreateOptions& options = ImageCreateOptions());
+    grfx::Queue*        pQueue,
+    const Bitmap*       pBitmap,
+    grfx::Image**       ppImage,
+    const ImageOptions& options = ImageOptions());
 
 //! @fn CreateImageFromFile
 //!
 //!
 Result CreateImageFromFile(
-    grfx::Queue*              pQueue,
-    const fs::path&           path,
-    grfx::Image**             ppImage,
-    const ImageCreateOptions& options = ImageCreateOptions());
+    grfx::Queue*        pQueue,
+    const fs::path&     path,
+    grfx::Image**       ppImage,
+    const ImageOptions& options = ImageOptions());
 
 // -------------------------------------------------------------------------------------------------
 
-class TextureCreateOptions
+class TextureOptions
 {
 public:
-    TextureCreateOptions() {}
-    ~TextureCreateOptions() {}
+    TextureOptions() {}
+    ~TextureOptions() {}
 
     // clang-format off
-    TextureCreateOptions& AdditionalUsage(grfx::ImageUsageFlags flags) { mAdditionalUsage = flags; return *this; }
-    TextureCreateOptions& MipLevelCount(uint32_t levelCount) { mMipLevelCount = levelCount; return *this; }
+    TextureOptions& AdditionalUsage(grfx::ImageUsageFlags flags) { mAdditionalUsage = flags; return *this; }
+    TextureOptions& MipLevelCount(uint32_t levelCount) { mMipLevelCount = levelCount; return *this; }
     // clang-format on
 
 private:
@@ -86,22 +87,22 @@ private:
     uint32_t              mMipLevelCount   = 1;
 
     friend Result CreateTextureFromBitmap(
-        grfx::Queue*                pQueue,
-        const Bitmap*               pBitmap,
-        grfx::Texture**             ppTexture,
-        const TextureCreateOptions& options);
+        grfx::Queue*          pQueue,
+        const Bitmap*         pBitmap,
+        grfx::Texture**       ppTexture,
+        const TextureOptions& options);
 
     friend Result CreateTextureFromFile(
-        grfx::Queue*                pQueue,
-        const fs::path&             path,
-        grfx::Texture**             ppTexture,
-        const TextureCreateOptions& options);
+        grfx::Queue*          pQueue,
+        const fs::path&       path,
+        grfx::Texture**       ppTexture,
+        const TextureOptions& options);
 
     friend Result CreateTexture1x1(
-        grfx::Queue*                pQueue,
-        const float4&               color,
-        grfx::Texture**             ppTexture,
-        const TextureCreateOptions& options);
+        grfx::Queue*          pQueue,
+        const float4&         color,
+        grfx::Texture**       ppTexture,
+        const TextureOptions& options);
 };
 
 //! @fn CreateTextureFromBitmap
@@ -120,25 +121,25 @@ Result CopyBitmapToTexture(
 //!
 //!
 Result CreateTextureFromBitmap(
-    grfx::Queue*                pQueue,
-    const Bitmap*               pBitmap,
-    grfx::Texture**             ppTexture,
-    const TextureCreateOptions& options = TextureCreateOptions());
+    grfx::Queue*          pQueue,
+    const Bitmap*         pBitmap,
+    grfx::Texture**       ppTexture,
+    const TextureOptions& options = TextureOptions());
 
 //! @fn CreateTextureFromFile
 //!
 //!
 Result CreateTextureFromFile(
-    grfx::Queue*                pQueue,
-    const fs::path&             path,
-    grfx::Texture**             ppTexture,
-    const TextureCreateOptions& options = TextureCreateOptions());
+    grfx::Queue*          pQueue,
+    const fs::path&       path,
+    grfx::Texture**       ppTexture,
+    const TextureOptions& options = TextureOptions());
 
 Result CreateTexture1x1(
-    grfx::Queue*                pQueue,
-    const float4&               color,
-    grfx::Texture**             ppTexture,
-    const TextureCreateOptions& options = TextureCreateOptions());
+    grfx::Queue*          pQueue,
+    const float4&         color,
+    grfx::Texture**       ppTexture,
+    const TextureOptions& options = TextureOptions());
 
 // -------------------------------------------------------------------------------------------------
 
@@ -282,13 +283,13 @@ enum CubeFaceOp
 //!
 struct CubeMapCreateInfo
 {
-    ppx::CubeImageLayout layout = ppx::CUBE_IMAGE_LAYOUT_UNDEFINED;
-    uint32_t             posX   = PPX_VALUE_IGNORED;
-    uint32_t             negX   = PPX_VALUE_IGNORED;
-    uint32_t             posY   = PPX_VALUE_IGNORED;
-    uint32_t             negY   = PPX_VALUE_IGNORED;
-    uint32_t             posZ   = PPX_VALUE_IGNORED;
-    uint32_t             negZ   = PPX_VALUE_IGNORED;
+    CubeImageLayout layout = CUBE_IMAGE_LAYOUT_UNDEFINED;
+    uint32_t        posX   = PPX_VALUE_IGNORED;
+    uint32_t        negX   = PPX_VALUE_IGNORED;
+    uint32_t        posY   = PPX_VALUE_IGNORED;
+    uint32_t        negY   = PPX_VALUE_IGNORED;
+    uint32_t        posZ   = PPX_VALUE_IGNORED;
+    uint32_t        negZ   = PPX_VALUE_IGNORED;
 };
 
 //! @fn CreateCubeMapFromFile
@@ -297,7 +298,7 @@ struct CubeMapCreateInfo
 Result CreateCubeMapFromFile(
     grfx::Queue*                  pQueue,
     const fs::path&               path,
-    const ppx::CubeMapCreateInfo* pCreateInfo,
+    const CubeMapCreateInfo* pCreateInfo,
     grfx::Image**                 ppImage,
     const grfx::ImageUsageFlags&  additionalImageUsage = grfx::ImageUsageFlags());
 
@@ -326,7 +327,7 @@ Result CreateModelFromFile(
     grfx::Queue*            pQueue,
     const fs::path&         path,
     grfx::Model**           ppModel,
-    const TriMesh::Options& options = TriMesh::Options());
+    const TriMeshOptions& options = TriMeshOptions());
 
 // -------------------------------------------------------------------------------------------------
 
@@ -370,6 +371,7 @@ private:
 
 grfx::Format ToGrfxFormat(Bitmap::Format value);
 
+} // namespace grfx_util
 } // namespace ppx
 
 #endif // ppx_graphics_util_h

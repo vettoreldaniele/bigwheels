@@ -57,7 +57,7 @@ private:
     float                          mRotX = 0;
 
 private:
-    void SetupEntity(const TriMesh& mesh, const GeometryCreateInfo& createInfo, Entity* pEntity);
+    void SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -73,13 +73,13 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #endif
 }
 
-void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryCreateInfo& createInfo, Entity* pEntity)
+void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
     Result ppxres = ppx::SUCCESS;
 
     Geometry geo;
     PPX_CHECKED_CALL(ppxres = Geometry::Create(createInfo, mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
@@ -116,16 +116,16 @@ void ProjApp::Setup()
 
     // Texture image, view,  and sampler
     {
-        CubeMapCreateInfo createInfo = {};
-        createInfo.layout            = CUBE_IMAGE_LAYOUT_CROSS_HORIZONTAL;
-        createInfo.posX              = PPX_ENCODE_CUBE_FACE(3, CUBE_FACE_OP_NONE, CUBE_FACE_OP_NONE);
-        createInfo.negX              = PPX_ENCODE_CUBE_FACE(1, CUBE_FACE_OP_NONE, CUBE_FACE_OP_NONE);
-        createInfo.posY              = PPX_ENCODE_CUBE_FACE(0, CUBE_FACE_OP_NONE, CUBE_FACE_OP_NONE);
-        createInfo.negY              = PPX_ENCODE_CUBE_FACE(5, CUBE_FACE_OP_NONE, CUBE_FACE_OP_NONE);
-        createInfo.posZ              = PPX_ENCODE_CUBE_FACE(2, CUBE_FACE_OP_NONE, CUBE_FACE_OP_NONE);
-        createInfo.negZ              = PPX_ENCODE_CUBE_FACE(4, CUBE_FACE_OP_NONE, CUBE_FACE_OP_NONE);
+        grfx_util::CubeMapCreateInfo createInfo = {};
+        createInfo.layout            = grfx_util::CUBE_IMAGE_LAYOUT_CROSS_HORIZONTAL;
+        createInfo.posX              = PPX_ENCODE_CUBE_FACE(3, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.negX              = PPX_ENCODE_CUBE_FACE(1, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.posY              = PPX_ENCODE_CUBE_FACE(0, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.negY              = PPX_ENCODE_CUBE_FACE(5, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.posZ              = PPX_ENCODE_CUBE_FACE(2, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.negZ              = PPX_ENCODE_CUBE_FACE(4, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
 
-        PPX_CHECKED_CALL(ppxres = CreateCubeMapFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/cube_map_debug.jpg"), &createInfo, &mCubeMapImage));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateCubeMapFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/cube_map_debug.jpg"), &createInfo, &mCubeMapImage));
 
         grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mCubeMapImage);
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&viewCreateInfo, &mCubeMapImageView));
@@ -152,10 +152,10 @@ void ProjApp::Setup()
     // Entities
     {
         TriMesh mesh = TriMesh::CreateCube(float3(8, 8, 8));
-        SetupEntity(mesh, GeometryCreateInfo::InterleavedU16().AddColor(), &mSkyBox);
+        SetupEntity(mesh, GeometryOptions::InterleavedU16().AddColor(), &mSkyBox);
 
-        mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMesh::Options().Normals());
-        SetupEntity(mesh, GeometryCreateInfo::InterleavedU16().AddNormal(), &mReflector);
+        mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMeshOptions().Normals());
+        SetupEntity(mesh, GeometryOptions::InterleavedU16().AddNormal(), &mReflector);
     }
 
     // Sky box pipeline

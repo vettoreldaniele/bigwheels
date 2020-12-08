@@ -49,13 +49,13 @@ void Ocean::Setup(uint32_t numFramesInFlight)
     {
         mFloorForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "OceanFloor.vs", "OceanFloor.ps");
 
-        TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().TexCoordScale(float2(25.0f));
-        PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/ocean/floor_lowRes.obj"), &mFloorModel, options));
+        TriMeshOptions options = TriMeshOptions().Indices().AllAttributes().TexCoordScale(float2(25.0f));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/ocean/floor_lowRes.obj"), &mFloorModel, options));
 
-        TextureCreateOptions textureCreateOptions = TextureCreateOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorDiffuse.png"), &mFloorAlbedoTexture, textureCreateOptions));
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorRoughness.png"), &mFloorRoughnessTexture, textureCreateOptions));
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorNormal.png"), &mFloorNormalMapTexture, textureCreateOptions));
+        grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorDiffuse.png"), &mFloorAlbedoTexture, textureOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorRoughness.png"), &mFloorRoughnessTexture, textureOptions));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorNormal.png"), &mFloorNormalMapTexture, textureOptions));
 
         PPX_CHECKED_CALL(ppxres = mFloorMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
@@ -73,13 +73,13 @@ void Ocean::Setup(uint32_t numFramesInFlight)
     {
         mSurfaceForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "OceanSurface.vs", "OceanSurface.ps");
 
-        TriMesh::Options options = TriMesh::Options().Indices().AllAttributes().TexCoordScale(float2(1.0f));
-        TriMesh          mesh    = TriMesh::CreatePlane(TRI_MESH_PLANE_NEGATIVE_Y, float2(2500.0f), 10, 10, options);
-        PPX_CHECKED_CALL(ppxres = CreateModelFromMesh(queue, &mesh, &mSurfaceModel));
+        TriMeshOptions options = TriMeshOptions().Indices().AllAttributes().TexCoordScale(float2(1.0f));
+        TriMesh        mesh    = TriMesh::CreatePlane(TRI_MESH_PLANE_NEGATIVE_Y, float2(2500.0f), 10, 10, options);
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromMesh(queue, &mesh, &mSurfaceModel));
 
-        PPX_CHECKED_CALL(ppxres = CreateTexture1x1(queue, float4(0, 0, 0, 0), &mSurfaceAlbedoTexture));
-        PPX_CHECKED_CALL(ppxres = CreateTexture1x1(queue, float4(1, 1, 1, 1), &mSurfaceRoughnessTexture));
-        PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/surfaceNormalMap.png"), &mSurfaceNormalMapTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(queue, float4(0, 0, 0, 0), &mSurfaceAlbedoTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(queue, float4(1, 1, 1, 1), &mSurfaceRoughnessTexture));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/surfaceNormalMap.png"), &mSurfaceNormalMapTexture));
 
         PPX_CHECKED_CALL(ppxres = mSurfaceMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
@@ -103,8 +103,8 @@ void Ocean::Setup(uint32_t numFramesInFlight)
             const grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX;
             grfx::VertexDescription     vertexDescription;
             vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_POSITION, 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, inputRate});
-            vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_NORMAL  , 1, grfx::FORMAT_R32G32B32_FLOAT, 1, PPX_APPEND_OFFSET_ALIGNED, inputRate});
-            vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_TEXCOORD, 2, grfx::FORMAT_R32G32_FLOAT,    2, PPX_APPEND_OFFSET_ALIGNED, inputRate});
+            vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_NORMAL, 1, grfx::FORMAT_R32G32B32_FLOAT, 1, PPX_APPEND_OFFSET_ALIGNED, inputRate});
+            vertexDescription.AppendBinding(grfx::VertexAttribute{PPX_SEMANTIC_NAME_TEXCOORD, 2, grfx::FORMAT_R32G32_FLOAT, 2, PPX_APPEND_OFFSET_ALIGNED, inputRate});
 
             grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
             gpCreateInfo.VS                                 = {VS, "vsmain"};
@@ -132,8 +132,8 @@ void Ocean::Setup(uint32_t numFramesInFlight)
             device->DestroyShaderModule(PS);
         }
 
-        TriMesh::Options options = TriMesh::Options().Indices().Normals().TexCoords();
-        PPX_CHECKED_CALL(ppxres = CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/ocean/beams.obj"), &mBeamModel, options));
+        TriMeshOptions options = TriMeshOptions().Indices().Normals().TexCoords();
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/ocean/beams.obj"), &mBeamModel, options));
     }
 }
 

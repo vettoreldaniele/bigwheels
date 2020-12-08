@@ -51,7 +51,7 @@ private:
     Entity                       mPlanar;
 
 private:
-    void SetupEntity(const TriMesh& mesh, const GeometryCreateInfo& createInfo, Entity* pEntity);
+    void SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -67,13 +67,13 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #endif
 }
 
-void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryCreateInfo& createInfo, Entity* pEntity)
+void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
     Result ppxres = ppx::SUCCESS;
 
     Geometry geo;
     PPX_CHECKED_CALL(ppxres = Geometry::Create(createInfo, mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
@@ -109,11 +109,11 @@ void ProjApp::Setup()
 
     // Entities
     {
-        TriMesh mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMesh::Options().VertexColors());
-        SetupEntity(mesh, GeometryCreateInfo::InterleavedU32().AddColor(), &mInterleavedU32);
-        SetupEntity(mesh, GeometryCreateInfo::Interleaved().AddColor(), &mInterleaved);
-        SetupEntity(mesh, GeometryCreateInfo::PlanarU32().AddColor(), &mPlanarU32);
-        SetupEntity(mesh, GeometryCreateInfo::Planar().AddColor(), &mPlanar);
+        TriMesh mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMeshOptions().VertexColors());
+        SetupEntity(mesh, GeometryOptions::InterleavedU32().AddColor(), &mInterleavedU32);
+        SetupEntity(mesh, GeometryOptions::Interleaved().AddColor(), &mInterleaved);
+        SetupEntity(mesh, GeometryOptions::PlanarU32().AddColor(), &mPlanarU32);
+        SetupEntity(mesh, GeometryOptions::Planar().AddColor(), &mPlanar);
     }
 
     // Pipelines
