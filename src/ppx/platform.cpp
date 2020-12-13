@@ -32,10 +32,6 @@ CpuInfo GetCpuInfo()
     cpuInfo.mVendorString       = info.vendor;
     cpuInfo.mArchitectureString = cpu_features::GetX86MicroarchitectureName(arch);
 
-    if (cacheInfo.size >= 1) {
-        cpuInfo.mL1CacheSize = cacheInfo.levels[0].cache_size;
-    }
-
     cpuInfo.mFeatures.sse                 = static_cast<bool>(info.features.sse);
     cpuInfo.mFeatures.sse2                = static_cast<bool>(info.features.sse2);
     cpuInfo.mFeatures.sse3                = static_cast<bool>(info.features.sse3);
