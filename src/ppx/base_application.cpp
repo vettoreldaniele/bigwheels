@@ -10,9 +10,9 @@ BaseApplication::~BaseApplication()
 {
 }
 
-ppx::Platform BaseApplication::GetPlatform() const
+ppx::PlatformId BaseApplication::GetPlatformId() const
 {
-    ppx::Platform platform = ppx::GetPlatform();
+    ppx::PlatformId platform = Platform::GetPlatformId();
     return platform;
 }
 

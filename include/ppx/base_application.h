@@ -15,9 +15,9 @@ public:
     BaseApplication();
     virtual ~BaseApplication();
 
-    ppx::Platform GetPlatform() const;
-    uint32_t      GetProcessId() const;
-    fs::path      GetApplicationPath() const;
+    ppx::PlatformId GetPlatformId() const;
+    uint32_t        GetProcessId() const;
+    fs::path        GetApplicationPath() const;
 
     const std::vector<fs::path>& GetAssetDirs() const { return mAssetDirs; }
     void                         AddAssetDir(const fs::path& path, bool insertAtFront = false);

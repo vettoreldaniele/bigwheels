@@ -5,12 +5,12 @@
 
 namespace ppx {
 
-enum Platform
+enum PlatformId
 {
-    PLATFORM_UNDEFINED = 0,
-    PLATFORM_GGP,
-    PLATFORM_LINUX,
-    PLATFORM_MSW,
+    PLATFORM_ID_UNDEFINED = 0,
+    PLATFORM_ID_GGP,
+    PLATFORM_ID_LINUX,
+    PLATFORM_ID_MSW,
 };
 
 class CpuInfo
@@ -56,19 +56,19 @@ public:
     CpuInfo() {}
     ~CpuInfo() {}
 
-    const std::string& GetBrandString() const { return mBrandString; }
-    const std::string& GetVendorString() const { return mVendorString; }
-    const std::string& GetArchitectureString() const { return mArchitectureString; }
-    uint32_t           GetL1CacheSize() const { return mL1CacheSize; }
-    uint32_t           GetL2CacheSize() const { return mL2CacheSize; }
-    uint32_t           GetL3CacheSize() const { return mL3CacheSize; }
-    uint32_t           GetL1CacheLineSize() const { return mL1CacheLineSize; }
-    uint32_t           GetL2CacheLineSize() const { return mL2CacheLineSize; }
-    uint32_t           GetL3CacheLineSize() const { return mL3CacheLineSize; }
-    const Features&    GetFeatures() const { return mFeatures; }
+    const char*     GetBrandString() const { return mBrandString.c_str(); }
+    const char*     GetVendorString() const { return mVendorString.c_str(); }
+    const char*     GetArchitectureString() const { return mArchitectureString.c_str(); }
+    uint32_t        GetL1CacheSize() const { return mL1CacheSize; }
+    uint32_t        GetL2CacheSize() const { return mL2CacheSize; }
+    uint32_t        GetL3CacheSize() const { return mL3CacheSize; }
+    uint32_t        GetL1CacheLineSize() const { return mL1CacheLineSize; }
+    uint32_t        GetL2CacheLineSize() const { return mL2CacheLineSize; }
+    uint32_t        GetL3CacheLineSize() const { return mL3CacheLineSize; }
+    const Features& GetFeatures() const { return mFeatures; }
 
 private:
-    friend CpuInfo GetCpuInfo();
+    friend CpuInfo GetX86CpuInfo();
 
 private:
     std::string mBrandString;
@@ -83,8 +83,22 @@ private:
     Features    mFeatures        = {0};
 };
 
-Platform GetPlatform();
-CpuInfo  GetCpuInfo();
+class Platform
+{
+public:
+    Platform();
+    ~Platform();
+
+    static PlatformId     GetPlatformId();
+    static const CpuInfo& GetCpuInfo();
+
+private:
+    CpuInfo mCpuInfo;
+};
+
+//PlatformId GetPlatformId();
+//CpuInfo    GetCpuInfo();
+//float      GetCurrentCpuUsage();
 
 } // namespace ppx
 

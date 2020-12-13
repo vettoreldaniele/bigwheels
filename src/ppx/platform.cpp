@@ -3,22 +3,18 @@
 
 #include <intrin.h>
 
+#if defined(PPX_MSW)
+#include <Windows.h>
+#endif
+
 namespace ppx {
 
-Platform GetPlatform()
-{
-#if defined(PPX_GGP)
-    return ppx::PLATFORM_GGP;
-#elif defined(PPX_LINUX)
-    return ppx::PLATFORM_LINUX;
-#elif defined(PPX_MSW)
-    return ppx::PLATFORM_MSW;
-#else
-    return ppx::PLATFORM_UNDEFINED;
-#endif
-}
+static Platform sPlatform = Platform();
 
-CpuInfo GetCpuInfo()
+// -------------------------------------------------------------------------------------------------
+// CpuInfo
+// -------------------------------------------------------------------------------------------------
+static CpuInfo GetX86CpuInfo()
 {
     cpu_features::X86Info              info      = cpu_features::GetX86Info();
     cpu_features::X86Microarchitecture arch      = cpu_features::GetX86Microarchitecture(&info);
@@ -65,6 +61,36 @@ CpuInfo GetCpuInfo()
     cpuInfo.mFeatures.amx_int8            = static_cast<bool>(info.features.amx_int8);
 
     return cpuInfo;
+}
+
+// -------------------------------------------------------------------------------------------------
+// Platform
+// -------------------------------------------------------------------------------------------------
+Platform::Platform()
+{
+    mCpuInfo = GetX86CpuInfo();
+}
+
+Platform::~Platform()
+{
+}
+
+PlatformId Platform::GetPlatformId()
+{
+#if defined(PPX_GGP)
+    return ppx::PLATFORM_ID_GGP;
+#elif defined(PPX_LINUX)
+    return ppx::PLATFORM_ID_LINUX;
+#elif defined(PPX_MSW)
+    return ppx::PLATFORM_ID_MSW;
+#else
+    return ppx::PLATFORM_ID_UNDEFINED;
+#endif
+}
+
+const CpuInfo& Platform::GetCpuInfo()
+{
+    return sPlatform.mCpuInfo;
 }
 
 } // namespace ppx

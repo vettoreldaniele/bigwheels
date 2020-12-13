@@ -345,7 +345,6 @@ private:
     void ScrollCallback(float dx, float dy);
 
 private:
-    CpuInfo                    mCpuInfo;
     std::vector<std::string>   mCommandLineArgs;
     ApplicationSettings        mSettings = {};
     std::string                mDecoratedApiName;

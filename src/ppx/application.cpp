@@ -571,26 +571,25 @@ void Application::InitializeAssetDirs()
 Result Application::InitializePlatform()
 {
     // CPU Info
-    mCpuInfo = GetCpuInfo();
     // clang-format off
-    PPX_LOG_INFO("CPU info for " << mCpuInfo.GetBrandString());
-    PPX_LOG_INFO("   " << "vendor             : " << mCpuInfo.GetVendorString());
-    PPX_LOG_INFO("   " << "architecture       : " << mCpuInfo.GetArchitectureString());
-    PPX_LOG_INFO("   " << "L1 cache size      : " << mCpuInfo.GetL1CacheSize()); // Intel only atm
-    PPX_LOG_INFO("   " << "L2 cache size      : " << mCpuInfo.GetL2CacheSize()); // Intel only atm
-    PPX_LOG_INFO("   " << "L3 cache size      : " << mCpuInfo.GetL3CacheSize()); // Intel only atm
-    PPX_LOG_INFO("   " << "L1 cache line size : " << mCpuInfo.GetL1CacheLineSize()); // Intel only atm
-    PPX_LOG_INFO("   " << "L2 cache line size : " << mCpuInfo.GetL2CacheLineSize()); // Intel only atm
-    PPX_LOG_INFO("   " << "L3 cache line size : " << mCpuInfo.GetL3CacheLineSize()); // Intel only atm
-    PPX_LOG_INFO("   " << "SSE                : " << mCpuInfo.GetFeatures().sse);
-    PPX_LOG_INFO("   " << "SSE2               : " << mCpuInfo.GetFeatures().sse2);
-    PPX_LOG_INFO("   " << "SSE3               : " << mCpuInfo.GetFeatures().sse3);
-    PPX_LOG_INFO("   " << "SSSE3              : " << mCpuInfo.GetFeatures().ssse3);
-    PPX_LOG_INFO("   " << "SSE4_1             : " << mCpuInfo.GetFeatures().sse4_1);
-    PPX_LOG_INFO("   " << "SSE4_2             : " << mCpuInfo.GetFeatures().sse4_2);
-    PPX_LOG_INFO("   " << "SSE4A              : " << mCpuInfo.GetFeatures().sse);
-    PPX_LOG_INFO("   " << "AVX                : " << mCpuInfo.GetFeatures().avx);
-    PPX_LOG_INFO("   " << "AVX2               : " << mCpuInfo.GetFeatures().avx2);
+    PPX_LOG_INFO("CPU info for " << Platform::GetCpuInfo().GetBrandString());
+    PPX_LOG_INFO("   " << "vendor             : " << Platform::GetCpuInfo().GetVendorString());
+    PPX_LOG_INFO("   " << "architecture       : " << Platform::GetCpuInfo().GetArchitectureString());
+    PPX_LOG_INFO("   " << "L1 cache size      : " << Platform::GetCpuInfo().GetL1CacheSize());     // Intel only atm
+    PPX_LOG_INFO("   " << "L2 cache size      : " << Platform::GetCpuInfo().GetL2CacheSize());     // Intel only atm
+    PPX_LOG_INFO("   " << "L3 cache size      : " << Platform::GetCpuInfo().GetL3CacheSize());     // Intel only atm
+    PPX_LOG_INFO("   " << "L1 cache line size : " << Platform::GetCpuInfo().GetL1CacheLineSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "L2 cache line size : " << Platform::GetCpuInfo().GetL2CacheLineSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "L3 cache line size : " << Platform::GetCpuInfo().GetL3CacheLineSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "SSE                : " << Platform::GetCpuInfo().GetFeatures().sse);
+    PPX_LOG_INFO("   " << "SSE2               : " << Platform::GetCpuInfo().GetFeatures().sse2);
+    PPX_LOG_INFO("   " << "SSE3               : " << Platform::GetCpuInfo().GetFeatures().sse3);
+    PPX_LOG_INFO("   " << "SSSE3              : " << Platform::GetCpuInfo().GetFeatures().ssse3);
+    PPX_LOG_INFO("   " << "SSE4_1             : " << Platform::GetCpuInfo().GetFeatures().sse4_1);
+    PPX_LOG_INFO("   " << "SSE4_2             : " << Platform::GetCpuInfo().GetFeatures().sse4_2);
+    PPX_LOG_INFO("   " << "SSE4A              : " << Platform::GetCpuInfo().GetFeatures().sse);
+    PPX_LOG_INFO("   " << "AVX                : " << Platform::GetCpuInfo().GetFeatures().avx);
+    PPX_LOG_INFO("   " << "AVX2               : " << Platform::GetCpuInfo().GetFeatures().avx2);
     // clang-format on
 
     // Initializ glfw
@@ -1296,6 +1295,21 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
             ImGui::Text("GPU");
             ImGui::NextColumn();
             ImGui::Text("%s", GetDevice()->GetDeviceName());
+            ImGui::NextColumn();
+        }
+
+        ImGui::Separator();
+
+        // CPU
+        {
+            ImGui::Text("CPU");
+            ImGui::NextColumn();
+            ImGui::Text("%s", Platform::GetCpuInfo().GetBrandString());
+            ImGui::NextColumn();
+
+            ImGui::Text("Architecture");
+            ImGui::NextColumn();
+            ImGui::Text("%s", Platform::GetCpuInfo().GetArchitectureString());
             ImGui::NextColumn();
         }
 
