@@ -574,7 +574,7 @@ Result Application::InitializePlatform()
     // clang-format off
     PPX_LOG_INFO("CPU info for " << Platform::GetCpuInfo().GetBrandString());
     PPX_LOG_INFO("   " << "vendor             : " << Platform::GetCpuInfo().GetVendorString());
-    PPX_LOG_INFO("   " << "architecture       : " << Platform::GetCpuInfo().GetArchitectureString());
+    PPX_LOG_INFO("   " << "microarchitecture  : " << Platform::GetCpuInfo().GetMicroarchitectureString());
     PPX_LOG_INFO("   " << "L1 cache size      : " << Platform::GetCpuInfo().GetL1CacheSize());     // Intel only atm
     PPX_LOG_INFO("   " << "L2 cache size      : " << Platform::GetCpuInfo().GetL2CacheSize());     // Intel only atm
     PPX_LOG_INFO("   " << "L3 cache size      : " << Platform::GetCpuInfo().GetL3CacheSize());     // Intel only atm
@@ -1309,7 +1309,7 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
 
             ImGui::Text("Architecture");
             ImGui::NextColumn();
-            ImGui::Text("%s", Platform::GetCpuInfo().GetArchitectureString());
+            ImGui::Text("%s", Platform::GetCpuInfo().GetMicroarchitectureString());
             ImGui::NextColumn();
         }
 

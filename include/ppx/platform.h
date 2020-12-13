@@ -58,7 +58,7 @@ public:
 
     const char*     GetBrandString() const { return mBrandString.c_str(); }
     const char*     GetVendorString() const { return mVendorString.c_str(); }
-    const char*     GetArchitectureString() const { return mArchitectureString.c_str(); }
+    const char*     GetMicroarchitectureString() const { return mMicroarchitectureString.c_str(); }
     uint32_t        GetL1CacheSize() const { return mL1CacheSize; }
     uint32_t        GetL2CacheSize() const { return mL2CacheSize; }
     uint32_t        GetL3CacheSize() const { return mL3CacheSize; }
@@ -73,7 +73,7 @@ private:
 private:
     std::string mBrandString;
     std::string mVendorString;
-    std::string mArchitectureString;
+    std::string mMicroarchitectureString;
     uint32_t    mL1CacheSize     = 0;
     uint32_t    mL2CacheSize     = 0;
     uint32_t    mL3CacheSize     = 0;

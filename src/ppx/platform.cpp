@@ -1,7 +1,7 @@
 #include "ppx/platform.h"
-#include "cpuinfo_x86.h"
+#include "ppx/string_util.h"
 
-#include <intrin.h>
+#include "cpuinfo_x86.h"
 
 #if defined(PPX_MSW)
 #include <Windows.h>
@@ -14,19 +14,54 @@ static Platform sPlatform = Platform();
 // -------------------------------------------------------------------------------------------------
 // CpuInfo
 // -------------------------------------------------------------------------------------------------
-static CpuInfo GetX86CpuInfo()
+const char* GetX86LongMicroarchitectureName(cpu_features::X86Microarchitecture march)
+{
+    // clang-format off
+    switch (march) {
+        default: break;
+        case cpu_features::INTEL_CORE     : return "Core"; break;
+        case cpu_features::INTEL_PNR      : return "Penryn"; break;
+        case cpu_features::INTEL_NHM      : return "Nehalem"; break;
+        case cpu_features::INTEL_ATOM_BNL : return "Bonnell"; break;
+        case cpu_features::INTEL_WSM      : return "Westmere"; break;
+        case cpu_features::INTEL_SNB      : return "Sandybridge"; break;
+        case cpu_features::INTEL_IVB      : return "Ivybridge"; break;
+        case cpu_features::INTEL_ATOM_SMT : return "Silvermont"; break;
+        case cpu_features::INTEL_HSW      : return "Haswell"; break;
+        case cpu_features::INTEL_BDW      : return "Broadwell"; break;
+        case cpu_features::INTEL_SKL      : return "Skylake"; break;
+        case cpu_features::INTEL_ATOM_GMT : return "Goldmont"; break;
+        case cpu_features::INTEL_KBL      : return "Kaby Lake"; break;
+        case cpu_features::INTEL_CFL      : return "Coffee Lake"; break;
+        case cpu_features::INTEL_WHL      : return "Whiskey Lake"; break;
+        case cpu_features::INTEL_CNL      : return "Cannon Lake"; break;
+        case cpu_features::INTEL_ICL      : return "Ice Lake"; break;
+        case cpu_features::INTEL_TGL      : return "Tiger Lake"; break;
+        case cpu_features::INTEL_SPR      : return "Sapphire Rapids"; break;
+        case cpu_features::AMD_HAMMER     : return "K8"; break;
+        case cpu_features::AMD_K10        : return "K10"; break;
+        case cpu_features::AMD_BOBCAT     : return "K14"; break;
+        case cpu_features::AMD_BULLDOZER  : return "K15"; break;
+        case cpu_features::AMD_JAGUAR     : return "K16"; break;
+        case cpu_features::AMD_ZEN        : return "K17"; break;
+    };
+    // clang-format on
+    return "Unknown X86 Architecture";
+}
+
+CpuInfo GetX86CpuInfo()
 {
     cpu_features::X86Info              info      = cpu_features::GetX86Info();
-    cpu_features::X86Microarchitecture arch      = cpu_features::GetX86Microarchitecture(&info);
+    cpu_features::X86Microarchitecture march     = cpu_features::GetX86Microarchitecture(&info);
     cpu_features::CacheInfo            cacheInfo = cpu_features::GetX86CacheInfo();
 
     char brandString[49] = {0};
     cpu_features::FillX86BrandString(brandString);
 
     CpuInfo cpuInfo             = {};
-    cpuInfo.mBrandString        = brandString;
-    cpuInfo.mVendorString       = info.vendor;
-    cpuInfo.mArchitectureString = cpu_features::GetX86MicroarchitectureName(arch);
+    cpuInfo.mBrandString        = string_util::TrimCopy(brandString);
+    cpuInfo.mVendorString       = string_util::TrimCopy(info.vendor);
+    cpuInfo.mMicroarchitectureString = string_util::TrimCopy(GetX86LongMicroarchitectureName(march));
 
     cpuInfo.mFeatures.sse                 = static_cast<bool>(info.features.sse);
     cpuInfo.mFeatures.sse2                = static_cast<bool>(info.features.sse2);
