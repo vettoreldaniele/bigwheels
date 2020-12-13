@@ -435,7 +435,7 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
-        
+
         Application* p_application = it->second;
         p_application->ScrollCallback(
             static_cast<float>(xoffset),
@@ -570,6 +570,30 @@ void Application::InitializeAssetDirs()
 
 Result Application::InitializePlatform()
 {
+    // CPU Info
+    mCpuInfo = GetCpuInfo();
+    // clang-format off
+    PPX_LOG_INFO("CPU info for " << mCpuInfo.GetBrandString());
+    PPX_LOG_INFO("   " << "vendor             : " << mCpuInfo.GetVendorString());
+    PPX_LOG_INFO("   " << "architecture       : " << mCpuInfo.GetArchitectureString());
+    PPX_LOG_INFO("   " << "L1 cache size      : " << mCpuInfo.GetL1CacheSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "L2 cache size      : " << mCpuInfo.GetL2CacheSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "L3 cache size      : " << mCpuInfo.GetL3CacheSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "L1 cache line size : " << mCpuInfo.GetL1CacheLineSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "L2 cache line size : " << mCpuInfo.GetL2CacheLineSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "L3 cache line size : " << mCpuInfo.GetL3CacheLineSize()); // Intel only atm
+    PPX_LOG_INFO("   " << "SSE                : " << mCpuInfo.GetFeatures().sse);
+    PPX_LOG_INFO("   " << "SSE2               : " << mCpuInfo.GetFeatures().sse2);
+    PPX_LOG_INFO("   " << "SSE3               : " << mCpuInfo.GetFeatures().sse3);
+    PPX_LOG_INFO("   " << "SSSE3              : " << mCpuInfo.GetFeatures().ssse3);
+    PPX_LOG_INFO("   " << "SSE4_1             : " << mCpuInfo.GetFeatures().sse4_1);
+    PPX_LOG_INFO("   " << "SSE4_2             : " << mCpuInfo.GetFeatures().sse4_2);
+    PPX_LOG_INFO("   " << "SSE4A              : " << mCpuInfo.GetFeatures().sse);
+    PPX_LOG_INFO("   " << "AVX                : " << mCpuInfo.GetFeatures().avx);
+    PPX_LOG_INFO("   " << "AVX2               : " << mCpuInfo.GetFeatures().avx2);
+    // clang-format on
+
+    // Initializ glfw
     int res = glfwInit();
     if (res != GLFW_TRUE) {
         PPX_ASSERT_MSG(false, "glfwInit failed");
@@ -1219,7 +1243,7 @@ Result Application::CreateShader(const fs::path& baseDir, const std::string& bas
     }
 
     grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-    Result ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, ppShaderModule);
+    Result                       ppxres           = GetDevice()->CreateShaderModule(&shaderCreateInfo, ppShaderModule);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -1312,7 +1336,6 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
         }
 
         ImGui::Separator();
-
 
         // Swapchain
         {

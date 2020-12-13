@@ -25,3 +25,6 @@
 [submodule "third_party/pcg32"]
 	path = third_party/pcg32
 	url = git@github.com:wjakob/pcg32.git
+[submodule "third_party/cpu_features"]
+	path = third_party/cpu_features
+	url = git@github.com:google/cpu_features.git
