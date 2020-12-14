@@ -1407,7 +1407,7 @@ void Application::DrawProfiler()
             float    minValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMin()));
             float    maxValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMax()));
 
-            ImGui::Text(event.GetName().c_str());
+            ImGui::Text("%s", event.GetName().c_str());
             ImGui::NextColumn();
             ImGui::Text("%lu", count);
             ImGui::NextColumn();
