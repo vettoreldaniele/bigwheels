@@ -1,4 +1,5 @@
 #include "ppx/application.h"
+#include "ppx/profiler.h"
 #include "examples/imgui_impl_glfw.h"
 
 #include <map>
@@ -1370,6 +1371,55 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
         if (drawAdditionalFn) {
             drawAdditionalFn();
         }
+    }
+    ImGui::End();
+}
+
+void Application::DrawProfiler()
+{
+    if (!mImGui) {
+        return;
+    }
+
+    Profiler* pProfiler = Profiler::GetProfilerForThread();
+    if (IsNull(pProfiler)) {
+        return;
+    }
+
+    if (ImGui::Begin("Profiler")) {
+        ImGui::Columns(5);
+
+        ImGui::Text("Function");
+        ImGui::NextColumn();
+        ImGui::Text("Count");
+        ImGui::NextColumn();
+        ImGui::Text("Average");
+        ImGui::NextColumn();
+        ImGui::Text("Min");
+        ImGui::NextColumn();
+        ImGui::Text("Max");
+        ImGui::NextColumn();
+
+        const std::vector<ProfilerEvent>& events = pProfiler->GetEvents();
+        for (auto& event : events) {
+            uint64_t count    = event.GetSampleCount();
+            float    average  = static_cast<float>(Timer::TimestampToMillis(event.GetSampleTotal())) / static_cast<float>(count);
+            float    minValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMin()));
+            float    maxValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMax()));
+
+            ImGui::Text(event.GetName().c_str());
+            ImGui::NextColumn();
+            ImGui::Text("%lu", count);
+            ImGui::NextColumn();
+            ImGui::Text("%fs ms", average);
+            ImGui::NextColumn();
+            ImGui::Text("%fs ms", minValue);
+            ImGui::NextColumn();
+            ImGui::Text("%fs ms", maxValue);
+            ImGui::NextColumn();
+        }
+
+        ImGui::Columns(1);
     }
     ImGui::End();
 }

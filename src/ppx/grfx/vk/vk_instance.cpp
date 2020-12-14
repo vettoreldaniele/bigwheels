@@ -1,6 +1,7 @@
 #include "ppx/grfx/vk/vk_instance.h"
 #include "ppx/grfx/vk/vk_gpu.h"
 #include "ppx/grfx/vk/vk_device.h"
+#include "ppx/grfx/vk/vk_profiler_fn_wrapper.h"
 #include "ppx/grfx/vk/vk_swapchain.h"
 
 namespace ppx {
@@ -255,11 +256,16 @@ Result Instance::EnumerateAndCreateeGpus()
 
 Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 {
+    // Register profiling functions
+    vk::RegisterProfilerFunctions();
+
+    // Configure layers and extensions
     Result ppxres = ConfigureLayersAndExtensions(pCreateInfo);
     if (Failed(ppxres)) {
         return ppxres;
     }
 
+    // Enumerate version
     uint32_t foundVkVersion = 0;
     VkResult vkres          = vkEnumerateInstanceVersion(&foundVkVersion);
     if (vkres != VK_SUCCESS) {
@@ -267,7 +273,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
         return ppx::ERROR_API_FAILURE;
     }
 
-    // Version
+    // Version check
     uint32_t vkVersion = ppx::InvalidValue<uint32_t>();
     switch (pCreateInfo->api) {
         default: break;

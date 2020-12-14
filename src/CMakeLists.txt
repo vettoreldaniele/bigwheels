@@ -77,9 +77,9 @@ endif()
 # Add header and source files
 # ------------------------------------------------------------------------------
 
-set(INC_DIR   ${PPX_DIR}/include)
-set(SRC_DIR   ${PPX_DIR}/src)
-set(IMGUI_DIR ${PPX_DIR}/third_party/imgui)
+set(INC_DIR    ${PPX_DIR}/include)
+set(SRC_DIR    ${PPX_DIR}/src)
+set(IMGUI_DIR  ${PPX_DIR}/third_party/imgui)
 
 list(APPEND IMGUI_HEADER_FILES
     ${IMGUI_DIR}/imgui.h
@@ -92,6 +92,11 @@ list(APPEND IMGUI_SOURCE_FILES
     ${IMGUI_DIR}/imgui_widgets.cpp
     ${IMGUI_DIR}/examples/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/examples/imgui_impl_vulkan.cpp
+)
+
+list(APPEND XXHASH_FILES
+    ${PPX_DIR}/third_party/xxHash/xxhash.h
+    ${PPX_DIR}/third_party/xxHash/xxhash.c
 )
 
 if (PPX_D3D12)
@@ -120,6 +125,7 @@ list(
     ${INC_DIR}/ppx/obj_ptr.h
     ${INC_DIR}/ppx/platform.h
     ${INC_DIR}/ppx/ppx.h
+    ${INC_DIR}/ppx/profiler.h
     ${INC_DIR}/ppx/string_util.h
     ${INC_DIR}/ppx/timer.h
     ${INC_DIR}/ppx/transform.h
@@ -142,6 +148,7 @@ list(
     ${SRC_DIR}/ppx/mesh.cpp
     ${SRC_DIR}/ppx/mipmap.cpp
     ${SRC_DIR}/ppx/platform.cpp
+    ${SRC_DIR}/ppx/profiler.cpp
     ${SRC_DIR}/ppx/string_util.cpp
     ${SRC_DIR}/ppx/timer.cpp
     ${SRC_DIR}/ppx/transform.cpp
@@ -290,6 +297,8 @@ list(
     ${SRC_DIR}/ppx/grfx/vk/vk_image.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_instance.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_pipeline.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_profiler_fn_wrapper.h
+    ${SRC_DIR}/ppx/grfx/vk/vk_profiler_fn_wrapper.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_queue.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_render_pass.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_shader.cpp
@@ -321,6 +330,7 @@ source_group("ppx-io\\header"       FILES ${PPX_IO_HEADER_FILES})
 source_group("ppx-io\\source"       FILES ${PPX_IO_SOURCE_FILES})
 source_group("third_party\\contrib" FILES ${CONTRIB_FILES})
 source_group("third_party\\imgui"   FILES ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
+source_group("third_party\\xxHash"  FILES ${XXHASH_FILES})
 
 # ------------------------------------------------------------------------------
 # Add library
@@ -341,6 +351,7 @@ add_library(
     ${CONTRIB_FILES}
     ${IMGUI_HEADER_FILES}
     ${IMGUI_SOURCE_FILES}
+    ${XXHASH_FILES}
 )
 
 if (PPX_LINUX OR PPX_GGP)
@@ -363,6 +374,7 @@ target_include_directories(
             ${PPX_THIRD_PARTY_DIR}/imgui
             ${PPX_THIRD_PARTY_DIR}/tinyobjloader
             ${PPX_THIRD_PARTY_DIR}/pcg32
+            ${PPX_THIRD_PARTY_DIR}/xxHash
 )
 
 # Include D3D12 directories if D3D12 is enabled
@@ -465,7 +477,6 @@ if (PPX_VULKAN)
     endif()
 endif()
 
-
 # ------------------------------------------------------------------------------
 # Graphics API link libraries
 # ------------------------------------------------------------------------------
@@ -516,4 +527,15 @@ if (PPX_VULKAN)
             PUBLIC "${VULKAN_LIBRARY_DIR}/vulkan-1.lib"
         )
     endif()
+endif()
+
+# ------------------------------------------------------------------------------
+# Profiling
+# ------------------------------------------------------------------------------
+
+if (PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PRIVATE PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS
+    )
 endif()

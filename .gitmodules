@@ -28,3 +28,6 @@
 [submodule "third_party/cpu_features"]
 	path = third_party/cpu_features
 	url = git@github.com:google/cpu_features.git
+[submodule "third_party/xxHash"]
+	path = third_party/xxHash
+	url = git@github.com:Cyan4973/xxHash.git

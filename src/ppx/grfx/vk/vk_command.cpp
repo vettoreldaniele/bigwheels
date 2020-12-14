@@ -7,6 +7,8 @@
 #include "ppx/grfx/vk/vk_pipeline.h"
 #include "ppx/grfx/vk/vk_render_pass.h"
 
+#include "ppx/grfx/vk/vk_profiler_fn_wrapper.h"
+
 namespace ppx {
 namespace grfx {
 namespace vk {
@@ -326,7 +328,7 @@ void CommandBuffer::BindDescriptorSets(
         if (pInterface->HasConsecutiveSetNumbers()) {
             uint32_t firstSet = setNumbers[0];
 
-            vkCmdBindDescriptorSets(
+            vk::CmdBindDescriptorSets(
                 mCommandBuffer,                           // commandBuffer
                 bindPoint,                                // pipelineBindPoint
                 ToApi(pInterface)->GetVkPipelineLayout(), // layout
@@ -341,7 +343,7 @@ void CommandBuffer::BindDescriptorSets(
             for (uint32_t i = 0; i < setCount; ++i) {
                 uint32_t firstSet = setNumbers[i];
 
-                vkCmdBindDescriptorSets(
+                vk::CmdBindDescriptorSets(
                     mCommandBuffer,                           // commandBuffer
                     bindPoint,                                // pipelineBindPoint
                     ToApi(pInterface)->GetVkPipelineLayout(), // layout
@@ -354,7 +356,7 @@ void CommandBuffer::BindDescriptorSets(
         }
     }
     else {
-        vkCmdBindDescriptorSets(
+        vk::CmdBindDescriptorSets(
             mCommandBuffer,                           // commandBuffer
             bindPoint,                                // pipelineBindPoint
             ToApi(pInterface)->GetVkPipelineLayout(), // layout
@@ -378,7 +380,7 @@ void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline
 {
     PPX_ASSERT_NULL_ARG(pPipeline);
 
-    vkCmdBindPipeline(
+    vk::CmdBindPipeline(
         mCommandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
         ToApi(pPipeline)->GetVkPipeline());
@@ -396,7 +398,7 @@ void CommandBuffer::BindComputePipeline(const grfx::ComputePipeline* pPipeline)
 {
     PPX_ASSERT_NULL_ARG(pPipeline);
 
-    vkCmdBindPipeline(
+    vk::CmdBindPipeline(
         mCommandBuffer,
         VK_PIPELINE_BIND_POINT_COMPUTE,
         ToApi(pPipeline)->GetVkPipeline());
@@ -407,7 +409,7 @@ void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
     PPX_ASSERT_NULL_ARG(pView);
     PPX_ASSERT_NULL_ARG(pView->pBuffer);
 
-    vkCmdBindIndexBuffer(
+    vk::CmdBindIndexBuffer(
         mCommandBuffer,
         ToApi(pView->pBuffer)->GetVkBuffer(),
         static_cast<VkDeviceSize>(pView->offset),
@@ -427,7 +429,7 @@ void CommandBuffer::BindVertexBuffers(uint32_t viewCount, const grfx::VertexBuff
         offsets[i] = static_cast<VkDeviceSize>(pViews[i].offset);
     }
 
-    vkCmdBindVertexBuffers(
+    vk::CmdBindVertexBuffers(
         mCommandBuffer,
         0,
         viewCount,
@@ -451,7 +453,7 @@ void CommandBuffer::DrawIndexed(
     int32_t  vertexOffset,
     uint32_t firstInstance)
 {
-    vkCmdDrawIndexed(mCommandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+    vk::CmdDrawIndexed(mCommandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 void CommandBuffer::Dispatch(
@@ -459,7 +461,7 @@ void CommandBuffer::Dispatch(
     uint32_t groupCountY,
     uint32_t groupCountZ)
 {
-    vkCmdDispatch(mCommandBuffer, groupCountX, groupCountY, groupCountZ);
+    vk::CmdDispatch(mCommandBuffer, groupCountX, groupCountY, groupCountZ);
 }
 
 void CommandBuffer::CopyBufferToBuffer(

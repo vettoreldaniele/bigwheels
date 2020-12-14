@@ -268,6 +268,7 @@ protected:
 
     void DrawImGui(grfx::CommandBuffer* pCommandBuffer);
     void DrawDebugInfo(std::function<void(void)> drawAdditionalFn = []() {});
+    void DrawProfiler();
 
 public:
     int Run(int argc, char** argv);

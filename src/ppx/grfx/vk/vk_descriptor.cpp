@@ -3,6 +3,8 @@
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_image.h"
 
+#include "ppx/grfx/vk/vk_profiler_fn_wrapper.h"
+
 namespace ppx {
 namespace grfx {
 namespace vk {
@@ -227,7 +229,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
         vkWrite.pTexelBufferView      = pTexelBufferView;
     }
 
-    vkUpdateDescriptorSets(
+    vk::UpdateDescriptorSets(
         ToApi(GetDevice())->GetVkDevice(),
         mWriteCount,
         mWriteStore.data(),

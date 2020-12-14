@@ -1,6 +1,8 @@
 #include "ppx/grfx/vk/vk_buffer.h"
 #include "ppx/grfx/vk/vk_device.h"
 
+#include "ppx/grfx/vk/vk_profiler_fn_wrapper.h"
+
 namespace ppx {
 namespace grfx {
 namespace vk {
@@ -24,7 +26,7 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
 
     VkAllocationCallbacks* pAllocator = nullptr;
 
-    VkResult vkres = vkCreateBuffer(ToApi(GetDevice())->GetVkDevice(), &createInfo, pAllocator, &mBuffer);
+    VkResult vkres = vk::CreateBuffer(ToApi(GetDevice())->GetVkDevice(), &createInfo, pAllocator, &mBuffer);
     if (vkres != VK_SUCCESS) {
         PPX_ASSERT_MSG(false, "vkCreateBuffer failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
