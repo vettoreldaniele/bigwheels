@@ -1386,12 +1386,14 @@ void Application::DrawProfiler()
         return;
     }
 
-    if (ImGui::Begin("Profiler")) {
-        ImGui::Columns(5);
+    if (ImGui::Begin("Profiler: Graphics API Functions")) {
+        ImGui::Columns(6);
 
         ImGui::Text("Function");
         ImGui::NextColumn();
         ImGui::Text("Count");
+        ImGui::NextColumn();
+        ImGui::Text("Total");
         ImGui::NextColumn();
         ImGui::Text("Average");
         ImGui::NextColumn();
@@ -1403,19 +1405,29 @@ void Application::DrawProfiler()
         const std::vector<ProfilerEvent>& events = pProfiler->GetEvents();
         for (auto& event : events) {
             uint64_t count    = event.GetSampleCount();
-            float    average  = static_cast<float>(Timer::TimestampToMillis(event.GetSampleTotal())) / static_cast<float>(count);
-            float    minValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMin()));
-            float    maxValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMax()));
+            float    average  = 0;
+            float    minValue = 0;
+            float    maxValue = 0;
+            float    total    = 0;
+
+            if (count > 0) {
+                average  = static_cast<float>(Timer::TimestampToMillis(event.GetSampleTotal())) / static_cast<float>(count);
+                minValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMin()));
+                maxValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMax()));
+                total    = static_cast<float>(Timer::TimestampToMillis(event.GetSampleTotal()));
+            }
 
             ImGui::Text("%s", event.GetName().c_str());
             ImGui::NextColumn();
             ImGui::Text("%lu", count);
             ImGui::NextColumn();
-            ImGui::Text("%fs ms", average);
+            ImGui::Text("%f ms", average);
             ImGui::NextColumn();
-            ImGui::Text("%fs ms", minValue);
+            ImGui::Text("%f ms", minValue);
             ImGui::NextColumn();
-            ImGui::Text("%fs ms", maxValue);
+            ImGui::Text("%f ms", maxValue);
+            ImGui::NextColumn();
+            ImGui::Text("%f ms", total);
             ImGui::NextColumn();
         }
 

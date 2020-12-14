@@ -24,6 +24,43 @@ void UpdateDescriptorSets(
     uint32_t                    descriptorCopyCount,
     const VkCopyDescriptorSet*  pDescriptorCopies);
 
+VkResult QueuePresent(
+    VkQueue                 queue,
+    const VkPresentInfoKHR* pPresentInfo);
+
+VkResult QueueSubmit(
+    VkQueue             queue,
+    uint32_t            submitCount,
+    const VkSubmitInfo* pSubmits,
+    VkFence             fence);
+
+VkResult BeginCommandBuffer(
+    VkCommandBuffer                 commandBuffer,
+    const VkCommandBufferBeginInfo* pBeginInfo);
+
+VkResult EndCommandBuffer(
+    VkCommandBuffer commandBuffer);
+
+void CmdPipelineBarrier(
+    VkCommandBuffer              commandBuffer,
+    VkPipelineStageFlags         srcStageMask,
+    VkPipelineStageFlags         dstStageMask,
+    VkDependencyFlags            dependencyFlags,
+    uint32_t                     memoryBarrierCount,
+    const VkMemoryBarrier*       pMemoryBarriers,
+    uint32_t                     bufferMemoryBarrierCount,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+    uint32_t                     imageMemoryBarrierCount,
+    const VkImageMemoryBarrier*  pImageMemoryBarriers);
+
+void CmdBeginRenderPass(
+    VkCommandBuffer              commandBuffer,
+    const VkRenderPassBeginInfo* pRenderPassBegin,
+    VkSubpassContents            contents);
+
+void CmdEndRenderPass(
+    VkCommandBuffer commandBuffer);
+
 void CmdBindDescriptorSets(
     VkCommandBuffer        commandBuffer,
     VkPipelineBindPoint    pipelineBindPoint,
@@ -58,6 +95,13 @@ void CmdDispatch(
     uint32_t        groupCountY,
     uint32_t        groupCountZ);
 
+void CmdDraw(
+    VkCommandBuffer commandBuffer,
+    uint32_t        vertexCount,
+    uint32_t        instanceCount,
+    uint32_t        firstVertex,
+    uint32_t        firstInstance);
+
 void CmdDrawIndexed(
     VkCommandBuffer commandBuffer,
     uint32_t        indexCount,
@@ -85,6 +129,64 @@ inline void UpdateDescriptorSets(
     const VkCopyDescriptorSet*  pDescriptorCopies)
 {
     vkUpdateDescriptorSets(device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
+}
+
+inline VkResult QueuePresent(
+    VkQueue                 queue,
+    const VkPresentInfoKHR* pPresentInfo)
+{
+    return vkQueuePresentKHR(queue, pPresentInfo);
+}
+
+inline VkResult QueueSubmit(
+    VkQueue             queue,
+    uint32_t            submitCount,
+    const VkSubmitInfo* pSubmits,
+    VkFence             fence)
+{
+    return vkQueueSubmit(queue, submitCount, pSubmits, fence);
+}
+
+inline VkResult BeginCommandBuffer(
+    VkCommandBuffer                 commandBuffer,
+    const VkCommandBufferBeginInfo* pBeginInfo)
+{
+    return vkBeginCommandBuffer(commandBuffer, pBeginInfo);
+}
+
+inline VkResult EndCommandBuffer(
+    VkCommandBuffer commandBuffer)
+{
+    return vkEndCommandBuffer(commandBuffer);
+}
+
+inline void CmdPipelineBarrier(
+    VkCommandBuffer              commandBuffer,
+    VkPipelineStageFlags         srcStageMask,
+    VkPipelineStageFlags         dstStageMask,
+    VkDependencyFlags            dependencyFlags,
+    uint32_t                     memoryBarrierCount,
+    const VkMemoryBarrier*       pMemoryBarriers,
+    uint32_t                     bufferMemoryBarrierCount,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+    uint32_t                     imageMemoryBarrierCount,
+    const VkImageMemoryBarrier*  pImageMemoryBarriers)
+{
+    vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+}
+
+inline void CmdBeginRenderPass(
+    VkCommandBuffer              commandBuffer,
+    const VkRenderPassBeginInfo* pRenderPassBegin,
+    VkSubpassContents            contents)
+{
+    vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+}
+
+inline void CmdEndRenderPass(
+    VkCommandBuffer commandBuffer)
+{
+    vkCmdEndRenderPass(commandBuffer);
 }
 
 inline void CmdBindDescriptorSets(
@@ -134,6 +236,16 @@ inline void CmdDispatch(
     uint32_t        groupCountZ)
 {
     vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+}
+
+inline void CmdDraw(
+    VkCommandBuffer commandBuffer,
+    uint32_t        vertexCount,
+    uint32_t        instanceCount,
+    uint32_t        firstVertex,
+    uint32_t        firstInstance)
+{
+    vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 inline void CmdDrawIndexed(

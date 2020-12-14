@@ -7,11 +7,19 @@ namespace vk {
 
 static ProfilerEventToken s_vkCreateBuffer          = 0;
 static ProfilerEventToken s_vkUpdateDescriptorSets  = 0;
+static ProfilerEventToken s_vkQueuePresent          = 0;
+static ProfilerEventToken s_vkQueueSubmit           = 0;
+static ProfilerEventToken s_vkCmdPipelineBarrier    = 0;
+static ProfilerEventToken s_vkBeginCommandBuffer    = 0;
+static ProfilerEventToken s_vkEndCommandBuffer      = 0;
+static ProfilerEventToken s_vkCmdBeginRenderPass    = 0;
+static ProfilerEventToken s_vkCmdEndRenderPass      = 0;
 static ProfilerEventToken s_vkCmdBindDescriptorSets = 0;
 static ProfilerEventToken s_vkCmdBindIndexBuffer    = 0;
 static ProfilerEventToken s_vkCmdBindPipeline       = 0;
 static ProfilerEventToken s_vkCmdBindVertexBuffers  = 0;
 static ProfilerEventToken s_vkCmdDispatch           = 0;
+static ProfilerEventToken s_vkCmdDraw               = 0;
 static ProfilerEventToken s_vkCmdDrawIndexed        = 0;
 
 void RegisterProfilerFunctions()
@@ -22,11 +30,17 @@ void RegisterProfilerFunctions()
 
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCreateBuffer)));
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkUpdateDescriptorSets)));
+    PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkQueuePresent)));
+    PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkQueueSubmit)));
+    PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCmdPipelineBarrier)));
+    PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkBeginCommandBuffer)));
+    PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkEndCommandBuffer)));
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCmdBindDescriptorSets)));
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCmdBindIndexBuffer)));
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCmdBindPipeline)));
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCmdBindVertexBuffers)));
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCmdDispatch)));
+    PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCmdDraw)));
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCmdDrawIndexed)));
 
 #undef REGISTER_EVENT_PARAMS
@@ -53,6 +67,71 @@ void UpdateDescriptorSets(
 {
     ProfilerScopedEventSample eventSample(s_vkUpdateDescriptorSets);
     vkUpdateDescriptorSets(device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
+}
+
+VkResult QueuePresent(
+    VkQueue                 queue,
+    const VkPresentInfoKHR* pPresentInfo)
+{
+    ProfilerScopedEventSample eventSample(s_vkQueuePresent);
+    return vkQueuePresentKHR(queue, pPresentInfo);
+}
+
+VkResult QueueSubmit(
+    VkQueue             queue,
+    uint32_t            submitCount,
+    const VkSubmitInfo* pSubmits,
+    VkFence             fence)
+{
+    ProfilerScopedEventSample eventSample(s_vkQueueSubmit);
+    return vkQueueSubmit(queue, submitCount, pSubmits, fence);
+}
+
+VkResult BeginCommandBuffer(
+    VkCommandBuffer                 commandBuffer,
+    const VkCommandBufferBeginInfo* pBeginInfo)
+{
+    ProfilerScopedEventSample eventSample(s_vkBeginCommandBuffer);
+    return vkBeginCommandBuffer(commandBuffer, pBeginInfo);
+}
+
+VkResult EndCommandBuffer(
+    VkCommandBuffer commandBuffer)
+{
+    ProfilerScopedEventSample eventSample(s_vkEndCommandBuffer);
+    return vkEndCommandBuffer(commandBuffer);
+}
+
+void CmdPipelineBarrier(
+    VkCommandBuffer              commandBuffer,
+    VkPipelineStageFlags         srcStageMask,
+    VkPipelineStageFlags         dstStageMask,
+    VkDependencyFlags            dependencyFlags,
+    uint32_t                     memoryBarrierCount,
+    const VkMemoryBarrier*       pMemoryBarriers,
+    uint32_t                     bufferMemoryBarrierCount,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+    uint32_t                     imageMemoryBarrierCount,
+    const VkImageMemoryBarrier*  pImageMemoryBarriers)
+{
+    ProfilerScopedEventSample eventSample(s_vkCmdPipelineBarrier);
+    vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+}
+
+void CmdBeginRenderPass(
+    VkCommandBuffer              commandBuffer,
+    const VkRenderPassBeginInfo* pRenderPassBegin,
+    VkSubpassContents            contents)
+{
+    ProfilerScopedEventSample eventSample(s_vkUpdateDescriptorSets);
+    vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+}
+
+void CmdEndRenderPass(
+    VkCommandBuffer commandBuffer)
+{
+    ProfilerScopedEventSample eventSample(s_vkUpdateDescriptorSets);
+    vkCmdEndRenderPass(commandBuffer);
 }
 
 void CmdBindDescriptorSets(
@@ -107,6 +186,17 @@ void CmdDispatch(
 {
     ProfilerScopedEventSample eventSample(s_vkCmdDispatch);
     vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+}
+
+void CmdDraw(
+    VkCommandBuffer commandBuffer,
+    uint32_t        vertexCount,
+    uint32_t        instanceCount,
+    uint32_t        firstVertex,
+    uint32_t        firstInstance)
+{
+    ProfilerScopedEventSample eventSample(s_vkCmdDraw);
+    vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 void CmdDrawIndexed(

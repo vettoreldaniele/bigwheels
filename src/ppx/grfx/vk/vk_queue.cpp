@@ -4,6 +4,8 @@
 #include "ppx/grfx/vk/vk_swapchain.h"
 #include "ppx/grfx/vk/vk_sync.h"
 
+#include "ppx/grfx/vk/vk_profiler_fn_wrapper.h"
+
 namespace ppx {
 namespace grfx {
 namespace vk {
@@ -97,7 +99,7 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
         fence = ToApi(pSubmitInfo->pFence)->GetVkFence();
     }
 
-    VkResult vkres = vkQueueSubmit(
+    VkResult vkres = vk::QueueSubmit(
         mQueue,
         1,
         &vksi,

@@ -181,6 +181,7 @@ void ProjApp::Render()
 
             // Draw ImGui
             DrawDebugInfo();
+            DrawProfiler();
             DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();

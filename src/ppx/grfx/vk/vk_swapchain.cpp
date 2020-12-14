@@ -5,6 +5,8 @@
 #include "ppx/grfx/vk/vk_queue.h"
 #include "ppx/grfx/vk/vk_sync.h"
 
+#include "ppx/grfx/vk/vk_profiler_fn_wrapper.h"
+
 namespace ppx {
 namespace grfx {
 namespace vk {
@@ -421,7 +423,7 @@ Result Swapchain::Present(
     vkpi.pImageIndices      = &imageIndex;
     vkpi.pResults           = nullptr;
 
-    VkResult vkres = vkQueuePresentKHR(
+    VkResult vkres = vk::QueuePresent(
         mQueue,
         &vkpi);
     if (vkres != VK_SUCCESS) {

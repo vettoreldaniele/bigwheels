@@ -52,7 +52,7 @@ Result CommandBuffer::Begin()
 {
     VkCommandBufferBeginInfo vkbi = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
 
-    VkResult vkres = vkBeginCommandBuffer(mCommandBuffer, &vkbi);
+    VkResult vkres = vk::BeginCommandBuffer(mCommandBuffer, &vkbi);
     if (vkres != VK_SUCCESS) {
         PPX_ASSERT_MSG(false, "vkBeginCommandBuffer failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
@@ -63,7 +63,7 @@ Result CommandBuffer::Begin()
 
 Result CommandBuffer::End()
 {
-    VkResult vkres = vkEndCommandBuffer(mCommandBuffer);
+    VkResult vkres = vk::EndCommandBuffer(mCommandBuffer);
     if (vkres != VK_SUCCESS) {
         PPX_ASSERT_MSG(false, "vkEndCommandBuffer failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
@@ -99,12 +99,12 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
     vkbi.clearValueCount       = clearValueCount;
     vkbi.pClearValues          = clearValues;
 
-    vkCmdBeginRenderPass(mCommandBuffer, &vkbi, VK_SUBPASS_CONTENTS_INLINE);
+    vk::CmdBeginRenderPass(mCommandBuffer, &vkbi, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void CommandBuffer::EndRenderPass()
 {
-    vkCmdEndRenderPass(mCommandBuffer);
+    vk::CmdEndRenderPass(mCommandBuffer);
 }
 
 void CommandBuffer::TransitionImageLayout(
@@ -181,7 +181,7 @@ void CommandBuffer::TransitionImageLayout(
     barrier.subresourceRange.baseArrayLayer = arrayLayer;
     barrier.subresourceRange.layerCount     = arrayLayerCount;
 
-    vkCmdPipelineBarrier(
+    vk::CmdPipelineBarrier(
         mCommandBuffer,  // commandBuffer
         srcStageMask,    // srcStageMask
         dstStageMask,    // dstStageMask
