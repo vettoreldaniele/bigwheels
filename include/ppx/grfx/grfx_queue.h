@@ -49,6 +49,9 @@ public:
 
     virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) = 0;
 
+    // GPU timestamp frequency counter in ticks per second
+    virtual Result GetTimestampFrequency(uint64_t* pFrequency) const = 0;
+
     Result CreateCommandBuffer(
         grfx::CommandBuffer** ppCommandBuffer,
         uint32_t              resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT,

@@ -1,6 +1,7 @@
 #include "ppx/grfx/vk/vk_queue.h"
 #include "ppx/grfx/vk/vk_command.h"
 #include "ppx/grfx/vk/vk_device.h"
+#include "ppx/grfx/vk/vk_gpu.h"
 #include "ppx/grfx/vk/vk_swapchain.h"
 #include "ppx/grfx/vk/vk_sync.h"
 
@@ -58,7 +59,7 @@ Result Queue::WaitIdle()
         PPX_ASSERT_MSG(false, "vkQueueWaitIdle failed" << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
     }
-   
+
     return ppx::SUCCESS;
 }
 
@@ -107,6 +108,19 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
     if (vkres != VK_SUCCESS) {
         return ppx::ERROR_API_FAILURE;
     }
+
+    return ppx::SUCCESS;
+}
+
+Result Queue::GetTimestampFrequency(uint64_t* pFrequency) const
+{
+    if (IsNull(pFrequency)) {
+        return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    }
+
+    float  timestampPeriod = ToApi(GetDevice()->GetGpu())->GetTimestampPeriod();
+    double ticksPerSecond  = 1000000000.0 / static_cast<double>(timestampPeriod);
+    *pFrequency            = static_cast<uint64_t>(ticksPerSecond);
 
     return ppx::SUCCESS;
 }

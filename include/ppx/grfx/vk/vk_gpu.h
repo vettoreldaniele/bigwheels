@@ -17,6 +17,8 @@ public:
 
     VkPhysicalDevicePtr GetVkGpu() const { return mGpu; }
 
+    float GetTimestampPeriod() const;
+
     uint32_t GetQueueFamilyCount() const;
 
     uint32_t GetGraphicsQueueFamilyIndex() const;

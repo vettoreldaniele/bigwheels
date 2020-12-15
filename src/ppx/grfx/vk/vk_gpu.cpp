@@ -36,6 +36,11 @@ void Gpu::DestroyApiObjects()
     }
 }
 
+float Gpu::GetTimestampPeriod() const
+{
+    return mGpuProperties.limits.timestampPeriod;
+}
+
 uint32_t Gpu::GetQueueFamilyCount() const
 {
     uint32_t count = CountU32(mQueueFamilies);

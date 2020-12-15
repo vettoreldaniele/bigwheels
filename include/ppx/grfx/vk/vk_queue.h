@@ -23,6 +23,8 @@ public:
 
     virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) override;
 
+    virtual Result GetTimestampFrequency(uint64_t* pFrequency) const override;
+
     VkResult TransitionImageLayout(
         VkImage              image,
         VkImageAspectFlags   aspectMask,

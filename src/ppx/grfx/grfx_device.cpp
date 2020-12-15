@@ -44,6 +44,7 @@ void Device::Destroy()
     DestroyAllObjects(mImages);
     DestroyAllObjects(mGraphicsPipelines);
     DestroyAllObjects(mPipelineInterfaces);
+    DestroyAllObjects(mQueryPools);
     DestroyAllObjects(mRenderTargetViews);
     DestroyAllObjects(mSampledImageViews);
     DestroyAllObjects(mSamplers);

@@ -1131,7 +1131,7 @@ int Application::Run(int argc, char** argv)
         mFrameEndTime      = static_cast<float>(mTimer.MillisSinceStart());
         mPreviousFrameTime = mFrameEndTime - mFrameStartTime;
 
-        // Pace ffames - if needed
+        // Pace frames - if needed
         if (mSettings.grfx.pacedFrameRate > 0) {
             if (mFrameCount > 0) {
                 double currentTime  = mTimer.SecondsSinceStart();
@@ -1334,7 +1334,7 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
 
         // Previous frame time
         {
-            ImGui::Text("Previous Frame Time");
+            ImGui::Text("Previous CPU Frame Time");
             ImGui::NextColumn();
             ImGui::Text("%f ms", mPreviousFrameTime);
             ImGui::NextColumn();

@@ -304,8 +304,9 @@ enum MemoryUsage
     MEMORY_USAGE_GPU_TO_CPU = 4,
 };
 
-// Only used for grfx::CommandBuffer::WriteTimestamp to pass
-// pipeline stage to Vulkan. Has no effect in D3D12.
+// 
+// VK: Maps to top/bottom of pipeline stages for timestamp queries.
+// DX: Maps to begin/end for timestamp queries.
 //
 enum PipelineStage
 {

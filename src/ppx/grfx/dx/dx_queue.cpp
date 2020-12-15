@@ -95,6 +95,19 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
     return ppx::SUCCESS;
 }
 
+Result Queue::GetTimestampFrequency(uint64_t* pFrequency) const
+{
+    if (IsNull(pFrequency)) {
+        return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    }
+
+    HRESULT hr = mCommandQueue->GetTimestampFrequency(reinterpret_cast<UINT64*>(pFrequency));
+    if (FAILED(hr)) {
+        return ppx::ERROR_API_FAILURE;
+    }
+    return ppx::SUCCESS;
+}
+
 } // namespace dx
 } // namespace grfx
 } // namespace ppx

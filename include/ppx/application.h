@@ -312,6 +312,7 @@ public:
     uint64_t GetFrameCount() const { return mFrameCount; }
     uint32_t GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
     uint32_t GetInFlightFrameIndex() const { return static_cast<uint32_t>(mFrameCount % mSettings.grfx.numFramesInFlight); }
+    uint32_t GetPreviousInFlightFrameIndex() const { return static_cast<uint32_t>((mFrameCount - 1) % mSettings.grfx.numFramesInFlight); }
 
     const KeyState& GetKeyState(KeyCode code) const;
 

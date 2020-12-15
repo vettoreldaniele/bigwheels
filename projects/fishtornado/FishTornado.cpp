@@ -122,7 +122,7 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.numFramesInFlight     = 2;
-    settings.grfx.enableDebug           = true;
+    settings.grfx.enableDebug           = false;
     settings.grfx.swapchain.imageCount  = 3;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
 #if defined(USE_DXIL)
@@ -293,6 +293,12 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateUniformBuffer(0, 0, frame.sceneConstants.GetGpuBuffer()));
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampledImage(1, 0, m1x1BlackTexture));
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampler(2, 0, mClampedSampler));
+
+        // Query pool
+        grfx::QueryPoolCreateInfo queryPoolCreateInfo = {};
+        queryPoolCreateInfo.type                      = grfx::QUERY_TYPE_TIMESTAMP;
+        queryPoolCreateInfo.count                     = 2;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.queryPool));
     }
 }
 
@@ -442,10 +448,12 @@ void FishTornadoApp::UpdateScene(uint32_t frameIndex)
 
 void FishTornadoApp::Render()
 {
-    Result             ppxres     = ppx::SUCCESS;
-    uint32_t           frameIndex = GetInFlightFrameIndex();
-    PerFrame&          frame      = mPerFrame[frameIndex];
-    grfx::SwapchainPtr swapchain  = GetSwapchain();
+    Result             ppxres         = ppx::SUCCESS;
+    uint32_t           frameIndex     = GetInFlightFrameIndex();
+    PerFrame&          frame          = mPerFrame[frameIndex];
+    uint32_t           prevFrameIndex = GetPreviousInFlightFrameIndex();
+    PerFrame&          prevFrame      = mPerFrame[frameIndex];
+    grfx::SwapchainPtr swapchain      = GetSwapchain();
 
     UpdateTime();
 
@@ -461,11 +469,23 @@ void FishTornadoApp::Render()
     PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
+    PPX_CHECKED_CALL(ppxres = prevFrame.renderCompleteFence->WaitAndReset());
+
+    // Read query results
+    if (GetFrameCount() > 1) {
+        uint64_t data[2] = {0};
+        GetDevice()->ResolveQueryData(prevFrame.queryPool, 0, 2, 2 * sizeof(uint64_t), data);
+        mTotalGpuFrameTime = (data[1] - data[0]);
+    }
+    // Reset query
+    frame.queryPool->Reset(0, 2);
 
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
+        // Write start timestamp
+        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 0);
+
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
         mFlocking.CopyConstantsToGpu(frameIndex, frame.cmd);
         mOcean.CopyConstantsToGpu(frameIndex, frame.cmd);
@@ -537,6 +557,9 @@ void FishTornadoApp::Render()
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
+
+        // Write end timestamp
+        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 1);
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
@@ -556,6 +579,24 @@ void FishTornadoApp::Render()
 
 void FishTornadoApp::DrawGui()
 {
+    ImGui::Separator();
+
+    {
+        uint64_t frequency = 0;
+        GetGraphicsQueue()->GetTimestampFrequency(&frequency);
+
+        float frameCount = static_cast<float>(GetFrameCount());
+
+        ImGui::Columns(2);
+
+        ImGui::Text("Previous GPU Frame Time");
+        ImGui::NextColumn();
+        ImGui::Text("%f ms ", static_cast<float>(mTotalGpuFrameTime / static_cast<double>(frequency)) * 1000.0f);
+        ImGui::NextColumn();
+
+        ImGui::Columns(1);
+    }
+
     ImGui::Separator();
 
     ImGui::Checkbox("Use PCF Shadows", &mUsePCF);

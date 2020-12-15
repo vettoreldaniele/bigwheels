@@ -31,6 +31,7 @@ private:
         grfx::FencePtr         imageAcquiredFence;
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
+        grfx::QueryPoolPtr     queryPool;
     };
 
     struct Entity
@@ -53,8 +54,9 @@ private:
     ppx::grfx::ImagePtr            mCubeMapImage;
     ppx::grfx::SampledImageViewPtr mCubeMapImageView;
     ppx::grfx::SamplerPtr          mCubeMapSampler;
-    float                          mRotY = 0;
-    float                          mRotX = 0;
+    float                          mRotY    = 0;
+    float                          mRotX    = 0;
+    uint64_t                       mGpuWorkDuration = 0;
 
 private:
     void SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
@@ -117,13 +119,13 @@ void ProjApp::Setup()
     // Texture image, view,  and sampler
     {
         grfx_util::CubeMapCreateInfo createInfo = {};
-        createInfo.layout            = grfx_util::CUBE_IMAGE_LAYOUT_CROSS_HORIZONTAL;
-        createInfo.posX              = PPX_ENCODE_CUBE_FACE(3, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
-        createInfo.negX              = PPX_ENCODE_CUBE_FACE(1, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
-        createInfo.posY              = PPX_ENCODE_CUBE_FACE(0, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
-        createInfo.negY              = PPX_ENCODE_CUBE_FACE(5, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
-        createInfo.posZ              = PPX_ENCODE_CUBE_FACE(2, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
-        createInfo.negZ              = PPX_ENCODE_CUBE_FACE(4, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.layout                       = grfx_util::CUBE_IMAGE_LAYOUT_CROSS_HORIZONTAL;
+        createInfo.posX                         = PPX_ENCODE_CUBE_FACE(3, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.negX                         = PPX_ENCODE_CUBE_FACE(1, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.posY                         = PPX_ENCODE_CUBE_FACE(0, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.negY                         = PPX_ENCODE_CUBE_FACE(5, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.posZ                         = PPX_ENCODE_CUBE_FACE(2, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
+        createInfo.negZ                         = PPX_ENCODE_CUBE_FACE(4, grfx_util::CUBE_FACE_OP_NONE, grfx_util::CUBE_FACE_OP_NONE);
 
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateCubeMapFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/cube_map_debug.jpg"), &createInfo, &mCubeMapImage));
 
@@ -251,6 +253,11 @@ void ProjApp::Setup()
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
+        grfx::QueryPoolCreateInfo queryPoolCreateInfo = {};
+        queryPoolCreateInfo.type                      = grfx::QUERY_TYPE_TIMESTAMP;
+        queryPoolCreateInfo.count                     = 2;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.queryPool));
+
         mPerFrame.push_back(frame);
     }
 }
@@ -270,6 +277,15 @@ void ProjApp::Render()
 
     // Wait for and reset render complete fence
     PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
+
+    // Read query results
+    if (GetFrameCount() > 1) {
+        uint64_t data[2] = {0};
+        GetDevice()->ResolveQueryData(frame.queryPool, 0, 2, 2 * sizeof(uint64_t), data);
+        mGpuWorkDuration = data[1] - data[0];
+    }
+    // Reset query
+    frame.queryPool->Reset(0, 2);
 
     // Update uniform buffer
     {
@@ -318,6 +334,9 @@ void ProjApp::Render()
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
+        // Write start timestamp
+        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 0);
+
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
 
@@ -354,6 +373,9 @@ void ProjApp::Render()
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
+
+        // Write end timestamp
+        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 1);
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
@@ -373,6 +395,22 @@ void ProjApp::Render()
 
 void ProjApp::DrawGui()
 {
+    ImGui::Separator();
+
+    {
+        uint64_t frequency = 0;
+        GetGraphicsQueue()->GetTimestampFrequency(&frequency);
+
+        ImGui::Columns(2);
+
+        ImGui::Text("GPU Work Duration");
+        ImGui::NextColumn();
+        ImGui::Text("%f ms ", static_cast<float>(mGpuWorkDuration / static_cast<double>(frequency)) * 1000.0f);
+        ImGui::NextColumn();
+
+        ImGui::Columns(1);
+    }
+
     ImGui::Separator();
 
     ImGui::SliderFloat("Rot X", &mRotX, 0.0f, 360.0f, "%.03f degrees");

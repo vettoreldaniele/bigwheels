@@ -21,6 +21,8 @@ public:
 
     virtual Result Submit(const grfx::SubmitInfo* pSubmitInfo) override;
 
+    virtual Result GetTimestampFrequency(uint64_t* pFrequency) const override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::internal::QueueCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;

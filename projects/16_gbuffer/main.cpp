@@ -1005,6 +1005,7 @@ void ProjApp::Render()
 
             // Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });
+            DrawProfiler();
             DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();

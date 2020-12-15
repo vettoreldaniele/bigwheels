@@ -640,12 +640,19 @@ void CommandBuffer::WriteTimestamp(
     const grfx::QueryPool* pQueryPool,
     uint32_t               queryIndex)
 {
-    mCommandList->EndQuery(
-        ToApi(pQueryPool)->GetDxQueryHeap(),
-        D3D12_QUERY_TYPE_TIMESTAMP,
-        static_cast<UINT>(queryIndex));
+    if (pipelineStage == grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT) {
+        mCommandList->BeginQuery(
+            ToApi(pQueryPool)->GetDxQueryHeap(),
+            D3D12_QUERY_TYPE_TIMESTAMP,
+            static_cast<UINT>(queryIndex));
+    }
+    else {
+        mCommandList->EndQuery(
+            ToApi(pQueryPool)->GetDxQueryHeap(),
+            D3D12_QUERY_TYPE_TIMESTAMP,
+            static_cast<UINT>(queryIndex));
+    }
 }
-
 
 // -------------------------------------------------------------------------------------------------
 // CommandPool

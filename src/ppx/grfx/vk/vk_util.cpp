@@ -43,7 +43,7 @@ const char* ToString(VkResult value)
 #if PPX_VULKAN_VERSION >= PPX_VULKAN_VERSION_1_2
         case VK_ERROR_UNKNOWN                                      : return "VK_ERROR_UNKNOWN"; break;
         case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS               : return "VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS"; break;
-        case VK_ERROR_INCOMPATIBLE_VERSION_KHR                     : return "VK_ERROR_INCOMPATIBLE_VERSION_KHR"; break;
+        //case VK_ERROR_INCOMPATIBLE_VERSION_KHR                     : return "VK_ERROR_INCOMPATIBLE_VERSION_KHR"; break;
         case VK_THREAD_IDLE_KHR                                    : return "VK_THREAD_IDLE_KHR"; break;
         case VK_THREAD_DONE_KHR                                    : return "VK_THREAD_DONE_KHR"; break;
         case VK_OPERATION_DEFERRED_KHR                             : return "VK_OPERATION_DEFERRED_KHR"; break;
@@ -226,7 +226,7 @@ VkBufferUsageFlags ToVkBufferUsageFlags(const grfx::BufferUsageFlags& value)
     if (value.bits.vertexBuffer                  ) flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     if (value.bits.indirectBuffer                ) flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
     if (value.bits.conditionalRendering          ) flags |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
-    if (value.bits.rayTracing                    ) flags |= VK_BUFFER_USAGE_RAY_TRACING_BIT_KHR;
+    //if (value.bits.rayTracing                    ) flags |= VK_BUFFER_USAGE_RAY_TRACING_BIT_KHR;
     if (value.bits.transformFeedbackBuffer       ) flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
     if (value.bits.transformFeedbackCounterBuffer) flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
     if (value.bits.shaderDeviceAddress           ) flags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR;
