@@ -258,6 +258,11 @@ public:
         const grfx::Image*                 pSrcImage,
         const grfx::Buffer*                pDstBuffer) = 0;
 
+    virtual void WriteTimestamp(
+        grfx::PipelineStage    pipelineStage,
+        const grfx::QueryPool* pQueryPool,
+        uint32_t               queryIndex) = 0;
+
     // ---------------------------------------------------------------------------------------------
     // Convenience functions
     // ---------------------------------------------------------------------------------------------
@@ -316,11 +321,11 @@ public:
     //
     //       For example this might give VS2019 some grief:
     //          grfx::DescriptorSetPtr set;
-    //          Draw(quad, 1, set); 
+    //          Draw(quad, 1, set);
     //
     //       Use this instead:
     //          grfx::DescriptorSetPtr set;
-    //          Draw(quad, 1, &set); 
+    //          Draw(quad, 1, &set);
     //
     void Draw(const grfx::FullscreenQuad* pQuad, uint32_t setCount, const grfx::DescriptorSet* const* ppSets);
 };

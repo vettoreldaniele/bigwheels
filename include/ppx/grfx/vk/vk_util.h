@@ -33,6 +33,7 @@ VkImageUsageFlags          ToVkImageUsageFlags(const grfx::ImageUsageFlags& valu
 VkImageViewType            ToVkImageViewType(grfx::ImageViewType value);
 VkIndexType                ToVkIndexType(grfx::IndexType value);
 VkLogicOp                  ToVkLogicOp(grfx::LogicOp value);
+VkPipelineStageFlagBits    ToVkPipelineStage(grfx::PipelineStage value);
 VkPolygonMode              ToVkPolygonMode(grfx::PolygonMode value);
 VkPresentModeKHR           ToVkPresentMode(grfx::PresentMode value);
 VkPrimitiveTopology        ToVkPrimitiveTopology(grfx::PrimitiveTopology value);

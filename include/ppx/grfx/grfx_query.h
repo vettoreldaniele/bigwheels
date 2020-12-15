@@ -25,6 +25,8 @@ public:
     QueryPool() {}
     virtual ~QueryPool() {}
 
+    virtual void Reset(uint32_t firstQuery, uint32_t queryCount) = 0;
+
 protected:
     virtual Result Create(const grfx::QueryPoolCreateInfo* pCreateInfo) override;
     friend class grfx::Device;

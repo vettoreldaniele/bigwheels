@@ -19,6 +19,8 @@ public:
 
     D3D12_QUERY_TYPE GetQueryType() const { return mQueryType; }
 
+    virtual void Reset(uint32_t firstQuery, uint32_t queryCount) override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;

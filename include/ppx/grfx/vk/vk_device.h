@@ -31,6 +31,11 @@ public:
         uint64_t               dstDataSize,
         void*                  pDstData) override;
 
+    void ResetQueryPoolEXT(
+        VkQueryPool queryPool,
+        uint32_t    firstQuery,
+        uint32_t    queryCount) const;
+
 protected:
     virtual Result AllocateObject(grfx::Buffer** ppObject) override;
     virtual Result AllocateObject(grfx::CommandBuffer** ppObject) override;
@@ -71,9 +76,10 @@ private:
     std::vector<std::string> mExtensions;
     VkDevicePtr              mDevice;
     VmaAllocatorPtr          mVmaAllocator;
-    bool                     mHasTimelineSemaphore    = false;
-    bool                     mHasExtendedDynamicState = false;
+    bool                     mHasTimelineSemaphore      = false;
+    bool                     mHasExtendedDynamicState   = false;
     bool                     mHasUnrestrictedDepthRange = false;
+    PFN_vkResetQueryPoolEXT  mFnResetQueryPoolEXT       = nullptr;
 };
 
 } // namespace vk

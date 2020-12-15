@@ -17,6 +17,8 @@ public:
 
     VkQueryPoolPtr GetVkQueryPool() const { return mQueryPool; }
 
+    virtual void Reset(uint32_t firstQuery, uint32_t queryCount) override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;

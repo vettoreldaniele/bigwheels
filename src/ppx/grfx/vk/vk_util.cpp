@@ -574,6 +574,18 @@ VkLogicOp ToVkLogicOp(grfx::LogicOp value)
     return ppx::InvalidValue<VkLogicOp>();
 }
 
+VkPipelineStageFlagBits ToVkPipelineStage(grfx::PipelineStage value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT    : return VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT; break;
+        case grfx::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT : return VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkPipelineStageFlagBits>();
+}
+
 VkPolygonMode ToVkPolygonMode(grfx::PolygonMode value)
 {
     // clang-format off

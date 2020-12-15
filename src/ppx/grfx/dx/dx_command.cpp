@@ -4,6 +4,7 @@
 #include "ppx/grfx/dx/dx_device.h"
 #include "ppx/grfx/dx/dx_image.h"
 #include "ppx/grfx/dx/dx_pipeline.h"
+#include "ppx/grfx/dx/dx_query.h"
 #include "ppx/grfx/dx/dx_render_pass.h"
 
 namespace ppx {
@@ -633,6 +634,18 @@ void CommandBuffer::CopyImageToBuffer(
 {
     PPX_ASSERT_MSG(false, "not implemented");
 }
+
+void CommandBuffer::WriteTimestamp(
+    grfx::PipelineStage    pipelineStage,
+    const grfx::QueryPool* pQueryPool,
+    uint32_t               queryIndex)
+{
+    mCommandList->EndQuery(
+        ToApi(pQueryPool)->GetDxQueryHeap(),
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        static_cast<UINT>(queryIndex));
+}
+
 
 // -------------------------------------------------------------------------------------------------
 // CommandPool

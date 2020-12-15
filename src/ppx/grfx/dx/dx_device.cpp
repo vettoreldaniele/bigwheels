@@ -623,11 +623,12 @@ Result Device::ResolveQueryData(
 
         sQueryResolveThreadIndex = mQueryResolveThreadCount;
         mQueryResolveThreadCount += 1;
+
         if (mQueryResolveThreadCount > static_cast<uint32_t>(mQueryResolveBuffers.size())) {
             grfx::BufferCreateInfo createInfo = {};
             createInfo.size                   = 65536;
             createInfo.usageFlags             = grfx::BUFFER_USAGE_TRANSFER_DST;
-            createInfo.memoryUsage            = grfx::MEMORY_USAGE_CPU_ONLY;
+            createInfo.memoryUsage            = grfx::MEMORY_USAGE_GPU_TO_CPU;
             createInfo.initialState           = grfx::RESOURCE_STATE_COPY_DST;
             createInfo.ownership              = grfx::OWNERSHIP_REFERENCE;
 

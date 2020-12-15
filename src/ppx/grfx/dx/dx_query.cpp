@@ -31,6 +31,12 @@ void QueryPool::DestroyApiObjects()
     }
 }
 
+void QueryPool::Reset(uint32_t firstQuery, uint32_t queryCount)
+{
+    (void)firstQuery;
+    (void)queryCount;
+}
+
 } // namespace dx
 } // namespace grfx
 } // namespace ppx

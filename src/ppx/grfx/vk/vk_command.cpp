@@ -3,6 +3,7 @@
 #include "ppx/grfx/vk/vk_descriptor.h"
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_image.h"
+#include "ppx/grfx/vk/vk_query.h"
 #include "ppx/grfx/vk/vk_queue.h"
 #include "ppx/grfx/vk/vk_pipeline.h"
 #include "ppx/grfx/vk/vk_render_pass.h"
@@ -521,6 +522,18 @@ void CommandBuffer::CopyImageToBuffer(
     const grfx::Buffer*                pDstBuffer)
 {
     PPX_ASSERT_MSG(false, "not implemented");
+}
+
+void CommandBuffer::WriteTimestamp(
+    grfx::PipelineStage    pipelineStage,
+    const grfx::QueryPool* pQueryPool,
+    uint32_t               queryIndex)
+{
+    vkCmdWriteTimestamp(
+        mCommandBuffer,
+        ToVkPipelineStage(pipelineStage),
+        ToApi(pQueryPool)->GetVkQueryPool(),
+        queryIndex);
 }
 
 // -------------------------------------------------------------------------------------------------

@@ -106,6 +106,9 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
     //   - VK_KHR_timeline_semaphore (promoted to core in 1.2)
     //
     if (GetInstance()->GetApi() == grfx::API_VK_1_1) {
+        // VK_EXT_host_query_reset
+        mExtensions.push_back(VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME);
+
         // Descriptor indexing
         mExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
 
@@ -135,7 +138,7 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
 
 Result Device::ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhysicalDeviceFeatures& features)
 {
-    // Default device faetures
+    // Default device features
     features                     = {};
     features.fullDrawIndexUint32 = VK_TRUE;
     features.imageCubeArray      = VK_TRUE;
@@ -222,10 +225,15 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         return ppxres;
     }
 
+    // VK_EXT_host_query_reset
+    VkPhysicalDeviceHostQueryResetFeatures queryResetFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES};
+    queryResetFeatures.hostQueryReset                         = VK_TRUE;
+
     // Get C strings
     std::vector<const char*> extensions = GetCStrings(mExtensions);
 
     VkDeviceCreateInfo vkci      = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+    vkci.pNext                   = &queryResetFeatures;
     vkci.flags                   = 0;
     vkci.queueCreateInfoCount    = CountU32(queueCreateInfos);
     vkci.pQueueCreateInfos       = DataPtr(queueCreateInfos);
@@ -237,7 +245,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
     // Log layers and extensions
     {
-        PPX_LOG_INFO("Loading " << vkci.enabledExtensionCount << " Vulkan instance extensions");
+        PPX_LOG_INFO("Loading " << vkci.enabledExtensionCount << " Vulkan device extensions");
         for (uint32_t i = 0; i < vkci.enabledExtensionCount; ++i) {
             PPX_LOG_INFO("   " << i << " : " << vkci.ppEnabledExtensionNames[i]);
         }
@@ -263,12 +271,16 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     }
 
     //
-    // Timeline semaphore is in core start in Vulkan 1.2
+    // Timeline semaphore and host query reset is in core start in Vulkan 1.2
     //
     // If this is a Vulkan 1.1 device:
+    //   - Load vkResetQueryPoolEXT
     //   - Enable timeline semaphore if extension was loaded
     //
     if (GetInstance()->GetApi() == grfx::API_VK_1_1) {
+        mFnResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)vkGetDeviceProcAddr(mDevice, "vkResetQueryPoolEXT");
+        PPX_ASSERT_MSG(mFnResetQueryPoolEXT != nullptr, "failed to load vkResetQueryPoolEXT");
+
         mHasTimelineSemaphore = ElementExists(std::string(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME), mExtensions);
     }
     else {
@@ -575,6 +587,14 @@ Result Device::ResolveQueryData(
         return ppx::ERROR_API_FAILURE;
     }
     return ppx::SUCCESS;
+}
+
+void Device::ResetQueryPoolEXT(
+    VkQueryPool queryPool,
+    uint32_t    firstQuery,
+    uint32_t    queryCount) const
+{
+    mFnResetQueryPoolEXT(mDevice, queryPool, firstQuery, queryCount);
 }
 
 } // namespace vk

@@ -102,6 +102,11 @@ public:
         const grfx::Image*                 pSrcImage,
         const grfx::Buffer*                pDstBuffer) override;
 
+    virtual void WriteTimestamp(
+        grfx::PipelineStage    pipelineStage,
+        const grfx::QueryPool* pQueryPool,
+        uint32_t               queryIndex) override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
