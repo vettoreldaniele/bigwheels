@@ -36,6 +36,7 @@ VkLogicOp                  ToVkLogicOp(grfx::LogicOp value);
 VkPolygonMode              ToVkPolygonMode(grfx::PolygonMode value);
 VkPresentModeKHR           ToVkPresentMode(grfx::PresentMode value);
 VkPrimitiveTopology        ToVkPrimitiveTopology(grfx::PrimitiveTopology value);
+VkQueryType                ToVkQueryType(grfx::QueryType value);
 VkSamplerAddressMode       ToVkSamplerAddressMode(grfx::SamplerAddressMode value);
 VkSamplerMipmapMode        ToVkSamplerMipmapMode(grfx::SamplerMipmapMode value);
 VkSampleCountFlagBits      ToVkSampleCount(grfx::SampleCount value);

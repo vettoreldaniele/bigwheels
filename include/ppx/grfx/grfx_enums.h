@@ -330,6 +330,14 @@ enum PrimitiveTopology
     PRIMITIVE_TOPOLOGY_PATCH_LIST     = 6,
 };
 
+enum QueryType
+{
+    QUERY_TYPE_UNDEFINED           = 0,
+    QUERY_TYPE_OCCLUSION           = 1,
+    QUERY_TYPE_PIPELINE_STATISTICS = 2,
+    QUERY_TYPE_TIMESTAMP           = 3,
+};
+
 enum ResourceState
 {
     RESOURCE_STATE_UNDEFINED = 0,

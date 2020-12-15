@@ -17,6 +17,52 @@ VkResult CreateBuffer(
     const VkAllocationCallbacks* pAllocator,
     VkBuffer*                    pBuffer);
 
+VkResult CreateImage(
+    VkDevice                     device,
+    const VkImageCreateInfo*     pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImage*                     pImage);
+
+VkResult CreateImageView(
+    VkDevice                     device,
+    const VkImageViewCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImageView*                 pView);
+
+VkResult CreateCommandPool(
+    VkDevice                       device,
+    const VkCommandPoolCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks*   pAllocator,
+    VkCommandPool*                 pCommandPool);
+
+VkResult CreateRenderPass(
+    VkDevice                      device,
+    const VkRenderPassCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks*  pAllocator,
+    VkRenderPass*                 pRenderPass);
+
+VkResult AllocateCommandBuffers(
+    VkDevice                           device,
+    const VkCommandBufferAllocateInfo* pAllocateInfo,
+    VkCommandBuffer*                   pCommandBuffers);
+
+void FreeCommandBuffers(
+    VkDevice               device,
+    VkCommandPool          commandPool,
+    uint32_t               commandBufferCount,
+    const VkCommandBuffer* pCommandBuffers);
+
+VkResult AllocateDescriptorSets(
+    VkDevice                           device,
+    const VkDescriptorSetAllocateInfo* pAllocateInfo,
+    VkDescriptorSet*                   pDescriptorSets);
+
+void FreeDescriptorSets(
+    VkDevice               device,
+    VkDescriptorPool       descriptorPool,
+    uint32_t               descriptorSetCount,
+    const VkDescriptorSet* pDescriptorSets);
+
 void UpdateDescriptorSets(
     VkDevice                    device,
     uint32_t                    descriptorWriteCount,
@@ -119,6 +165,76 @@ inline VkResult CreateBuffer(
     VkBuffer*                    pBuffer)
 {
     return vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
+}
+
+inline VkResult CreateImage(
+    VkDevice                     device,
+    const VkImageCreateInfo*     pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImage*                     pImage)
+{
+    return vkCreateImage(device, pCreateInfo, pAllocator, pImage);
+}
+
+inline VkResult CreateImageView(
+    VkDevice                     device,
+    const VkImageViewCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImageView*                 pView)
+{
+    return vkCreateImageView(device, pCreateInfo, pAllocator, pView);
+}
+
+inline VkResult CreateCommandPool(
+    VkDevice                       device,
+    const VkCommandPoolCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks*   pAllocator,
+    VkCommandPool*                 pCommandPool)
+{
+    return vkCreateCommandPool(device, pCreateInfo, pAllocator, pCommandPool);
+}
+
+inline VkResult CreateRenderPass(
+    VkDevice                      device,
+    const VkRenderPassCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks*  pAllocator,
+    VkRenderPass*                 pRenderPass)
+{
+    return vkCreateRenderPass(device, pCreateInfo, pAllocator, pRenderPass);
+}
+
+inline VkResult AllocateCommandBuffers(
+    VkDevice                           device,
+    const VkCommandBufferAllocateInfo* pAllocateInfo,
+    VkCommandBuffer*                   pCommandBuffers)
+{
+    return vkAllocateCommandBuffers(device, pAllocateInfo, pCommandBuffers);
+}
+
+inline void FreeCommandBuffers(
+    VkDevice               device,
+    VkCommandPool          commandPool,
+    uint32_t               commandBufferCount,
+    const VkCommandBuffer* pCommandBuffers)
+{
+    vkFreeCommandBuffers(device, commandPool, commandBufferCount, pCommandBuffers);
+}
+
+inline VkResult AllocateDescriptorSets(
+    VkDevice                           device,
+    const VkDescriptorSetAllocateInfo* pAllocateInfo,
+    VkDescriptorSet*                   pDescriptorSets)
+{
+    return vkAllocateDescriptorSets(device, pAllocateInfo, pDescriptorSets);
+}
+
+inline void FreeDescriptorSets(
+    VkDevice               device,
+    VkDescriptorPool       descriptorPool,
+    uint32_t               descriptorSetCount,
+    const VkDescriptorSet* pDescriptorSets)
+{
+    vkFreeDescriptorSets(device, descriptorPool, descriptorSetCount, pDescriptorSets);
 }
 
 inline void UpdateDescriptorSets(
@@ -236,6 +352,22 @@ inline void CmdDispatch(
     uint32_t        groupCountZ)
 {
     vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+}
+
+inline void CmdCopyBuffer()
+{
+}
+
+inline void CmdCopyBufferToImage()
+{
+}
+
+inline void CmdCopyImage()
+{
+}
+
+inline void CmdCopyImageToBuffer()
+{
 }
 
 inline void CmdDraw(

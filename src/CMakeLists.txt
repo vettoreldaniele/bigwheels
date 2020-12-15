@@ -174,6 +174,7 @@ list(
     ${INC_DIR}/ppx/grfx/grfx_instance.h
     ${INC_DIR}/ppx/grfx/grfx_model.h
     ${INC_DIR}/ppx/grfx/grfx_pipeline.h
+    ${INC_DIR}/ppx/grfx/grfx_query.h
     ${INC_DIR}/ppx/grfx/grfx_queue.h
     ${INC_DIR}/ppx/grfx/grfx_render_pass.h
     ${INC_DIR}/ppx/grfx/grfx_scope.h
@@ -199,6 +200,7 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_instance.cpp
     ${SRC_DIR}/ppx/grfx/grfx_model.cpp
     ${SRC_DIR}/ppx/grfx/grfx_pipeline.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_query.cpp
     ${SRC_DIR}/ppx/grfx/grfx_queue.cpp
     ${SRC_DIR}/ppx/grfx/grfx_render_pass.cpp
     ${SRC_DIR}/ppx/grfx/grfx_scope.cpp
@@ -237,6 +239,7 @@ if (PPX_D3D12)
         ${INC_DIR}/ppx/grfx/dx/dx_image.h
         ${INC_DIR}/ppx/grfx/dx/dx_instance.h
         ${INC_DIR}/ppx/grfx/dx/dx_pipeline.h
+        ${INC_DIR}/ppx/grfx/dx/dx_query.h
         ${INC_DIR}/ppx/grfx/dx/dx_queue.h
         ${INC_DIR}/ppx/grfx/dx/dx_render_pass.h
         ${INC_DIR}/ppx/grfx/dx/dx_shader.h
@@ -256,6 +259,7 @@ if (PPX_D3D12)
         ${SRC_DIR}/ppx/grfx/dx/dx_image.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_instance.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_pipeline.cpp
+        ${SRC_DIR}/ppx/grfx/dx/dx_query.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_queue.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_render_pass.cpp
         ${SRC_DIR}/ppx/grfx/dx/dx_shader.cpp
@@ -279,6 +283,7 @@ list(
     ${INC_DIR}/ppx/grfx/vk/vk_image.h
     ${INC_DIR}/ppx/grfx/vk/vk_instance.h
     ${INC_DIR}/ppx/grfx/vk/vk_pipeline.h
+    ${INC_DIR}/ppx/grfx/vk/vk_query.h
     ${INC_DIR}/ppx/grfx/vk/vk_queue.h
     ${INC_DIR}/ppx/grfx/vk/vk_render_pass.h
     ${INC_DIR}/ppx/grfx/vk/vk_shader.h
@@ -299,6 +304,7 @@ list(
     ${SRC_DIR}/ppx/grfx/vk/vk_pipeline.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_profiler_fn_wrapper.h
     ${SRC_DIR}/ppx/grfx/vk/vk_profiler_fn_wrapper.cpp
+    ${SRC_DIR}/ppx/grfx/vk/vk_query.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_queue.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_render_pass.cpp
     ${SRC_DIR}/ppx/grfx/vk/vk_shader.cpp

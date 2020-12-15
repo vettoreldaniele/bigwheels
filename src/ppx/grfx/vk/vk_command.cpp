@@ -23,7 +23,7 @@ Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreate
     vkai.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     vkai.commandBufferCount          = 1;
 
-    VkResult vkres = vkAllocateCommandBuffers(
+    VkResult vkres = vk::AllocateCommandBuffers(
         ToApi(GetDevice())->GetVkDevice(),
         &vkai,
         &mCommandBuffer);
@@ -38,7 +38,7 @@ Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreate
 void CommandBuffer::DestroyApiObjects()
 {
     if (mCommandBuffer) {
-        vkFreeCommandBuffers(
+        vk::FreeCommandBuffers(
             ToApi(GetDevice())->GetVkDevice(),
             ToApi(mCreateInfo.pPool)->GetVkCommandPool(),
             1,
@@ -532,7 +532,7 @@ Result CommandPool::CreateApiObjects(const grfx::CommandPoolCreateInfo* pCreateI
     vkci.flags                   = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     vkci.queueFamilyIndex        = ToApi(pCreateInfo->pQueue)->GetQueueFamilyIndex();
 
-    VkResult vkres = vkCreateCommandPool(
+    VkResult vkres = vk::CreateCommandPool(
         ToApi(GetDevice())->GetVkDevice(),
         &vkci,
         nullptr,

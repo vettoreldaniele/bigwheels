@@ -2,6 +2,8 @@
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_queue.h"
 
+#include "ppx/grfx/vk/vk_profiler_fn_wrapper.h"
+
 namespace ppx {
 namespace grfx {
 namespace vk {
@@ -41,7 +43,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
 
             VkAllocationCallbacks* pAllocator = nullptr;
 
-            VkResult vkres = vkCreateImage(ToApi(GetDevice())->GetVkDevice(), &vkci, pAllocator, &mImage);
+            VkResult vkres = vk::CreateImage(ToApi(GetDevice())->GetVkDevice(), &vkci, pAllocator, &mImage);
             if (vkres != VK_SUCCESS) {
                 PPX_ASSERT_MSG(false, "vkCreateImage failed: " << ToString(vkres));
                 return ppx::ERROR_API_FAILURE;
@@ -245,7 +247,7 @@ Result DepthStencilView::CreateApiObjects(const grfx::DepthStencilViewCreateInfo
     vkci.subresourceRange.baseArrayLayer = pCreateInfo->arrayLayer;
     vkci.subresourceRange.layerCount     = pCreateInfo->arrayLayerCount;
 
-    VkResult vkres = vkCreateImageView(
+    VkResult vkres = vk::CreateImageView(
         ToApi(GetDevice())->GetVkDevice(),
         &vkci,
         nullptr,
@@ -293,7 +295,7 @@ Result RenderTargetView::CreateApiObjects(const grfx::RenderTargetViewCreateInfo
     vkci.subresourceRange.baseArrayLayer = pCreateInfo->arrayLayer;
     vkci.subresourceRange.layerCount     = pCreateInfo->arrayLayerCount;
 
-    VkResult vkres = vkCreateImageView(
+    VkResult vkres = vk::CreateImageView(
         ToApi(GetDevice())->GetVkDevice(),
         &vkci,
         nullptr,
@@ -341,7 +343,7 @@ Result SampledImageView::CreateApiObjects(const grfx::SampledImageViewCreateInfo
     vkci.subresourceRange.baseArrayLayer = pCreateInfo->arrayLayer;
     vkci.subresourceRange.layerCount     = pCreateInfo->arrayLayerCount;
 
-    VkResult vkres = vkCreateImageView(
+    VkResult vkres = vk::CreateImageView(
         ToApi(GetDevice())->GetVkDevice(),
         &vkci,
         nullptr,
@@ -389,7 +391,7 @@ Result StorageImageView::CreateApiObjects(const grfx::StorageImageViewCreateInfo
     vkci.subresourceRange.baseArrayLayer = pCreateInfo->arrayLayer;
     vkci.subresourceRange.layerCount     = pCreateInfo->arrayLayerCount;
 
-    VkResult vkres = vkCreateImageView(
+    VkResult vkres = vk::CreateImageView(
         ToApi(GetDevice())->GetVkDevice(),
         &vkci,
         nullptr,

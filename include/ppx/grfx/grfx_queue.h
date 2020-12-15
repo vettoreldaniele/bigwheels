@@ -66,7 +66,7 @@ public:
         const grfx::BufferToImageCopyInfo* pCopyInfo,
         const grfx::Buffer*                pSrcBuffer,
         const grfx::Image*                 pDstImage,
-        uint32_t                           mipLevel, 
+        uint32_t                           mipLevel,
         uint32_t                           mipLevelCount,
         uint32_t                           arrayLayer,
         uint32_t                           arrayLayerCount,

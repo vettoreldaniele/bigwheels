@@ -1393,13 +1393,13 @@ void Application::DrawProfiler()
         ImGui::NextColumn();
         ImGui::Text("Count");
         ImGui::NextColumn();
-        ImGui::Text("Total");
-        ImGui::NextColumn();
         ImGui::Text("Average");
         ImGui::NextColumn();
         ImGui::Text("Min");
         ImGui::NextColumn();
         ImGui::Text("Max");
+        ImGui::NextColumn();
+        ImGui::Text("Total");
         ImGui::NextColumn();
 
         const std::vector<ProfilerEvent>& events = pProfiler->GetEvents();

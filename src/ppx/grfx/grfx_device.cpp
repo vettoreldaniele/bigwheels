@@ -455,6 +455,23 @@ void Device::DestroyPipelineInterface(const grfx::PipelineInterface* pPipelineIn
     DestroyObject(mPipelineInterfaces, pPipelineInterface);
 }
 
+Result Device::CreateQueryPool(const grfx::QueryPoolCreateInfo* pCreateInfo, grfx::QueryPool** ppQueryPool)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppQueryPool);
+    Result gxres = CreateObject(pCreateInfo, mQueryPools, ppQueryPool);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyQueryPool(const grfx::QueryPool* pQueryPool)
+{
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+    DestroyObject(mQueryPools, pQueryPool);
+}
+
 Result Device::CreateRenderPass(const grfx::RenderPassCreateInfo* pCreateInfo, grfx::RenderPass** ppRenderPass)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);

@@ -107,6 +107,7 @@ using VkInstancePtr            = VkHandlePtr<VkInstance>;
 using VkPhysicalDevicePtr      = VkHandlePtr<VkPhysicalDevice>;
 using VkPipelinePtr            = VkHandlePtr<VkPipeline>;
 using VkPipelineLayoutPtr      = VkHandlePtr<VkPipelineLayout>;
+using VkQueryPoolPtr           = VkHandlePtr<VkQueryPool>;
 using VkQueuePtr               = VkHandlePtr<VkQueue>;
 using VkRenderPassPtr          = VkHandlePtr<VkRenderPass>;
 using VkSamplerPtr             = VkHandlePtr<VkSampler>;
@@ -136,6 +137,7 @@ class Image;
 class Instance;
 class Pipeline;
 class PipelineInterface;
+class QueryPool;
 class Queue;
 class RenderPass;
 class RenderTargetView;
@@ -261,6 +263,13 @@ struct ApiObjectLookUp<grfx::Gpu>
 {
     using GrfxType = grfx::Gpu;
     using ApiType  = vk::Gpu;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::QueryPool>
+{
+    using GrfxType = grfx::QueryPool;
+    using ApiType  = vk::QueryPool;
 };
 
 template <>

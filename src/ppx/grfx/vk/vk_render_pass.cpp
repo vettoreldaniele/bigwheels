@@ -3,6 +3,8 @@
 #include "ppx/grfx/vk/vk_image.h"
 #include "ppx/grfx/vk/vk_util.h"
 
+#include "ppx/grfx/vk/vk_profiler_fn_wrapper.h"
+
 namespace ppx {
 namespace grfx {
 namespace vk {
@@ -109,7 +111,7 @@ Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* 
     vkci.dependencyCount        = 1;
     vkci.pDependencies          = &subpassDependencies;
 
-    VkResult vkres = vkCreateRenderPass(
+    VkResult vkres = vk::CreateRenderPass(
         ToApi(GetDevice())->GetVkDevice(),
         &vkci,
         nullptr,

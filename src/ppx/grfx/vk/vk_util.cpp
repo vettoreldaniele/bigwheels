@@ -616,6 +616,19 @@ VkPrimitiveTopology ToVkPrimitiveTopology(grfx::PrimitiveTopology value)
     return ppx::InvalidValue<VkPrimitiveTopology>();
 }
 
+VkQueryType ToVkQueryType(grfx::QueryType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::QUERY_TYPE_OCCLUSION           : return VK_QUERY_TYPE_OCCLUSION; break;
+        case grfx::QUERY_TYPE_TIMESTAMP           : return VK_QUERY_TYPE_TIMESTAMP; break;
+        case grfx::QUERY_TYPE_PIPELINE_STATISTICS : return VK_QUERY_TYPE_PIPELINE_STATISTICS; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<VkQueryType>();
+}
+
 VkSamplerAddressMode ToVkSamplerAddressMode(grfx::SamplerAddressMode value)
 {
     // clang-format off

@@ -7,6 +7,7 @@
 #include "ppx/grfx/vk/vk_instance.h"
 #include "ppx/grfx/vk/vk_pipeline.h"
 #include "ppx/grfx/vk/vk_queue.h"
+#include "ppx/grfx/vk/vk_query.h"
 #include "ppx/grfx/vk/vk_render_pass.h"
 #include "ppx/grfx/vk/vk_shader.h"
 #include "ppx/grfx/vk/vk_swapchain.h"
@@ -448,6 +449,16 @@ Result Device::AllocateObject(grfx::Queue** ppObject)
     return ppx::SUCCESS;
 }
 
+Result Device::AllocateObject(grfx::QueryPool** ppObject)
+{
+    vk::QueryPool* pObject = new vk::QueryPool();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
 Result Device::AllocateObject(grfx::RenderPass** ppObject)
 {
     vk::RenderPass* pObject = new vk::RenderPass();
@@ -536,6 +547,30 @@ Result Device::AllocateObject(grfx::Swapchain** ppObject)
 Result Device::WaitIdle()
 {
     VkResult vkres = vkDeviceWaitIdle(mDevice);
+    if (vkres != VK_SUCCESS) {
+        return ppx::ERROR_API_FAILURE;
+    }
+    return ppx::SUCCESS;
+}
+
+Result Device::ResolveQueryData(
+    const grfx::QueryPool* pQueryPool,
+    uint32_t               firstQuery,
+    uint32_t               queryCount,
+    uint64_t               dstDataSize,
+    void*                  pDstData)
+{
+    VkQueryResultFlags flags = VK_QUERY_RESULT_64_BIT;
+
+    VkResult vkres = vkGetQueryPoolResults(
+        mDevice,
+        ToApi(pQueryPool)->GetVkQueryPool(),
+        firstQuery,
+        queryCount,
+        static_cast<size_t>(dstDataSize),
+        pDstData,
+        static_cast<VkDeviceSize>(sizeof(uint64_t)),
+        flags);
     if (vkres != VK_SUCCESS) {
         return ppx::ERROR_API_FAILURE;
     }

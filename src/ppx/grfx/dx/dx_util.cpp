@@ -118,7 +118,6 @@ D3D12_FILTER_TYPE ToD3D12FilterType(grfx::Filter value)
     return ppx::InvalidValue<D3D12_FILTER_TYPE>();
 }
 
-
 D3D12_FILTER_TYPE ToD3D12FilterType(grfx::SamplerMipmapMode value)
 {
     // clang-format off
@@ -198,6 +197,32 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE ToD3D12PrimitiveTopology(grfx::PrimitiveTopology v
     }
     // clang-format on
     return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+}
+
+D3D12_QUERY_TYPE ToD3D12QueryType(grfx::QueryType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::QUERY_TYPE_OCCLUSION           : return D3D12_QUERY_TYPE_OCCLUSION; break;
+        case grfx::QUERY_TYPE_TIMESTAMP           : return D3D12_QUERY_TYPE_TIMESTAMP; break;
+        case grfx::QUERY_TYPE_PIPELINE_STATISTICS : return D3D12_QUERY_TYPE_PIPELINE_STATISTICS; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_QUERY_TYPE>();
+}
+
+D3D12_QUERY_HEAP_TYPE ToD3D12QueryHeapType(grfx::QueryType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::QUERY_TYPE_OCCLUSION           : return D3D12_QUERY_HEAP_TYPE_OCCLUSION; break;
+        case grfx::QUERY_TYPE_TIMESTAMP           : return D3D12_QUERY_HEAP_TYPE_TIMESTAMP; break;
+        case grfx::QUERY_TYPE_PIPELINE_STATISTICS : return D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D12_QUERY_HEAP_TYPE>();
 }
 
 D3D12_DESCRIPTOR_RANGE_TYPE ToD3D12RangeType(grfx::DescriptorType value)

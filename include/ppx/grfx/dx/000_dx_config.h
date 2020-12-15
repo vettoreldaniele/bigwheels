@@ -37,6 +37,7 @@ using D3D12DevicePtr              = ComPtr<ID3D12Device5>;
 using D3D12FencePtr               = ComPtr<ID3D12Fence1>;
 using D3D12GraphicsCommandListPtr = ComPtr<ID3D12GraphicsCommandList4>;
 using D3D12PipelineStatePtr       = ComPtr<ID3D12PipelineState>;
+using D3D12QueryHeapPtr           = ComPtr<ID3D12QueryHeap>;
 using D3D12ResourcePtr            = ComPtr<ID3D12Resource1>;
 using D3D12RootSignaturePtr       = ComPtr<ID3D12RootSignature>;
 
@@ -59,6 +60,7 @@ class Instance;
 class Pipeline;
 class PipelineInterface;
 class Queue;
+class QueryPool;
 class RenderPass;
 class RenderTargetView;
 class Sampler;
@@ -177,6 +179,13 @@ struct ApiObjectLookUp<grfx::Queue>
 {
     using GrfxType = grfx::Queue;
     using ApiType  = dx::Queue;
+};
+
+template <>
+struct ApiObjectLookUp<grfx::QueryPool>
+{
+    using GrfxType = grfx::QueryPool;
+    using ApiType  = dx::QueryPool;
 };
 
 template <>

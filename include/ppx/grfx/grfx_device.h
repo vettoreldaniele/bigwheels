@@ -11,6 +11,7 @@
 #include "ppx/grfx/grfx_model.h"
 #include "ppx/grfx/grfx_pipeline.h"
 #include "ppx/grfx/grfx_queue.h"
+#include "ppx/grfx/grfx_query.h"
 #include "ppx/grfx/grfx_render_pass.h"
 #include "ppx/grfx/grfx_shader.h"
 #include "ppx/grfx/grfx_swapchain.h"
@@ -95,6 +96,9 @@ public:
     Result CreatePipelineInterface(const grfx::PipelineInterfaceCreateInfo* pCreateInfo, grfx::PipelineInterface** ppPipelineInterface);
     void   DestroyPipelineInterface(const grfx::PipelineInterface* pPipelineInterface);
 
+    Result CreateQueryPool(const grfx::QueryPoolCreateInfo* pCreateInfo, grfx::QueryPool** ppQueryPool);
+    void   DestroyQueryPool(const grfx::QueryPool* pQueryPool);
+
     Result CreateRenderPass(const grfx::RenderPassCreateInfo* pCreateInfo, grfx::RenderPass** ppRenderPass);
     Result CreateRenderPass(const grfx::RenderPassCreateInfo2* pCreateInfo, grfx::RenderPass** ppRenderPass);
     Result CreateRenderPass(const grfx::RenderPassCreateInfo3* pCreateInfo, grfx::RenderPass** ppRenderPass);
@@ -153,6 +157,13 @@ public:
 
     virtual Result WaitIdle() = 0;
 
+    virtual Result ResolveQueryData(
+        const grfx::QueryPool* pQueryPool,
+        uint32_t               firstQuery,
+        uint32_t               queryCount,
+        uint64_t               dstDataSize,
+        void*                  pDstData) = 0;
+
 protected:
     virtual Result Create(const grfx::DeviceCreateInfo* pCreateInfo) override;
     virtual void   Destroy() override;
@@ -171,6 +182,7 @@ protected:
     virtual Result AllocateObject(grfx::Image** ppObject)               = 0;
     virtual Result AllocateObject(grfx::PipelineInterface** ppObject)   = 0;
     virtual Result AllocateObject(grfx::Queue** ppObject)               = 0;
+    virtual Result AllocateObject(grfx::QueryPool** ppObject)           = 0;
     virtual Result AllocateObject(grfx::RenderPass** ppObject)          = 0;
     virtual Result AllocateObject(grfx::RenderTargetView** ppObject)    = 0;
     virtual Result AllocateObject(grfx::SampledImageView** ppObject)    = 0;
@@ -221,6 +233,7 @@ protected:
     std::vector<grfx::ImagePtr>               mImages;
     std::vector<grfx::ModelPtr>               mModels;
     std::vector<grfx::PipelineInterfacePtr>   mPipelineInterfaces;
+    std::vector<grfx::QueryPoolPtr>           mQueryPools;
     std::vector<grfx::RenderPassPtr>          mRenderPasses;
     std::vector<grfx::RenderTargetViewPtr>    mRenderTargetViews;
     std::vector<grfx::SampledImageViewPtr>    mSampledImageViews;

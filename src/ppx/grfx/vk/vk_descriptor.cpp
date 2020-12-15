@@ -92,7 +92,7 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
     vkai.descriptorSetCount          = 1;
     vkai.pSetLayouts                 = &layout;
 
-    VkResult vkres = vkAllocateDescriptorSets(
+    VkResult vkres = vk::AllocateDescriptorSets(
         ToApi(GetDevice())->GetVkDevice(),
         &vkai,
         &mDescriptorSet);
@@ -114,7 +114,7 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
 void DescriptorSet::DestroyApiObjects()
 {
     if (mDescriptorSet) {
-        vkFreeDescriptorSets(
+        vk::FreeDescriptorSets(
             ToApi(GetDevice())->GetVkDevice(),
             mDescriptorPool,
             1,

@@ -23,6 +23,8 @@ D3D12_HEAP_TYPE                ToD3D12HeapType(grfx::MemoryUsage value);
 DXGI_FORMAT                    ToD3D12IndexFormat(grfx::IndexType value);
 D3D12_LOGIC_OP                 ToD3D12LogicOp(grfx::LogicOp value);
 D3D12_PRIMITIVE_TOPOLOGY_TYPE  ToD3D12PrimitiveTopology(grfx::PrimitiveTopology value);
+D3D12_QUERY_TYPE               ToD3D12QueryType(grfx::QueryType value);
+D3D12_QUERY_HEAP_TYPE          ToD3D12QueryHeapType(grfx::QueryType value);
 D3D12_DESCRIPTOR_RANGE_TYPE    ToD3D12RangeType(grfx::DescriptorType value);
 D3D12_RESOURCE_STATES          ToD3D12ResourceStates(grfx::ResourceState value);
 D3D12_RTV_DIMENSION            ToD3D12RTVDimension(grfx::ImageViewType value);
