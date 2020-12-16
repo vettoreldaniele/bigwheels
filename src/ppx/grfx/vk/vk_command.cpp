@@ -524,6 +524,36 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
+void CommandBuffer::BeginQuery(
+    const grfx::QueryPool* pQueryPool,
+    uint32_t               queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+
+    VkQueryControlFlags flags = 0;
+    if (pQueryPool->GetType() == grfx::QUERY_TYPE_OCCLUSION) {
+        flags = VK_QUERY_CONTROL_PRECISE_BIT;
+    }
+
+    vkCmdBeginQuery(
+        mCommandBuffer,
+        ToApi(pQueryPool)->GetVkQueryPool(),
+        queryIndex,
+        flags);
+}
+
+void CommandBuffer::EndQuery(
+    const grfx::QueryPool* pQueryPool,
+    uint32_t               queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+
+    vkCmdEndQuery(
+        mCommandBuffer,
+        ToApi(pQueryPool)->GetVkQueryPool(),
+        queryIndex);
+}
+
 void CommandBuffer::WriteTimestamp(
     grfx::PipelineStage    pipelineStage,
     const grfx::QueryPool* pQueryPool,

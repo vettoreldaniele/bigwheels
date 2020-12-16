@@ -294,11 +294,17 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampledImage(1, 0, m1x1BlackTexture));
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampler(2, 0, mClampedSampler));
 
-        // Query pool
+        // Timestamp query pool
         grfx::QueryPoolCreateInfo queryPoolCreateInfo = {};
         queryPoolCreateInfo.type                      = grfx::QUERY_TYPE_TIMESTAMP;
         queryPoolCreateInfo.count                     = 2;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.queryPool));
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.timestampQuery));
+
+        // Pipeline statistics query pool
+        queryPoolCreateInfo       = {};
+        queryPoolCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
+        queryPoolCreateInfo.count = 1;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.pipelineStatsQuery));
     }
 }
 
@@ -474,17 +480,19 @@ void FishTornadoApp::Render()
     // Read query results
     if (GetFrameCount() > 1) {
         uint64_t data[2] = {0};
-        GetDevice()->ResolveQueryData(prevFrame.queryPool, 0, 2, 2 * sizeof(uint64_t), data);
+        PPX_CHECKED_CALL(ppxres = GetDevice()->ResolveQueryData(prevFrame.timestampQuery, 0, 2, 2 * sizeof(uint64_t), data));
         mTotalGpuFrameTime = (data[1] - data[0]);
+
+        PPX_CHECKED_CALL(ppxres = GetDevice()->ResolveQueryData(prevFrame.pipelineStatsQuery, 0, 1, sizeof(grfx::PipelineStatistics), &mPipelineStatistics));
     }
     // Reset query
-    frame.queryPool->Reset(0, 2);
+    frame.timestampQuery->Reset(0, 2);
 
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
         // Write start timestamp
-        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 0);
+        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.timestampQuery, 0);
 
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
         mFlocking.CopyConstantsToGpu(frameIndex, frame.cmd);
@@ -540,9 +548,13 @@ void FishTornadoApp::Render()
         {
             frame.cmd->SetScissors(renderPass->GetScissor());
             frame.cmd->SetViewports(renderPass->GetViewport());
-
+           
             mShark.DrawForward(frameIndex, frame.cmd);
+
+            frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
             mFlocking.DrawForward(frameIndex, frame.cmd);
+            frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
+
             mOcean.DrawForward(frameIndex, frame.cmd);
 
             //frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 0, nullptr);
@@ -552,14 +564,16 @@ void FishTornadoApp::Render()
 
             // Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });
-            DrawProfiler();
+#if defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
+            DrawProfilerGrfxApiFunctions();
+#endif // defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
             DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
 
         // Write end timestamp
-        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 1);
+        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.timestampQuery, 1);
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
@@ -592,6 +606,38 @@ void FishTornadoApp::DrawGui()
         ImGui::Text("Previous GPU Frame Time");
         ImGui::NextColumn();
         ImGui::Text("%f ms ", static_cast<float>(mTotalGpuFrameTime / static_cast<double>(frequency)) * 1000.0f);
+        ImGui::NextColumn();
+
+        ImGui::Separator();
+
+        ImGui::Text("Fish IAVertices");
+        ImGui::NextColumn();
+        ImGui::Text("%lu", mPipelineStatistics.IAVertices);
+        ImGui::NextColumn();
+
+        ImGui::Text("Fish IAPrimitives");
+        ImGui::NextColumn();
+        ImGui::Text("%lu", mPipelineStatistics.IAPrimitives);
+        ImGui::NextColumn();
+
+        ImGui::Text("Fish VSInvocations");
+        ImGui::NextColumn();
+        ImGui::Text("%lu", mPipelineStatistics.VSInvocations);
+        ImGui::NextColumn();
+
+        ImGui::Text("Fish CInvocations");
+        ImGui::NextColumn();
+        ImGui::Text("%lu", mPipelineStatistics.CInvocations);
+        ImGui::NextColumn();
+
+        ImGui::Text("Fish CPrimitives");
+        ImGui::NextColumn();
+        ImGui::Text("%lu", mPipelineStatistics.CPrimitives);
+        ImGui::NextColumn();
+
+        ImGui::Text("Fish PSInvocations");
+        ImGui::NextColumn();
+        ImGui::Text("%lu", mPipelineStatistics.PSInvocations);
         ImGui::NextColumn();
 
         ImGui::Columns(1);

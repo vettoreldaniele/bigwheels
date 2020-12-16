@@ -1,6 +1,6 @@
 #include "ppx/application.h"
 #include "ppx/profiler.h"
-#include "examples/imgui_impl_glfw.h"
+#include "backends/imgui_impl_glfw.h"
 
 #include <map>
 #include <unordered_map>
@@ -1375,7 +1375,7 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
     ImGui::End();
 }
 
-void Application::DrawProfiler()
+void Application::DrawProfilerGrfxApiFunctions()
 {
     if (!mImGui) {
         return;
@@ -1387,51 +1387,57 @@ void Application::DrawProfiler()
     }
 
     if (ImGui::Begin("Profiler: Graphics API Functions")) {
-        ImGui::Columns(6);
+        static std::vector<bool> selected;
 
-        ImGui::Text("Function");
-        ImGui::NextColumn();
-        ImGui::Text("Count");
-        ImGui::NextColumn();
-        ImGui::Text("Average");
-        ImGui::NextColumn();
-        ImGui::Text("Min");
-        ImGui::NextColumn();
-        ImGui::Text("Max");
-        ImGui::NextColumn();
-        ImGui::Text("Total");
-        ImGui::NextColumn();
+        if (ImGui::BeginTable("#profiler_grfx_api_functions", 6, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg)) {
+            ImGui::TableSetupColumn("Function");
+            ImGui::TableSetupColumn("Call Count");
+            ImGui::TableSetupColumn("Average");
+            ImGui::TableSetupColumn("Min");
+            ImGui::TableSetupColumn("Max");
+            ImGui::TableSetupColumn("Total");
+            ImGui::TableHeadersRow();
 
-        const std::vector<ProfilerEvent>& events = pProfiler->GetEvents();
-        for (auto& event : events) {
-            uint64_t count    = event.GetSampleCount();
-            float    average  = 0;
-            float    minValue = 0;
-            float    maxValue = 0;
-            float    total    = 0;
-
-            if (count > 0) {
-                average  = static_cast<float>(Timer::TimestampToMillis(event.GetSampleTotal())) / static_cast<float>(count);
-                minValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMin()));
-                maxValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMax()));
-                total    = static_cast<float>(Timer::TimestampToMillis(event.GetSampleTotal()));
+            const std::vector<ProfilerEvent>& events = pProfiler->GetEvents();
+            if (selected.empty()) {
+                selected.resize(events.size());
+                std::fill(std::begin(selected), std::end(selected), false);
             }
 
-            ImGui::Text("%s", event.GetName().c_str());
-            ImGui::NextColumn();
-            ImGui::Text("%lu", count);
-            ImGui::NextColumn();
-            ImGui::Text("%f ms", average);
-            ImGui::NextColumn();
-            ImGui::Text("%f ms", minValue);
-            ImGui::NextColumn();
-            ImGui::Text("%f ms", maxValue);
-            ImGui::NextColumn();
-            ImGui::Text("%f ms", total);
-            ImGui::NextColumn();
-        }
+            uint32_t i = 0;
+            for (auto& event : events) {
+                uint64_t count    = event.GetSampleCount();
+                float    average  = 0;
+                float    minValue = 0;
+                float    maxValue = 0;
+                float    total    = 0;
 
-        ImGui::Columns(1);
+                if (count > 0) {
+                    average  = static_cast<float>(Timer::TimestampToMillis(event.GetSampleTotal())) / static_cast<float>(count);
+                    minValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMin()));
+                    maxValue = static_cast<float>(Timer::TimestampToMillis(event.GetSampleMax()));
+                    total    = static_cast<float>(Timer::TimestampToMillis(event.GetSampleTotal()));
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", event.GetName().c_str());
+                ImGui::TableNextColumn();
+                ImGui::Text("%lu", count);
+                ImGui::TableNextColumn();
+                ImGui::Text("%f ms", average);
+                ImGui::TableNextColumn();
+                ImGui::Text("%f ms", minValue);
+                ImGui::TableNextColumn();
+                ImGui::Text("%f ms", maxValue);
+                ImGui::TableNextColumn();
+                ImGui::Text("%f ms", total);
+
+                ++i;
+            }
+
+            ImGui::EndTable();
+        }
     }
     ImGui::End();
 }

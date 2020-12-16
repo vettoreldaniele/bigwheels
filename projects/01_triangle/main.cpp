@@ -181,7 +181,9 @@ void ProjApp::Render()
 
             // Draw ImGui
             DrawDebugInfo();
-            DrawProfiler();
+#if defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
+            DrawProfilerGrfxApiFunctions();
+#endif // defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
             DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();

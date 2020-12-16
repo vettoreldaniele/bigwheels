@@ -84,7 +84,8 @@ private:
         grfx::DrawPassPtr      shadowDrawPass;
         grfx::DescriptorSetPtr sceneSet;
         grfx::DescriptorSetPtr sceneShadowSet; // See note in SetupSetLayouts()
-        grfx::QueryPoolPtr     queryPool;
+        grfx::QueryPoolPtr     timestampQuery;
+        grfx::QueryPoolPtr     pipelineStatsQuery;
     };
 
     grfx::DescriptorPoolPtr      mDescriptorPool;
@@ -106,8 +107,9 @@ private:
     Flocking                     mFlocking;
     Ocean                        mOcean;
     Shark                        mShark;
-    bool                         mUsePCF            = true;
-    uint64_t                     mTotalGpuFrameTime = 0;
+    bool                         mUsePCF             = true;
+    uint64_t                     mTotalGpuFrameTime  = 0;
+    grfx::PipelineStatistics     mPipelineStatistics = {};
 };
 
 #endif // FISHTORNADO_H

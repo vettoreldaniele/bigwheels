@@ -635,11 +635,37 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
+void CommandBuffer::BeginQuery(
+    const grfx::QueryPool* pQueryPool,
+    uint32_t               queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+
+    mCommandList->BeginQuery(
+        ToApi(pQueryPool)->GetDxQueryHeap(),
+        ToD3D12QueryType(pQueryPool->GetType()),
+        static_cast<UINT>(queryIndex));
+}
+
+void CommandBuffer::EndQuery(
+    const grfx::QueryPool* pQueryPool,
+    uint32_t               queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+
+    mCommandList->EndQuery(
+        ToApi(pQueryPool)->GetDxQueryHeap(),
+        ToD3D12QueryType(pQueryPool->GetType()),
+        static_cast<UINT>(queryIndex));
+}
+
 void CommandBuffer::WriteTimestamp(
     grfx::PipelineStage    pipelineStage,
     const grfx::QueryPool* pQueryPool,
     uint32_t               queryIndex)
 {
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+
     if (pipelineStage == grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT) {
         mCommandList->BeginQuery(
             ToApi(pQueryPool)->GetDxQueryHeap(),

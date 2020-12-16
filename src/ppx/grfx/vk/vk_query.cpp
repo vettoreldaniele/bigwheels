@@ -15,6 +15,7 @@ Result QueryPool::CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo)
     vkci.pipelineStatistics    = 0;
 
     if (vkci.queryType == VK_QUERY_TYPE_PIPELINE_STATISTICS) {
+        vkci.queryCount         = 11 * pCreateInfo->count;
         vkci.pipelineStatistics = VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT |
                                   VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT |
                                   VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT |
@@ -51,13 +52,9 @@ void QueryPool::DestroyApiObjects()
 void QueryPool::Reset(uint32_t firstQuery, uint32_t queryCount)
 {
     if (GetDevice()->GetInstance()->GetApi() == grfx::API_VK_1_1) {
-        ToApi(GetDevice())->ResetQueryPoolEXT(
-            mQueryPool,
-            firstQuery,
-            queryCount);    
+        ToApi(GetDevice())->ResetQueryPoolEXT(mQueryPool, firstQuery, queryCount);
     }
-    else 
-    {
+    else {
         // Assumes Vulkan 1.2
         vkResetQueryPool(
             ToApi(GetDevice())->GetVkDevice(),

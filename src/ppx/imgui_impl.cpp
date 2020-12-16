@@ -3,8 +3,8 @@
 
 #include "ppx/application.h"
 
-#include "examples/imgui_impl_glfw.h"
-#include "examples/imgui_impl_vulkan.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
 
 #include "ppx/grfx/vk/vk_command.h"
 #include "ppx/grfx/vk/vk_descriptor.h"
@@ -15,7 +15,7 @@
 #include "ppx/grfx/vk/vk_render_pass.h"
 
 #if defined(PPX_D3D12)
-#include "examples/imgui_impl_dx12.h"
+#include "backends/imgui_impl_dx12.h"
 
 #include "ppx/grfx/dx/dx_command.h"
 #include "ppx/grfx/dx/dx_device.h"

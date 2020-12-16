@@ -83,15 +83,16 @@ set(IMGUI_DIR  ${PPX_DIR}/third_party/imgui)
 
 list(APPEND IMGUI_HEADER_FILES
     ${IMGUI_DIR}/imgui.h
-    ${IMGUI_DIR}/examples/imgui_impl_glfw.h
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.h
 )
 
 list(APPEND IMGUI_SOURCE_FILES
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
     ${IMGUI_DIR}/imgui_widgets.cpp
-    ${IMGUI_DIR}/examples/imgui_impl_glfw.cpp
-    ${IMGUI_DIR}/examples/imgui_impl_vulkan.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
 )
 
 list(APPEND XXHASH_FILES
@@ -101,7 +102,7 @@ list(APPEND XXHASH_FILES
 
 if (PPX_D3D12)
     list(APPEND IMGUI_SOURCE_FILES
-        ${IMGUI_DIR}/examples/imgui_impl_dx12.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_dx12.cpp
     )
 endif()
 
