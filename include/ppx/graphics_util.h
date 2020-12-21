@@ -296,11 +296,11 @@ struct CubeMapCreateInfo
 //!
 //!
 Result CreateCubeMapFromFile(
-    grfx::Queue*                  pQueue,
-    const fs::path&               path,
-    const CubeMapCreateInfo* pCreateInfo,
-    grfx::Image**                 ppImage,
-    const grfx::ImageUsageFlags&  additionalImageUsage = grfx::ImageUsageFlags());
+    grfx::Queue*                 pQueue,
+    const fs::path&              path,
+    const CubeMapCreateInfo*     pCreateInfo,
+    grfx::Image**                ppImage,
+    const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
 
 // -------------------------------------------------------------------------------------------------
 
@@ -312,21 +312,29 @@ Result CreateModelFromGeometry(
     const Geometry* pGeometry,
     grfx::Model**   ppModel);
 
-//! @fn CreateModelFromMesh
+//! @fn CreateModelFromTriMesh
 //!
 //!
-Result CreateModelFromMesh(
+Result CreateModelFromTriMesh(
     grfx::Queue*   pQueue,
     const TriMesh* pMesh,
     grfx::Model**  ppModel);
+
+//! @fn CreateModelFromWireMesh
+//!
+//!
+Result CreateModelFromWireMesh(
+    grfx::Queue*    pQueue,
+    const WireMesh* pMesh,
+    grfx::Model**   ppModel);
 
 //! @fn CreateModelFromFile
 //!
 //!
 Result CreateModelFromFile(
-    grfx::Queue*            pQueue,
-    const fs::path&         path,
-    grfx::Model**           ppModel,
+    grfx::Queue*          pQueue,
+    const fs::path&       path,
+    grfx::Model**         ppModel,
     const TriMeshOptions& options = TriMeshOptions());
 
 // -------------------------------------------------------------------------------------------------

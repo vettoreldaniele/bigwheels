@@ -157,6 +157,7 @@ add_subdirectory(13_normal_map)
 add_subdirectory(14_input)
 add_subdirectory(15_basic_material)
 add_subdirectory(16_gbuffer)
+add_subdirectory(17_primitives)
 add_subdirectory(fishtornado)
 add_subdirectory(shadertoy)
 

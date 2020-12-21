@@ -1,7 +1,8 @@
 #ifndef ppx_geometry_h
 #define ppx_geometry_h
 
-#include "ppx/mesh.h"
+#include "ppx/tri_mesh.h"
+#include "ppx/wire_mesh.h"
 #include "ppx/grfx/000_grfx_config.h"
 
 namespace ppx {
@@ -45,6 +46,10 @@ struct GeometryOptions
     //
     static GeometryOptions Interleaved();
     static GeometryOptions Planar();
+
+    GeometryOptions& IndexType(grfx::IndexType indexType);
+    GeometryOptions& IndexTypeU16();
+    GeometryOptions& IndexTypeU32();
 
     // NOTE: Vertex input locations (Vulkan) are based on the order of
     //       when the attribute is added.
@@ -158,11 +163,18 @@ public:
     // Create object using parameters from createInfo using data from mesh
     static Result Create(
         const GeometryOptions& createInfo,
-        const TriMesh&            mesh,
-        Geometry*                 pGeometry);
+        const TriMesh&         mesh,
+        Geometry*              pGeometry);
+
+    // Create object using parameters from createInfo using data from tri mesh
+    static Result Create(
+        const GeometryOptions& createInfo,
+        const WireMesh&        mesh,
+        Geometry*              pGeometry);
 
     // Create object with a create info derived from mesh
     static Result Create(const TriMesh& mesh, Geometry* pGeomtry);
+    static Result Create(const WireMesh& mesh, Geometry* pGeomtry);
 
     grfx::IndexType            GetIndexType() const { return mCreateInfo.indexType; }
     const Geometry::Buffer*    GetIndexBuffer() const { return &mIndexBuffer; }
@@ -171,21 +183,24 @@ public:
     const grfx::VertexBinding* GetVertexBinding(uint32_t index) const;
     uint32_t                   GetBiggestBufferSize() const;
 
-    // Appends triangle vertex indices to index buffer
+    // Appends triangle or edge vertex indices to index buffer
     //
     // Will cast to uint16_t if geometry index type is UINT16.
     // NOOP if index type is UNDEFINED (geometry does not have index data).
     //
     void AppendIndicesTriangle(uint32_t vtx0, uint32_t vtx1, uint32_t vtx2);
+    void AppendIndicesEdge(uint32_t vtx0, uint32_t vtx1);
 
     // Append multiple attributes at once
     //
-    uint32_t AppendVertexData(const VertexData& vtx);
+    uint32_t AppendVertexData(const TriMeshVertexData& vtx);
+    uint32_t AppendVertexData(const WireMeshVertexData& vtx);
 
-    // Appends triangle vertex data and indices (if present)
+    // Appends triangle or edge vertex data and indices (if present)
     //
     //
-    void AppendTriangle(const VertexData& vtx0, const VertexData& vtx1, const VertexData& vtx2);
+    void AppendTriangle(const TriMeshVertexData& vtx0, const TriMeshVertexData& vtx1, const TriMeshVertexData& vtx2);
+    void AppendEdge(const WireMeshVertexData& vtx0, const WireMeshVertexData& vtx1);
 
     // Append individual attributes
     //
@@ -203,10 +218,11 @@ public:
     void     AppendBitangent(const float3& value);
 
 private:
-    uint32_t AppendVertexInterleaved(const VertexData& vtx);
+    uint32_t AppendVertexInterleaved(const TriMeshVertexData& vtx);
+    uint32_t AppendVertexInterleaved(const WireMeshVertexData& vtx);
 
 private:
-    GeometryOptions            mCreateInfo = {};
+    GeometryOptions               mCreateInfo = {};
     Geometry::Buffer              mIndexBuffer;
     std::vector<Geometry::Buffer> mVertexBuffers;
     uint32_t                      mPositionBufferIndex  = PPX_VALUE_IGNORED;

@@ -1,8 +1,5 @@
 #include "ppx/geometry.h"
 
-//#define TINYOBJLOADER_IMPLEMENTATION
-//#include "tiny_obj_loader.h"
-
 #define NOT_INTERLEAVED_MSG "cannot append interleaved data if attribute layout is not interleaved"
 #define NOT_PLANAR_MSG      "cannot append planar data if attribute layout is not planar"
 
@@ -13,7 +10,7 @@ namespace ppx {
 // -------------------------------------------------------------------------------------------------
 GeometryOptions GeometryOptions::InterleavedU16()
 {
-    GeometryOptions ci = {};
+    GeometryOptions ci    = {};
     ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
     ci.indexType          = grfx::INDEX_TYPE_UINT16;
     ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
@@ -23,7 +20,7 @@ GeometryOptions GeometryOptions::InterleavedU16()
 
 GeometryOptions GeometryOptions::InterleavedU32()
 {
-    GeometryOptions ci = {};
+    GeometryOptions ci    = {};
     ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
     ci.indexType          = grfx::INDEX_TYPE_UINT32;
     ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
@@ -34,8 +31,8 @@ GeometryOptions GeometryOptions::InterleavedU32()
 GeometryOptions GeometryOptions::PlanarU16()
 {
     GeometryOptions ci = {};
-    ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    ci.indexType          = grfx::INDEX_TYPE_UINT16;
+    ci.attributeLayout = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
+    ci.indexType       = grfx::INDEX_TYPE_UINT16;
     ci.AddPosition();
     return ci;
 }
@@ -43,15 +40,15 @@ GeometryOptions GeometryOptions::PlanarU16()
 GeometryOptions GeometryOptions::PlanarU32()
 {
     GeometryOptions ci = {};
-    ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    ci.indexType          = grfx::INDEX_TYPE_UINT32;
+    ci.attributeLayout = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
+    ci.indexType       = grfx::INDEX_TYPE_UINT32;
     ci.AddPosition();
     return ci;
 }
 
 GeometryOptions GeometryOptions::Interleaved()
 {
-    GeometryOptions ci = {};
+    GeometryOptions ci    = {};
     ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
     ci.indexType          = grfx::INDEX_TYPE_UNDEFINED;
     ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
@@ -62,10 +59,26 @@ GeometryOptions GeometryOptions::Interleaved()
 GeometryOptions GeometryOptions::Planar()
 {
     GeometryOptions ci = {};
-    ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    ci.indexType          = grfx::INDEX_TYPE_UNDEFINED;
+    ci.attributeLayout = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
+    ci.indexType       = grfx::INDEX_TYPE_UNDEFINED;
     ci.AddPosition();
     return ci;
+}
+
+GeometryOptions& GeometryOptions::IndexType(grfx::IndexType indexType)
+{
+    indexType = indexType;
+    return *this;
+}
+
+GeometryOptions& GeometryOptions::IndexTypeU16()
+{
+    return IndexType(grfx::INDEX_TYPE_UINT16);
+}
+
+GeometryOptions& GeometryOptions::IndexTypeU32()
+{
+    return IndexType(grfx::INDEX_TYPE_UINT32);
 }
 
 GeometryOptions& GeometryOptions::AddAttribute(grfx::VertexSemantic semantic, grfx::Format format)
@@ -275,8 +288,8 @@ Result Geometry::Create(const GeometryOptions& createInfo, Geometry* pGeometry)
 
 Result Geometry::Create(
     const GeometryOptions& createInfo,
-    const TriMesh&            mesh,
-    Geometry*                 pGeometry)
+    const TriMesh&         mesh,
+    Geometry*              pGeometry)
 {
     // Create geometry
     Result ppxres = Geometry::Create(createInfo, pGeometry);
@@ -304,22 +317,22 @@ Result Geometry::Create(
                 }
 
                 // First vertex
-                VertexData vertexData0 = {};
-                ppxres                 = mesh.GetVertexData(vtxIndex0, &vertexData0);
+                TriMeshVertexData vertexData0 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex0, &vertexData0);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex0=" << vtxIndex0);
                     return ppxres;
                 }
                 // Second vertex
-                VertexData vertexData1 = {};
-                ppxres                 = mesh.GetVertexData(vtxIndex1, &vertexData1);
+                TriMeshVertexData vertexData1 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex1, &vertexData1);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex1=" << vtxIndex1);
                     return ppxres;
                 }
                 // Third vertex
-                VertexData vertexData2 = {};
-                ppxres                 = mesh.GetVertexData(vtxIndex2, &vertexData2);
+                TriMeshVertexData vertexData2 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex2, &vertexData2);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex2=" << vtxIndex2);
                     return ppxres;
@@ -335,8 +348,8 @@ Result Geometry::Create(
             // Iterate through the meshes vertx data and add it to the geometry
             uint32_t vertexCount = mesh.GetCountPositions();
             for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
-                VertexData vertexData = {};
-                ppxres                = mesh.GetVertexData(vertexIndex, &vertexData);
+                TriMeshVertexData vertexData = {};
+                ppxres                       = mesh.GetVertexData(vertexIndex, &vertexData);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vertexIndex=" << vertexIndex);
                     return ppxres;
@@ -368,8 +381,8 @@ Result Geometry::Create(
             // Iterate through the meshes vertx data and add it to the geometry
             uint32_t vertexCount = mesh.GetCountPositions();
             for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
-                VertexData vertexData = {};
-                ppxres                = mesh.GetVertexData(vertexIndex, &vertexData);
+                TriMeshVertexData vertexData = {};
+                ppxres                       = mesh.GetVertexData(vertexIndex, &vertexData);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vertexIndex=" << vertexIndex);
                     return ppxres;
@@ -387,22 +400,22 @@ Result Geometry::Create(
                 uint32_t vtxIndex2 = 3 * triIndex + 2;
 
                 // First vertex
-                VertexData vertexData0 = {};
-                ppxres                 = mesh.GetVertexData(vtxIndex0, &vertexData0);
+                TriMeshVertexData vertexData0 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex0, &vertexData0);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex0=" << vtxIndex0);
                     return ppxres;
                 }
                 // Second vertex
-                VertexData vertexData1 = {};
-                ppxres                 = mesh.GetVertexData(vtxIndex1, &vertexData1);
+                TriMeshVertexData vertexData1 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex1, &vertexData1);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex1=" << vtxIndex1);
                     return ppxres;
                 }
                 // Third vertex
-                VertexData vertexData2 = {};
-                ppxres                 = mesh.GetVertexData(vtxIndex2, &vertexData2);
+                TriMeshVertexData vertexData2 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex2, &vertexData2);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex2=" << vtxIndex2);
                     return ppxres;
@@ -417,12 +430,138 @@ Result Geometry::Create(
     return ppx::SUCCESS;
 }
 
+Result Geometry::Create(
+    const GeometryOptions& createInfo,
+    const WireMesh&        mesh,
+    Geometry*              pGeometry)
+{
+    // Create geometry
+    Result ppxres = Geometry::Create(createInfo, pGeometry);
+    if (Failed(ppxres)) {
+        PPX_ASSERT_MSG(false, "failed creating geometry");
+        return ppxres;
+    }
+
+    //
+    // Target geometry WITHOUT index data
+    //
+    if (createInfo.indexType == grfx::INDEX_TYPE_UNDEFINED) {
+        // Mesh has index data
+        if (mesh.GetIndexType() != grfx::INDEX_TYPE_UNDEFINED) {
+            // Iterate through the meshes edges and add vertex data for each edge vertex
+            uint32_t edgeCount = mesh.GetCountEdges();
+            for (uint32_t edgeIndex = 0; edgeIndex < edgeCount; ++edgeIndex) {
+                uint32_t vtxIndex0 = PPX_VALUE_IGNORED;
+                uint32_t vtxIndex1 = PPX_VALUE_IGNORED;
+                ppxres             = mesh.GetEdge(edgeIndex, vtxIndex0, vtxIndex1);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting triangle indices at edgeIndex=" << edgeIndex);
+                    return ppxres;
+                }
+            
+                // First vertex
+                WireMeshVertexData vertexData0 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex0, &vertexData0);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex0=" << vtxIndex0);
+                    return ppxres;
+                }
+                // Second vertex
+                WireMeshVertexData vertexData1 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex1, &vertexData1);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex1=" << vtxIndex1);
+                    return ppxres;
+                }
+            
+                pGeometry->AppendVertexData(vertexData0);
+                pGeometry->AppendVertexData(vertexData1);
+            }
+        }
+        // Mesh does not have index data
+        else {
+            // Iterate through the meshes vertx data and add it to the geometry
+            uint32_t vertexCount = mesh.GetCountPositions();
+            for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
+                WireMeshVertexData vertexData = {};
+                ppxres                       = mesh.GetVertexData(vertexIndex, &vertexData);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vertexIndex=" << vertexIndex);
+                    return ppxres;
+                }
+                pGeometry->AppendVertexData(vertexData);
+            }
+        }
+    }
+    //
+    // Target geometry WITH index data
+    //
+    else {
+        // Mesh has index data
+        if (mesh.GetIndexType() != grfx::INDEX_TYPE_UNDEFINED) {
+            // Iterate the meshes edges and add the vertex indices
+            uint32_t edgeCount = mesh.GetCountEdges();
+            for (uint32_t edgeIndex = 0; edgeIndex < edgeCount; ++edgeIndex) {
+                uint32_t v0     = PPX_VALUE_IGNORED;
+                uint32_t v1     = PPX_VALUE_IGNORED;
+                Result   ppxres = mesh.GetEdge(edgeIndex, v0, v1);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "couldn't get triangle at edgeIndex=" << edgeIndex);
+                    return ppxres;
+                }
+                pGeometry->AppendIndicesEdge(v0, v1);
+            }
+
+            // Iterate through the meshes vertex data and add it to the geometry
+            uint32_t vertexCount = mesh.GetCountPositions();
+            for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
+                WireMeshVertexData vertexData = {};
+                ppxres                       = mesh.GetVertexData(vertexIndex, &vertexData);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vertexIndex=" << vertexIndex);
+                    return ppxres;
+                }
+                pGeometry->AppendVertexData(vertexData);
+            }
+        }
+        // Mesh does not have index data
+        else {
+            // Use every 2 vertices as an edge and add each as an indexed edge
+            uint32_t edgeCount = mesh.GetCountPositions() / 2;
+            for (uint32_t edgeIndex = 0; edgeIndex < edgeCount; ++edgeIndex) {
+                uint32_t vtxIndex0 = 2 * edgeIndex + 0;
+                uint32_t vtxIndex1 = 2 * edgeIndex + 1;
+
+                // First vertex
+                WireMeshVertexData vertexData0 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex0, &vertexData0);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex0=" << vtxIndex0);
+                    return ppxres;
+                }
+                // Second vertex
+                WireMeshVertexData vertexData1 = {};
+                ppxres                        = mesh.GetVertexData(vtxIndex1, &vertexData1);
+                if (Failed(ppxres)) {
+                    PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex1=" << vtxIndex1);
+                    return ppxres;
+                }
+
+                // Will append indices if geometry has index buffer
+                pGeometry->AppendEdge(vertexData0, vertexData1);
+            }
+        }
+    }
+
+    return ppx::SUCCESS;
+}
+
 Result Geometry::Create(const TriMesh& mesh, Geometry* pGeomtry)
 {
     GeometryOptions createInfo = {};
-    createInfo.attributeLayout    = ppx::GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    createInfo.indexType          = mesh.GetIndexType();
-    createInfo.primtiveTopolgy    = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    createInfo.attributeLayout = ppx::GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
+    createInfo.indexType       = mesh.GetIndexType();
+    createInfo.primtiveTopolgy = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
     createInfo.AddPosition();
 
@@ -440,6 +579,27 @@ Result Geometry::Create(const TriMesh& mesh, Geometry* pGeomtry)
     }
     if (mesh.HasBitangents()) {
         createInfo.AddBitangent();
+    }
+
+    Result ppxres = Create(createInfo, mesh, pGeomtry);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result Geometry::Create(const WireMesh& mesh, Geometry* pGeomtry)
+{
+    GeometryOptions createInfo = {};
+    createInfo.attributeLayout = ppx::GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
+    createInfo.indexType       = mesh.GetIndexType();
+    createInfo.primtiveTopolgy = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+    createInfo.AddPosition();
+
+    if (mesh.HasColors()) {
+        createInfo.AddColor();
     }
 
     Result ppxres = Create(createInfo, mesh, pGeomtry);
@@ -491,7 +651,19 @@ void Geometry::AppendIndicesTriangle(uint32_t vtx0, uint32_t vtx1, uint32_t vtx2
     }
 }
 
-uint32_t Geometry::AppendVertexInterleaved(const VertexData& vtx)
+void Geometry::AppendIndicesEdge(uint32_t vtx0, uint32_t vtx1)
+{
+    if (mCreateInfo.indexType == grfx::INDEX_TYPE_UINT16) {
+        mIndexBuffer.Append(static_cast<uint16_t>(vtx0));
+        mIndexBuffer.Append(static_cast<uint16_t>(vtx1));
+    }
+    else if (mCreateInfo.indexType == grfx::INDEX_TYPE_UINT32) {
+        mIndexBuffer.Append(vtx0);
+        mIndexBuffer.Append(vtx1);
+    }
+}
+
+uint32_t Geometry::AppendVertexInterleaved(const TriMeshVertexData& vtx)
 {
     if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
         PPX_ASSERT_MSG(false, NOT_INTERLEAVED_MSG);
@@ -526,7 +698,38 @@ uint32_t Geometry::AppendVertexInterleaved(const VertexData& vtx)
     return n;
 }
 
-uint32_t Geometry::AppendVertexData(const VertexData& vtx)
+uint32_t Geometry::AppendVertexInterleaved(const WireMeshVertexData& vtx)
+{
+    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+        PPX_ASSERT_MSG(false, NOT_INTERLEAVED_MSG);
+        return PPX_VALUE_IGNORED;
+    }
+
+    uint32_t       startSize = mVertexBuffers[0].GetSize();
+    const uint32_t attrCount = mCreateInfo.vertexBindings[0].GetAttributeCount();
+    for (uint32_t attrIndex = 0; attrIndex < attrCount; ++attrIndex) {
+        const grfx::VertexAttribute* pAttribute = nullptr;
+        Result                       ppxres     = mCreateInfo.vertexBindings[0].GetAttribute(attrIndex, &pAttribute);
+        PPX_ASSERT_MSG((ppxres == ppx::SUCCESS), "attribute not found at index=" << attrIndex);
+
+        // clang-format off
+        switch (pAttribute->semantic) {
+            default: break;
+            case grfx::VERTEX_SEMANTIC_POSITION  : mVertexBuffers[0].Append(vtx.position); break;
+            case grfx::VERTEX_SEMANTIC_COLOR     : mVertexBuffers[0].Append(vtx.color); break;
+        }
+        // clang-format on
+    }
+    uint32_t endSize = mVertexBuffers[0].GetSize();
+
+    uint32_t bytesWritten = (endSize - startSize);
+    PPX_ASSERT_MSG((bytesWritten == mVertexBuffers[0].GetElementSize()), "size of vertex data written does not match buffer's element size");
+
+    uint32_t n = mVertexBuffers[0].GetElementCount();
+    return n;
+}
+
+uint32_t Geometry::AppendVertexData(const TriMeshVertexData& vtx)
 {
     uint32_t n = 0;
     if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
@@ -547,7 +750,24 @@ uint32_t Geometry::AppendVertexData(const VertexData& vtx)
     return n;
 }
 
-void Geometry::AppendTriangle(const VertexData& vtx0, const VertexData& vtx1, const VertexData& vtx2)
+uint32_t Geometry::AppendVertexData(const WireMeshVertexData& vtx)
+{
+    uint32_t n = 0;
+    if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+        n = AppendVertexInterleaved(vtx);
+    }
+    else if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+        n = AppendPosition(vtx.position);
+        AppendColor(vtx.color);
+    }
+    else {
+        // Something went horribly wrong
+        PPX_ASSERT_MSG(false, "unknown attribute layout");
+    }
+    return n;
+}
+
+void Geometry::AppendTriangle(const TriMeshVertexData& vtx0, const TriMeshVertexData& vtx1, const TriMeshVertexData& vtx2)
 {
     uint32_t n0 = AppendVertexData(vtx0) - 1;
     uint32_t n1 = AppendVertexData(vtx1) - 1;
@@ -555,6 +775,15 @@ void Geometry::AppendTriangle(const VertexData& vtx0, const VertexData& vtx1, co
 
     // Will only append indices if geometry has an index buffer
     AppendIndicesTriangle(n0, n1, n2);
+}
+
+void Geometry::AppendEdge(const WireMeshVertexData& vtx0, const WireMeshVertexData& vtx1)
+{
+    uint32_t n0 = AppendVertexData(vtx0) - 1;
+    uint32_t n1 = AppendVertexData(vtx1) - 1;
+
+    // Will only append indices if geometry has an index buffer
+    AppendIndicesEdge(n0, n1);
 }
 
 uint32_t Geometry::AppendPosition(const float3& value)

@@ -1,5 +1,5 @@
-#ifndef ppx_mesh_h
-#define ppx_mesh_h
+#ifndef ppx_tri_mesh_h
+#define ppx_tri_mesh_h
 
 #include "ppx/000_config.h"
 #include "ppx/000_math_config.h"
@@ -32,10 +32,10 @@ enum TriMeshPlane
     TRI_MESH_PLANE_NEGATIVE_Z = 5,
 };
 
-//! @struct VertexData
+//! @struct TriMeshVertexData
 //!
 //!
-struct VertexData
+struct TriMeshVertexData
 {
     float3 position;
     float3 color;
@@ -141,6 +141,9 @@ public:
     const float4*   GetDataTangents(uint32_t index = 0) const;
     const float3*   GetDataBitangents(uint32_t index = 0) const;
 
+    const float3& GetBoundingBoxMin() const { return mBoundingBoxMin; }
+    const float3& GetBoundingBoxMax() const { return mBoundingBoxMax; }
+
     uint32_t AppendTriangle(uint32_t v0, uint32_t v1, uint32_t v2);
     uint32_t AppendPosition(const float3& value);
     uint32_t AppendColor(const float3& value);
@@ -152,7 +155,7 @@ public:
     uint32_t AppendBitangent(const float3& value);
 
     Result GetTriangle(uint32_t triIndex, uint32_t& v0, uint32_t& v1, uint32_t& v2) const;
-    Result GetVertexData(uint32_t vtxIndex, VertexData* pVertexData) const;
+    Result GetVertexData(uint32_t vtxIndex, TriMeshVertexData* pVertexData) const;
 
     static TriMesh CreatePlane(TriMeshPlane plane, const float2& size, uint32_t usegs, uint32_t vsegs, const TriMeshOptions& options = TriMeshOptions());
     static TriMesh CreateCube(const float3& size, const TriMeshOptions& options = TriMeshOptions());
@@ -173,15 +176,17 @@ private:
 private:
     grfx::IndexType      mIndexType   = grfx::INDEX_TYPE_UNDEFINED;
     TriMeshAttributeDim  mTexCoordDim = TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
-    std::vector<uint8_t> mIndices;    // Stores both 16 and 32 bit indices
-    std::vector<float3>  mPositions;  // Vertex positions
-    std::vector<float3>  mColors;     // Vertex colors
-    std::vector<float3>  mNormals;    // Vertex normals
-    std::vector<float>   mTexCoords;  // Vertex texcoords, dimension can be 2, 3, or 4
-    std::vector<float4>  mTangents;   // Vertex tangents
-    std::vector<float3>  mBitangents; // Vertex bitangents
+    std::vector<uint8_t> mIndices;        // Stores both 16 and 32 bit indices
+    std::vector<float3>  mPositions;      // Vertex positions
+    std::vector<float3>  mColors;         // Vertex colors
+    std::vector<float3>  mNormals;        // Vertex normals
+    std::vector<float>   mTexCoords;      // Vertex texcoords, dimension can be 2, 3, or 4
+    std::vector<float4>  mTangents;       // Vertex tangents
+    std::vector<float3>  mBitangents;     // Vertex bitangents
+    float3               mBoundingBoxMin; // Bounding box min
+    float3               mBoundingBoxMax; // Bounding box max
 };
 
 } // namespace ppx
 
-#endif // ppx_mesh_h
+#endif // ppx_tri_mesh_h

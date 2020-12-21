@@ -349,9 +349,12 @@ Result GraphicsPipeline::InitializeDynamicState(
     std::vector<VkDynamicState>&            dynamicStates,
     VkPipelineDynamicStateCreateInfo&       stateCreateInfo)
 {
+    // NOTE: Since D3D12 doesn't have line width other than 1.0, dynamic
+    //       line width is not supported.
+    // 
     dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
     dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
-    dynamicStates.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
+    //dynamicStates.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
     dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
     dynamicStates.push_back(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
     dynamicStates.push_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS);

@@ -121,7 +121,6 @@ list(
     ${INC_DIR}/ppx/imgui_impl.h
     ${INC_DIR}/ppx/log.h
     ${INC_DIR}/ppx/math_util.h
-    ${INC_DIR}/ppx/mesh.h
     ${INC_DIR}/ppx/mipmap.h
     ${INC_DIR}/ppx/obj_ptr.h
     ${INC_DIR}/ppx/platform.h
@@ -130,7 +129,9 @@ list(
     ${INC_DIR}/ppx/string_util.h
     ${INC_DIR}/ppx/timer.h
     ${INC_DIR}/ppx/transform.h
+    ${INC_DIR}/ppx/tri_mesh.h
     ${INC_DIR}/ppx/util.h
+    ${INC_DIR}/ppx/wire_mesh.h
 )
 
 list(
@@ -145,14 +146,14 @@ list(
     ${SRC_DIR}/ppx/imgui_impl.cpp
     ${SRC_DIR}/ppx/log.cpp
     ${SRC_DIR}/ppx/math_util.cpp
-    ${SRC_DIR}/ppx/mesh.cpp
-    ${SRC_DIR}/ppx/mesh.cpp
     ${SRC_DIR}/ppx/mipmap.cpp
     ${SRC_DIR}/ppx/platform.cpp
     ${SRC_DIR}/ppx/profiler.cpp
     ${SRC_DIR}/ppx/string_util.cpp
     ${SRC_DIR}/ppx/timer.cpp
     ${SRC_DIR}/ppx/transform.cpp
+    ${SRC_DIR}/ppx/tri_mesh.cpp
+    ${SRC_DIR}/ppx/wire_mesh.cpp
     ${SRC_DIR}/ppx/imgui/font_inconsolata.h
     ${SRC_DIR}/ppx/imgui/font_inconsolata.cpp
 )

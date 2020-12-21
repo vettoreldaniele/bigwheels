@@ -75,7 +75,7 @@ void Ocean::Setup(uint32_t numFramesInFlight)
 
         TriMeshOptions options = TriMeshOptions().Indices().AllAttributes().TexCoordScale(float2(1.0f));
         TriMesh        mesh    = TriMesh::CreatePlane(TRI_MESH_PLANE_NEGATIVE_Y, float2(2500.0f), 10, 10, options);
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromMesh(queue, &mesh, &mSurfaceModel));
+        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromTriMesh(queue, &mesh, &mSurfaceModel));
 
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(queue, float4(0, 0, 0, 0), &mSurfaceAlbedoTexture));
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(queue, float4(1, 1, 1, 1), &mSurfaceRoughnessTexture));

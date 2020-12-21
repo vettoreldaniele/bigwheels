@@ -742,7 +742,7 @@ Result CreateModelFromGeometry(
 
 // -------------------------------------------------------------------------------------------------
 
-Result CreateModelFromMesh(
+Result CreateModelFromTriMesh(
     grfx::Queue*   pQueue,
     const TriMesh* pMesh,
     grfx::Model**  ppModel)
@@ -769,10 +769,37 @@ Result CreateModelFromMesh(
 
 // -------------------------------------------------------------------------------------------------
 
+Result CreateModelFromWireMesh(
+    grfx::Queue*    pQueue,
+    const WireMesh* pMesh,
+    grfx::Model**   ppModel)
+{
+    PPX_ASSERT_NULL_ARG(pQueue);
+    PPX_ASSERT_NULL_ARG(pMesh);
+    PPX_ASSERT_NULL_ARG(ppModel);
+
+    Result ppxres = ppx::ERROR_FAILED;
+
+    Geometry geo;
+    ppxres = Geometry::Create(*pMesh, &geo);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    ppxres = CreateModelFromGeometry(pQueue, &geo, ppModel);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------
+
 Result CreateModelFromFile(
-    grfx::Queue*            pQueue,
-    const fs::path&         path,
-    grfx::Model**           ppModel,
+    grfx::Queue*          pQueue,
+    const fs::path&       path,
+    grfx::Model**         ppModel,
     const TriMeshOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
@@ -782,7 +809,7 @@ Result CreateModelFromFile(
 
     TriMesh mesh = TriMesh::CreateFromOBJ(path, options);
 
-    ppxres = CreateModelFromMesh(pQueue, &mesh, ppModel);
+    ppxres = CreateModelFromTriMesh(pQueue, &mesh, ppModel);
     if (Failed(ppxres)) {
         return ppxres;
     }

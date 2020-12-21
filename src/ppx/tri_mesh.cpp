@@ -1,4 +1,4 @@
-#include "ppx/mesh.h"
+#include "ppx/tri_mesh.h"
 #include "ppx/math_util.h"
 #include "ppx/timer.h"
 
@@ -304,8 +304,19 @@ uint32_t TriMesh::AppendTriangle(uint32_t v0, uint32_t v1, uint32_t v2)
 
 uint32_t TriMesh::AppendPosition(const float3& value)
 {
-    mPositions.push_back(value);
+    mPositions.push_back(value);    
     uint32_t count = GetCountPositions();
+    if (count > 0) {
+        mBoundingBoxMin.x = std::min<float>(mBoundingBoxMin.x, value.x);
+        mBoundingBoxMin.y = std::min<float>(mBoundingBoxMin.y, value.y);
+        mBoundingBoxMin.z = std::min<float>(mBoundingBoxMin.z, value.z);
+        mBoundingBoxMax.x = std::min<float>(mBoundingBoxMax.x, value.x);
+        mBoundingBoxMax.y = std::min<float>(mBoundingBoxMax.y, value.y);
+        mBoundingBoxMax.z = std::min<float>(mBoundingBoxMax.z, value.z);
+    }
+    else {
+        mBoundingBoxMin = mBoundingBoxMax = value;
+    }
     return count;
 }
 
@@ -411,7 +422,7 @@ Result TriMesh::GetTriangle(uint32_t triIndex, uint32_t& v0, uint32_t& v1, uint3
     return ppx::SUCCESS;
 }
 
-Result TriMesh::GetVertexData(uint32_t vtxIndex, VertexData* pVertexData) const
+Result TriMesh::GetVertexData(uint32_t vtxIndex, TriMeshVertexData* pVertexData) const
 {
     uint32_t vertexCount = GetCountPositions();
     if (vtxIndex >= vertexCount) {
@@ -462,7 +473,7 @@ void TriMesh::AppendIndexAndVertexData(
     TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
 
     // Verify expected vertex count
-    size_t vertexCount = (vertexData.size() * sizeof(float)) / sizeof(VertexData);
+    size_t vertexCount = (vertexData.size() * sizeof(float)) / sizeof(TriMeshVertexData);
     PPX_ASSERT_MSG(vertexCount == expectedVertexCount, "unexpected vertex count");
 
     // Get base pointer to vertex data
@@ -470,7 +481,7 @@ void TriMesh::AppendIndexAndVertexData(
 
     if (indexType != grfx::INDEX_TYPE_UNDEFINED) {
         for (size_t i = 0; i < vertexCount; ++i) {
-            const VertexData* pVertexData = reinterpret_cast<const VertexData*>(pData + (i * sizeof(VertexData)));
+            const TriMeshVertexData* pVertexData = reinterpret_cast<const TriMeshVertexData*>(pData + (i * sizeof(TriMeshVertexData)));
 
             mesh.AppendPosition(pVertexData->position * options.mScale);
 
@@ -504,7 +515,7 @@ void TriMesh::AppendIndexAndVertexData(
     else {
         for (size_t i = 0; i < indexData.size(); ++i) {
             uint32_t          vi          = indexData[i];
-            const VertexData* pVertexData = reinterpret_cast<const VertexData*>(pData + (vi * sizeof(VertexData)));
+            const TriMeshVertexData* pVertexData = reinterpret_cast<const TriMeshVertexData*>(pData + (vi * sizeof(TriMeshVertexData)));
 
             mesh.AppendPosition(pVertexData->position * options.mScale);
 
@@ -922,9 +933,9 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& optio
             const tinyobj::index_t& dataIdx2 = shapeMesh.indices[triVtxIdx2];
 
             // Vertex data
-            VertexData vtx0 = {};
-            VertexData vtx1 = {};
-            VertexData vtx2 = {};
+            TriMeshVertexData vtx0 = {};
+            TriMeshVertexData vtx1 = {};
+            TriMeshVertexData vtx2 = {};
 
             // Pick a face color
             float3 faceColor = colors[triIdx % colors.size()];
