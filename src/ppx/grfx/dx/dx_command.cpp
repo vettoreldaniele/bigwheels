@@ -666,18 +666,18 @@ void CommandBuffer::WriteTimestamp(
 {
     PPX_ASSERT_NULL_ARG(pQueryPool);
 
-    if (pipelineStage == grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT) {
-        mCommandList->BeginQuery(
-            ToApi(pQueryPool)->GetDxQueryHeap(),
-            D3D12_QUERY_TYPE_TIMESTAMP,
-            static_cast<UINT>(queryIndex));
-    }
-    else {
-        mCommandList->EndQuery(
-            ToApi(pQueryPool)->GetDxQueryHeap(),
-            D3D12_QUERY_TYPE_TIMESTAMP,
-            static_cast<UINT>(queryIndex));
-    }
+    // NOTE: D3D12 timestamp queries only uses EndQuery, using BeginQuery
+    //       will result in an error:
+    //          D3D12 ERROR: ID3D12GraphicsCommandList::{Begin,End}Query: BeginQuery is not
+    //          supported with D3D12_QUERY_TYPE specified.  Examples include
+    //          D3D12_QUERY_TYPE_TIMESTAMP and D3D12_QUERY_TYPE_VIDEO_DECODE_STATISTICS.
+    //          [ EXECUTION ERROR #731: BEGIN_END_QUERY_INVALID_PARAMETERS]
+    //
+
+    mCommandList->EndQuery(
+        ToApi(pQueryPool)->GetDxQueryHeap(),
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        static_cast<UINT>(queryIndex));
 }
 
 // -------------------------------------------------------------------------------------------------
