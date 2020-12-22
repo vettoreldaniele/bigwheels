@@ -102,6 +102,74 @@ private:
     float mTop    = 1.0f;
 };
 
+// -------------------------------------------------------------------------------------------------
+// ArcballCamera
+// -------------------------------------------------------------------------------------------------
+
+//! @class ArcballCamera
+//!
+//! Adapted from: https://github.com/Twinklebear/arcball-cpp
+//!
+class ArcballCamera
+{
+public:
+    ArcballCamera();
+    ArcballCamera(const float3& eye, const float3& center, const float3& up);
+    ~ArcballCamera() {}
+
+    void LookAt(const float3& eye, const float3& center, const float3& up);
+
+    //! @fn void Rotate(const float2& prevPos, const float2& curPos)
+    //!
+    //! @param prevPos previous mouse position in normalized device coordinates
+    //! @param curPos current mouse position in normalized device coordinates
+    //!
+    void Rotate(const float2& prevPos, const float2& curPos);
+
+    //! @fn void Pan(const float2& delta)
+    //! 
+    //! @param delta mouse delta in normalized device coordinates
+    //! 
+    void Pan(const float2& delta);
+
+    //! @fn void Zoom(float amount)
+    //!
+    void Zoom(float amount);
+
+    //! @fn const float4x4& GetCameraMatrix() const
+    //!
+    const float4x4& GetCameraMatrix() const { return mCameraMatrix; }
+
+    //! @fn const float4x4& GetInverseCameraMatrix() const
+    //!
+    const float4x4& GetInverseCameraMatrix() const { return mInverseCameraMatrix; }
+
+    //! @fn float3 GetEyePosition() const
+    //!
+    const float3& GetEyePosition() const { return mEyePosition; }
+
+    //! @fn float3 GetViewDirection() const
+    //!
+    const float3& GetViewDirection() const { return mViewDirection; }
+
+    //! @fn float3 GetUpDirection() const
+    //!
+    const float3& GetUpDirection() const { return mUpDirection; }
+
+private:
+    void UpdateCamera();
+
+private:
+    float4x4 mCenterTranslationMatrix;
+    float4x4 mTranslationMatrix;
+    quat     mRotationQuat;
+    float4x4 mCameraMatrix;
+    float4x4 mInverseCameraMatrix;
+    float3   mEyePosition;
+    float3   mViewDirection;
+    float3   mUpDirection;
+};
+
 } // namespace ppx
 
 #endif // ppx_camera_h

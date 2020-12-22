@@ -315,6 +315,7 @@ public:
     uint32_t GetPreviousInFlightFrameIndex() const { return static_cast<uint32_t>((mFrameCount - 1) % mSettings.grfx.numFramesInFlight); }
 
     const KeyState& GetKeyState(KeyCode code) const;
+    float2          GetNormalizedDeviceCoordinates(int32_t x, int32_t y) const;
 
 private:
     void   InternalCtor();

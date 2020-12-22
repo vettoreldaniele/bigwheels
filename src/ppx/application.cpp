@@ -1264,6 +1264,14 @@ const KeyState& Application::GetKeyState(KeyCode code) const
     return mKeyStates[static_cast<uint32_t>(code)];
 }
 
+float2 Application::GetNormalizedDeviceCoordinates(int32_t x, int32_t y) const
+{
+    float  fx  = x / static_cast<float>(GetWindowWidth());
+    float  fy  = y / static_cast<float>(GetWindowHeight());
+    float2 ndc = float2(2.0f, -2.0f) * (float2(fx, fy) - float2(0.5f));
+    return ndc;
+}
+
 void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
 {
     if (!mImGui) {
