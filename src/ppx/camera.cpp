@@ -118,7 +118,7 @@ void PerspCamera::FitToBoundingBox(const float3& bboxMinWorldSpace, const float3
     float3   min             = bboxMinWorldSpace;
     float3   max             = bbxoMaxWorldSpace;
     float3   center          = (min + max) / 2.0f;
-    float3   up              = mViewMatrix * float4(mWorldUp, 1.0f);
+    float3   up              = glm::normalize(mInverseViewMatrix * float4(0, 1, 0, 0));
     float4x4 viewSpaceMatrix = glm::lookAt(mEyePosition, center, up);
 
     // World space oriented bounding box
@@ -149,16 +149,17 @@ void PerspCamera::FitToBoundingBox(const float3& bboxMinWorldSpace, const float3
     float xmax = glm::max(glm::abs(min.x), glm::abs(max.x));
     float ymax = glm::max(glm::abs(min.y), glm::abs(max.y));
     float rad  = glm::max(xmax, ymax);
+    float fov  = mAspect < 1.0f ? mHorizFovDegrees : mVertFovDegrees;
 
     // Calculate distance
-    float dist = rad / tan(glm::radians(mVertFovDegrees / 2.0f));
+    float dist = rad / tan(glm::radians(fov / 2.0f));
 
     // Calculate eye position
     float3 dir = glm::normalize(mEyePosition - center);
     float3 eye = center + (dist + mNearClip) * dir;
 
     // Adjust camera look at
-    LookAt(eye, center, mWorldUp);
+    LookAt(eye, center, up);
 }
 
 // -------------------------------------------------------------------------------------------------

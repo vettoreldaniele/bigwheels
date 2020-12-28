@@ -18,7 +18,7 @@ namespace ppx {
 class Camera
 {
 public:
-    Camera() {}
+    Camera();
 
     Camera(float nearClip, float farClip);
 
