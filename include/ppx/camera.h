@@ -3,6 +3,13 @@
 
 #include "ppx/000_math_config.h"
 
+#define PPX_CAMERA_DEFAULT_NEAR_CLIP      0.1f
+#define PPX_CAMERA_DEFAULT_FAR_CLIP       10000.0f
+#define PPX_CAMERA_DEFAULT_EYE_POSITION   float3(0, 0, 1)
+#define PPX_CAMERA_DEFAULT_LOOK_AT        float3(0, 0, 0)
+#define PPX_CAMERA_DEFAULT_WORLD_UP       float3(0, 1, 0)
+#define PPX_CAMERA_DEFAULT_VIEW_DIRECTION float3(0, 0, -1)
+
 namespace ppx {
 
 // -------------------------------------------------------------------------------------------------
@@ -12,10 +19,12 @@ class Camera
 {
 public:
     Camera() {}
-    Camera(float nearClip, float farClip);
-    ~Camera() {}
 
-    void LookAt(const float3& eye, const float3& center, const float3& up = float3(0, 1, 0));
+    Camera(float nearClip, float farClip);
+
+    virtual ~Camera() {}
+
+    virtual void LookAt(const float3& eye, const float3& center, const float3& up = PPX_CAMERA_DEFAULT_WORLD_UP);
 
     const float3& GetEyePosition() const { return mEyePosition; }
 
@@ -30,54 +39,68 @@ public:
 
 protected:
     float            mAspect               = 0;
-    float            mNearClip             = 0.1f;
-    float            mFarClip              = 10000.0f;
-    float3           mEyePosition          = float3(0, 0, 0);
-    float3           mLookAt               = float3(0, 0, -1);
-    float3           mViewDirection        = float3(0, 0, -1);
-    float3           mWorldUp              = float3(0, 1, 0);
+    float            mNearClip             = PPX_CAMERA_DEFAULT_NEAR_CLIP;
+    float            mFarClip              = PPX_CAMERA_DEFAULT_FAR_CLIP;
+    float3           mEyePosition          = PPX_CAMERA_DEFAULT_EYE_POSITION;
+    float3           mLookAt               = PPX_CAMERA_DEFAULT_LOOK_AT;
+    float3           mViewDirection        = PPX_CAMERA_DEFAULT_VIEW_DIRECTION;
+    float3           mWorldUp              = PPX_CAMERA_DEFAULT_WORLD_UP;
     mutable float4x4 mViewMatrix           = float4x4(1);
     mutable float4x4 mProjectionMatrix     = float4x4(1);
     mutable float4x4 mViewProjectionMatrix = float4x4(1);
+    mutable float4x4 mInverseViewMatrix    = float4x4(1);
 };
 
 // -------------------------------------------------------------------------------------------------
 // PerspCamera
 // -------------------------------------------------------------------------------------------------
-class PerspCamera : public Camera
+class PerspCamera
+    : public Camera
 {
 public:
     PerspCamera();
+
     PerspCamera(
-        float fovDegrees,
+        float horizFovDegrees,
         float aspect,
-        float nearClip = 0.1f,
-        float farClip  = 10000.0f);
+        float nearClip = PPX_CAMERA_DEFAULT_NEAR_CLIP,
+        float farClip  = PPX_CAMERA_DEFAULT_FAR_CLIP);
+
     PerspCamera(
         const float3& eye,
         const float3& center,
         const float3& up,
-        float         fovDegrees,
+        float         horizFovDegrees,
         float         aspect,
-        float         nearClip = 0.1f,
-        float         farClip  = 10000.0f);
-    ~PerspCamera();
+        float         nearClip = PPX_CAMERA_DEFAULT_NEAR_CLIP,
+        float         farClip  = PPX_CAMERA_DEFAULT_FAR_CLIP);
 
-    void SetPerspective(float fovDegrees, float aspect, float nearClip = 0.1f, float farClip = 10000.0f);
+    virtual ~PerspCamera();
+
+    void SetPerspective(
+        float horizFovDegrees,
+        float aspect,
+        float nearClip = PPX_CAMERA_DEFAULT_NEAR_CLIP,
+        float farClip  = PPX_CAMERA_DEFAULT_FAR_CLIP);
+
+    void FitToBoundingBox(const float3& bboxMinWorldSpace, const float3& bbxoMaxWorldSpace);
 
 private:
-    bool  mPixelAligned = false;
-    float mFovDegrees   = 60.0f;
-    float mAspect       = 1.0f;
+    bool  mPixelAligned    = false;
+    float mHorizFovDegrees = 60.0f;
+    float mVertFovDegrees  = 36.98f;
+    float mAspect          = 1.0f;
 };
 
 // -------------------------------------------------------------------------------------------------
 // OrthoCamera
 // -------------------------------------------------------------------------------------------------
-class OrthoCamera : public Camera
+class OrthoCamera
+    : public Camera
 {
 public:
     OrthoCamera();
+
     OrthoCamera(
         float left,
         float right,
@@ -85,7 +108,8 @@ public:
         float top,
         float nearClip,
         float farClip);
-    ~OrthoCamera();
+
+    virtual ~OrthoCamera();
 
     void SetOrthographic(
         float left,
@@ -111,13 +135,29 @@ private:
 //! Adapted from: https://github.com/Twinklebear/arcball-cpp
 //!
 class ArcballCamera
+    : public PerspCamera
 {
 public:
     ArcballCamera();
-    ArcballCamera(const float3& eye, const float3& center, const float3& up);
-    ~ArcballCamera() {}
 
-    void LookAt(const float3& eye, const float3& center, const float3& up);
+    ArcballCamera(
+        float horizFovDegrees,
+        float aspect,
+        float nearClip = PPX_CAMERA_DEFAULT_NEAR_CLIP,
+        float farClip  = PPX_CAMERA_DEFAULT_FAR_CLIP);
+
+    ArcballCamera(
+        const float3& eye,
+        const float3& center,
+        const float3& up,
+        float         horizFovDegrees,
+        float         aspect,
+        float         nearClip = PPX_CAMERA_DEFAULT_NEAR_CLIP,
+        float         farClip  = PPX_CAMERA_DEFAULT_FAR_CLIP);
+
+    virtual ~ArcballCamera() {}
+
+    void LookAt(const float3& eye, const float3& center, const float3& up = PPX_CAMERA_DEFAULT_WORLD_UP) override;
 
     //! @fn void Rotate(const float2& prevPos, const float2& curPos)
     //!
@@ -127,34 +167,22 @@ public:
     void Rotate(const float2& prevPos, const float2& curPos);
 
     //! @fn void Pan(const float2& delta)
-    //! 
+    //!
     //! @param delta mouse delta in normalized device coordinates
-    //! 
+    //!
     void Pan(const float2& delta);
 
     //! @fn void Zoom(float amount)
     //!
     void Zoom(float amount);
 
-    //! @fn const float4x4& GetCameraMatrix() const
-    //!
-    const float4x4& GetCameraMatrix() const { return mCameraMatrix; }
+    ////! @fn const float4x4& GetCameraMatrix() const
+    ////!
+    //const float4x4& GetCameraMatrix() const { return mCameraMatrix; }
 
-    //! @fn const float4x4& GetInverseCameraMatrix() const
-    //!
-    const float4x4& GetInverseCameraMatrix() const { return mInverseCameraMatrix; }
-
-    //! @fn float3 GetEyePosition() const
-    //!
-    const float3& GetEyePosition() const { return mEyePosition; }
-
-    //! @fn float3 GetViewDirection() const
-    //!
-    const float3& GetViewDirection() const { return mViewDirection; }
-
-    //! @fn float3 GetUpDirection() const
-    //!
-    const float3& GetUpDirection() const { return mUpDirection; }
+    ////! @fn const float4x4& GetInverseCameraMatrix() const
+    ////!
+    //const float4x4& GetInverseCameraMatrix() const { return mInverseCameraMatrix; }
 
 private:
     void UpdateCamera();
@@ -163,11 +191,8 @@ private:
     float4x4 mCenterTranslationMatrix;
     float4x4 mTranslationMatrix;
     quat     mRotationQuat;
-    float4x4 mCameraMatrix;
-    float4x4 mInverseCameraMatrix;
-    float3   mEyePosition;
-    float3   mViewDirection;
-    float3   mUpDirection;
+    //float4x4 mCameraMatrix;
+    //float4x4 mInverseCameraMatrix;
 };
 
 } // namespace ppx

@@ -19,6 +19,7 @@ class ProjApp
 public:
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
+    virtual void KeyDown(KeyCode key) override;
     virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) override;
     virtual void Scroll(float dx, float dy) override;
     virtual void Render() override;
@@ -51,7 +52,7 @@ private:
     grfx::GraphicsPipelinePtr    mWirePipeline;
     Entity                       mWirePlane;
 
-    ArcballCamera mArcballCamera;
+    ArcballCamera mCamera;
 
 private:
     void SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
@@ -60,7 +61,7 @@ private:
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    settings.appName                    = "18_arcball_camera";
+    settings.appName                    = "19_camera_fit_scene";
     settings.window.width               = kWindowWidth;
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
@@ -211,8 +212,8 @@ void ProjApp::Setup()
 
     // Arcball camera
     {
-        mArcballCamera.LookAt(float3(4, 5, 8), float3(0, 0, 0), float3(0, 1, 0));
-        mArcballCamera.SetPerspective(60.0f, GetWindowAspect());
+        mCamera.LookAt(float3(0, 15, 15), float3(5, 0, 0), float3(0, 1, 0));
+        mCamera.SetPerspective(60.0f, GetWindowAspect());
     }
 }
 
@@ -225,7 +226,7 @@ void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t b
         float2 prevPos = GetNormalizedDeviceCoordinates(prevX, prevY);
         float2 curPos  = GetNormalizedDeviceCoordinates(x, y);
 
-        mArcballCamera.Rotate(prevPos, curPos);
+        mCamera.Rotate(prevPos, curPos);
     }
     else if (buttons & ppx::MOUSE_BUTTON_RIGHT) {
         int32_t prevX = x - dx;
@@ -235,13 +236,22 @@ void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t b
         float2 curPos  = GetNormalizedDeviceCoordinates(x, y);
         float2 delta   = curPos - prevPos;
 
-        mArcballCamera.Pan(delta);
+        mCamera.Pan(delta);
     }
 }
 
 void ProjApp::Scroll(float dx, float dy)
 {
-    mArcballCamera.Zoom(dy / 2.0f);
+    mCamera.Zoom(dy / 2.0f);
+}
+
+void ProjApp::KeyDown(KeyCode key)
+{
+    if (key == ppx::KEY_F) {
+        float3 bboxMin = float3(-5, -0.01f, -5);
+        float3 bboxMax = float3(5, 0.01f, 5);
+        mCamera.FitToBoundingBox(bboxMin, bboxMax);
+    }
 }
 
 void ProjApp::Render()
@@ -263,10 +273,9 @@ void ProjApp::Render()
     // Update uniform buffer
     {
         float           t = GetElapsedSeconds();
-        const float4x4& P = mArcballCamera.GetProjectionMatrix();
-        const float4x4& V = mArcballCamera.GetViewMatrix();
+        const float4x4& P = mCamera.GetProjectionMatrix();
+        const float4x4& V = mCamera.GetViewMatrix();
 
-        // Move cube up so it sits on top of the plane
         float4x4 T   = glm::translate(float3(0, 1, 0));
         float4x4 mat = P * V * T;
         mCube.uniformBuffer->CopyFromSource(sizeof(mat), &mat);

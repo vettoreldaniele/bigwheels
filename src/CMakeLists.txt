@@ -113,6 +113,7 @@ list(
     ${INC_DIR}/ppx/application.h
     ${INC_DIR}/ppx/base_application.h
     ${INC_DIR}/ppx/bitmap.h
+    ${INC_DIR}/ppx/bounding_volume.h
     ${INC_DIR}/ppx/camera.h
     ${INC_DIR}/ppx/fs.h
     ${INC_DIR}/ppx/geometry.h
@@ -139,6 +140,7 @@ list(
     ${SRC_DIR}/ppx/application.cpp
     ${SRC_DIR}/ppx/base_application.cpp
     ${SRC_DIR}/ppx/bitmap.cpp
+    ${SRC_DIR}/ppx/bounding_volume.cpp
     ${SRC_DIR}/ppx/camera.cpp
     ${SRC_DIR}/ppx/geometry.cpp
     ${SRC_DIR}/ppx/graphics_util.cpp
