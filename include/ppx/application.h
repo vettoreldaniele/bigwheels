@@ -271,7 +271,8 @@ protected:
     void DrawProfilerGrfxApiFunctions();
 
 public:
-    int Run(int argc, char** argv);
+    int  Run(int argc, char** argv);
+    void Quit();
 
     std::vector<const char*> GetCommandLineArgs() const;
 

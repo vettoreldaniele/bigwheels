@@ -15,9 +15,9 @@
 
 namespace ppx {
 
-const char*    kDefaultAppName      = "PPX Application";
-const uint32_t kDefaultWindowWidth  = 640;
-const uint32_t kDefaultWindowHeight = 480;
+const char*    kDefaultAppName        = "PPX Application";
+const uint32_t kDefaultWindowWidth    = 640;
+const uint32_t kDefaultWindowHeight   = 480;
 
 static Application* sApplicationInstance = nullptr;
 
@@ -1031,7 +1031,8 @@ void Application::DrawImGui(grfx::CommandBuffer* pCommandBuffer)
 
 bool Application::IsRunning() const
 {
-    bool isRunning = (glfwWindowShouldClose(static_cast<GLFWwindow*>(mWindow)) == 0);
+    int  value     = glfwWindowShouldClose(static_cast<GLFWwindow*>(mWindow));
+    bool isRunning = (value == 0);
     return isRunning;
 }
 
@@ -1170,6 +1171,11 @@ int Application::Run(int argc, char** argv)
 
     // Success
     return EXIT_SUCCESS;
+}
+
+void Application::Quit()
+{
+    glfwSetWindowShouldClose(static_cast<GLFWwindow*>(mWindow), 1);
 }
 
 std::vector<const char*> Application::GetCommandLineArgs() const
