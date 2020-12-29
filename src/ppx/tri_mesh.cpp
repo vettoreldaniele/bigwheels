@@ -304,7 +304,7 @@ uint32_t TriMesh::AppendTriangle(uint32_t v0, uint32_t v1, uint32_t v2)
 
 uint32_t TriMesh::AppendPosition(const float3& value)
 {
-    mPositions.push_back(value);    
+    mPositions.push_back(value);
     uint32_t count = GetCountPositions();
     if (count > 0) {
         mBoundingBoxMin.x = std::min<float>(mBoundingBoxMin.x, value.x);
@@ -514,7 +514,7 @@ void TriMesh::AppendIndexAndVertexData(
     }
     else {
         for (size_t i = 0; i < indexData.size(); ++i) {
-            uint32_t          vi          = indexData[i];
+            uint32_t                 vi          = indexData[i];
             const TriMeshVertexData* pVertexData = reinterpret_cast<const TriMeshVertexData*>(pData + (vi * sizeof(TriMeshVertexData)));
 
             mesh.AppendPosition(pVertexData->position * options.mScale);
@@ -849,15 +849,22 @@ TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, cons
     return mesh;
 }
 
-TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& options)
+Result TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& options, TriMesh* pTriMesh)
 {
+    if (IsNull(pTriMesh)) {
+        return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    }
+
     Timer timer;
     PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
     double fnStartTime = timer.SecondsSinceStart();
 
+    // Determine index type and tex coord dim
     grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
     TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
-    TriMesh             mesh        = TriMesh(indexType, texCoordDim);
+
+    // Create new mesh
+    *pTriMesh = TriMesh(indexType, texCoordDim);
 
     const std::vector<float3> colors = {
         {1.0f, 0.0f, 0.0f},
@@ -878,14 +885,12 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& optio
     bool        loaded = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path, nullptr, true);
 
     if (!loaded || !err.empty()) {
-        PPX_ASSERT_MSG(false, "OBj load failed for path=" << path.c_str());
-        return mesh;
+        return ppx::ERROR_GEOMETRY_FILE_LOAD_FAILED;
     }
 
     size_t numShapes = shapes.size();
     if (numShapes == 0) {
-        PPX_ASSERT_MSG(false, "no shapes found");
-        return mesh;
+        return ppx::ERROR_GEOMETRY_FILE_NO_DATA;
     }
 
     //// Check to see if data can be indexed
@@ -1005,9 +1010,9 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& optio
                 }
             }
 
-            uint32_t triVtx0 = mesh.AppendPosition(vtx0.position * options.mScale) - 1;
-            uint32_t triVtx1 = mesh.AppendPosition(vtx1.position * options.mScale) - 1;
-            uint32_t triVtx2 = mesh.AppendPosition(vtx2.position * options.mScale) - 1;
+            uint32_t triVtx0 = pTriMesh->AppendPosition(vtx0.position * options.mScale) - 1;
+            uint32_t triVtx1 = pTriMesh->AppendPosition(vtx1.position * options.mScale) - 1;
+            uint32_t triVtx2 = pTriMesh->AppendPosition(vtx2.position * options.mScale) - 1;
 
             if (options.mEnableVertexColors || options.mEnableObjectColor) {
                 if (options.mEnableObjectColor) {
@@ -1015,21 +1020,21 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& optio
                     vtx1.color = options.mObjectColor;
                     vtx2.color = options.mObjectColor;
                 }
-                mesh.AppendColor(vtx0.color);
-                mesh.AppendColor(vtx1.color);
-                mesh.AppendColor(vtx2.color);
+                pTriMesh->AppendColor(vtx0.color);
+                pTriMesh->AppendColor(vtx1.color);
+                pTriMesh->AppendColor(vtx2.color);
             }
 
             if (options.mEnableNormals) {
-                mesh.AppendNormal(vtx0.normal);
-                mesh.AppendNormal(vtx1.normal);
-                mesh.AppendNormal(vtx2.normal);
+                pTriMesh->AppendNormal(vtx0.normal);
+                pTriMesh->AppendNormal(vtx1.normal);
+                pTriMesh->AppendNormal(vtx2.normal);
             }
 
             if (options.mEnableTexCoords) {
-                mesh.AppendTexCoord(vtx0.texCoord);
-                mesh.AppendTexCoord(vtx1.texCoord);
-                mesh.AppendTexCoord(vtx2.texCoord);
+                pTriMesh->AppendTexCoord(vtx0.texCoord);
+                pTriMesh->AppendTexCoord(vtx1.texCoord);
+                pTriMesh->AppendTexCoord(vtx2.texCoord);
             }
 
             if (options.mEnableTangents) {
@@ -1052,20 +1057,20 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& optio
                 tangent = glm::normalize(tangent - vtx0.normal * glm::dot(vtx0.normal, tangent));
                 float w = 1.0f;
 
-                mesh.AppendTangent(float4(-tangent, w));
-                mesh.AppendTangent(float4(-tangent, w));
-                mesh.AppendTangent(float4(-tangent, w));
-                mesh.AppendBitangent(-bitangent);
-                mesh.AppendBitangent(-bitangent);
-                mesh.AppendBitangent(-bitangent);
+                pTriMesh->AppendTangent(float4(-tangent, w));
+                pTriMesh->AppendTangent(float4(-tangent, w));
+                pTriMesh->AppendTangent(float4(-tangent, w));
+                pTriMesh->AppendBitangent(-bitangent);
+                pTriMesh->AppendBitangent(-bitangent);
+                pTriMesh->AppendBitangent(-bitangent);
             }
 
             if (indexType != grfx::INDEX_TYPE_UNDEFINED) {
                 if (options.mInvertWinding) {
-                    mesh.AppendTriangle(triVtx0, triVtx2, triVtx1);
+                    pTriMesh->AppendTriangle(triVtx0, triVtx2, triVtx1);
                 }
                 else {
-                    mesh.AppendTriangle(triVtx0, triVtx1, triVtx2);
+                    pTriMesh->AppendTriangle(triVtx0, triVtx1, triVtx2);
                 }
             }
         }
@@ -1088,6 +1093,13 @@ TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& optio
     float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);
     PPX_LOG_INFO("Created mesh from OBJ file: " << path << " (" << FloatString(fnElapsed) << " seconds)");
 
+    return ppx::SUCCESS;
+}
+
+TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& options)
+{
+    TriMesh mesh;
+    ppx::Result ppxres = CreateFromOBJ(path, options, &mesh);
     return mesh;
 }
 

@@ -160,6 +160,8 @@ public:
     static TriMesh CreatePlane(TriMeshPlane plane, const float2& size, uint32_t usegs, uint32_t vsegs, const TriMeshOptions& options = TriMeshOptions());
     static TriMesh CreateCube(const float3& size, const TriMeshOptions& options = TriMeshOptions());
     static TriMesh CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMeshOptions& options = TriMeshOptions());
+
+    static Result  CreateFromOBJ(const fs::path& path, const TriMeshOptions& options, TriMesh* pTriMesh);
     static TriMesh CreateFromOBJ(const fs::path& path, const TriMeshOptions& options = TriMeshOptions());
 
 private:
