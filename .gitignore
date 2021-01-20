@@ -8,3 +8,6 @@ lib/
 out/
 *.log
 CMakeSettings.json
+*.dxil
+*.spv
+*.dxbc
