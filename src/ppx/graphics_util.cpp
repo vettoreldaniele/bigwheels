@@ -42,11 +42,52 @@ grfx::Format ToGrfxFormat(Bitmap::Format value)
 
 grfx::Format ToGrfxFormat(gli::format value)
 {
+    // clang-format off
     switch (value) {
-        case gli::FORMAT_RGBA_DXT5_UNORM_BLOCK16:
-            return grfx::FORMAT_BC3_UNORM;
+        case gli::FORMAT_RGB_DXT1_UNORM_BLOCK8          : return grfx::FORMAT_BC1_RGB_UNORM;
+        case gli::FORMAT_RGB_DXT1_SRGB_BLOCK8           : return grfx::FORMAT_BC1_RGB_SRGB;
+        case gli::FORMAT_RGBA_DXT1_UNORM_BLOCK8         : return grfx::FORMAT_BC1_RGBA_UNORM;
+        case gli::FORMAT_RGBA_DXT1_SRGB_BLOCK8          : return grfx::FORMAT_BC1_RGBA_SRGB;
+        case gli::FORMAT_RGBA_DXT3_SRGB_BLOCK16         : return grfx::FORMAT_BC2_SRGB;
+        case gli::FORMAT_RGBA_DXT5_SRGB_BLOCK16         : return grfx::FORMAT_BC3_SRGB;
+        case gli::FORMAT_RGBA_DXT5_UNORM_BLOCK16        : return grfx::FORMAT_BC3_UNORM;
+        case gli::FORMAT_RGB_ETC2_UNORM_BLOCK8          : return grfx::FORMAT_ETC2_R8G8B8_UNORM;
+        case gli::FORMAT_RGB_ETC2_SRGB_BLOCK8           : return grfx::FORMAT_ETC2_R8G8B8_SRGB;
+        case gli::FORMAT_RGBA_ETC2_UNORM_BLOCK8         : return grfx::FORMAT_ETC2_R8G8B8A8_UNORM;
+        case gli::FORMAT_RGBA_ETC2_SRGB_BLOCK8          : return grfx::FORMAT_ETC2_R8G8B8A8_SRGB;
+        case gli::FORMAT_RGBA_ASTC_4X4_UNORM_BLOCK16    : return grfx::FORMAT_ASTC_4x4_UNORM;
+        case gli::FORMAT_RGBA_ASTC_4X4_SRGB_BLOCK16     : return grfx::FORMAT_ASTC_4x4_SRGB;
+        case gli::FORMAT_RGBA_ASTC_5X4_UNORM_BLOCK16    : return grfx::FORMAT_ASTC_5x4_UNORM;
+        case gli::FORMAT_RGBA_ASTC_5X4_SRGB_BLOCK16     : return grfx::FORMAT_ASTC_5x4_SRGB;
+        case gli::FORMAT_RGBA_ASTC_5X5_UNORM_BLOCK16    : return grfx::FORMAT_ASTC_5x5_UNORM;
+        case gli::FORMAT_RGBA_ASTC_5X5_SRGB_BLOCK16     : return grfx::FORMAT_ASTC_5x5_SRGB;
+        case gli::FORMAT_RGBA_ASTC_6X5_UNORM_BLOCK16    : return grfx::FORMAT_ASTC_6x5_UNORM;
+        case gli::FORMAT_RGBA_ASTC_6X5_SRGB_BLOCK16     : return grfx::FORMAT_ASTC_6x5_SRGB;
+        case gli::FORMAT_RGBA_ASTC_6X6_UNORM_BLOCK16    : return grfx::FORMAT_ASTC_6x6_UNORM;
+        case gli::FORMAT_RGBA_ASTC_6X6_SRGB_BLOCK16     : return grfx::FORMAT_ASTC_6x6_SRGB;
+        case gli::FORMAT_RGBA_ASTC_8X5_UNORM_BLOCK16    : return grfx::FORMAT_ASTC_8x5_UNORM;
+        case gli::FORMAT_RGBA_ASTC_8X5_SRGB_BLOCK16     : return grfx::FORMAT_ASTC_8x5_SRGB;
+        case gli::FORMAT_RGBA_ASTC_8X6_UNORM_BLOCK16    : return grfx::FORMAT_ASTC_8x6_UNORM;
+        case gli::FORMAT_RGBA_ASTC_8X6_SRGB_BLOCK16     : return grfx::FORMAT_ASTC_8x6_SRGB;
+        case gli::FORMAT_RGBA_ASTC_8X8_UNORM_BLOCK16    : return grfx::FORMAT_ASTC_8x8_UNORM;
+        case gli::FORMAT_RGBA_ASTC_8X8_SRGB_BLOCK16     : return grfx::FORMAT_ASTC_8x8_SRGB;
+        case gli::FORMAT_RGBA_ASTC_10X5_UNORM_BLOCK16   : return grfx::FORMAT_ASTC_10x5_UNORM;
+        case gli::FORMAT_RGBA_ASTC_10X5_SRGB_BLOCK16    : return grfx::FORMAT_ASTC_10x5_SRGB;
+        case gli::FORMAT_RGBA_ASTC_10X6_UNORM_BLOCK16   : return grfx::FORMAT_ASTC_10x6_UNORM;
+        case gli::FORMAT_RGBA_ASTC_10X6_SRGB_BLOCK16    : return grfx::FORMAT_ASTC_10x6_SRGB;
+        case gli::FORMAT_RGBA_ASTC_10X8_UNORM_BLOCK16   : return grfx::FORMAT_ASTC_10x8_UNORM;
+        case gli::FORMAT_RGBA_ASTC_10X8_SRGB_BLOCK16    : return grfx::FORMAT_ASTC_10x8_SRGB;
+        case gli::FORMAT_RGBA_ASTC_10X10_UNORM_BLOCK16  : return grfx::FORMAT_ASTC_10x10_UNORM;
+        case gli::FORMAT_RGBA_ASTC_10X10_SRGB_BLOCK16   : return grfx::FORMAT_ASTC_10x10_SRGB;
+        case gli::FORMAT_RGBA_ASTC_12X10_UNORM_BLOCK16  : return grfx::FORMAT_ASTC_12x10_UNORM;
+        case gli::FORMAT_RGBA_ASTC_12X10_SRGB_BLOCK16   : return grfx::FORMAT_ASTC_12x10_SRGB;
+        case gli::FORMAT_RGBA_ASTC_12X12_UNORM_BLOCK16  : return grfx::FORMAT_ASTC_12x12_UNORM;
+        case gli::FORMAT_RGBA_ASTC_12X12_SRGB_BLOCK16   : return grfx::FORMAT_ASTC_12x12_SRGB;
+        case gli::FORMAT_RGB_PVRTC1_8X8_UNORM_BLOCK32   : return grfx::FORMAT_ASTC_8x8_UNORM;
+        default:
+            return grfx::FORMAT_UNDEFINED;
     }
-    return grfx::FORMAT_UNDEFINED;
+    // clang-format on
 }
 
 // -------------------------------------------------------------------------------------------------

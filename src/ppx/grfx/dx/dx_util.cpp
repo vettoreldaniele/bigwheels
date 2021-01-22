@@ -557,6 +557,13 @@ DXGI_FORMAT ToDxgiFormat(grfx::Format value)
         case FORMAT_R11G11B10_FLOAT          : return DXGI_FORMAT_R11G11B10_FLOAT; break;
 
         // Compressed images
+        case FORMAT_BC1_RGBA_SRGB            : return DXGI_FORMAT_BC1_TYPELESS; break;
+        case FORMAT_BC1_RGBA_UNORM           : return DXGI_FORMAT_BC1_UNORM; break;
+        case FORMAT_BC1_RGB_SRGB             : return DXGI_FORMAT_BC1_UNORM_SRGB; break;
+        case FORMAT_BC1_RGB_UNORM            : return DXGI_FORMAT_BC1_UNORM; break;
+        case FORMAT_BC2_SRGB                 : return DXGI_FORMAT_BC2_TYPELESS; break;
+        case FORMAT_BC2_UNORM                : return DXGI_FORMAT_BC2_UNORM; break;
+        case FORMAT_BC3_SRGB                 : return DXGI_FORMAT_BC3_UNORM_SRGB; break;
         case FORMAT_BC3_UNORM                : return DXGI_FORMAT_BC3_UNORM; break;
     }
     // clang-format on
