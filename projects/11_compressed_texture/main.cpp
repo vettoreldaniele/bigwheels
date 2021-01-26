@@ -10,6 +10,7 @@ grfx::Api kApi = grfx::API_VK_1_1;
 
 #define kWindowWidth  1280
 #define kWindowHeight 720
+#define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
 
 class ProjApp
     : public ppx::Application
@@ -49,10 +50,11 @@ private:
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    settings.appName          = "11_compressed_texture_bc3";
+    settings.appName          = "11_compressed_texture";
     settings.window.width     = kWindowWidth;
     settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
+    settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
@@ -75,12 +77,18 @@ void ProjApp::Setup()
 
     // Texture image, view, and sampler
     {
+        grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/box_panel_bc3.dds"), &mImage));
 
         grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage);
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&viewCreateInfo, &mSampledImageView));
 
         grfx::SamplerCreateInfo samplerCreateInfo = {};
+        samplerCreateInfo.magFilter               = grfx::FILTER_LINEAR;
+        samplerCreateInfo.minFilter               = grfx::FILTER_LINEAR;
+        samplerCreateInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerCreateInfo.minLod                  = 0;
+        samplerCreateInfo.maxLod                  = FLT_MAX;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
     }
 
@@ -151,11 +159,12 @@ void ProjApp::Setup()
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
         gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
-        gpCreateInfo.depthReadEnable                    = false;
-        gpCreateInfo.depthWriteEnable                   = false;
+        gpCreateInfo.depthReadEnable                    = true;
+        gpCreateInfo.depthWriteEnable                   = true;
         gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
         gpCreateInfo.outputState.renderTargetCount      = 1;
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
+        gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
         gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPipeline));
     }
@@ -184,14 +193,47 @@ void ProjApp::Setup()
     {
         // clang-format off
         std::vector<float> vertexData = {
-            // position           // tex coords
-            -0.5f,  0.5f, 0.0f,   0.0f, 0.0f,
-            -0.5f, -0.5f, 0.0f,   0.0f, 1.0f,
-             0.5f, -0.5f, 0.0f,   1.0f, 1.0f,
+            -1.0f,-1.0f,-1.0f,   1.0f, 1.0f,  // -Z side
+             1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
+             1.0f,-1.0f,-1.0f,   0.0f, 1.0f,
+            -1.0f,-1.0f,-1.0f,   1.0f, 1.0f,
+            -1.0f, 1.0f,-1.0f,   1.0f, 0.0f,
+             1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
 
-            -0.5f,  0.5f, 0.0f,   0.0f, 0.0f,
-             0.5f, -0.5f, 0.0f,   1.0f, 1.0f,
-             0.5f,  0.5f, 0.0f,   1.0f, 0.0f,
+            -1.0f, 1.0f, 1.0f,   0.0f, 0.0f,  // +Z side
+            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
+             1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
+             1.0f,-1.0f, 1.0f,   1.0f, 1.0f,
+             1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+
+            -1.0f,-1.0f,-1.0f,   0.0f, 1.0f,  // -X side
+            -1.0f,-1.0f, 1.0f,   1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+            -1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+            -1.0f, 1.0f,-1.0f,   0.0f, 0.0f,
+            -1.0f,-1.0f,-1.0f,   0.0f, 1.0f,
+
+             1.0f, 1.0f,-1.0f,   0.0f, 1.0f,  // +X side
+             1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+             1.0f,-1.0f, 1.0f,   1.0f, 0.0f,
+             1.0f,-1.0f, 1.0f,   1.0f, 0.0f,
+             1.0f,-1.0f,-1.0f,   0.0f, 0.0f,
+             1.0f, 1.0f,-1.0f,   0.0f, 1.0f,
+
+            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f,  // -Y side
+             1.0f,-1.0f,-1.0f,   1.0f, 1.0f,
+             1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
+            -1.0f,-1.0f,-1.0f,   1.0f, 0.0f,
+             1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
+            -1.0f,-1.0f, 1.0f,   0.0f, 0.0f,
+
+            -1.0f, 1.0f,-1.0f,   1.0f, 0.0f,  // +Y side
+            -1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+             1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+            -1.0f, 1.0f,-1.0f,   1.0f, 0.0f,
+             1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+             1.0f, 1.0f,-1.0f,   1.0f, 1.0f,
         };
         // clang-format on
         uint32_t dataSize = ppx::SizeInBytesU32(vertexData);
@@ -233,7 +275,12 @@ void ProjApp::Render()
     // Update uniform buffer
     {
         float    t   = GetElapsedSeconds();
-        float4x4 mat = glm::rotate(t, float3(0, 0, 1));
+        float4x4 P   = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
+        float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
+        float4x4 T   = glm::translate(float3(0, 0, -10 * (1 + sin(t / 2))));
+        float4x4 R   = glm::rotate(t / 4, float3(0, 0, 1)) * glm::rotate(t / 4, float3(0, 1, 0)) * glm::rotate(t / 4, float3(1, 0, 0));
+        float4x4 M   = T * R;
+        float4x4 mat = P * V * M;
 
         void* pData = nullptr;
         PPX_CHECKED_CALL(ppxres = mUniformBuffer->MapMemory(0, &pData));
@@ -252,6 +299,7 @@ void ProjApp::Render()
         beginInfo.renderArea                = renderPass->GetRenderArea();
         beginInfo.RTVClearCount             = 1;
         beginInfo.RTVClearValues[0]         = {{0, 0, 0, 0}};
+        beginInfo.DSVClearValue             = {1.0f, 0xFF};
 
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);
@@ -261,7 +309,7 @@ void ProjApp::Render()
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
-            frame.cmd->Draw(6, 1, 0, 0);
+            frame.cmd->Draw(36, 1, 0, 0);
 
             // Draw ImGui
             DrawDebugInfo();
