@@ -560,11 +560,19 @@ DXGI_FORMAT ToDxgiFormat(grfx::Format value)
         case FORMAT_BC1_RGBA_SRGB            : return DXGI_FORMAT_BC1_TYPELESS; break;
         case FORMAT_BC1_RGBA_UNORM           : return DXGI_FORMAT_BC1_UNORM; break;
         case FORMAT_BC1_RGB_SRGB             : return DXGI_FORMAT_BC1_UNORM_SRGB; break;
-        case FORMAT_BC1_RGB_UNORM            : return DXGI_FORMAT_BC1_UNORM; break;
-        case FORMAT_BC2_SRGB                 : return DXGI_FORMAT_BC2_TYPELESS; break;
+        case FORMAT_BC1_RGB_UNORM            : return DXGI_FORMAT_BC1_UNORM_SRGB; break; // FAILS with compressonator-generated DDS file
+        case FORMAT_BC2_SRGB                 : return DXGI_FORMAT_BC2_UNORM_SRGB; break;
         case FORMAT_BC2_UNORM                : return DXGI_FORMAT_BC2_UNORM; break;
         case FORMAT_BC3_SRGB                 : return DXGI_FORMAT_BC3_UNORM_SRGB; break;
         case FORMAT_BC3_UNORM                : return DXGI_FORMAT_BC3_UNORM; break;
+        case FORMAT_BC4_UNORM                : return DXGI_FORMAT_BC4_UNORM; break; // FAILS with compressonator-generated DDS file
+        case FORMAT_BC4_SNORM                : return DXGI_FORMAT_BC4_SNORM; break;
+        case FORMAT_BC5_UNORM                : return DXGI_FORMAT_BC5_UNORM; break;
+        case FORMAT_BC5_SNORM                : return DXGI_FORMAT_BC5_SNORM; break;
+        case FORMAT_BC6H_UFLOAT              : return DXGI_FORMAT_BC6H_UF16; break;
+        case FORMAT_BC6H_SFLOAT              : return DXGI_FORMAT_BC6H_SF16; break;
+        case FORMAT_BC7_UNORM                : return DXGI_FORMAT_BC7_UNORM; break;
+        case FORMAT_BC7_SRGB                 : return DXGI_FORMAT_BC7_UNORM_SRGB; break;
     }
     // clang-format on
 
