@@ -380,6 +380,7 @@ target_include_directories(
     PUBLIC  ${INC_DIR}
             ${PPX_THIRD_PARTY_DIR}/glfw/include
             ${PPX_THIRD_PARTY_DIR}/glm
+            ${PPX_THIRD_PARTY_DIR}/gli
             ${PPX_THIRD_PARTY_DIR}/stb
             ${PPX_THIRD_PARTY_DIR}/imgui
             ${PPX_THIRD_PARTY_DIR}/tinyobjloader

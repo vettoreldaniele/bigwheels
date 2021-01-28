@@ -469,6 +469,24 @@ VkFormat ToVkFormat(grfx::Format value)
 
         // 11-bit R, 11-bit G, 10-bit B packed
         case FORMAT_R11G11B10_FLOAT    : return VK_FORMAT_B10G11R11_UFLOAT_PACK32; break;
+
+        // Compressed images
+        case FORMAT_BC1_RGBA_SRGB       : return VK_FORMAT_BC1_RGBA_SRGB_BLOCK; break;
+        case FORMAT_BC1_RGBA_UNORM      : return VK_FORMAT_BC1_RGBA_UNORM_BLOCK; break;
+        case FORMAT_BC1_RGB_SRGB        : return VK_FORMAT_BC1_RGB_SRGB_BLOCK; break;
+        case FORMAT_BC1_RGB_UNORM       : return VK_FORMAT_BC1_RGB_UNORM_BLOCK; break;
+        case FORMAT_BC2_SRGB            : return VK_FORMAT_BC2_SRGB_BLOCK; break;
+        case FORMAT_BC2_UNORM           : return VK_FORMAT_BC2_UNORM_BLOCK; break;
+        case FORMAT_BC3_SRGB            : return VK_FORMAT_BC3_SRGB_BLOCK; break;
+        case FORMAT_BC3_UNORM           : return VK_FORMAT_BC3_UNORM_BLOCK; break;
+        case FORMAT_BC4_UNORM           : return VK_FORMAT_BC4_UNORM_BLOCK; break;
+        case FORMAT_BC4_SNORM           : return VK_FORMAT_BC4_SNORM_BLOCK; break;
+        case FORMAT_BC5_UNORM           : return VK_FORMAT_BC5_UNORM_BLOCK; break;
+        case FORMAT_BC5_SNORM           : return VK_FORMAT_BC5_SNORM_BLOCK; break;
+        case FORMAT_BC6H_UFLOAT         : return VK_FORMAT_BC6H_UFLOAT_BLOCK; break;
+        case FORMAT_BC6H_SFLOAT         : return VK_FORMAT_BC6H_SFLOAT_BLOCK; break;
+        case FORMAT_BC7_UNORM           : return VK_FORMAT_BC7_UNORM_BLOCK; break;
+        case FORMAT_BC7_SRGB            : return VK_FORMAT_BC7_SRGB_BLOCK; break;
     }
     // clang-format on
 

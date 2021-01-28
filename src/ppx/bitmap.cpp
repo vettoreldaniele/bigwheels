@@ -527,6 +527,13 @@ static Result IsRadianceFile(const fs::path& path, bool& isRadiance)
     return ppx::SUCCESS;
 }
 
+bool Bitmap::IsBitmapFile(const fs::path& path)
+{
+    int x, y, comp;
+    int res = stbi_info(path.c_str(), &x, &y, &comp);
+    return res != 0;
+}
+
 Result Bitmap::GetFileProperties(const fs::path& path, uint32_t* pWidth, uint32_t* pHeight, Bitmap::Format* pFormat)
 {
     if (!fs::exists(path)) {

@@ -117,6 +117,24 @@ enum Format
 
     // 11-bit R, 11-bit G, 10-bit B packed
     FORMAT_R11G11B10_FLOAT,
+
+    // Compressed formats
+    FORMAT_BC1_RGBA_SRGB,
+    FORMAT_BC1_RGBA_UNORM,
+    FORMAT_BC1_RGB_SRGB,
+    FORMAT_BC1_RGB_UNORM,
+    FORMAT_BC2_SRGB,
+    FORMAT_BC2_UNORM,
+    FORMAT_BC3_SRGB,
+    FORMAT_BC3_UNORM,
+    FORMAT_BC4_UNORM,
+    FORMAT_BC4_SNORM,
+    FORMAT_BC5_UNORM,
+    FORMAT_BC5_SNORM,
+    FORMAT_BC6H_UFLOAT,
+    FORMAT_BC6H_SFLOAT,
+    FORMAT_BC7_UNORM,
+    FORMAT_BC7_SRGB,
 };
 
 uint32_t FormatSize(grfx::Format format);
