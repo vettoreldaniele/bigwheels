@@ -110,6 +110,31 @@ uint32_t FormatSize(grfx::Format format)
         case grfx::FORMAT_R8G8B8A8_SRGB      : return 4; break;
         case grfx::FORMAT_B8G8R8_SRGB        : return 3; break;
         case grfx::FORMAT_B8G8R8A8_SRGB      : return 4; break;
+
+        // Compressed formats
+        //
+        // NOTE: The values returned here are obviously not the
+        //       'format size' but rather the endpoints size in
+        //       in bytes. Endpoints sizes are used to calculate
+        //       the proper row stride for copying operations 
+        //       from source file to GPU textures.
+        //
+        case grfx::FORMAT_BC1_RGBA_SRGB       : return 2; break;
+        case grfx::FORMAT_BC1_RGBA_UNORM      : return 2; break;
+        case grfx::FORMAT_BC1_RGB_SRGB        : return 2; break;
+        case grfx::FORMAT_BC1_RGB_UNORM       : return 4; break;
+        case grfx::FORMAT_BC2_SRGB            : return 4; break;
+        case grfx::FORMAT_BC2_UNORM           : return 4; break;
+        case grfx::FORMAT_BC3_SRGB            : return 4; break;
+        case grfx::FORMAT_BC3_UNORM           : return 4; break;
+        case grfx::FORMAT_BC4_UNORM           : return 2; break;
+        case grfx::FORMAT_BC4_SNORM           : return 2; break;
+        case grfx::FORMAT_BC5_UNORM           : return 4; break;
+        case grfx::FORMAT_BC5_SNORM           : return 4; break;
+        case grfx::FORMAT_BC6H_UFLOAT         : return 4; break;
+        case grfx::FORMAT_BC6H_SFLOAT         : return 4; break;
+        case grfx::FORMAT_BC7_UNORM           : return 4; break;
+        case grfx::FORMAT_BC7_SRGB            : return 4; break;
     }
     // clang-format on
     return 0;

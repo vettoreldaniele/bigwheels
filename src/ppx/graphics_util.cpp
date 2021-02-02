@@ -283,9 +283,14 @@ Result CreateImageFromCompressedImage(
     // Scoped destroy
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
-    uint64_t image_width  = image.extent(0)[0];
-    uint64_t image_height = image.extent(0)[1];
-    uint64_t rowStride    = image_width * 4;
+    grfx::Format format      = ToGrfxFormat(image.format());
+    uint32_t     imageWidth  = static_cast<uint32_t>(image.extent(0)[0]);
+    uint32_t     imageHeight = static_cast<uint32_t>(image.extent(0)[1]);
+    uint32_t     rowStride   = imageWidth * grfx::FormatSize(format);
+
+    // Row stride alignment to handle DX's requirement
+    uint32_t rowStrideAlignement = grfx::IsDx(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
+    rowStride                    = RoundUp<uint32_t>(rowStride, rowStrideAlignement);
 
     // Create staging buffer
     grfx::BufferPtr stagingBuffer;
@@ -294,7 +299,7 @@ Result CreateImageFromCompressedImage(
         PPX_LOG_INFO("Is image compressed: " << (gli::is_compressed(image.format()) ? "YES" : "NO"));
 
         grfx::BufferCreateInfo ci      = {};
-        ci.size                        = static_cast<uint64_t>(image.size()); // bitmapFootprintSize;
+        ci.size                        = imageHeight * rowStride;
         ci.usageFlags.bits.transferSrc = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
@@ -323,10 +328,10 @@ Result CreateImageFromCompressedImage(
     {
         grfx::ImageCreateInfo ci       = {};
         ci.type                        = grfx::IMAGE_TYPE_2D;
-        ci.width                       = image_width;
-        ci.height                      = image_height;
+        ci.width                       = imageWidth;
+        ci.height                      = imageHeight;
         ci.depth                       = 1;
-        ci.format                      = ToGrfxFormat(image.format());
+        ci.format                      = format;
         ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
         ci.mipLevelCount               = 1;
         ci.arrayLayerCount             = 1;
@@ -345,12 +350,12 @@ Result CreateImageFromCompressedImage(
 
     // Copy info
     grfx::BufferToImageCopyInfo copyInfo = {};
-    copyInfo.srcBuffer.imageWidth        = image_width;
-    copyInfo.srcBuffer.imageHeight       = image_height;
+    copyInfo.srcBuffer.imageWidth        = imageWidth;
+    copyInfo.srcBuffer.imageHeight       = imageHeight;
     copyInfo.srcBuffer.imageRowStride    = rowStride;
     copyInfo.srcBuffer.footprintOffset   = 0;
-    copyInfo.srcBuffer.footprintWidth    = image_width;
-    copyInfo.srcBuffer.footprintHeight   = image_height;
+    copyInfo.srcBuffer.footprintWidth    = imageWidth;
+    copyInfo.srcBuffer.footprintHeight   = imageHeight;
     copyInfo.srcBuffer.footprintDepth    = 1;
     copyInfo.dstImage.mipLevel           = 0;
     copyInfo.dstImage.arrayLayer         = 0;
@@ -358,8 +363,8 @@ Result CreateImageFromCompressedImage(
     copyInfo.dstImage.x                  = 0;
     copyInfo.dstImage.y                  = 0;
     copyInfo.dstImage.z                  = 0;
-    copyInfo.dstImage.width              = image_width;
-    copyInfo.dstImage.height             = image_height;
+    copyInfo.dstImage.width              = imageWidth;
+    copyInfo.dstImage.height             = imageHeight;
     copyInfo.dstImage.depth              = 1;
 
     // Copy to GPU image
