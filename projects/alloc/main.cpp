@@ -82,8 +82,6 @@ Result ProjApp::TryAllocateRange(uint32_t rangeStart, uint32_t rangeEnd, uint32_
         ppx::grfx::BufferPtr            buffer;
         ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &buffer);
         bool didSucceed = (ppxres == ppx::SUCCESS) ? true : false;
-        fprintf(stderr, "%d ", didSucceed);
-
         if (i == rangeStart)
         {
             state = didSucceed;
