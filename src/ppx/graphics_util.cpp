@@ -241,7 +241,7 @@ Result CreateImageFromBitmap(
 
 bool IsDDSFile(const fs::path& path)
 {
-    return (std::strstr(path.c_str(), ".dds") > 0 || std::strstr(path.c_str(), ".ktx") > 0);
+    return (std::strstr(path.c_str(), ".dds") != nullptr || std::strstr(path.c_str(), ".ktx") != nullptr);
 }
 
 Result CreateImageFromCompressedImage(
@@ -299,7 +299,7 @@ Result CreateImageFromCompressedImage(
         PPX_LOG_INFO("Is image compressed: " << (gli::is_compressed(image.format()) ? "YES" : "NO"));
 
         grfx::BufferCreateInfo ci      = {};
-        ci.size                        = imageHeight * rowStride;
+        ci.size                        = static_cast<uint64_t>(imageHeight) * static_cast<uint64_t>(rowStride);
         ci.usageFlags.bits.transferSrc = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
