@@ -5,7 +5,7 @@ namespace grfx {
 
 Result Buffer::Create(const grfx::BufferCreateInfo* pCreateInfo)
 {
-#ifndef NO_MINIMUM_BUFFER_SIZE_CHECK
+#ifndef PPX_DISABLE_MINIMUM_BUFFER_SIZE_CHECK
     // Constant/uniform buffers need to be at least PPX_CONSTANT_BUFFER_ALIGNMENT in size
     if (pCreateInfo->usageFlags.bits.uniformBuffer && (pCreateInfo->size < PPX_CONSTANT_BUFFER_ALIGNMENT)) {
         PPX_ASSERT_MSG(false, "constant/uniform buffer sizes must be at least PPX_CONSTANT_BUFFER_ALIGNMENT (" << PPX_CONSTANT_BUFFER_ALIGNMENT << ")");

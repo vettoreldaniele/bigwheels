@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(01_triangle)
+project(alloc)
 
 list(APPEND HLSL_FILES
     "${PPX_DIR}/assets/basic/shaders/StaticVertexColors.hlsl"
