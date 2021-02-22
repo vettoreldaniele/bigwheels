@@ -19,7 +19,7 @@ class ProjApp
 public:
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
-    virtual void KeyDown(KeyCode key) override;
+    virtual void KeyDown(ppx::KeyCode key) override;
     virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) override;
     virtual void Scroll(float dx, float dy) override;
     virtual void Render() override;
@@ -245,7 +245,7 @@ void ProjApp::Scroll(float dx, float dy)
     mCamera.Zoom(dy / 2.0f);
 }
 
-void ProjApp::KeyDown(KeyCode key)
+void ProjApp::KeyDown(ppx::KeyCode key)
 {
     if (key == ppx::KEY_F) {
         float3 bboxMin = float3(-5, -0.01f, -5);
