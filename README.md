@@ -40,7 +40,7 @@
        * None tested
 
 # Build Instructions
-## GGP
+## GGP (on Windows)
 ```
 git clone --recursive git@github.com:chaoticbob/BigWheels.git
 cd BigWheels
@@ -53,6 +53,20 @@ Open `BigWheels.sln` and build
 Built binaries are written to `BigWheels\bin`.
 
 **NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
+
+
+## GGP (on Linux)
+```
+git clone --recursive git@github.com:chaoticbob/BigWheels.git
+cd BigWheels
+mkdir build-ggp
+cd build-ggp
+cmake -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake -DDXC_PATH=$PATH_TO_VULKAN_SDK/x86_64/bin/dxc -DPPX_GGP=true ..
+make -j <# CPUs to use>
+```
+
+Built binaries are written to `BigWheels/bin`.
+
 
 ### Running on GGP
 Push the `assets` folder up to the instance before running. Since the shaders are compiled per project they must be built and pushed *before* running.
@@ -71,7 +85,7 @@ cmake ..
 make -j <# CPUs to use>
 ```
 
-Built binaries are written to `BigWheels\bin`.
+Built binaries are written to `BigWheels/bin`.
 
 ## Windows 
 ```
