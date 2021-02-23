@@ -226,7 +226,11 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     }
 
     // VK_EXT_host_query_reset
+#ifndef VK_API_VERSION_1_2
+    VkPhysicalDeviceHostQueryResetFeaturesEXT queryResetFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT};
+#else
     VkPhysicalDeviceHostQueryResetFeatures queryResetFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES};
+#endif
     queryResetFeatures.hostQueryReset                         = VK_TRUE;
 
     // Get C strings

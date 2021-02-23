@@ -51,17 +51,11 @@ void QueryPool::DestroyApiObjects()
 
 void QueryPool::Reset(uint32_t firstQuery, uint32_t queryCount)
 {
-    if (GetDevice()->GetInstance()->GetApi() == grfx::API_VK_1_1) {
-        ToApi(GetDevice())->ResetQueryPoolEXT(mQueryPool, firstQuery, queryCount);
-    }
-    else {
-        // Assumes Vulkan 1.2
-        vkResetQueryPool(
-            ToApi(GetDevice())->GetVkDevice(),
-            mQueryPool,
-            firstQuery,
-            queryCount);
-    }
+#ifdef VK_API_VERION_1_2
+    vkResetQueryPool(ToApi(GetDevice())->GetVkDevice(), mQueryPool, firstQuery, queryCount);
+#else
+    ToApi(GetDevice())->ResetQueryPoolEXT(mQueryPool, firstQuery, queryCount);
+#endif
 }
 
 } // namespace vk
