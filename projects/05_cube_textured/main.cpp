@@ -38,8 +38,8 @@ private:
     ppx::grfx::BufferPtr              mVertexBuffer;
     ppx::grfx::DescriptorPoolPtr      mDescriptorPool;
     ppx::grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
-    ppx::grfx::DescriptorSetPtr       mDescriptorSet;
-    ppx::grfx::BufferPtr              mUniformBuffer;
+    ppx::grfx::DescriptorSetPtr       mDescriptorSet[3];
+    ppx::grfx::BufferPtr              mUniformBuffer[3];
     ppx::grfx::ImagePtr               mImage;
     ppx::grfx::SamplerPtr             mSampler;
     ppx::grfx::SampledImageViewPtr    mSampledImageView;
@@ -66,13 +66,13 @@ void ProjApp::Setup()
     Result ppxres = ppx::SUCCESS;
 
     // Uniform buffer
-    {
+    for (uint32_t i = 0; i < 3; ++i) {
         grfx::BufferCreateInfo bufferCreateInfo        = {};
         bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer));
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer[i]));
     }
 
     // Texture image, view, and sampler
@@ -95,9 +95,9 @@ void ProjApp::Setup()
     // Descriptor
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.uniformBuffer                  = 1;
-        poolCreateInfo.sampledImage                   = 1;
-        poolCreateInfo.sampler                        = 1;
+        poolCreateInfo.uniformBuffer                  = 8;
+        poolCreateInfo.sampledImage                   = 8;
+        poolCreateInfo.sampler                        = 8;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
@@ -106,27 +106,29 @@ void ProjApp::Setup()
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet));
+        for (uint32_t i = 0; i < 3; ++i) {
+          PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet[i]));
 
-        grfx::WriteDescriptor write = {};
-        write.binding               = 0;
-        write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        write.bufferOffset          = 0;
-        write.bufferRange           = PPX_WHOLE_SIZE;
-        write.pBuffer               = mUniformBuffer;
-        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
+          grfx::WriteDescriptor write = {};
+          write.binding               = 0;
+          write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+          write.bufferOffset          = 0;
+          write.bufferRange           = PPX_WHOLE_SIZE;
+          write.pBuffer               = mUniformBuffer[i];
+          PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
 
-        write            = {};
-        write.binding    = 1;
-        write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView = mSampledImageView;
-        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
+          write            = {};
+          write.binding    = 1;
+          write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+          write.pImageView = mSampledImageView;
+          PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
 
-        write          = {};
-        write.binding  = 2;
-        write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-        write.pSampler = mSampler;
-        PPX_CHECKED_CALL(ppxres = mDescriptorSet->UpdateDescriptors(1, &write));
+          write          = {};
+          write.binding  = 2;
+          write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
+          write.pSampler = mSampler;
+          PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
+        }
     }
 
     // Pipeline
@@ -283,9 +285,41 @@ void ProjApp::Render()
         float4x4 mat = P * V * M;
 
         void* pData = nullptr;
-        PPX_CHECKED_CALL(ppxres = mUniformBuffer->MapMemory(0, &pData));
+        PPX_CHECKED_CALL(ppxres = mUniformBuffer[0]->MapMemory(0, &pData));
         memcpy(pData, &mat, sizeof(mat));
-        mUniformBuffer->UnmapMemory();
+        mUniformBuffer[0]->UnmapMemory();
+    }
+
+    // Update uniform buffer
+    {
+        float    t   = GetElapsedSeconds();
+        float4x4 P   = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
+        float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
+        float4x4 T   = glm::translate(float3(-4, 0, -10 * (1 + sin(t / 2))));
+        float4x4 R   = glm::rotate(t / 4, float3(0, 0, 1)) * glm::rotate(t / 2, float3(0, 1, 0)) * glm::rotate(t / 4, float3(1, 0, 0));
+        float4x4 M   = T * R;
+        float4x4 mat = P * V * M;
+
+        void* pData = nullptr;
+        PPX_CHECKED_CALL(ppxres = mUniformBuffer[1]->MapMemory(0, &pData));
+        memcpy(pData, &mat, sizeof(mat));
+        mUniformBuffer[1]->UnmapMemory();
+    }
+
+    // Update uniform buffer
+    {
+        float    t   = GetElapsedSeconds();
+        float4x4 P   = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
+        float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
+        float4x4 T   = glm::translate(float3(4, 0, -10 * (1 + sin(t / 2))));
+        float4x4 R   = glm::rotate(t / 4, float3(0, 0, 1)) * glm::rotate(t, float3(0, 1, 0)) * glm::rotate(t / 4, float3(1, 0, 0));
+        float4x4 M   = T * R;
+        float4x4 mat = P * V * M;
+
+        void* pData = nullptr;
+        PPX_CHECKED_CALL(ppxres = mUniformBuffer[2]->MapMemory(0, &pData));
+        memcpy(pData, &mat, sizeof(mat));
+        mUniformBuffer[2]->UnmapMemory();
     }
 
     // Build command buffer
@@ -306,9 +340,16 @@ void ProjApp::Render()
         {
             frame.cmd->SetScissors(1, &mScissorRect);
             frame.cmd->SetViewports(1, &mViewport);
-            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
+            
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet[0]);
+            frame.cmd->Draw(36, 1, 0, 0);
+
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet[1]);
+            frame.cmd->Draw(36, 1, 0, 0);
+
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet[2]);
             frame.cmd->Draw(36, 1, 0, 0);
 
             // Draw ImGui
