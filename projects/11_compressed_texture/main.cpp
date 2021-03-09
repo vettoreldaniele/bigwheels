@@ -12,21 +12,21 @@ grfx::Api kApi = grfx::API_VK_1_1;
 #define kWindowHeight 720
 #define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
 
-struct ShapeDescriptor
+struct ShapeDesc
 {
     const char* texturePath;
     float3      homeLoc;
 };
 
-std::vector<ShapeDescriptor> textures = {
-    ShapeDescriptor{"basic/textures/box_panel_bc1.dds", float3(-6, 2, 0)},
-    ShapeDescriptor{"basic/textures/box_panel_bc2.dds", float3(-2, 2, 0)},
-    ShapeDescriptor{"basic/textures/box_panel_bc3.dds", float3(2, 2, 0)},
-    ShapeDescriptor{"basic/textures/box_panel_bc4.dds", float3(6, 2, 0)},
-    ShapeDescriptor{"basic/textures/box_panel_bc5.dds", float3(-6, -2, 0)},
-    ShapeDescriptor{"basic/textures/box_panel_bc6h.dds", float3(-2, -2, 0)},
-    ShapeDescriptor{"basic/textures/box_panel_bc6h_sf.dds", float3(2, -2, 0)},
-    ShapeDescriptor{"basic/textures/box_panel_bc7.dds", float3(6, -2, 0)},
+std::vector<ShapeDesc> textures = {
+    ShapeDesc{"basic/textures/box_panel_bc1.dds", float3(-6, 2, 0)},
+    ShapeDesc{"basic/textures/box_panel_bc2.dds", float3(-2, 2, 0)},
+    ShapeDesc{"basic/textures/box_panel_bc3.dds", float3(2, 2, 0)},
+    ShapeDesc{"basic/textures/box_panel_bc4.dds", float3(6, 2, 0)},
+    ShapeDesc{"basic/textures/box_panel_bc5.dds", float3(-6, -2, 0)},
+    ShapeDesc{"basic/textures/box_panel_bc6h.dds", float3(-2, -2, 0)},
+    ShapeDesc{"basic/textures/box_panel_bc6h_sf.dds", float3(2, -2, 0)},
+    ShapeDesc{"basic/textures/box_panel_bc7.dds", float3(6, -2, 0)},
 };
 
 class ProjApp
