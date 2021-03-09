@@ -232,7 +232,7 @@ list(
 
 if (PPX_D3D12)
     list(
-        APPEND PPX_GRFX_DX_HEADER_FILES
+        APPEND PPX_GRFX_DX12_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx12/000_dx12_config.h
         ${INC_DIR}/ppx/grfx/dx12/dx12_buffer.h
         ${INC_DIR}/ppx/grfx/dx12/dx12_command.h
@@ -253,7 +253,7 @@ if (PPX_D3D12)
     )
 
     list(
-        APPEND PPX_GRFX_DX_SOURCE_FILES
+        APPEND PPX_GRFX_DX12_SOURCE_FILES
         ${SRC_DIR}/ppx/grfx/dx12/dx12_buffer.cpp
         ${SRC_DIR}/ppx/grfx/dx12/dx12_command.cpp
         ${SRC_DIR}/ppx/grfx/dx12/dx12_descriptor.cpp
@@ -332,8 +332,8 @@ source_group("ppx\\header"          FILES ${PPX_HEADER_FILES})
 source_group("ppx\\source"          FILES ${PPX_SOURCE_FILES})
 source_group("ppx-grfx\\header"     FILES ${PPX_GRFX_HEADER_FILES})
 source_group("ppx-grfx\\source"     FILES ${PPX_GRFX_SOURCE_FILES})
-source_group("ppx-grfx-dx\\header"  FILES ${PPX_GRFX_DX_HEADER_FILES})
-source_group("ppx-grfx-dx\\source"  FILES ${PPX_GRFX_DX_SOURCE_FILES})
+source_group("ppx-grfx-dx\\header"  FILES ${PPX_GRFX_DX12_HEADER_FILES})
+source_group("ppx-grfx-dx\\source"  FILES ${PPX_GRFX_DX12_SOURCE_FILES})
 source_group("ppx-grfx-vk\\header"  FILES ${PPX_GRFX_VK_HEADER_FILES})
 source_group("ppx-grfx-vk\\source"  FILES ${PPX_GRFX_VK_SOURCE_FILES})
 source_group("ppx-io\\header"       FILES ${PPX_IO_HEADER_FILES})
@@ -352,8 +352,8 @@ add_library(
     ${PPX_SOURCE_FILES}
     ${PPX_GRFX_HEADER_FILES}
     ${PPX_GRFX_SOURCE_FILES}
-    ${PPX_GRFX_DX_HEADER_FILES}
-    ${PPX_GRFX_DX_SOURCE_FILES}
+    ${PPX_GRFX_DX12_HEADER_FILES}
+    ${PPX_GRFX_DX12_SOURCE_FILES}
     ${PPX_GRFX_VK_HEADER_FILES}
     ${PPX_GRFX_VK_SOURCE_FILES}
     ${PPX_IO_HEADER_FILES}
