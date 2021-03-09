@@ -23,5 +23,5 @@ project(11_compressed_textured)
 #)
 
 add_vk_sample(${PROJECT_NAME} TRUE)
-add_dx_sample(${PROJECT_NAME} TRUE)
+add_dx12_sample(${PROJECT_NAME} TRUE)
 add_dxil_sample(${PROJECT_NAME} TRUE)

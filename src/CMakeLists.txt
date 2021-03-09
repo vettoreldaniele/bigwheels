@@ -328,19 +328,19 @@ list(
 # Source group
 # ------------------------------------------------------------------------------
 
-source_group("ppx\\header"          FILES ${PPX_HEADER_FILES})
-source_group("ppx\\source"          FILES ${PPX_SOURCE_FILES})
-source_group("ppx-grfx\\header"     FILES ${PPX_GRFX_HEADER_FILES})
-source_group("ppx-grfx\\source"     FILES ${PPX_GRFX_SOURCE_FILES})
-source_group("ppx-grfx-dx\\header"  FILES ${PPX_GRFX_DX12_HEADER_FILES})
-source_group("ppx-grfx-dx\\source"  FILES ${PPX_GRFX_DX12_SOURCE_FILES})
-source_group("ppx-grfx-vk\\header"  FILES ${PPX_GRFX_VK_HEADER_FILES})
-source_group("ppx-grfx-vk\\source"  FILES ${PPX_GRFX_VK_SOURCE_FILES})
-source_group("ppx-io\\header"       FILES ${PPX_IO_HEADER_FILES})
-source_group("ppx-io\\source"       FILES ${PPX_IO_SOURCE_FILES})
-source_group("third_party\\contrib" FILES ${CONTRIB_FILES})
-source_group("third_party\\imgui"   FILES ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
-source_group("third_party\\xxHash"  FILES ${XXHASH_FILES})
+source_group("ppx\\header"            FILES ${PPX_HEADER_FILES})
+source_group("ppx\\source"            FILES ${PPX_SOURCE_FILES})
+source_group("ppx-grfx\\header"       FILES ${PPX_GRFX_HEADER_FILES})
+source_group("ppx-grfx\\source"       FILES ${PPX_GRFX_SOURCE_FILES})
+source_group("ppx-grfx-dx12\\header"  FILES ${PPX_GRFX_DX12_HEADER_FILES})
+source_group("ppx-grfx-dx12\\source"  FILES ${PPX_GRFX_DX12_SOURCE_FILES})
+source_group("ppx-grfx-vk\\header"    FILES ${PPX_GRFX_VK_HEADER_FILES})
+source_group("ppx-grfx-vk\\source"    FILES ${PPX_GRFX_VK_SOURCE_FILES})
+source_group("ppx-io\\header"         FILES ${PPX_IO_HEADER_FILES})
+source_group("ppx-io\\source"         FILES ${PPX_IO_SOURCE_FILES})
+source_group("third_party\\contrib"   FILES ${CONTRIB_FILES})
+source_group("third_party\\imgui"     FILES ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
+source_group("third_party\\xxHash"    FILES ${XXHASH_FILES})
 
 # ------------------------------------------------------------------------------
 # Add library

@@ -47,9 +47,9 @@ function(add_vk_sample name is_gui)
     endif()
 endfunction()
 
-function(add_dx_sample name is_gui)
+function(add_dx12_sample name is_gui)
     if (PPX_D3D12)
-        set (api_tag "dx")
+        set (api_tag "dx12")
         set (target_name "${api_tag}_${name}")
         set (additional_files "${ARGV2}")
 
