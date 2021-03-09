@@ -3,7 +3,7 @@
 #include "ppx/grfx/grfx_gpu.h"
 #include "ppx/grfx/vk/vk_instance.h"
 #if defined(PPX_D3D12)
-#include "ppx/grfx/dx/dx_instance.h"
+#include "ppx/grfx/dx12/dx12_instance.h"
 #endif // defined(PPX_D3D12)
 
 namespace ppx {

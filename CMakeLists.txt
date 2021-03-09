@@ -40,21 +40,27 @@ endif()
 # Configure graphics API
 # ------------------------------------------------------------------------------
 
-if (NOT (PPX_D3D12 OR PPX_OPENGL OR PPX_VULKAN))
+if (NOT (PPX_D3D11 OR PPX_D3D12 OR PPX_VULKAN))
     message("No PPX graphics API(s) specified - configuring based on current host")
     if (GGP)
         set(PPX_VULKAN TRUE)
     elseif (LINUX)
         set(PPX_VULKAN TRUE)
     elseif (WIN32)
+        set(PPX_D3D11  TRUE)
         set(PPX_D3D12  TRUE)
         set(PPX_VULKAN TRUE)
     endif()
 endif()
 
+set(PPX_D3D11_MSG  FALSE)
 set(PPX_D3D12_MSG  FALSE)
 set(PPX_VULKAN_MSG FALSE)
 
+# D3D12
+if (PPX_D3D11)
+    set(PPX_D3D11_MSG  TRUE)
+endif()
 # D3D12
 if (PPX_D3D12)
     set(PPX_D3D12_MSG  TRUE)
@@ -64,6 +70,7 @@ if (PPX_VULKAN)
     set(PPX_VULKAN_MSG  TRUE)
 endif()
 
+message("Graphics API D3D11  : ${PPX_D3D11_MSG}")
 message("Graphics API D3D12  : ${PPX_D3D12_MSG}")
 message("Graphics API Vulkan : ${PPX_VULKAN_MSG}")
 

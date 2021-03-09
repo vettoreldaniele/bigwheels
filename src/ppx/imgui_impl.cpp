@@ -17,8 +17,8 @@
 #if defined(PPX_D3D12)
 #include "backends/imgui_impl_dx12.h"
 
-#include "ppx/grfx/dx/dx_command.h"
-#include "ppx/grfx/dx/dx_device.h"
+#include "ppx/grfx/dx12/dx12_command.h"
+#include "ppx/grfx/dx12/dx12_device.h"
 #endif // defined(PPX_D3D12)
 
 #if defined(PPX_MSW)

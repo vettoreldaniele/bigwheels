@@ -233,43 +233,43 @@ list(
 if (PPX_D3D12)
     list(
         APPEND PPX_GRFX_DX_HEADER_FILES
-        ${INC_DIR}/ppx/grfx/dx/000_dx_config.h
-        ${INC_DIR}/ppx/grfx/dx/dx_buffer.h
-        ${INC_DIR}/ppx/grfx/dx/dx_command.h
-        ${INC_DIR}/ppx/grfx/dx/dx_descriptor.h
-        ${INC_DIR}/ppx/grfx/dx/dx_descriptor_helper.h
-        ${INC_DIR}/ppx/grfx/dx/dx_device.h
-        ${INC_DIR}/ppx/grfx/dx/dx_gpu.h
-        ${INC_DIR}/ppx/grfx/dx/dx_image.h
-        ${INC_DIR}/ppx/grfx/dx/dx_instance.h
-        ${INC_DIR}/ppx/grfx/dx/dx_pipeline.h
-        ${INC_DIR}/ppx/grfx/dx/dx_query.h
-        ${INC_DIR}/ppx/grfx/dx/dx_queue.h
-        ${INC_DIR}/ppx/grfx/dx/dx_render_pass.h
-        ${INC_DIR}/ppx/grfx/dx/dx_shader.h
-        ${INC_DIR}/ppx/grfx/dx/dx_swapchain.h
-        ${INC_DIR}/ppx/grfx/dx/dx_sync.h
-        ${INC_DIR}/ppx/grfx/dx/dx_util.h
+        ${INC_DIR}/ppx/grfx/dx12/000_dx12_config.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_buffer.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_command.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_descriptor.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_descriptor_helper.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_device.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_gpu.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_image.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_instance.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_pipeline.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_query.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_queue.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_render_pass.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_shader.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_swapchain.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_sync.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_util.h
     )
 
     list(
         APPEND PPX_GRFX_DX_SOURCE_FILES
-        ${SRC_DIR}/ppx/grfx/dx/dx_buffer.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_command.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_descriptor.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_descriptor_helper.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_device.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_gpu.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_image.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_instance.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_pipeline.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_query.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_queue.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_render_pass.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_shader.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_swapchain.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_sync.cpp
-        ${SRC_DIR}/ppx/grfx/dx/dx_util.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_buffer.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_command.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_descriptor.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_descriptor_helper.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_device.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_gpu.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_image.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_instance.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_pipeline.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_query.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_queue.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_render_pass.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_shader.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_swapchain.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_sync.cpp
+        ${SRC_DIR}/ppx/grfx/dx12/dx12_util.cpp
         ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src/D3D12MemAlloc.h
         ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src/D3D12MemAlloc.cpp
     )
