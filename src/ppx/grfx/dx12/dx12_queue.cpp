@@ -5,7 +5,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 Result Queue::CreateApiObjects(const grfx::internal::QueueCreateInfo* pCreateInfo)
 {
@@ -48,7 +48,7 @@ void Queue::DestroyApiObjects()
 
 Result Queue::WaitIdle()
 {
-    dx::Fence* pFence = ToApi(mWaitIdleFence.Get());
+    dx12::Fence* pFence = ToApi(mWaitIdleFence.Get());
     UINT64     value  = pFence->GetNextSignalValue();
     mCommandQueue->Signal(pFence->GetDxFence(), value);
     Result ppxres = pFence->Wait();
@@ -108,6 +108,6 @@ Result Queue::GetTimestampFrequency(uint64_t* pFrequency) const
     return ppx::SUCCESS;
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

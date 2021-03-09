@@ -1,5 +1,5 @@
-#ifndef ppx_grfx_dx_descriptor_helper_h
-#define ppx_grfx_dx_descriptor_helper_h
+#ifndef ppx_grfx_dx12_descriptor_helper_h
+#define ppx_grfx_dx12_descriptor_helper_h
 
 // *** Graphics API Note ***
 //
@@ -14,7 +14,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class Device;
 
@@ -27,7 +27,7 @@ const SIZE_T INVALID_D3D12_DESCRIPTOR_HANDLE = static_cast<SIZE_T>(~0);
 struct DescriptorHandle
 {
     UINT                        offset = UINT_MAX;
-    D3D12_CPU_DESCRIPTOR_HANDLE handle = {dx::INVALID_D3D12_DESCRIPTOR_HANDLE};
+    D3D12_CPU_DESCRIPTOR_HANDLE handle = {dx12::INVALID_D3D12_DESCRIPTOR_HANDLE};
 
     DescriptorHandle()
     {
@@ -43,7 +43,7 @@ struct DescriptorHandle
     void Reset()
     {
         offset     = UINT_MAX;
-        handle.ptr = dx::INVALID_D3D12_DESCRIPTOR_HANDLE;
+        handle.ptr = dx12::INVALID_D3D12_DESCRIPTOR_HANDLE;
     }
 };
 
@@ -56,7 +56,7 @@ public:
     DescriptorHandleAllocator();
     ~DescriptorHandleAllocator();
 
-    Result Create(dx::Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type);
+    Result Create(dx12::Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type);
     void   Destroy();
 
     Result AllocateHandle(DescriptorHandle* ppHandle);
@@ -83,7 +83,7 @@ public:
     DescriptorHandleManager();
     ~DescriptorHandleManager();
 
-    Result Create(dx::Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type);
+    Result Create(dx12::Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type);
     void   Destroy();
 
     Result AllocateHandle(DescriptorHandle* pHandle);
@@ -91,13 +91,13 @@ public:
     bool   HasHandle(const DescriptorHandle& handle) const;
 
 private:
-    dx::Device*                             mDevice = nullptr;
+    dx12::Device*                             mDevice = nullptr;
     D3D12_DESCRIPTOR_HEAP_TYPE              mType   = InvalidValue<D3D12_DESCRIPTOR_HEAP_TYPE>();
     std::vector<DescriptorHandleAllocator*> mAllocators;
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_descriptor_helper_h
+#endif // ppx_grfx_dx12_descriptor_helper_h

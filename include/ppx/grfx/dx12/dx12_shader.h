@@ -1,12 +1,12 @@
-#ifndef ppx_grfx_dx_shader_h
-#define ppx_grfx_dx_shader_h
+#ifndef ppx_grfx_dx12_shader_h
+#define ppx_grfx_dx12_shader_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/grfx_shader.h"
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class ShaderModule
     : public grfx::ShaderModule
@@ -26,8 +26,8 @@ private:
     std::vector<char> mCode;
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_shader_h
+#endif // ppx_grfx_dx12_shader_h

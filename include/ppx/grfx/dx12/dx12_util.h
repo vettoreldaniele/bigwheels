@@ -1,15 +1,16 @@
-#ifndef ppx_grfx_dx_util_h
-#define ppx_grfx_dx_util_h
+#ifndef ppx_grfx_dx12_util_h
+#define ppx_grfx_dx12_util_h
 
 #include "ppx/grfx/000_grfx_config.h"
 #include "ppx/grfx/grfx_format.h"
+#include "ppx/grfx/dx/dx_util.h"
 
 #include <d3d12.h>
 #include <dxgiformat.h>
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 D3D12_BLEND                    ToD3D12Blend(grfx::BlendFactor value);
 D3D12_BLEND_OP                 ToD3D12BlendOp(grfx::BlendOp value);
@@ -37,10 +38,8 @@ D3D12_RESOURCE_DIMENSION       ToD3D12TextureResourceDimension(grfx::ImageType v
 D3D12_UAV_DIMENSION            ToD3D12UAVDimension(grfx::ImageViewType value, uint32_t arrayLayerCount);
 UINT8                          ToD3D12WriteMask(uint32_t value);
 
-DXGI_FORMAT ToDxgiFormat(grfx::Format value);
-
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_util_h
+#endif // ppx_grfx_dx12_util_h

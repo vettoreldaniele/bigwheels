@@ -1,12 +1,12 @@
-#ifndef ppx_grfx_dx_gpu_h
-#define ppx_grfx_dx_gpu_h
+#ifndef ppx_grfx_dx12_gpu_h
+#define ppx_grfx_dx12_gpu_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/grfx_gpu.h"
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class Gpu
     : public grfx::Gpu
@@ -31,8 +31,8 @@ private:
     DXGIAdapterPtr mGpu;
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_gpu_h
+#endif // ppx_grfx_dx12_gpu_h

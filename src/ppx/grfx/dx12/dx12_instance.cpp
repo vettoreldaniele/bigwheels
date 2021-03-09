@@ -5,7 +5,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 Result Instance::EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel)
 {
@@ -159,7 +159,7 @@ void Instance::DestroyApiObjects()
 
 Result Instance::AllocateObject(grfx::Device** ppDevice)
 {
-    dx::Device* pObject = new dx::Device();
+    dx12::Device* pObject = new dx12::Device();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -169,7 +169,7 @@ Result Instance::AllocateObject(grfx::Device** ppDevice)
 
 Result Instance::AllocateObject(grfx::Gpu** ppGpu)
 {
-    dx::Gpu* pObject = new dx::Gpu();
+    dx12::Gpu* pObject = new dx12::Gpu();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -179,7 +179,7 @@ Result Instance::AllocateObject(grfx::Gpu** ppGpu)
 
 Result Instance::AllocateObject(grfx::Surface** ppSurface)
 {
-    dx::Surface* pObject = new dx::Surface();
+    dx12::Surface* pObject = new dx12::Surface();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -187,6 +187,6 @@ Result Instance::AllocateObject(grfx::Surface** ppSurface)
     return ppx::SUCCESS;
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

@@ -6,7 +6,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 // -------------------------------------------------------------------------------------------------
 // ComputePipeline
@@ -155,7 +155,7 @@ void GraphicsPipeline::InitializeInputLayout(
             D3D12_INPUT_ELEMENT_DESC element = {};
             element.SemanticName             = pAttribute->semanticName.c_str();
             element.SemanticIndex            = 0;
-            element.Format                   = ToDxgiFormat(pAttribute->format);
+            element.Format                   = dx::ToDxgiFormat(pAttribute->format);
             element.InputSlot                = static_cast<UINT>(pAttribute->binding);
             element.AlignedByteOffset        = static_cast<UINT>(pAttribute->offset);
             element.InputSlotClass           = (pAttribute->inputRate == grfx::VERETX_INPUT_RATE_INSTANCE) ? D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA : D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
@@ -175,10 +175,10 @@ void GraphicsPipeline::InitializeOutput(
     desc.NumRenderTargets = pCreateInfo->outputState.renderTargetCount;
 
     for (UINT i = 0; i < desc.NumRenderTargets; ++i) {
-        desc.RTVFormats[i] = ToDxgiFormat(pCreateInfo->outputState.renderTargetFormats[i]);
+        desc.RTVFormats[i] = dx::ToDxgiFormat(pCreateInfo->outputState.renderTargetFormats[i]);
     }
 
-    desc.DSVFormat = ToDxgiFormat(pCreateInfo->outputState.depthStencilFormat);
+    desc.DSVFormat = dx::ToDxgiFormat(pCreateInfo->outputState.depthStencilFormat);
 }
 
 Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo* pCreateInfo)
@@ -256,7 +256,7 @@ void GraphicsPipeline::DestroyApiObjects()
 // -------------------------------------------------------------------------------------------------
 Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateInfo* pCreateInfo)
 {
-    dx::Device* pDevice = ToApi(GetDevice());
+    dx12::Device* pDevice = ToApi(GetDevice());
 
     //std::vector<std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>>> parameterRanges;
     std::vector<std::unique_ptr<D3D12_DESCRIPTOR_RANGE1>> parameterRanges;
@@ -269,7 +269,7 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
     std::vector<D3D12_ROOT_PARAMETER1> parameters;
     for (uint32_t setIndex = 0; setIndex < pCreateInfo->setCount; ++setIndex) {
         uint32_t                                    set      = pCreateInfo->sets[setIndex].set;
-        const dx::DescriptorSetLayout*              pLayout  = ToApi(pCreateInfo->sets[setIndex].pLayout);
+        const dx12::DescriptorSetLayout*              pLayout  = ToApi(pCreateInfo->sets[setIndex].pLayout);
         const std::vector<grfx::DescriptorBinding>& bindings = pLayout->GetBindings();
 
         for (size_t bindingIndex = 0; bindingIndex < bindings.size(); ++bindingIndex) {
@@ -420,6 +420,6 @@ UINT PipelineInterface::FindParameterIndex(uint32_t set, uint32_t binding) const
     return static_cast<UINT>(it->index);
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

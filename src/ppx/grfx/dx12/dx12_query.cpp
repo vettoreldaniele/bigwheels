@@ -3,7 +3,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 Result QueryPool::CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo)
 {
@@ -37,6 +37,6 @@ void QueryPool::Reset(uint32_t firstQuery, uint32_t queryCount)
     (void)queryCount;
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

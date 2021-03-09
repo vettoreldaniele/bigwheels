@@ -17,7 +17,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 void Device::LoadRootSignatureFunctions()
 {
@@ -272,7 +272,7 @@ void Device::DestroyApiObjects()
     }
 }
 
-Result Device::AllocateRTVHandle(dx::DescriptorHandle* pHandle)
+Result Device::AllocateRTVHandle(dx12::DescriptorHandle* pHandle)
 {
     Result ppxres = mRTVHandleManager.AllocateHandle(pHandle);
     if (Failed(ppxres)) {
@@ -281,7 +281,7 @@ Result Device::AllocateRTVHandle(dx::DescriptorHandle* pHandle)
     return ppx::SUCCESS;
 }
 
-void Device::FreeRTVHandle(const dx::DescriptorHandle* pHandle)
+void Device::FreeRTVHandle(const dx12::DescriptorHandle* pHandle)
 {
     if (IsNull(pHandle)) {
         return;
@@ -289,7 +289,7 @@ void Device::FreeRTVHandle(const dx::DescriptorHandle* pHandle)
     mRTVHandleManager.FreeHandle(*pHandle);
 }
 
-Result Device::AllocateDSVHandle(dx::DescriptorHandle* pHandle)
+Result Device::AllocateDSVHandle(dx12::DescriptorHandle* pHandle)
 {
     Result ppxres = mDSVHandleManager.AllocateHandle(pHandle);
     if (Failed(ppxres)) {
@@ -298,7 +298,7 @@ Result Device::AllocateDSVHandle(dx::DescriptorHandle* pHandle)
     return ppx::SUCCESS;
 }
 
-void Device::FreeDSVHandle(const dx::DescriptorHandle* pHandle)
+void Device::FreeDSVHandle(const dx12::DescriptorHandle* pHandle)
 {
     if (IsNull(pHandle)) {
         return;
@@ -360,7 +360,7 @@ HRESULT Device::CreateVersionedRootSignatureDeserializer(
 
 Result Device::AllocateObject(grfx::Buffer** ppObject)
 {
-    dx::Buffer* pObject = new dx::Buffer();
+    dx12::Buffer* pObject = new dx12::Buffer();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -370,7 +370,7 @@ Result Device::AllocateObject(grfx::Buffer** ppObject)
 
 Result Device::AllocateObject(grfx::CommandBuffer** ppObject)
 {
-    dx::CommandBuffer* pObject = new dx::CommandBuffer();
+    dx12::CommandBuffer* pObject = new dx12::CommandBuffer();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -380,7 +380,7 @@ Result Device::AllocateObject(grfx::CommandBuffer** ppObject)
 
 Result Device::AllocateObject(grfx::CommandPool** ppObject)
 {
-    dx::CommandPool* pObject = new dx::CommandPool();
+    dx12::CommandPool* pObject = new dx12::CommandPool();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -390,7 +390,7 @@ Result Device::AllocateObject(grfx::CommandPool** ppObject)
 
 Result Device::AllocateObject(grfx::ComputePipeline** ppObject)
 {
-    dx::ComputePipeline* pObject = new dx::ComputePipeline();
+    dx12::ComputePipeline* pObject = new dx12::ComputePipeline();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -400,7 +400,7 @@ Result Device::AllocateObject(grfx::ComputePipeline** ppObject)
 
 Result Device::AllocateObject(grfx::DepthStencilView** ppObject)
 {
-    dx::DepthStencilView* pObject = new dx::DepthStencilView();
+    dx12::DepthStencilView* pObject = new dx12::DepthStencilView();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -410,7 +410,7 @@ Result Device::AllocateObject(grfx::DepthStencilView** ppObject)
 
 Result Device::AllocateObject(grfx::DescriptorPool** ppObject)
 {
-    dx::DescriptorPool* pObject = new dx::DescriptorPool();
+    dx12::DescriptorPool* pObject = new dx12::DescriptorPool();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -420,7 +420,7 @@ Result Device::AllocateObject(grfx::DescriptorPool** ppObject)
 
 Result Device::AllocateObject(grfx::DescriptorSet** ppObject)
 {
-    dx::DescriptorSet* pObject = new dx::DescriptorSet();
+    dx12::DescriptorSet* pObject = new dx12::DescriptorSet();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -430,7 +430,7 @@ Result Device::AllocateObject(grfx::DescriptorSet** ppObject)
 
 Result Device::AllocateObject(grfx::DescriptorSetLayout** ppObject)
 {
-    dx::DescriptorSetLayout* pObject = new dx::DescriptorSetLayout();
+    dx12::DescriptorSetLayout* pObject = new dx12::DescriptorSetLayout();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -440,7 +440,7 @@ Result Device::AllocateObject(grfx::DescriptorSetLayout** ppObject)
 
 Result Device::AllocateObject(grfx::Fence** ppObject)
 {
-    dx::Fence* pObject = new dx::Fence();
+    dx12::Fence* pObject = new dx12::Fence();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -450,7 +450,7 @@ Result Device::AllocateObject(grfx::Fence** ppObject)
 
 Result Device::AllocateObject(grfx::GraphicsPipeline** ppObject)
 {
-    dx::GraphicsPipeline* pObject = new dx::GraphicsPipeline();
+    dx12::GraphicsPipeline* pObject = new dx12::GraphicsPipeline();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -460,7 +460,7 @@ Result Device::AllocateObject(grfx::GraphicsPipeline** ppObject)
 
 Result Device::AllocateObject(grfx::Image** ppObject)
 {
-    dx::Image* pObject = new dx::Image();
+    dx12::Image* pObject = new dx12::Image();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -470,7 +470,7 @@ Result Device::AllocateObject(grfx::Image** ppObject)
 
 Result Device::AllocateObject(grfx::PipelineInterface** ppObject)
 {
-    dx::PipelineInterface* pObject = new dx::PipelineInterface();
+    dx12::PipelineInterface* pObject = new dx12::PipelineInterface();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -480,7 +480,7 @@ Result Device::AllocateObject(grfx::PipelineInterface** ppObject)
 
 Result Device::AllocateObject(grfx::Queue** ppObject)
 {
-    dx::Queue* pObject = new dx::Queue();
+    dx12::Queue* pObject = new dx12::Queue();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -490,7 +490,7 @@ Result Device::AllocateObject(grfx::Queue** ppObject)
 
 Result Device::AllocateObject(grfx::QueryPool** ppObject)
 {
-    dx::QueryPool* pObject = new dx::QueryPool();
+    dx12::QueryPool* pObject = new dx12::QueryPool();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -500,7 +500,7 @@ Result Device::AllocateObject(grfx::QueryPool** ppObject)
 
 Result Device::AllocateObject(grfx::RenderPass** ppObject)
 {
-    dx::RenderPass* pObject = new dx::RenderPass();
+    dx12::RenderPass* pObject = new dx12::RenderPass();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -510,7 +510,7 @@ Result Device::AllocateObject(grfx::RenderPass** ppObject)
 
 Result Device::AllocateObject(grfx::RenderTargetView** ppObject)
 {
-    dx::RenderTargetView* pObject = new dx::RenderTargetView();
+    dx12::RenderTargetView* pObject = new dx12::RenderTargetView();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -520,7 +520,7 @@ Result Device::AllocateObject(grfx::RenderTargetView** ppObject)
 
 Result Device::AllocateObject(grfx::SampledImageView** ppObject)
 {
-    dx::SampledImageView* pObject = new dx::SampledImageView();
+    dx12::SampledImageView* pObject = new dx12::SampledImageView();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -530,7 +530,7 @@ Result Device::AllocateObject(grfx::SampledImageView** ppObject)
 
 Result Device::AllocateObject(grfx::Sampler** ppObject)
 {
-    dx::Sampler* pObject = new dx::Sampler();
+    dx12::Sampler* pObject = new dx12::Sampler();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -540,7 +540,7 @@ Result Device::AllocateObject(grfx::Sampler** ppObject)
 
 Result Device::AllocateObject(grfx::Semaphore** ppObject)
 {
-    dx::Semaphore* pObject = new dx::Semaphore();
+    dx12::Semaphore* pObject = new dx12::Semaphore();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -550,7 +550,7 @@ Result Device::AllocateObject(grfx::Semaphore** ppObject)
 
 Result Device::AllocateObject(grfx::ShaderModule** ppObject)
 {
-    dx::ShaderModule* pObject = new dx::ShaderModule();
+    dx12::ShaderModule* pObject = new dx12::ShaderModule();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -565,7 +565,7 @@ Result Device::AllocateObject(grfx::ShaderProgram** ppObject)
 
 Result Device::AllocateObject(grfx::StorageImageView** ppObject)
 {
-    dx::StorageImageView* pObject = new dx::StorageImageView();
+    dx12::StorageImageView* pObject = new dx12::StorageImageView();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -575,7 +575,7 @@ Result Device::AllocateObject(grfx::StorageImageView** ppObject)
 
 Result Device::AllocateObject(grfx::Swapchain** ppObject)
 {
-    dx::Swapchain* pObject = new dx::Swapchain();
+    dx12::Swapchain* pObject = new dx12::Swapchain();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -667,7 +667,7 @@ Result Device::ResolveQueryData(
     // Build command buffer
     cmdBuf->Begin();
     {
-        const dx::QueryPool* pDxQueryPool = ToApi(pQueryPool);
+        const dx12::QueryPool* pDxQueryPool = ToApi(pQueryPool);
 
         ID3D12GraphicsCommandList* pCmdList = ToApi(cmdBuf)->GetDxCommandList();
         pCmdList->ResolveQueryData(
@@ -708,6 +708,6 @@ Result Device::ResolveQueryData(
     return ppx::SUCCESS;
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

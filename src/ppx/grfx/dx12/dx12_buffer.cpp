@@ -3,7 +3,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
 {
@@ -46,7 +46,7 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
         initialResourceState |= D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
-    dx::Device* pDevice = ToApi(GetDevice());
+    dx12::Device* pDevice = ToApi(GetDevice());
     HRESULT     hr      = pDevice->GetAllocator()->CreateResource(
         &allocationDesc,
         &resourceDesc,
@@ -110,6 +110,6 @@ void Buffer::UnmapMemory()
     mResource->Unmap(0, pRange);
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

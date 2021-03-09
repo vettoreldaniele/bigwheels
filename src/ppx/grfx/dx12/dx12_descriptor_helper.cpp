@@ -3,7 +3,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 // -------------------------------------------------------------------------------------------------
 // DescriptorHandleHeap
@@ -16,7 +16,7 @@ DescriptorHandleAllocator::~DescriptorHandleAllocator()
 {
 }
 
-Result DescriptorHandleAllocator::Create(dx::Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type)
+Result DescriptorHandleAllocator::Create(dx12::Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type)
 {
     mHandles.resize(MAX_DESCRIPTOR_HANDLE_HEAP_SIZE);
 
@@ -49,7 +49,7 @@ UINT DescriptorHandleAllocator::FirstAvailableIndex() const
     UINT index = UINT_MAX;
     for (size_t i = 0; i < mHandles.size(); ++i) {
         const DescriptorHandle& handle = mHandles[i];
-        if ((handle.offset == UINT_MAX) && (handle.handle.ptr == dx::INVALID_D3D12_DESCRIPTOR_HANDLE)) {
+        if ((handle.offset == UINT_MAX) && (handle.handle.ptr == dx12::INVALID_D3D12_DESCRIPTOR_HANDLE)) {
             index = static_cast<UINT>(i);
             break;
         }
@@ -72,7 +72,7 @@ Result DescriptorHandleAllocator::AllocateHandle(DescriptorHandle* pHandle)
     return ppx::SUCCESS;
 }
 
-void DescriptorHandleAllocator::FreeHandle(const dx::DescriptorHandle& handle)
+void DescriptorHandleAllocator::FreeHandle(const dx12::DescriptorHandle& handle)
 {
     UINT index        = handle.offset;
     bool isSameOffset = (handle.offset == mHandles[index].offset);
@@ -82,12 +82,12 @@ void DescriptorHandleAllocator::FreeHandle(const dx::DescriptorHandle& handle)
     }
 }
 
-bool DescriptorHandleAllocator::HasHandle(const dx::DescriptorHandle& handle) const
+bool DescriptorHandleAllocator::HasHandle(const dx12::DescriptorHandle& handle) const
 {
     auto it = std::find_if(
         std::begin(mHandles),
         std::end(mHandles),
-        [handle](const dx::DescriptorHandle& elem) -> bool {
+        [handle](const dx12::DescriptorHandle& elem) -> bool {
             bool isSameOffset = (handle.offset == elem.offset);
             bool isSamePtr    = (handle.handle.ptr == elem.handle.ptr);
             return isSameOffset && isSamePtr;
@@ -114,12 +114,12 @@ DescriptorHandleManager::~DescriptorHandleManager()
 {
 }
 
-Result DescriptorHandleManager::Create(dx::Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type)
+Result DescriptorHandleManager::Create(dx12::Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type)
 {
     mDevice = pDevice;
     mType   = type;
 
-    dx::DescriptorHandleAllocator* pHeap = new dx::DescriptorHandleAllocator();
+    dx12::DescriptorHandleAllocator* pHeap = new dx12::DescriptorHandleAllocator();
     if (IsNull(pHeap)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -159,7 +159,7 @@ Result DescriptorHandleManager::AllocateHandle(DescriptorHandle* pHandle)
     }
 
     if (!allocated) {
-        dx::DescriptorHandleAllocator* pHeap = new dx::DescriptorHandleAllocator();
+        dx12::DescriptorHandleAllocator* pHeap = new dx12::DescriptorHandleAllocator();
         if (IsNull(pHeap)) {
             return ppx::ERROR_ALLOCATION_FAILED;
         }
@@ -183,7 +183,7 @@ Result DescriptorHandleManager::AllocateHandle(DescriptorHandle* pHandle)
 
 void DescriptorHandleManager::FreeHandle(const DescriptorHandle& handle)
 {
-    dx::DescriptorHandleAllocator* pHeap = nullptr;
+    dx12::DescriptorHandleAllocator* pHeap = nullptr;
     for (size_t i = 0; i < mAllocators.size(); ++i) {
         bool found = mAllocators[i]->HasHandle(handle);
         if (found) {
@@ -209,6 +209,6 @@ bool DescriptorHandleManager::HasHandle(const DescriptorHandle& handle) const
     return found;
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

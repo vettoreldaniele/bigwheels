@@ -282,7 +282,7 @@ Result ImGuiImplDx::InitApiObjects(ppx::Application* pApp)
         desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         desc.NodeMask                   = 0;
 
-        grfx::dx::D3D12DevicePtr device = grfx::dx::ToApi(pApp->GetDevice())->GetDxDevice();
+        grfx::dx12::D3D12DevicePtr device = grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice();
         HRESULT                  hr     = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
         if (FAILED(hr)) {
             PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CBVSRVUAV) failed");
@@ -293,7 +293,7 @@ Result ImGuiImplDx::InitApiObjects(ppx::Application* pApp)
 
     // Setup DX12 binding
     bool result = ImGui_ImplDX12_Init(
-        grfx::dx::ToApi(pApp->GetDevice())->GetDxDevice(),
+        grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice(),
         static_cast<int>(pApp->GetNumFramesInFlight()),
         grfx::dx::ToDxgiFormat(pApp->GetSwapchain()->GetColorFormat()),
         mHeapCBVSRVUAV,
@@ -327,11 +327,11 @@ void ImGuiImplDx::NewFrameApi()
 
 void ImGuiImplDx::Render(grfx::CommandBuffer* pCommandBuffer)
 {
-    grfx::dx::D3D12GraphicsCommandListPtr commandList = grfx::dx::ToApi(pCommandBuffer)->GetDxCommandList();
+    grfx::dx12::D3D12GraphicsCommandListPtr commandList = grfx::dx12::ToApi(pCommandBuffer)->GetDxCommandList();
     commandList->SetDescriptorHeaps(1, &mHeapCBVSRVUAV);
 
     ImGui::Render();
-    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), grfx::dx::ToApi(pCommandBuffer)->GetDxCommandList());
+    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), grfx::dx12::ToApi(pCommandBuffer)->GetDxCommandList());
 }
 
 #endif // defined(PPX_D3D12)

@@ -1,5 +1,5 @@
-#ifndef ppx_grfx_dx_device_h
-#define ppx_grfx_dx_device_h
+#ifndef ppx_grfx_dx12_device_h
+#define ppx_grfx_dx12_device_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/dx12/dx12_descriptor_helper.h"
@@ -7,7 +7,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class Device
     : public grfx::Device
@@ -22,11 +22,11 @@ public:
     UINT GetHandleIncrementSizeCBVSRVUAV() const { return mHandleIncrementSizeCBVSRVUAV; }
     UINT GetHandleIncrementSizeSampler() const { return mHandleIncrementSizeSampler; }
 
-    Result AllocateRTVHandle(dx::DescriptorHandle* pHandle);
-    void   FreeRTVHandle(const dx::DescriptorHandle* pHandle);
+    Result AllocateRTVHandle(dx12::DescriptorHandle* pHandle);
+    void   FreeRTVHandle(const dx12::DescriptorHandle* pHandle);
 
-    Result AllocateDSVHandle(dx::DescriptorHandle* pHandle);
-    void   FreeDSVHandle(const dx::DescriptorHandle* pHandle);
+    Result AllocateDSVHandle(dx12::DescriptorHandle* pHandle);
+    void   FreeDSVHandle(const dx12::DescriptorHandle* pHandle);
 
     HRESULT CreateRootSignatureDeserializer(
         LPCVOID    pSrcData,
@@ -93,8 +93,8 @@ private:
 
     UINT                        mHandleIncrementSizeCBVSRVUAV = 0;
     UINT                        mHandleIncrementSizeSampler   = 0;
-    dx::DescriptorHandleManager mRTVHandleManager;
-    dx::DescriptorHandleManager mDSVHandleManager;
+    dx12::DescriptorHandleManager mRTVHandleManager;
+    dx12::DescriptorHandleManager mDSVHandleManager;
 
     PFN_D3D12_CREATE_ROOT_SIGNATURE_DESERIALIZER           mFnD3D12CreateRootSignatureDeserializer          = nullptr;
     PFN_D3D12_SERIALIZE_VERSIONED_ROOT_SIGNATURE           mFnD3D12SerializeVersionedRootSignature          = nullptr;
@@ -105,8 +105,8 @@ private:
     std::mutex                   mQueryResolveMutex;
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_device_h
+#endif // ppx_grfx_dx12_device_h

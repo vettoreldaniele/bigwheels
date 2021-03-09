@@ -1,12 +1,12 @@
-#ifndef ppx_grfx_dx_command_buffer_h
-#define ppx_grfx_dx_command_buffer_h
+#ifndef ppx_grfx_dx12_command_buffer_h
+#define ppx_grfx_dx12_command_buffer_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/grfx_command.h"
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class CommandBuffer
     : public grfx::CommandBuffer
@@ -168,8 +168,8 @@ private:
     D3D12_COMMAND_LIST_TYPE  mCommandType = ppx::InvalidValue<D3D12_COMMAND_LIST_TYPE>();
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_command_buffer_h
+#endif // ppx_grfx_dx12_command_buffer_h

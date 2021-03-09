@@ -6,7 +6,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 // -------------------------------------------------------------------------------------------------
 // Surface
@@ -40,7 +40,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     //
     // clang-format off
     bool formatSupported = false;
-    DXGI_FORMAT dxgiFormat = ToDxgiFormat(pCreateInfo->colorFormat);
+    DXGI_FORMAT dxgiFormat = dx::ToDxgiFormat(pCreateInfo->colorFormat);
     switch (dxgiFormat) {
         default:  break;
         case DXGI_FORMAT_B8G8R8A8_UNORM:
@@ -97,7 +97,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     DXGI_SWAP_CHAIN_DESC1 dxDesc = {};
     dxDesc.Width                 = static_cast<UINT>(pCreateInfo->width);
     dxDesc.Height                = static_cast<UINT>(pCreateInfo->height);
-    dxDesc.Format                = ToDxgiFormat(pCreateInfo->colorFormat);
+    dxDesc.Format                = dx::ToDxgiFormat(pCreateInfo->colorFormat);
     dxDesc.Stereo                = FALSE;
     dxDesc.SampleDesc.Count      = 1;
     dxDesc.SampleDesc.Quality    = 0;
@@ -276,6 +276,6 @@ Result Swapchain::Present(
     return ppx::SUCCESS;
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

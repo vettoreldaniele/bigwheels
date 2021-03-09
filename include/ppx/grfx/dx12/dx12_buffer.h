@@ -1,12 +1,12 @@
-#ifndef ppx_grfx_dx_buffer_h
-#define ppx_grfx_dx_buffer_h
+#ifndef ppx_grfx_dx12_buffer_h
+#define ppx_grfx_dx12_buffer_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/grfx_buffer.h"
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class Buffer
     : public grfx::Buffer
@@ -30,8 +30,8 @@ private:
     ObjPtr<D3D12MA::Allocation> mAllocation;
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_buffer_h
+#endif // ppx_grfx_dx12_buffer_h

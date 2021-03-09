@@ -230,6 +230,18 @@ list(
     ${SRC_DIR}/ppx/io/obj_loader.cpp
 )
 
+if (PPX_D3D11 OR PPX_D3D12)
+    list(
+        APPEND PPX_GRFX_DX_HEADER_FILES
+        ${INC_DIR}/ppx/grfx/dx/dx_util.h
+    )
+
+    list(
+        APPEND PPX_GRFX_DX_SOURCE_FILES
+        ${SRC_DIR}/ppx/grfx/dx/dx_util.cpp
+    )
+endif()
+
 if (PPX_D3D12)
     list(
         APPEND PPX_GRFX_DX12_HEADER_FILES
@@ -332,6 +344,8 @@ source_group("ppx\\header"            FILES ${PPX_HEADER_FILES})
 source_group("ppx\\source"            FILES ${PPX_SOURCE_FILES})
 source_group("ppx-grfx\\header"       FILES ${PPX_GRFX_HEADER_FILES})
 source_group("ppx-grfx\\source"       FILES ${PPX_GRFX_SOURCE_FILES})
+source_group("ppx-grfx-dx\\header"    FILES ${PPX_GRFX_DX_HEADER_FILES})
+source_group("ppx-grfx-dx\\source"    FILES ${PPX_GRFX_DX_SOURCE_FILES})
 source_group("ppx-grfx-dx12\\header"  FILES ${PPX_GRFX_DX12_HEADER_FILES})
 source_group("ppx-grfx-dx12\\source"  FILES ${PPX_GRFX_DX12_SOURCE_FILES})
 source_group("ppx-grfx-vk\\header"    FILES ${PPX_GRFX_VK_HEADER_FILES})
@@ -352,6 +366,8 @@ add_library(
     ${PPX_SOURCE_FILES}
     ${PPX_GRFX_HEADER_FILES}
     ${PPX_GRFX_SOURCE_FILES}
+    ${PPX_GRFX_DX_HEADER_FILES}
+    ${PPX_GRFX_DX_SOURCE_FILES}
     ${PPX_GRFX_DX12_HEADER_FILES}
     ${PPX_GRFX_DX12_SOURCE_FILES}
     ${PPX_GRFX_VK_HEADER_FILES}

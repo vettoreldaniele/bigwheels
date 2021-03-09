@@ -1,12 +1,12 @@
-#ifndef ppx_grfx_dx_queue_h
-#define ppx_grfx_dx_queue_h
+#ifndef ppx_grfx_dx12_queue_h
+#define ppx_grfx_dx12_queue_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/grfx_queue.h"
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class Queue
     : public grfx::Queue
@@ -33,8 +33,8 @@ private:
     std::vector<ID3D12CommandList*> mListBuffer;
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_queue_h
+#endif // ppx_grfx_dx12_queue_h

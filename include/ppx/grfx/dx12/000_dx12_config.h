@@ -1,5 +1,5 @@
-#ifndef ppx_grfx_dx_config_h
-#define ppx_grfx_dx_config_h
+#ifndef ppx_grfx_dx12_config_h
+#define ppx_grfx_dx12_config_h
 
 #include "ppx/grfx/000_grfx_config.h"
 #include "ppx/grfx/dx12/dx12_util.h"
@@ -22,7 +22,7 @@ using Microsoft::WRL::ComPtr;
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 using DXGIAdapterPtr              = ComPtr<IDXGIAdapter4>;
 using DXGIFactoryPtr              = ComPtr<IDXGIFactory7>;
@@ -80,84 +80,84 @@ template <>
 struct ApiObjectLookUp<grfx::Buffer>
 {
     using GrfxType = grfx::Buffer;
-    using ApiType  = dx::Buffer;
+    using ApiType  = dx12::Buffer;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::CommandBuffer>
 {
     using GrfxType = grfx::CommandBuffer;
-    using ApiType  = dx::CommandBuffer;
+    using ApiType  = dx12::CommandBuffer;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::CommandPool>
 {
     using GrfxType = grfx::CommandPool;
-    using ApiType  = dx::CommandPool;
+    using ApiType  = dx12::CommandPool;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::ComputePipeline>
 {
     using GrfxType = grfx::ComputePipeline;
-    using ApiType  = dx::ComputePipeline;
+    using ApiType  = dx12::ComputePipeline;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::DescriptorPool>
 {
     using GrfxType = grfx::DescriptorPool;
-    using ApiType  = dx::DescriptorPool;
+    using ApiType  = dx12::DescriptorPool;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::DescriptorSet>
 {
     using GrfxType = grfx::DescriptorSet;
-    using ApiType  = dx::DescriptorSet;
+    using ApiType  = dx12::DescriptorSet;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::DescriptorSetLayout>
 {
     using GrfxType = grfx::DescriptorSetLayout;
-    using ApiType  = dx::DescriptorSetLayout;
+    using ApiType  = dx12::DescriptorSetLayout;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::DepthStencilView>
 {
     using GrfxType = grfx::DepthStencilView;
-    using ApiType  = dx::DepthStencilView;
+    using ApiType  = dx12::DepthStencilView;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::Device>
 {
     using GrfxType = grfx::Device;
-    using ApiType  = dx::Device;
+    using ApiType  = dx12::Device;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::Fence>
 {
     using GrfxType = grfx::Fence;
-    using ApiType  = dx::Fence;
+    using ApiType  = dx12::Fence;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::GraphicsPipeline>
 {
     using GrfxType = grfx::GraphicsPipeline;
-    using ApiType  = dx::GraphicsPipeline;
+    using ApiType  = dx12::GraphicsPipeline;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::Image>
 {
     using GrfxType = grfx::Image;
-    using ApiType  = dx::Image;
+    using ApiType  = dx12::Image;
 };
 
 template <>
@@ -171,77 +171,77 @@ template <>
 struct ApiObjectLookUp<grfx::Gpu>
 {
     using GrfxType = grfx::Gpu;
-    using ApiType  = dx::Gpu;
+    using ApiType  = dx12::Gpu;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::Queue>
 {
     using GrfxType = grfx::Queue;
-    using ApiType  = dx::Queue;
+    using ApiType  = dx12::Queue;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::QueryPool>
 {
     using GrfxType = grfx::QueryPool;
-    using ApiType  = dx::QueryPool;
+    using ApiType  = dx12::QueryPool;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::PipelineInterface>
 {
     using GrfxType = grfx::PipelineInterface;
-    using ApiType  = dx::PipelineInterface;
+    using ApiType  = dx12::PipelineInterface;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::RenderPass>
 {
     using GrfxType = grfx::RenderPass;
-    using ApiType  = dx::RenderPass;
+    using ApiType  = dx12::RenderPass;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::RenderTargetView>
 {
     using GrfxType = grfx::RenderTargetView;
-    using ApiType  = dx::RenderTargetView;
+    using ApiType  = dx12::RenderTargetView;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::Sampler>
 {
     using GrfxType = grfx::Sampler;
-    using ApiType  = dx::Sampler;
+    using ApiType  = dx12::Sampler;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::Semaphore>
 {
     using GrfxType = grfx::Semaphore;
-    using ApiType  = dx::Semaphore;
+    using ApiType  = dx12::Semaphore;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::ShaderModule>
 {
     using GrfxType = grfx::ShaderModule;
-    using ApiType  = dx::ShaderModule;
+    using ApiType  = dx12::ShaderModule;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::Surface>
 {
     using GrfxType = grfx::Surface;
-    using ApiType  = dx::Surface;
+    using ApiType  = dx12::Surface;
 };
 
 template <>
 struct ApiObjectLookUp<grfx::Swapchain>
 {
     using GrfxType = grfx::Swapchain;
-    using ApiType  = dx::Swapchain;
+    using ApiType  = dx12::Swapchain;
 };
 template <typename GrfxTypeT>
 typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(GrfxTypeT* pGrfxObject)
@@ -267,8 +267,8 @@ typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(ObjPtr<GrfxTypeT>& pGrfxObje
     return pApiObject;
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_config_h
+#endif // ppx_grfx_dx12_config_h

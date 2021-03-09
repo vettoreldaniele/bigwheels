@@ -9,7 +9,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 // -------------------------------------------------------------------------------------------------
 // CommandBuffer
@@ -159,7 +159,7 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
     // Get handle to render target descirptors
     uint32_t renderTargetCount = pRenderPass->GetRenderTargetCount();
     for (uint32_t i = 0; i < renderTargetCount; ++i) {
-        dx::RenderTargetView* pRTV = ToApi(pRenderPass->GetRenderTargetView(i).Get());
+        dx12::RenderTargetView* pRTV = ToApi(pRenderPass->GetRenderTargetView(i).Get());
         renderTargetDescriptors[i] = pRTV->GetCpuDescriptorHandle();
     }
 
@@ -342,9 +342,9 @@ void CommandBuffer::BindDescriptorSets(
     size_t&                           rdtCountCBVSRVUAV,
     size_t&                           rdtCountSampler)
 {
-    dx::Device*                  pApiDevice             = ToApi(GetDevice());
+    dx12::Device*                  pApiDevice             = ToApi(GetDevice());
     D3D12DevicePtr               device                 = pApiDevice->GetDxDevice();
-    const dx::PipelineInterface* pApiPipelineInterface  = ToApi(pInterface);
+    const dx12::PipelineInterface* pApiPipelineInterface  = ToApi(pInterface);
     const std::vector<uint32_t>& setNumbers             = pApiPipelineInterface->GetSetNumbers();
     UINT                         incrementSizeCBVSRVUAV = pApiDevice->GetHandleIncrementSizeCBVSRVUAV();
     UINT                         incrementSizeSampler   = pApiDevice->GetHandleIncrementSizeSampler();
@@ -361,7 +361,7 @@ void CommandBuffer::BindDescriptorSets(
     for (uint32_t setIndex = 0; setIndex < setCount; ++setIndex) {
         PPX_ASSERT_MSG(ppSets[setIndex] != nullptr, "ppSets[" << setIndex << "] is null");
         uint32_t                 set      = setNumbers[setIndex];
-        const dx::DescriptorSet* pApiSet  = ToApi(ppSets[setIndex]);
+        const dx12::DescriptorSet* pApiSet  = ToApi(ppSets[setIndex]);
         auto&                    bindings = pApiSet->GetLayout()->GetBindings();
 
         // Copy the descriptors
@@ -715,6 +715,6 @@ void CommandPool::DestroyApiObjects()
     }
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

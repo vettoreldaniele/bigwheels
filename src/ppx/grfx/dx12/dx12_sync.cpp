@@ -3,7 +3,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 // -------------------------------------------------------------------------------------------------
 // Fence
@@ -94,6 +94,6 @@ UINT64 Semaphore::GetWaitForValue() const
     return mValue;
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

@@ -3,7 +3,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 // -------------------------------------------------------------------------------------------------
 // Image
@@ -43,7 +43,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         resourceDesc.Height              = static_cast<UINT64>(pCreateInfo->height);
         resourceDesc.DepthOrArraySize    = static_cast<UINT16>((pCreateInfo->type == grfx::IMAGE_TYPE_3D) ? pCreateInfo->depth : pCreateInfo->arrayLayerCount);
         resourceDesc.MipLevels           = static_cast<UINT16>(pCreateInfo->mipLevelCount);
-        resourceDesc.Format              = ToDxgiFormat(pCreateInfo->format);
+        resourceDesc.Format              = dx::ToDxgiFormat(pCreateInfo->format);
         resourceDesc.SampleDesc.Count    = static_cast<UINT>(pCreateInfo->sampleCount);
         resourceDesc.SampleDesc.Quality  = 0;
         resourceDesc.Layout              = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -69,7 +69,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
             clearValue.Color[3] = static_cast<FLOAT>(pCreateInfo->RTVClearValue.rgba[3]);
         }
 
-        dx::Device* pDevice = ToApi(GetDevice());
+        dx12::Device* pDevice = ToApi(GetDevice());
         HRESULT     hr      = pDevice->GetAllocator()->CreateResource(
             &allocationDesc,
             &resourceDesc,
@@ -186,7 +186,7 @@ Result DepthStencilView::CreateApiObjects(const grfx::DepthStencilViewCreateInfo
     }
 
     mDesc               = {};
-    mDesc.Format        = ToDxgiFormat(pCreateInfo->format);
+    mDesc.Format        = dx::ToDxgiFormat(pCreateInfo->format);
     mDesc.ViewDimension = ToD3D12DSVDimension(pCreateInfo->imageViewType);
     mDesc.Flags         = D3D12_DSV_FLAG_NONE;
 
@@ -245,7 +245,7 @@ Result RenderTargetView::CreateApiObjects(const grfx::RenderTargetViewCreateInfo
     }
 
     mDesc               = {};
-    mDesc.Format        = ToDxgiFormat(pCreateInfo->format);
+    mDesc.Format        = dx::ToDxgiFormat(pCreateInfo->format);
     mDesc.ViewDimension = ToD3D12RTVDimension(pCreateInfo->imageViewType);
 
     switch (mDesc.ViewDimension) {
@@ -308,7 +308,7 @@ Result SampledImageView::CreateApiObjects(const grfx::SampledImageViewCreateInfo
     D3D12_SHADER_COMPONENT_MAPPING src3 = ToD3D12ShaderComponentMapping(pCreateInfo->components.a, D3D12_SHADER_COMPONENT_MAPPING_FROM_MEMORY_COMPONENT_3);
 
     // Intial format
-    DXGI_FORMAT format = ToDxgiFormat(pCreateInfo->format);
+    DXGI_FORMAT format = dx::ToDxgiFormat(pCreateInfo->format);
 
     // D3D12 doesn't allow the usage of D32_FLOAT in SRV so we'll need to readjust it
     if (format == DXGI_FORMAT_D32_FLOAT) {
@@ -346,7 +346,7 @@ void SampledImageView::DestroyApiObjects()
 // -------------------------------------------------------------------------------------------------
 Result StorageImageView::CreateApiObjects(const grfx::StorageImageViewCreateInfo* pCreateInfo)
 {
-    mDesc.Format        = ToDxgiFormat(pCreateInfo->format);
+    mDesc.Format        = dx::ToDxgiFormat(pCreateInfo->format);
     mDesc.ViewDimension = ToD3D12UAVDimension(pCreateInfo->imageViewType, pCreateInfo->arrayLayerCount);
     if (pCreateInfo->arrayLayerCount > 1) {
         mDesc.Texture2DArray.MipSlice        = static_cast<UINT>(pCreateInfo->mipLevel);
@@ -367,6 +367,6 @@ void StorageImageView::DestroyApiObjects()
     mDesc = {};
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

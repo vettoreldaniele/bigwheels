@@ -1,5 +1,5 @@
-#ifndef ppx_grfx_dx_image_h
-#define ppx_grfx_dx_image_h
+#ifndef ppx_grfx_dx12_image_h
+#define ppx_grfx_dx12_image_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/dx12/dx12_descriptor_helper.h"
@@ -7,7 +7,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class Image
     : public grfx::Image
@@ -66,7 +66,7 @@ protected:
 
 private:
     D3D12_DEPTH_STENCIL_VIEW_DESC mDesc       = {};
-    dx::DescriptorHandle          mDescriptor = {};
+    dx12::DescriptorHandle          mDescriptor = {};
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ protected:
 
 private:
     D3D12_RENDER_TARGET_VIEW_DESC mDesc       = {};
-    dx::DescriptorHandle          mDescriptor = {};
+    dx12::DescriptorHandle          mDescriptor = {};
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -127,8 +127,8 @@ private:
     D3D12_UNORDERED_ACCESS_VIEW_DESC mDesc = {};
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_image_h
+#endif // ppx_grfx_dx12_image_h

@@ -224,7 +224,7 @@ Result CreateInstance(const grfx::InstanceCreateInfo* pCreateInfo, grfx::Instanc
 #if defined(PPX_D3D12)
         case grfx::API_DX_12_0:
         case grfx::API_DX_12_1: {
-            pObject = new dx::Instance();
+            pObject = new dx12::Instance();
             if (IsNull(pObject)) {
                 return ppx::ERROR_ALLOCATION_FAILED;
             }

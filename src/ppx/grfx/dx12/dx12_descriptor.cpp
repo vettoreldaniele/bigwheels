@@ -14,7 +14,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 const uint32_t END_OF_HEAP_BINDING_ID = UINT32_MAX;
 
@@ -163,7 +163,7 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
 
         auto& ranges = ToApi(pCreateInfo->pLayout)->GetRangesCBVSRVUAV();
         for (size_t i = 0; i < ranges.size(); ++i) {
-            const dx::DescriptorSetLayout::DescriptorRange& range = ranges[i];
+            const dx12::DescriptorSetLayout::DescriptorRange& range = ranges[i];
 
             // Fill out heap offset
             HeapOffset heapOffset           = {};
@@ -187,7 +187,7 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
 
         auto& ranges = ToApi(pCreateInfo->pLayout)->GetRangesSampler();
         for (size_t i = 0; i < ranges.size(); ++i) {
-            const dx::DescriptorSetLayout::DescriptorRange& range = ranges[i];
+            const dx12::DescriptorSetLayout::DescriptorRange& range = ranges[i];
 
             // Fill out heap offset
             HeapOffset heapOffset           = {};
@@ -273,7 +273,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
 
             case grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE:
             case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: {
-                const dx::SampledImageView*            pView = static_cast<const dx::SampledImageView*>(srcWrite.pImageView);
+                const dx12::SampledImageView*            pView = static_cast<const dx12::SampledImageView*>(srcWrite.pImageView);
                 const D3D12_SHADER_RESOURCE_VIEW_DESC& desc  = pView->GetDesc();
 
                 SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeCBVSRVUAV * srcWrite.arrayIndex);
@@ -303,7 +303,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
 
             case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
             case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE: {
-                const dx::StorageImageView*             pView = static_cast<const dx::StorageImageView*>(srcWrite.pImageView);
+                const dx12::StorageImageView*             pView = static_cast<const dx12::StorageImageView*>(srcWrite.pImageView);
                 const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc  = pView->GetDesc();
 
                 SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeCBVSRVUAV * srcWrite.arrayIndex);
@@ -377,6 +377,6 @@ void DescriptorSetLayout::DestroyApiObjects()
     mRangesSampler.clear();
 }
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx

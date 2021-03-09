@@ -1,12 +1,12 @@
-#ifndef ppx_grfx_dx_query_h
-#define ppx_grfx_dx_query_h
+#ifndef ppx_grfx_dx12_query_h
+#define ppx_grfx_dx12_query_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/grfx_query.h"
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 class QueryPool
     : public grfx::QueryPool
@@ -30,8 +30,8 @@ private:
     D3D12_QUERY_TYPE  mQueryType = InvalidValue<D3D12_QUERY_TYPE>();
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_query_h
+#endif // ppx_grfx_dx12_query_h

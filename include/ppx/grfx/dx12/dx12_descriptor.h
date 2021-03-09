@@ -1,5 +1,5 @@
-#ifndef ppx_grfx_dx_descriptor_h
-#define ppx_grfx_dx_descriptor_h
+#ifndef ppx_grfx_dx12_descriptor_h
+#define ppx_grfx_dx12_descriptor_h
 
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/grfx_descriptor.h"
@@ -19,7 +19,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx {
+namespace dx12 {
 
 // -------------------------------------------------------------------------------------------------
 
@@ -122,8 +122,8 @@ private:
     std::vector<DescriptorRange> mRangesSampler;
 };
 
-} // namespace dx
+} // namespace dx12
 } // namespace grfx
 } // namespace ppx
 
-#endif // ppx_grfx_dx_descriptor_h
+#endif // ppx_grfx_dx12_descriptor_h
