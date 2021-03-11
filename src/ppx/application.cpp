@@ -15,9 +15,9 @@
 
 namespace ppx {
 
-const char*    kDefaultAppName        = "PPX Application";
-const uint32_t kDefaultWindowWidth    = 640;
-const uint32_t kDefaultWindowHeight   = 480;
+const char*    kDefaultAppName      = "PPX Application";
+const uint32_t kDefaultWindowWidth  = 640;
+const uint32_t kDefaultWindowHeight = 480;
 
 static Application* sApplicationInstance = nullptr;
 
@@ -756,17 +756,24 @@ Result Application::InitializeImGui()
             return ppx::ERROR_UNSUPPORTED_API;
         } break;
 
-        case grfx::API_VK_1_1:
-        case grfx::API_VK_1_2: {
-            mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplVk());
+#if defined(PPX_D3D11)
+        case grfx::API_DX_11_0:
+        case grfx::API_DX_11_1: {
+            mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplDx11());
         } break;
+#endif // defined(PPX_D3D11)
 
 #if defined(PPX_D3D12)
         case grfx::API_DX_12_0:
         case grfx::API_DX_12_1: {
-            mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplDx());
+            mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplDx12());
         } break;
 #endif // defined(PPX_D3D12)
+
+        case grfx::API_VK_1_1:
+        case grfx::API_VK_1_2: {
+            mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplVk());
+        } break;
     }
 
     Result ppxres = mImGui->Init(this);
@@ -987,7 +994,7 @@ void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
     }
 
     int32_t dx12 = (mPreviousMouseX != INT32_MAX) ? (x - mPreviousMouseX) : 0;
-    int32_t dy = (mPreviousMouseY != INT32_MAX) ? (y - mPreviousMouseY) : 0;
+    int32_t dy   = (mPreviousMouseY != INT32_MAX) ? (y - mPreviousMouseY) : 0;
     DispatchMouseMove(x, y, dx12, dy, buttons);
     mPreviousMouseX = x;
     mPreviousMouseY = y;
@@ -1217,9 +1224,9 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
             PPX_ASSERT_MSG(false, "unsupported API");
         } break;
 
-        case grfx::API_VK_1_1:
-        case grfx::API_VK_1_2: {
-            filePath = (filePath / "spv" / baseName).append_extension(".spv");
+        case grfx::API_DX_11_0:
+        case grfx::API_DX_11_1: {
+            filePath = (filePath / "dxbc" / baseName).append_extension(".dxbc");
         } break;
 
         case grfx::API_DX_12_0:
@@ -1230,6 +1237,11 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
             else {
                 filePath = (filePath / "dxbc" / baseName).append_extension(".dxbc");
             }
+        } break;
+
+        case grfx::API_VK_1_1:
+        case grfx::API_VK_1_2: {
+            filePath = (filePath / "spv" / baseName).append_extension(".spv");
         } break;
     }
 

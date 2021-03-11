@@ -6,7 +6,6 @@
 #include "ppx/grfx/dx/dx_util.h"
 
 #include <d3d12.h>
-#include <dxgiformat.h>
 
 namespace ppx {
 namespace grfx {

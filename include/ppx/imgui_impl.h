@@ -5,6 +5,10 @@
 
 #include "grfx/000_grfx_config.h"
 
+#if defined(PPX_D3D11)
+struct ID3D11DeviceContext;
+#endif // defined(PPX_D3D11)
+
 #if defined(PPX_D3D12)
 struct ID3D12DescriptorHeap;
 #endif // defined(PPX_D3D12)
@@ -20,7 +24,7 @@ public:
     virtual ~ImGuiImpl() {}
 
     virtual Result Init(ppx::Application* pApp);
-    virtual void   Shutdown(ppx::Application* pApp)            = 0;
+    virtual void   Shutdown(ppx::Application* pApp) = 0;
     virtual void   NewFrame();
     virtual void   Render(grfx::CommandBuffer* pCommandBuffer) = 0;
 
@@ -48,13 +52,33 @@ private:
     grfx::DescriptorPoolPtr mPool;
 };
 
-#if defined(PPX_D3D12)
-class ImGuiImplDx
+#if defined(PPX_D3D11)
+class ImGuiImplDx11
     : public ImGuiImpl
 {
 public:
-    ImGuiImplDx() {}
-    virtual ~ImGuiImplDx() {}
+    ImGuiImplDx11() {}
+    virtual ~ImGuiImplDx11() {}
+
+    virtual void Shutdown(ppx::Application* pApp) override;
+    virtual void Render(grfx::CommandBuffer* pCommandBuffer) override;
+
+protected:
+    virtual Result InitApiObjects(ppx::Application* pApp) override;
+    virtual void   NewFrameApi() override;
+
+private:
+    ID3D11DeviceContext* mDeviceContext = nullptr;
+};
+#endif // defined(PPX_D3D11)
+
+#if defined(PPX_D3D12)
+class ImGuiImplDx12
+    : public ImGuiImpl
+{
+public:
+    ImGuiImplDx12() {}
+    virtual ~ImGuiImplDx12() {}
 
     virtual void Shutdown(ppx::Application* pApp) override;
     virtual void Render(grfx::CommandBuffer* pCommandBuffer) override;

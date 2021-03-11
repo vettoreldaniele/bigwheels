@@ -100,6 +100,12 @@ list(APPEND XXHASH_FILES
     ${PPX_DIR}/third_party/xxHash/xxhash.c
 )
 
+if (PPX_D3D11)
+    list(APPEND IMGUI_SOURCE_FILES
+        ${IMGUI_DIR}/backends/imgui_impl_dx11.cpp
+    )
+endif()
+
 if (PPX_D3D12)
     list(APPEND IMGUI_SOURCE_FILES
         ${IMGUI_DIR}/backends/imgui_impl_dx12.cpp
@@ -242,6 +248,49 @@ if (PPX_D3D11 OR PPX_D3D12)
     )
 endif()
 
+if (PPX_D3D11)
+    list(
+        APPEND PPX_GRFX_DX11_HEADER_FILES
+        ${INC_DIR}/ppx/grfx/dx11/000_dx11_config.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_buffer.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_command.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_descriptor.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_descriptor_helper.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_device.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_gpu.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_image.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_instance.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_pipeline.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_query.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_queue.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_render_pass.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_shader.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_swapchain.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_sync.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_util.h
+    )
+
+    list(
+        APPEND PPX_GRFX_DX11_SOURCE_FILES
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_buffer.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_command.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_descriptor.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_descriptor_helper.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_device.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_gpu.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_image.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_instance.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_pipeline.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_query.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_queue.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_render_pass.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_shader.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_swapchain.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_sync.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_util.cpp
+    )
+endif()
+
 if (PPX_D3D12)
     list(
         APPEND PPX_GRFX_DX12_HEADER_FILES
@@ -346,6 +395,8 @@ source_group("ppx-grfx\\header"       FILES ${PPX_GRFX_HEADER_FILES})
 source_group("ppx-grfx\\source"       FILES ${PPX_GRFX_SOURCE_FILES})
 source_group("ppx-grfx-dx\\header"    FILES ${PPX_GRFX_DX_HEADER_FILES})
 source_group("ppx-grfx-dx\\source"    FILES ${PPX_GRFX_DX_SOURCE_FILES})
+source_group("ppx-grfx-dx11\\header"  FILES ${PPX_GRFX_DX11_HEADER_FILES})
+source_group("ppx-grfx-dx11\\source"  FILES ${PPX_GRFX_DX11_SOURCE_FILES})
 source_group("ppx-grfx-dx12\\header"  FILES ${PPX_GRFX_DX12_HEADER_FILES})
 source_group("ppx-grfx-dx12\\source"  FILES ${PPX_GRFX_DX12_SOURCE_FILES})
 source_group("ppx-grfx-vk\\header"    FILES ${PPX_GRFX_VK_HEADER_FILES})
@@ -368,6 +419,8 @@ add_library(
     ${PPX_GRFX_SOURCE_FILES}
     ${PPX_GRFX_DX_HEADER_FILES}
     ${PPX_GRFX_DX_SOURCE_FILES}
+    ${PPX_GRFX_DX11_HEADER_FILES}
+    ${PPX_GRFX_DX11_SOURCE_FILES}
     ${PPX_GRFX_DX12_HEADER_FILES}
     ${PPX_GRFX_DX12_SOURCE_FILES}
     ${PPX_GRFX_VK_HEADER_FILES}
@@ -464,6 +517,13 @@ target_link_libraries(${PROJECT_NAME}
 # Graphics API compile definitions
 # ------------------------------------------------------------------------------
 
+if (PPX_D3D11)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PPX_D3D11
+    )
+endif()
+
 if (PPX_D3D12)
     target_compile_definitions(
         ${PROJECT_NAME}
@@ -508,13 +568,24 @@ endif()
 # Graphics API link libraries
 # ------------------------------------------------------------------------------
 
+if (PPX_D3D11 OR PPX_D3D12)
+    target_link_libraries(${PROJECT_NAME} 
+        PUBLIC dxgi.lib dxguid.lib shcore.lib
+    )
+endif()
+
 if (PPX_D3D12)
-    # Link in d3d12.lib and dxgi.lib
-    if (PPX_D3D12)
-        target_link_libraries(${PROJECT_NAME} 
-            PUBLIC d3d12.lib dxgi.lib dxguid.lib shcore.lib
-        )
-    endif()
+    # Link in d3d11.lib
+    target_link_libraries(${PROJECT_NAME} 
+        PUBLIC d3d11.lib
+    )
+endif()
+
+if (PPX_D3D12)
+    # Link in d3d12.lib
+    target_link_libraries(${PROJECT_NAME} 
+        PUBLIC d3d12.lib
+    )
 endif()
 
 if (PPX_VULKAN)

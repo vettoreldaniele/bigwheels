@@ -14,6 +14,13 @@
 #include "ppx/grfx/vk/vk_queue.h"
 #include "ppx/grfx/vk/vk_render_pass.h"
 
+#if defined(PPX_D3D11)
+#include "backends/imgui_impl_dx11.h"
+
+#include "ppx/grfx/dx11/dx11_command.h"
+#include "ppx/grfx/dx11/dx11_device.h"
+#endif // defined(PPX_D3D11)
+
 #if defined(PPX_D3D12)
 #include "backends/imgui_impl_dx12.h"
 
@@ -261,11 +268,62 @@ void ImGuiImplVk::Render(grfx::CommandBuffer* pCommandBuffer)
 }
 
 // -------------------------------------------------------------------------------------------------
-// ImGuiImplDx
+// ImGuiImplDx11
+// -------------------------------------------------------------------------------------------------
+#if defined(PPX_D3D11)
+
+Result ImGuiImplDx11::InitApiObjects(ppx::Application* pApp)
+{
+    // Setup GLFW binding - yes...we're using the one for Vulkan :)
+    GLFWwindow* pWindow = static_cast<GLFWwindow*>(pApp->GetWindow());
+    ImGui_ImplGlfw_InitForVulkan(pWindow, false);
+
+    // Setup style
+    SetColorStyle();
+
+    // Setup DX11 binding
+    grfx::dx11::Device* pDevice =  grfx::dx11::ToApi(pApp->GetDevice());
+    bool result = ImGui_ImplDX11_Init(pDevice->GetDxDevice(), pDevice->GetDxDeviceContext());
+    if (!result) {
+        return ppx::ERROR_IMGUI_INITIALIZATION_FAILED;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void ImGuiImplDx11::Shutdown(ppx::Application* pApp)
+{
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
+void ImGuiImplDx11::NewFrameApi()
+{
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+static void ImGuiImplDx11_CallImGuiRender()
+{
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void ImGuiImplDx11::Render(grfx::CommandBuffer* pCommandBuffer)
+{
+    grfx::dx11::ToApi(pCommandBuffer)->ImGuiRender(&ImGuiImplDx11_CallImGuiRender);
+}
+
+#endif // defined(PPX_D3D11)
+
+// -------------------------------------------------------------------------------------------------
+// ImGuiImplDx12
 // -------------------------------------------------------------------------------------------------
 #if defined(PPX_D3D12)
 
-Result ImGuiImplDx::InitApiObjects(ppx::Application* pApp)
+Result ImGuiImplDx12::InitApiObjects(ppx::Application* pApp)
 {
     // Setup GLFW binding - yes...we're using the one for Vulkan :)
     GLFWwindow* pWindow = static_cast<GLFWwindow*>(pApp->GetWindow());
@@ -306,7 +364,7 @@ Result ImGuiImplDx::InitApiObjects(ppx::Application* pApp)
     return ppx::SUCCESS;
 }
 
-void ImGuiImplDx::Shutdown(ppx::Application* pApp)
+void ImGuiImplDx12::Shutdown(ppx::Application* pApp)
 {
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -318,14 +376,14 @@ void ImGuiImplDx::Shutdown(ppx::Application* pApp)
     }
 }
 
-void ImGuiImplDx::NewFrameApi()
+void ImGuiImplDx12::NewFrameApi()
 {
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 }
 
-void ImGuiImplDx::Render(grfx::CommandBuffer* pCommandBuffer)
+void ImGuiImplDx12::Render(grfx::CommandBuffer* pCommandBuffer)
 {
     grfx::dx12::D3D12GraphicsCommandListPtr commandList = grfx::dx12::ToApi(pCommandBuffer)->GetDxCommandList();
     commandList->SetDescriptorHeaps(1, &mHeapCBVSRVUAV);

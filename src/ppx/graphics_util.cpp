@@ -86,7 +86,7 @@ Result CopyBitmapToImage(
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
     // Row stride alignment to handle DX's requirement
-    uint32_t rowStrideAlignement = grfx::IsDx(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
+    uint32_t rowStrideAlignement = grfx::IsDx12(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
     uint32_t alignedRowStride    = RoundUp<uint32_t>(pBitmap->GetRowStride(), rowStrideAlignement);
 
     // Create staging buffer
@@ -289,7 +289,7 @@ Result CreateImageFromCompressedImage(
     uint32_t     rowStride   = imageWidth * grfx::FormatSize(format);
 
     // Row stride alignment to handle DX's requirement
-    uint32_t rowStrideAlignement = grfx::IsDx(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
+    uint32_t rowStrideAlignement = grfx::IsDx12(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
     rowStride                    = RoundUp<uint32_t>(rowStride, rowStrideAlignement);
 
     // Create staging buffer

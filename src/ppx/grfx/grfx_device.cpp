@@ -58,7 +58,7 @@ void Device::Destroy()
 
 bool Device::isDebugEnabled() const
 {
-    return GetInstance()->isDebugEnabled();
+    return GetInstance()->IsDebugEnabled();
 }
 
 grfx::Api Device::GetApi() const

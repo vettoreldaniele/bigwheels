@@ -27,7 +27,7 @@ public:
     Instance() {}
     virtual ~Instance() {}
 
-    bool isDebugEnabled() const { return mCreateInfo.enableDebug; }
+    bool IsDebugEnabled() const { return mCreateInfo.enableDebug; }
     bool IsSwapchainEnabled() const { return mCreateInfo.enableSwapchain; }
     bool ForceDxDiscreteAllocations() const { return mCreateInfo.forceDxDiscreteAllocations; }
 
