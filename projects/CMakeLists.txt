@@ -172,7 +172,7 @@ function(add_dxil_sample name is_gui)
                    ${PPX_DIR}/projects/common   
         )
         
-        target_compile_definitions(${target_name} PRIVATE USE_DX USE_DXIL)        
+        target_compile_definitions(${target_name} PRIVATE USE_DX12 USE_DXIL)        
 
         target_link_libraries(
             ${target_name}

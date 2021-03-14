@@ -7,10 +7,12 @@ using namespace ppx;
 #include "Material.h"
 #include "Render.h"
 
-#if defined(USE_DX)
-grfx::Api kApi = grfx::API_DX_12_0;
+#if defined(USE_DX11)
+const grfx::Api kApi = grfx::API_DX_11_1;
+#elif defined(USE_DX12)
+const grfx::Api kApi = grfx::API_DX_12_0;
 #elif defined(USE_VK)
-grfx::Api kApi = grfx::API_VK_1_1;
+const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
 #define kWindowWidth  1920
