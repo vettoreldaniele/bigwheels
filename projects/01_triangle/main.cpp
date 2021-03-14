@@ -1,7 +1,9 @@
 #include "ppx/ppx.h"
 using namespace ppx;
 
-#if defined(USE_DX)
+#if defined(USE_DX11)
+grfx::Api kApi = grfx::API_DX_11_1;
+#elif defined(USE_DX12)
 grfx::Api kApi = grfx::API_DX_12_0;
 #elif defined(USE_VK)
 grfx::Api kApi = grfx::API_VK_1_1;

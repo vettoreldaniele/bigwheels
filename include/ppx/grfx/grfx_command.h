@@ -105,6 +105,10 @@ struct ImageToBufferCopyInfo
 
 struct RenderPassBeginInfo
 {
+    //
+    // The value of RTVClearCount cannot be less than the number 
+    // of RTVs in pRenderPass.
+    //
     const grfx::RenderPass*      pRenderPass                            = nullptr;
     grfx::Rect                   renderArea                             = {};
     uint32_t                     RTVClearCount                          = 0;
@@ -160,8 +164,8 @@ public:
     virtual Result Begin() = 0;
     virtual Result End()   = 0;
 
-    virtual void BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo) = 0;
-    virtual void EndRenderPass()                                              = 0;
+    void BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo);
+    void EndRenderPass();
 
     //! @fn TransitionImageLayout
     //!
@@ -315,7 +319,7 @@ public:
 
     void BindVertexBuffers(
         uint32_t                   bufferCount,
-        const grfx::Buffer* const* ppBuffers,
+        const grfx::Buffer* const* buffers,
         const uint32_t*            pStrides,
         const uint64_t*            pOffsets = nullptr);
 
@@ -336,6 +340,13 @@ public:
     //          Draw(quad, 1, &set);
     //
     void Draw(const grfx::FullscreenQuad* pQuad, uint32_t setCount, const grfx::DescriptorSet* const* ppSets);
+
+private:
+    virtual void BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginInfo) = 0;
+    virtual void EndRenderPassImpl()                                              = 0;
+
+private:
+    const grfx::RenderPass* mCurrentRenderPass = nullptr;
 };
 
 // -------------------------------------------------------------------------------------------------

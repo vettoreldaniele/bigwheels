@@ -1,11 +1,16 @@
 #include "ppx/grfx/dx11/dx11_device.h"
+#include "ppx/grfx/dx11/dx11_buffer.h"
 #include "ppx/grfx/dx11/dx11_command.h"
+#include "ppx/grfx/dx11/dx11_descriptor.h"
 #include "ppx/grfx/dx11/dx11_gpu.h"
 #include "ppx/grfx/dx11/dx11_image.h"
 #include "ppx/grfx/dx11/dx11_instance.h"
 #include "ppx/grfx/dx11/dx11_queue.h"
+#include "ppx/grfx/dx11/dx11_pipeline.h"
 #include "ppx/grfx/dx11/dx11_render_pass.h"
+#include "ppx/grfx/dx11/dx11_shader.h"
 #include "ppx/grfx/dx11/dx11_swapchain.h"
+#include "ppx/grfx/dx11/dx11_sync.h"
 
 namespace ppx {
 namespace grfx {
@@ -103,7 +108,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     Result ppxres = CreateQueues(pCreateInfo);
     if (Failed(ppxres)) {
         return ppxres;
-    }    
+    }
 
     return ppx::SUCCESS;
 }
@@ -123,7 +128,12 @@ void Device::DestroyApiObjects()
 
 Result Device::AllocateObject(grfx::Buffer** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::Buffer* pObject = new dx11::Buffer();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::CommandBuffer** ppObject)
@@ -148,7 +158,12 @@ Result Device::AllocateObject(grfx::CommandPool** ppObject)
 
 Result Device::AllocateObject(grfx::ComputePipeline** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::ComputePipeline* pObject = new dx11::ComputePipeline();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::DepthStencilView** ppObject)
@@ -158,27 +173,52 @@ Result Device::AllocateObject(grfx::DepthStencilView** ppObject)
 
 Result Device::AllocateObject(grfx::DescriptorPool** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::DescriptorPool* pObject = new dx11::DescriptorPool();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::DescriptorSet** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::DescriptorSet* pObject = new dx11::DescriptorSet();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::DescriptorSetLayout** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::DescriptorSetLayout* pObject = new dx11::DescriptorSetLayout();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Fence** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::Fence* pObject = new dx11::Fence();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::GraphicsPipeline** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::GraphicsPipeline* pObject = new dx11::GraphicsPipeline();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Image** ppObject)
@@ -193,7 +233,12 @@ Result Device::AllocateObject(grfx::Image** ppObject)
 
 Result Device::AllocateObject(grfx::PipelineInterface** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::PipelineInterface* pObject = new dx11::PipelineInterface();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Queue** ppObject)
@@ -243,12 +288,22 @@ Result Device::AllocateObject(grfx::Sampler** ppObject)
 
 Result Device::AllocateObject(grfx::Semaphore** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::Semaphore* pObject = new dx11::Semaphore();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::ShaderModule** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::ShaderModule* pObject = new dx11::ShaderModule();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::ShaderProgram** ppObject)

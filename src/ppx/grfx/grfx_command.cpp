@@ -9,6 +9,32 @@
 namespace ppx {
 namespace grfx {
 
+void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
+{
+    if (!IsNull(mCurrentRenderPass)) {
+        PPX_ASSERT_MSG(false, "cannot nest render passes");
+    }
+
+    uint32_t rtvCount   = pBeginInfo->pRenderPass->GetRenderTargetCount();
+    uint32_t clearCount = pBeginInfo->RTVClearCount;
+    if (clearCount < rtvCount) {
+        PPX_ASSERT_MSG(false, "clear count cannot less than RTV count");
+    }
+
+    BeginRenderPassImpl(pBeginInfo);
+    mCurrentRenderPass = pBeginInfo->pRenderPass;
+}
+
+void CommandBuffer::EndRenderPass()
+{
+    if (IsNull(mCurrentRenderPass)) {
+        PPX_ASSERT_MSG(false, "no render pass to end");
+    }
+
+    EndRenderPassImpl();
+    mCurrentRenderPass = nullptr;
+}
+
 void CommandBuffer::BeginRenderPass(const grfx::RenderPass* pRenderPass)
 {
     PPX_ASSERT_NULL_ARG(pRenderPass);
@@ -167,17 +193,17 @@ void CommandBuffer::BindIndexBuffer(const grfx::Model* pModel, uint64_t offset)
 
 void CommandBuffer::BindVertexBuffers(
     uint32_t                   bufferCount,
-    const grfx::Buffer* const* ppBuffers,
+    const grfx::Buffer* const* buffers,
     const uint32_t*            pStrides,
     const uint64_t*            pOffsets)
 {
-    PPX_ASSERT_NULL_ARG(ppBuffers);
+    PPX_ASSERT_NULL_ARG(buffers);
     PPX_ASSERT_NULL_ARG(pStrides);
     PPX_ASSERT_MSG(bufferCount < PPX_MAX_VERTEX_BINDINGS, "bufferCount exceeds PPX_MAX_VERTEX_ATTRIBUTES");
 
     grfx::VertexBufferView views[PPX_MAX_VERTEX_BINDINGS] = {};
     for (uint32_t i = 0; i < bufferCount; ++i) {
-        views[i].pBuffer = ppBuffers[i];
+        views[i].pBuffer = buffers[i];
         views[i].stride  = pStrides[i];
         if (!IsNull(pOffsets)) {
             views[i].offset = pOffsets[i];

@@ -147,7 +147,7 @@ Result CommandBuffer::End()
     return ppx::SUCCESS;
 }
 
-void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
+void CommandBuffer::BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginInfo)
 {
     PPX_ASSERT_NULL_ARG(pBeginInfo->pRenderPass);
 
@@ -202,7 +202,7 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
     }
 }
 
-void CommandBuffer::EndRenderPass()
+void CommandBuffer::EndRenderPassImpl()
 {
     // Nothing to do here for now
 }

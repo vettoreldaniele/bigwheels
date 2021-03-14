@@ -20,9 +20,11 @@ public:
     virtual Result Begin() override;
     virtual Result End() override;
 
-    virtual void BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo) override;
-    virtual void EndRenderPass() override;
+private:
+    virtual void BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginInfo) override;
+    virtual void EndRenderPassImpl() override;
 
+public:
     virtual void TransitionImageLayout(
         const grfx::Image*   pImage,
         uint32_t             mipLevel,

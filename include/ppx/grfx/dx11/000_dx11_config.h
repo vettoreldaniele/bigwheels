@@ -5,6 +5,7 @@
 #include "ppx/grfx/dx11/dx11_util.h"
 
 #include <d3d11_4.h>
+#include <d3dcompiler.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
 
@@ -27,13 +28,23 @@ using DXGIFactoryPtr           = ComPtr<IDXGIFactory7>;
 using DXGIDebugPtr             = ComPtr<IDXGIDebug1>;
 using DXGIInfoQueuePtr         = ComPtr<IDXGIInfoQueue>;
 using DXGISwapChainPtr         = ComPtr<IDXGISwapChain4>;
+using D3D11BufferPtr           = ComPtr<ID3D11Buffer>;
 using D3D11DevicePtr           = ComPtr<ID3D11Device5>;
 using D3D11DeviceContextPtr    = ComPtr<ID3D11DeviceContext3>;
+using D3D11InputLayoutPtr      = ComPtr<ID3D11InputLayout>;
+using D3D11RasterizerStatePtr  = ComPtr<ID3D11RasterizerState2>;
 using D3D11RenderTargetViewPtr = ComPtr<ID3D11RenderTargetView1>;
 using D3D11SamplerStatePtr     = ComPtr<ID3D11SamplerState>;
 using D3D11Texture1DPtr        = ComPtr<ID3D11Texture2D1>;
 using D3D11Texture2DPtr        = ComPtr<ID3D11Texture2D1>;
 using D3D11Texture3DPtr        = ComPtr<ID3D11Texture3D1>;
+
+using D3D11ComputeShaderPtr  = ComPtr<ID3D11ComputeShader>;
+using D3D11DomainShaderPtr   = ComPtr<ID3D11DomainShader>;
+using D3D11GeometryShaderPtr = ComPtr<ID3D11GeometryShader>;
+using D3D11HullShaderPtr     = ComPtr<ID3D11HullShader>;
+using D3D11PixelShaderPtr    = ComPtr<ID3D11PixelShader>;
+using D3D11VertexShaderPtr   = ComPtr<ID3D11VertexShader>;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -258,6 +269,10 @@ typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(ObjPtr<GrfxTypeT>& pGrfxObje
     ApiType* pApiObject = static_cast<ApiType*>(pGrfxObject.Get());
     return pApiObject;
 }
+
+// -------------------------------------------------------------------------------------------------
+
+const uint32_t kInvalidStateIndex = InvalidValue<uint32_t>();
 
 } // namespace dx11
 } // namespace grfx

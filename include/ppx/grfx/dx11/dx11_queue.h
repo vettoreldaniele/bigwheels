@@ -2,6 +2,7 @@
 #define ppx_grfx_dx11_queue_h
 
 #include "ppx/grfx/dx11/000_dx11_config.h"
+#include "ppx/grfx/dx11/dx11_command.h"
 #include "ppx/grfx/grfx_queue.h"
 
 namespace ppx {
@@ -28,7 +29,16 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
+    void ResetGraphicsState();
+    void SetGraphicsState(const grfx::dx11::CommandBuffer::ActionCmd& cmd, const grfx::dx11::CommandBuffer* pCmdBuf);
+
+private:
     D3D11DeviceContextPtr mDeviceContext;
+    uint32_t              mViewportStateIndex         = kInvalidStateIndex;
+    uint32_t              mScissorStateIndex          = kInvalidStateIndex;
+    uint32_t              mIndexBufferStateIndex      = kInvalidStateIndex;
+    uint32_t              mVertexBufferStateIndex     = kInvalidStateIndex;
+    uint32_t              mGraphicsPipelineStateIndex = kInvalidStateIndex;
 };
 
 } // namespace dx11

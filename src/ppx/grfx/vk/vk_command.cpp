@@ -73,7 +73,7 @@ Result CommandBuffer::End()
     return ppx::SUCCESS;
 }
 
-void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
+void CommandBuffer::BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginInfo)
 {
     VkRect2D rect = {};
     rect.offset   = {pBeginInfo->renderArea.x, pBeginInfo->renderArea.x};
@@ -103,7 +103,7 @@ void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
     vk::CmdBeginRenderPass(mCommandBuffer, &vkbi, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void CommandBuffer::EndRenderPass()
+void CommandBuffer::EndRenderPassImpl()
 {
     vk::CmdEndRenderPass(mCommandBuffer);
 }

@@ -83,22 +83,32 @@ function(CompileShaderVSPS)
     get_filename_component(ps_file ${ps_file} NAME)
     set(dxil_vs_file ${OUTPUT_DIR}/dxil/${vs_file})
     set(dxil_ps_file ${OUTPUT_DIR}/dxil/${ps_file})    
-    
-    # DXBC targets
-    string(REPLACE "hlsl" "vs.dxbc" vs_file ${HLSL_PATH})
-    string(REPLACE "hlsl" "ps.dxbc" ps_file ${HLSL_PATH})
+
+    # DXBC 5.0 targets
+    string(REPLACE "hlsl" "vs.dxbc50" vs_file ${HLSL_PATH})
+    string(REPLACE "hlsl" "ps.dxbc50" ps_file ${HLSL_PATH})
     get_filename_component(vs_file ${vs_file} NAME)
     get_filename_component(ps_file ${ps_file} NAME)
-    set(dxbc_vs_file ${OUTPUT_DIR}/dxbc/${vs_file})
-    set(dxbc_ps_file ${OUTPUT_DIR}/dxbc/${ps_file})    
+    set(dxbc50_vs_file ${OUTPUT_DIR}/dxbc50/${vs_file})
+    set(dxbc50_ps_file ${OUTPUT_DIR}/dxbc50/${ps_file})    
+    
+    # DXBC 5.1 targets
+    string(REPLACE "hlsl" "vs.dxbc51" vs_file ${HLSL_PATH})
+    string(REPLACE "hlsl" "ps.dxbc51" ps_file ${HLSL_PATH})
+    get_filename_component(vs_file ${vs_file} NAME)
+    get_filename_component(ps_file ${ps_file} NAME)
+    set(dxbc51_vs_file ${OUTPUT_DIR}/dxbc51/${vs_file})
+    set(dxbc51_ps_file ${OUTPUT_DIR}/dxbc51/${ps_file})
 
     if (PPX_VULKAN AND PPX_D3D12)
         CompileShaderMakeOutputDir(${spv_vs_file})
         CompileShaderMakeOutputDir(${spv_ps_file})
         CompileShaderMakeOutputDir(${dxil_vs_file}) 
         CompileShaderMakeOutputDir(${dxil_ps_file})
-        CompileShaderMakeOutputDir(${dxbc_vs_file})
-        CompileShaderMakeOutputDir(${dxbc_ps_file})
+        CompileShaderMakeOutputDir(${dxbc50_vs_file})
+        CompileShaderMakeOutputDir(${dxbc50_ps_file})
+        CompileShaderMakeOutputDir(${dxbc51_vs_file})
+        CompileShaderMakeOutputDir(${dxbc51_ps_file})
 
         add_custom_command(
             # Compile to SPV
@@ -113,11 +123,18 @@ function(CompileShaderVSPS)
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling PS ${HLSL_PATH} to ${dxil_ps_file}"       
             COMMAND ${DXC_PATH} -T ps_6_0 -E psmain -Fo ${dxil_ps_file} ${HLSL_PATH}
             
-            # Compile to DXBC
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc_vs_file}"
-            COMMAND ${FXC_PATH} -T vs_5_1 -E vsmain -Fo ${dxbc_vs_file} ${HLSL_PATH}
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${dxbc_ps_file}"
-            COMMAND ${FXC_PATH} -T ps_5_1 -E psmain -Fo ${dxbc_ps_file} ${HLSL_PATH}
+            # Compile to DXBC 5.0
+            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc50_vs_file}"
+            COMMAND ${FXC_PATH} -T vs_5_0 -E vsmain -Fo ${dxbc50_vs_file} ${HLSL_PATH}
+            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${dxbc50_ps_file}"
+            COMMAND ${FXC_PATH} -T ps_5_0 -E psmain -Fo ${dxbc50_ps_file} ${HLSL_PATH}
+            
+            # Compile to DXBC 5.1
+            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc51_vs_file}"
+            COMMAND ${FXC_PATH} -T vs_5_1 -E vsmain -Fo ${dxbc51_vs_file} ${HLSL_PATH}
+            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${dxbc51_ps_file}"
+            COMMAND ${FXC_PATH} -T ps_5_1 -E psmain -Fo ${dxbc51_ps_file} ${HLSL_PATH}
+            
             
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_vs_file}

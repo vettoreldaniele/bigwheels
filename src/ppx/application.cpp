@@ -1226,7 +1226,7 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
 
         case grfx::API_DX_11_0:
         case grfx::API_DX_11_1: {
-            filePath = (filePath / "dxbc" / baseName).append_extension(".dxbc");
+            filePath = (filePath / "dxbc50" / baseName).append_extension(".dxbc50");
         } break;
 
         case grfx::API_DX_12_0:
@@ -1235,7 +1235,7 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
                 filePath = (filePath / "dxil" / baseName).append_extension(".dxil");
             }
             else {
-                filePath = (filePath / "dxbc" / baseName).append_extension(".dxbc");
+                filePath = (filePath / "dxbc51" / baseName).append_extension(".dxbc51");
             }
         } break;
 

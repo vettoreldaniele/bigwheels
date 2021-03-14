@@ -16,6 +16,7 @@
 // clang-format on
 
 #include <algorithm>
+#include <array>
 #include <functional>
 #include <cassert>
 #include <cstdlib>

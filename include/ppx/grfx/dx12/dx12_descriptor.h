@@ -21,8 +21,6 @@ namespace ppx {
 namespace grfx {
 namespace dx12 {
 
-// -------------------------------------------------------------------------------------------------
-
 class DescriptorPool
     : public grfx::DescriptorPool
 {

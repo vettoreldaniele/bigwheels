@@ -11,8 +11,14 @@ namespace ppx {
 namespace grfx {
 namespace dx11 {
 
+UINT                     ToD3D11BindFlags(const grfx::BufferUsageFlags& value);
+D3D11_CULL_MODE          ToD3D11CullMode(grfx::CullMode value);
+D3D11_FILL_MODE          ToD3D11FillMode(grfx::PolygonMode value);
+DXGI_FORMAT              ToD3D11IndexFormat(grfx::IndexType value);
+D3D11_PRIMITIVE_TOPOLOGY ToD3D11PrimitiveTopology(grfx::PrimitiveTopology value);
 D3D11_RTV_DIMENSION      ToD3D11RTVDimension(grfx::ImageViewType value);
 D3D11_RESOURCE_DIMENSION ToD3D11TextureResourceDimension(grfx::ImageType value);
+D3D11_USAGE              ToD3D11Usage(grfx::MemoryUsage value);
 
 } // namespace dx11
 } // namespace grfx

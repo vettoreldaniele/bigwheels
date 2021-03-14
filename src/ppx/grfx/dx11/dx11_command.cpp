@@ -17,6 +17,7 @@ namespace dx11 {
 Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo)
 {
     mActionCmds.reserve(32);
+
     return ppx::SUCCESS;
 }
 
@@ -26,6 +27,8 @@ void CommandBuffer::DestroyApiObjects()
 
 Result CommandBuffer::Begin()
 {
+    mViewportState.Reset();
+    mScissorState.Reset();
     mActionCmds.clear();
     return ppx::SUCCESS;
 }
@@ -35,44 +38,33 @@ Result CommandBuffer::End()
     return ppx::SUCCESS;
 }
 
-void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
+void CommandBuffer::BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginInfo)
 {
+    uint32_t rtvCount = pBeginInfo->pRenderPass->GetRenderTargetCount();
+    PPX_ASSERT_MSG((rtvCount <= PPX_MAX_RENDER_TARGETS), "Number of clear values exceeds limit");
+
     mActionCmds.emplace_back(ActionCmd(CMD_BEGIN_RENDER_PASS));
 
-    uint32_t renderTargetCount = pBeginInfo->pRenderPass->GetRenderTargetCount();
+    ActionCmd&      cmd  = mActionCmds.back();
+    RenderPassArgs& args = cmd.args.renderPass;
 
-    ActionCmd&           cmd  = mActionCmds.back();
-    BeginRenderPassArgs& args = cmd.args.beginRenderPass;
-
-    cmd.args.beginRenderPass.NumViews = static_cast<UINT>(renderTargetCount);
-
-    for (uint32_t i = 0; i < renderTargetCount; ++i) {
-        typename D3D11RenderTargetViewPtr::InterfaceType* pRTV = ToApi(pBeginInfo->pRenderPass->GetRenderTargetView(i))->GetDxRenderTargetView();
-        args.ppRenderTargetViews[i]                            = pRTV;
-
-        mPipelineState.currentRenderTargetCount    = renderTargetCount;
-        mPipelineState.currentRenderTargetViews[i] = pRTV;
+    args.rtvs.numViews = rtvCount;
+    for (uint32_t i = 0; i < args.rtvs.numViews; ++i) {
+        auto pApiRtv         = ToApi(pBeginInfo->pRenderPass->GetRenderTargetView(i));
+        args.rtvs.views[i]   = pApiRtv->GetDxRenderTargetView();
+        args.rtvs.loadOps[i] = pApiRtv->GetLoadOp();
+        memcpy(args.rtvs.clearValues[i].rgba.data(), pBeginInfo->RTVClearValues[i].rgba, 4 * sizeof(float));
     }
 
-    for (uint32_t i = 0; i < pBeginInfo->RTVClearCount; ++i) {
-        args.RTVClearOp[i].pRenderTargetView = args.ppRenderTargetViews[i];
-
-        FLOAT*       pDst = args.RTVClearOp[i].ColorRGBA;
-        const float* pSrc = pBeginInfo->RTVClearValues->rgba;
-        size_t       size = sizeof(pBeginInfo->RTVClearValues->rgba);
-        memcpy(pDst, pSrc, size);
-    }
-
+    args.dsv.pView  = nullptr;
+    args.dsv.loadOp = grfx::ATTACHMENT_LOAD_OP_LOAD;
     if (pBeginInfo->pRenderPass->HasDepthStencil()) {
+        PPX_ASSERT_MSG(false, "not implemented");
     }
 }
 
-void CommandBuffer::EndRenderPass()
+void CommandBuffer::EndRenderPassImpl()
 {
-    for (uint32_t i = 0; i < mPipelineState.currentRenderTargetCount; ++i) {
-        mPipelineState.currentRenderTargetViews[i] = nullptr;
-        mPipelineState.currentDepthStencilViews    = nullptr;
-    }
 }
 
 void CommandBuffer::TransitionImageLayout(
@@ -101,24 +93,34 @@ void CommandBuffer::SetViewports(
     uint32_t              viewportCount,
     const grfx::Viewport* pViewports)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    viewportCount = std::min<uint32_t>(viewportCount, PPX_MAX_VIEWPORTS);
+
+    ViewportState* pState = mViewportState.GetCurrent();
+    pState->numViewports  = static_cast<UINT>(viewportCount);
+    for (uint32_t i = 0; i < viewportCount; ++i) {
+        pState->viewports[i].TopLeftX = pViewports[i].x;
+        pState->viewports[i].TopLeftY = pViewports[i].y;
+        pState->viewports[i].Width    = pViewports[i].width;
+        pState->viewports[i].Height   = pViewports[i].height;
+        pState->viewports[i].MinDepth = pViewports[i].minDepth;
+        pState->viewports[i].MaxDepth = pViewports[i].maxDepth;
+    }
 }
 
 void CommandBuffer::SetScissors(
     uint32_t          scissorCount,
     const grfx::Rect* pScissors)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
-}
+    scissorCount = std::min<uint32_t>(scissorCount, PPX_MAX_SCISSORS);
 
-void CommandBuffer::BindDescriptorSets(
-    const grfx::PipelineInterface*    pInterface,
-    uint32_t                          setCount,
-    const grfx::DescriptorSet* const* ppSets,
-    size_t&                           rdtCountCBVSRVUAV,
-    size_t&                           rdtCountSampler)
-{
-    PPX_ASSERT_MSG(false, "not implemented");
+    ScissorState* pState = mScissorState.GetCurrent();
+    pState->numRects     = scissorCount;
+    for (uint32_t i = 0; i < scissorCount; ++i) {
+        pState->rects[i].left   = pScissors[i].x;
+        pState->rects[i].top    = pScissors[i].y;
+        pState->rects[i].right  = pScissors[i].x + pScissors[i].width;
+        pState->rects[i].bottom = pScissors[i].y + pScissors[i].height;
+    }
 }
 
 void CommandBuffer::BindGraphicsDescriptorSets(
@@ -126,12 +128,22 @@ void CommandBuffer::BindGraphicsDescriptorSets(
     uint32_t                          setCount,
     const grfx::DescriptorSet* const* ppSets)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    setCount = std::min<uint32_t>(setCount, PPX_MAX_BOUND_DESCRIPTOR_SETS);
 }
 
 void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    const dx11::GraphicsPipeline* pApiPipeline = ToApi(pPipeline);
+
+    GraphicsPipelineState* pState = mGraphicsPipelineStack.GetCurrent();
+    pState->VS                    = pApiPipeline->GetVS();
+    pState->HS                    = pApiPipeline->GetHS();
+    pState->DS                    = pApiPipeline->GetDS();
+    pState->GS                    = pApiPipeline->GetGS();
+    pState->PS                    = pApiPipeline->GetPS();
+    pState->inputLayout           = pApiPipeline->GetInputLayout();
+    pState->primitiveTopology     = pApiPipeline->GetPrimitiveTopology();
+    pState->rasterizerState       = pApiPipeline->GetRasterizerState();
 }
 
 void CommandBuffer::BindComputeDescriptorSets(
@@ -148,13 +160,24 @@ void CommandBuffer::BindComputePipeline(const grfx::ComputePipeline* pPipeline)
 
 void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    IndexBufferState* pState = mIndexBufferState.GetCurrent();
+    pState->buffer           = ToApi(pView->pBuffer)->GetDxBuffer();
+    pState->format           = ToD3D11IndexFormat(pView->indexType);
+    pState->offset           = static_cast<UINT>(pView->offset);
 }
 
 void CommandBuffer::BindVertexBuffers(
     uint32_t                      viewCount,
     const grfx::VertexBufferView* pViews)
 {
+    VertexBufferState* pState = mVertexBuffersState.GetCurrent();
+    pState->startSlot         = 0;
+    pState->numBuffers        = static_cast<UINT>(viewCount);
+    for (uint32_t i = 0; i < viewCount; ++i) {
+        pState->buffers[i] = ToApi(pViews[i].pBuffer)->GetDxBuffer();
+        pState->strides[i] = pViews[i].stride;
+        pState->offsets[i] = 0;
+    }
 }
 
 void CommandBuffer::Draw(
@@ -163,7 +186,20 @@ void CommandBuffer::Draw(
     uint32_t firstVertex,
     uint32_t firstInstance)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    mActionCmds.emplace_back(ActionCmd(CMD_DRAW));
+
+    ActionCmd& cmd                 = mActionCmds.back();
+    cmd.viewportStateIndex         = mViewportState.Commit();
+    cmd.scissorStateIndex          = mScissorState.Commit();
+    cmd.indexBuffereStateIndex     = kInvalidStateIndex;
+    cmd.vertexBufferStateIndex     = mVertexBuffersState.Commit();
+    cmd.graphicsPipleineStateIndex = mGraphicsPipelineStack.Commit();
+
+    DrawArgs& args              = cmd.args.draw;
+    args.vertexCountPerInstance = static_cast<UINT>(vertexCount);
+    args.instanceCount          = static_cast<UINT>(instanceCount);
+    args.startVertexLocation    = static_cast<UINT>(firstVertex);
+    args.startInstanceLocation  = static_cast<UINT>(firstInstance);
 }
 
 void CommandBuffer::DrawIndexed(
