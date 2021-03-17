@@ -223,7 +223,8 @@ function(CompileShaderCS)
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_cs_file}
                    ${dxil_cs_file} 
-                   ${dxbc_cs_file}
+                   ${dxbc50_cs_file}
+                   ${dxbc51_cs_file}
             WORKING_DIRECTORY ${WORKING_DIR}
             COMMENT "------ Compiling CS Shader(s) ------"        
         )
@@ -258,33 +259,45 @@ function(CompileShaderVS)
     get_filename_component(vs_file ${vs_file} NAME)
     set(dxil_vs_file ${OUTPUT_DIR}/dxil/${vs_file})
     
-    # DXBC targets
-    string(REPLACE "hlsl" "vs.dxbc" vs_file ${HLSL_PATH})
+    # DXBC 5.0 targets
+    string(REPLACE "hlsl" "vs.dxbc50" vs_file ${HLSL_PATH})
     get_filename_component(vs_file ${vs_file} NAME)
-    set(dxbc_vs_file ${OUTPUT_DIR}/dxbc/${vs_file})
+    set(dxbc50_vs_file ${OUTPUT_DIR}/dxbc50/${vs_file})
+    
+    # DXBC 5.1 targets
+    string(REPLACE "hlsl" "vs.dxbc51" vs_file ${HLSL_PATH})
+    get_filename_component(vs_file ${vs_file} NAME)
+    set(dxbc51_vs_file ${OUTPUT_DIR}/dxbc51/${vs_file})
 
     if (PPX_VULKAN AND PPX_D3D12)
         CompileShaderMakeOutputDir(${spv_vs_file})
         CompileShaderMakeOutputDir(${dxil_vs_file}) 
-        CompileShaderMakeOutputDir(${dxbc_vs_file})
+        CompileShaderMakeOutputDir(${dxbc50_vs_file}) 
+        CompileShaderMakeOutputDir(${dxbc51_vs_file})
 
         add_custom_command(
             # Compile to SPV
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH}
+            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
             
             # Compile to DXIL
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling VS ${HLSL_PATH} to ${dxil_vs_file}"
-            COMMAND ${DXC_PATH} -T vs_6_0 -E vsmain -Fo ${dxil_vs_file} ${HLSL_PATH}
+            COMMAND ${DXC_PATH} -T vs_6_0 -E vsmain -Fo ${dxil_vs_file} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
             
-            # Compile to DXBC
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc_vs_file}"
-            COMMAND ${FXC_PATH} -T vs_5_1 -E vsmain -Fo ${dxbc_vs_file} ${HLSL_PATH}
+            # Compile to DXBC 5.0
+            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc50_vs_file}"
+            COMMAND ${FXC_PATH} -T vs_5_0 -E vsmain -Fo ${dxbc50_vs_file} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+            
+            # Compile to DXBC 5.1
+            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc51_vs_file}"
+            COMMAND ${FXC_PATH} -T vs_5_1 -E vsmain -Fo ${dxbc51_vs_file} ${HLSL_PATH}  ${PPX_FXC_DX12_FLAGS}
+            
             
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_vs_file}
                    ${dxil_vs_file} 
-                   ${dxbc_vs_file}
+                   ${dxbc50_cs_file}
+                   ${dxbc51_cs_file}
             WORKING_DIRECTORY ${WORKING_DIR}
             COMMENT "------ Compiling VS (depth only) Shader(s) ------"        
         )        
@@ -294,7 +307,7 @@ function(CompileShaderVS)
         add_custom_command(
             # Compile to SPV
             COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH}
+            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
            
             MAIN_DEPENDENCY ${HLSL_PATH}
             OUTPUT ${spv_vs_file}
