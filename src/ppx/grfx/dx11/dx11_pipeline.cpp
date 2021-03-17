@@ -125,8 +125,8 @@ Result GraphicsPipeline::InitializeInputLayout(const grfx::GraphicsPipelineCreat
     const grfx::ShaderStageInfo& VS = pCreateInfo->VS;
 
     HRESULT hr = device->CreateInputLayout(
-        inputElements.data(),
-        static_cast<UINT>(inputElements.size()),
+        DataPtr(inputElements),
+        static_cast<UINT>(CountU32(inputElements)),
         ToApi(VS.pModule)->GetCode(),
         ToApi(VS.pModule)->GetSize(),
         &mInputLayout);
@@ -150,12 +150,41 @@ Result GraphicsPipeline::InitializeRasterizerState(const grfx::GraphicsPipelineC
     desc.SlopeScaledDepthBias   = pCreateInfo->rasterState.depthBiasEnable ? pCreateInfo->rasterState.depthBiasSlopeFactor : 0;
     desc.DepthClipEnable        = static_cast<BOOL>(pCreateInfo->rasterState.depthClipEnable);
     desc.ScissorEnable          = TRUE;
-    desc.MultisampleEnable      = FALSE;  // @TODO: Route this in
+    desc.MultisampleEnable      = FALSE; // @TODO: Route this in
     desc.AntialiasedLineEnable  = FALSE;
     desc.ForcedSampleCount      = 0;
     desc.ConservativeRaster     = D3D11_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
     HRESULT hr = device->CreateRasterizerState2(&desc, &mRasterizerState);
+    if (FAILED(hr)) {
+        return ppx::ERROR_FAILED;
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result GraphicsPipeline::InitializeDepthStencilState(const grfx::GraphicsPipelineCreateInfo* pCreateInfo)
+{
+    D3D11DevicePtr device = ToApi(GetDevice())->GetDxDevice();
+
+    D3D11_DEPTH_STENCIL_DESC desc = {};
+    desc.DepthEnable                  = static_cast<BOOL>(pCreateInfo->depthStencilState.depthTestEnable);
+    desc.DepthWriteMask               = pCreateInfo->depthStencilState.depthWriteEnable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+    desc.DepthFunc                    = ToD3D11ComparisonFunc(pCreateInfo->depthStencilState.depthCompareOp);
+    desc.StencilEnable                = static_cast<BOOL>(pCreateInfo->depthStencilState.stencilTestEnable);
+    desc.StencilReadMask              = D3D11_DEFAULT_STENCIL_READ_MASK;  // @TODO: Figure out to set properly
+    desc.StencilWriteMask             = D3D11_DEFAULT_STENCIL_WRITE_MASK; // @TODO: Figure out to set properly
+    desc.FrontFace.StencilFailOp      = ToD3D11StencilOp(pCreateInfo->depthStencilState.front.failOp);
+    desc.FrontFace.StencilDepthFailOp = ToD3D11StencilOp(pCreateInfo->depthStencilState.front.depthFailOp);
+    desc.FrontFace.StencilPassOp      = ToD3D11StencilOp(pCreateInfo->depthStencilState.front.passOp);
+    desc.FrontFace.StencilFunc        = ToD3D11ComparisonFunc(pCreateInfo->depthStencilState.front.compareOp);
+    desc.BackFace.StencilFailOp       = ToD3D11StencilOp(pCreateInfo->depthStencilState.back.failOp);
+    desc.BackFace.StencilDepthFailOp  = ToD3D11StencilOp(pCreateInfo->depthStencilState.back.depthFailOp);
+    desc.BackFace.StencilPassOp       = ToD3D11StencilOp(pCreateInfo->depthStencilState.back.passOp);
+    desc.BackFace.StencilFunc         = ToD3D11ComparisonFunc(pCreateInfo->depthStencilState.back.compareOp);
+
+
+    HRESULT hr = device->CreateDepthStencilState(&desc, &mDepthStencilState);
     if (FAILED(hr)) {
         return ppx::ERROR_FAILED;
     }
@@ -170,9 +199,11 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
         return ppxres;
     }
 
-    ppxres = InitializeInputLayout(pCreateInfo);
-    if (Failed(ppxres)) {
-        return ppxres;
+    if (pCreateInfo->vertexInputState.bindingCount > 0) {
+        ppxres = InitializeInputLayout(pCreateInfo);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
     }
 
     mPrimitiveTopology = ToD3D11PrimitiveTopology(pCreateInfo->inputAssemblyState.topology);

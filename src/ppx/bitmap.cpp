@@ -635,4 +635,13 @@ Result Bitmap::LoadFile(const fs::path& path, Bitmap* pBitmap)
     return ppx::SUCCESS;
 }
 
+Result Bitmap::SaveFilePNG(const fs::path& path, const Bitmap* pBitmap)
+{
+    int res = stbi_write_png(path.c_str(), pBitmap->GetWidth(), pBitmap->GetHeight(), 4, pBitmap->GetData(), pBitmap->GetRowStride());
+    if (res == 0) {
+        return ppx::ERROR_IMAGE_FILE_SAVE_FAILED;
+    }
+    return ppx::SUCCESS;
+}
+
 } // namespace ppx

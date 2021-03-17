@@ -336,7 +336,7 @@ void ProjApp::Render()
         // Fill image with red
         frame.cmd->TransitionImageLayout(mOutputImage, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_UNORDERED_ACCESS);
         frame.cmd->BindComputeDescriptorSets(mShaderToyPipelineInterface, 1, &mShaderToyDescriptorSet);
-        PPX_ASSERT_MSG(mShaderToyIndex < mShaderToyNames.size(), "invalid sahder toy index: " << mShaderToyIndex);
+        PPX_ASSERT_MSG(mShaderToyIndex < mShaderToyNames.size(), "invalid shader toy index: " << mShaderToyIndex);
         frame.cmd->BindComputePipeline(mShaderToys[mShaderToyIndex].pipeline);
         frame.cmd->Dispatch(mOutputImage->GetWidth() / kNumThreadsX, mOutputImage->GetHeight() / kNumThreadsY, 1);
         frame.cmd->TransitionImageLayout(mOutputImage, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_UNORDERED_ACCESS, grfx::RESOURCE_STATE_SHADER_RESOURCE);

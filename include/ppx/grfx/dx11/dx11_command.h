@@ -12,6 +12,7 @@ enum Cmd
 {
     CMD_UNKNOWN = 0,
     CMD_BEGIN_RENDER_PASS,
+    CMD_TRANSITION_IMAGE_LAYOUT,
     CMD_SET_VIEWPORTS,
     CMD_SET_SCISSORS,
     CMD_BIND_INDEX_BUFFER,
@@ -19,6 +20,8 @@ enum Cmd
     CMD_DRAW,
     CMD_DRAW_INDEXED,
     CMD_DISPATCH,
+    CMD_COPY_BUFFER_TO_BUFFER,
+    CMD_COPY_BUFFER_TO_IMAGE,
     CMD_IM_GUI_RENDER,
 };
 
@@ -103,18 +106,18 @@ public:
 
     virtual void CopyBufferToBuffer(
         const grfx::BufferToBufferCopyInfo* pCopyInfo,
-        const grfx::Buffer*                 pSrcBuffer,
-        const grfx::Buffer*                 pDstBuffer) override;
+        grfx::Buffer*                       pSrcBuffer,
+        grfx::Buffer*                       pDstBuffer) override;
 
     virtual void CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,
-        const grfx::Buffer*                pSrcBuffer,
-        const grfx::Image*                 pDstImage) override;
+        grfx::Buffer*                      pSrcBuffer,
+        grfx::Image*                       pDstImage) override;
 
     virtual void CopyImageToBuffer(
         const grfx::ImageToBufferCopyInfo* pCopyInfo,
-        const grfx::Image*                 pSrcImage,
-        const grfx::Buffer*                pDstBuffer) override;
+        grfx::Image*                       pSrcImage,
+        grfx::Buffer*                      pDstBuffer) override;
 
     virtual void BeginQuery(
         const grfx::QueryPool* pQueryPool,
@@ -153,6 +156,7 @@ private:
             mDirty = false;
             mStack.resize(1);
             mCurrent = &mStack.back();
+            mCurrent->Reset();
         }
 
         DataT* GetCurrent()
@@ -194,7 +198,19 @@ private:
     struct DSVClearValue
     {
         FLOAT depth;
-        UINT  stencil;
+        UINT8 stencil;
+    };
+
+    struct ResourceBinding
+    {
+        grfx::D3DDescriptorType descriptorType = grfx::D3D_DESCRIPTOR_TYPE_UNDEFINED;
+        UINT                    startSlot      = 0;
+        std::vector<void*>      resources;
+
+        void Reset()
+        {
+            resources.clear();
+        }
     };
 
     struct IndexBufferState
@@ -202,6 +218,13 @@ private:
         ID3D11Buffer* buffer = nullptr;
         DXGI_FORMAT   format = DXGI_FORMAT_UNKNOWN;
         UINT          offset = 0;
+
+        void Reset()
+        {
+            buffer = nullptr;
+            format = DXGI_FORMAT_UNKNOWN;
+            offset = 0;
+        }
     };
 
     struct VertexBufferState
@@ -211,18 +234,44 @@ private:
         std::array<ID3D11Buffer*, PPX_MAX_VERTEX_BINDINGS> buffers    = {nullptr};
         std::array<UINT, PPX_MAX_VERTEX_BINDINGS>          strides    = {0};
         std::array<UINT, PPX_MAX_VERTEX_BINDINGS>          offsets    = {0};
+
+        void Reset()
+        {
+            startSlot  = 0;
+            numBuffers = 0;
+        }
     };
 
     struct ViewportState
     {
         UINT                                          numViewports = 0;
         std::array<D3D11_VIEWPORT, PPX_MAX_VIEWPORTS> viewports    = {};
+
+        void Reset()
+        {
+            numViewports = 0;
+        }
     };
 
     struct ScissorState
     {
         UINT                                      numRects = 0;
         std::array<D3D11_RECT, PPX_MAX_VIEWPORTS> rects    = {};
+
+        void Reset()
+        {
+            numRects = 0;
+        }
+    };
+
+    struct ComputePipelineState
+    {
+        ID3D11ComputeShader* CS = nullptr;
+
+        void Reset()
+        {
+            CS = nullptr;
+        }
     };
 
     struct GraphicsPipelineState
@@ -235,7 +284,71 @@ private:
         ID3D11InputLayout*       inputLayout       = nullptr;
         D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
         ID3D11RasterizerState2*  rasterizerState   = nullptr;
+        ID3D11DepthStencilState* depthStencilState = nullptr;
+
+        void Reset()
+        {
+            VS                = nullptr;
+            HS                = nullptr;
+            DS                = nullptr;
+            GS                = nullptr;
+            PS                = nullptr;
+            inputLayout       = nullptr;
+            primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+            rasterizerState   = nullptr;
+        }
     };
+
+    struct ComputeDescriptorState
+    {
+        std::vector<ResourceBinding> CS;
+
+        void Reset()
+        {
+            //for (auto& elem : CS) {
+            //    elem.Reset();
+            //}
+            CS.clear();
+        }
+    };
+
+    struct GraphicsDescriptorState
+    {
+        std::vector<ResourceBinding> VS;
+        std::vector<ResourceBinding> HS;
+        std::vector<ResourceBinding> DS;
+        std::vector<ResourceBinding> GS;
+        std::vector<ResourceBinding> PS;
+
+        void Reset()
+        {
+            VS.clear();
+            HS.clear();
+            DS.clear();
+            GS.clear();
+            PS.clear();
+
+            //for (auto& elem : VS) {
+            //    elem.Reset();
+            //}
+            //
+            //for (auto& elem : HS) {
+            //    elem.Reset();
+            //}
+            //
+            //for (auto& elem : DS) {
+            //    elem.Reset();
+            //}
+            //for (auto& elem : HS) {
+            //    elem.Reset();
+            //}
+            //for (auto& elem : PS) {
+            //    elem.Reset();
+            //}
+        }
+    };
+
+    static void CopyDescriptors(const DescriptorResourceBinding& srcBinding, std::vector<ResourceBinding>& dstBindings);
 
     // ---------------------------------------------------------------------------------------------
     // Args [BEGIN]
@@ -252,10 +365,18 @@ private:
 
         struct
         {
-            ID3D11DepthStencilView* pView  = nullptr;
-            grfx::AttachmentLoadOp  loadOp = grfx::ATTACHMENT_LOAD_OP_LOAD;
+            ID3D11DepthStencilView* pView         = nullptr;
+            grfx::AttachmentLoadOp  depthLoadOp   = grfx::ATTACHMENT_LOAD_OP_LOAD;
+            grfx::AttachmentLoadOp  stencilLoadOp = grfx::ATTACHMENT_LOAD_OP_LOAD;
             DSVClearValue           clearValue;
         } dsv;
+    };
+
+    struct TransitionArgs
+    {
+        void*               resource    = nullptr;
+        grfx::ResourceState beforeState = grfx::RESOURCE_STATE_UNDEFINED;
+        grfx::ResourceState afterState  = grfx::RESOURCE_STATE_UNDEFINED;
     };
 
     struct DispatchArgs
@@ -273,6 +394,37 @@ private:
         UINT startInstanceLocation  = 0;
     };
 
+    struct DrawIndexedArgs
+    {
+        UINT indexCountPerInstance = 0;
+        UINT instanceCount         = 0;
+        UINT startIndexLocation    = 0;
+        INT  baseVertexLocation    = 0;
+        UINT startInstanceLocation = 0;
+    };
+
+    struct CopyBufferToBufferArgs
+    {
+        grfx::BufferToBufferCopyInfo copyInfo   = {};
+        grfx::Buffer*                pSrcBuffer = nullptr;
+        grfx::Buffer*                pDstBuffer = nullptr;
+    };
+
+    struct CopyBufferToImageArgs
+    {
+        grfx::BufferToImageCopyInfo copyInfo   = {};
+        grfx::Buffer*               pSrcBuffer = nullptr;
+        grfx::Image*                pDstImage  = nullptr;
+
+        //ID3D11Resource* pDstResource;
+        //UINT            dstSubresource;
+        //UINT            dstX;
+        //UINT            dstY;
+        //UINT            dstZ;
+        //ID3D11Resource* pSrcResource;
+        //UINT            srcSubresource;
+    }; //
+
     struct ImGuiRenderArgs
     {
         void (*pRenderFn)(void) = nullptr;
@@ -285,10 +437,14 @@ private:
     {
         union
         {
-            RenderPassArgs  renderPass;
-            DispatchArgs    dispatch;
-            DrawArgs        draw;
-            ImGuiRenderArgs imGuiRender;
+            RenderPassArgs         renderPass;
+            TransitionArgs         transition;
+            DispatchArgs           dispatch;
+            DrawArgs               draw;
+            DrawIndexedArgs        drawIndexed;
+            CopyBufferToBufferArgs copyBufferToBuffer;
+            CopyBufferToImageArgs  copyBufferToImage;
+            ImGuiRenderArgs        imGuiRender;
         };
 
         CmdArgs() {}
@@ -301,11 +457,14 @@ private:
         Cmd     cmd  = CMD_UNKNOWN;
         CmdArgs args = {};
 
-        uint32_t viewportStateIndex         = kInvalidStateIndex;
-        uint32_t scissorStateIndex          = kInvalidStateIndex;
-        uint32_t indexBuffereStateIndex     = kInvalidStateIndex;
-        uint32_t vertexBufferStateIndex     = kInvalidStateIndex;
-        uint32_t graphicsPipleineStateIndex = kInvalidStateIndex;
+        uint32_t viewportStateIndex           = kInvalidStateIndex;
+        uint32_t scissorStateIndex            = kInvalidStateIndex;
+        uint32_t indexBuffereStateIndex       = kInvalidStateIndex;
+        uint32_t vertexBufferStateIndex       = kInvalidStateIndex;
+        uint32_t graphicsPipleineStateIndex   = kInvalidStateIndex;
+        uint32_t graphicsDescriptorstateIndex = kInvalidStateIndex;
+        uint32_t computePipleineStateIndex    = kInvalidStateIndex;
+        uint32_t computeDescriptorstateIndex  = kInvalidStateIndex;
 
         ActionCmd(Cmd cmd_)
             : cmd(cmd_) {}
@@ -313,12 +472,15 @@ private:
         ~ActionCmd() {}
     };
 
-    StateStackT<ViewportState>         mViewportState;
-    StateStackT<ScissorState>          mScissorState;
-    StateStackT<IndexBufferState>      mIndexBufferState;
-    StateStackT<VertexBufferState>     mVertexBuffersState;
-    StateStackT<GraphicsPipelineState> mGraphicsPipelineStack;
-    std::vector<ActionCmd>             mActionCmds;
+    StateStackT<ViewportState>           mViewportState;
+    StateStackT<ScissorState>            mScissorState;
+    StateStackT<IndexBufferState>        mIndexBufferState;
+    StateStackT<VertexBufferState>       mVertexBuffersState;
+    StateStackT<ComputePipelineState>    mComputePipelineState;
+    StateStackT<GraphicsPipelineState>   mGraphicsPipelineState;
+    StateStackT<ComputeDescriptorState>  mComputeDescriptorState;
+    StateStackT<GraphicsDescriptorState> mGraphicsDescriptorState;
+    std::vector<ActionCmd>               mActionCmds;
 };
 
 // -------------------------------------------------------------------------------------------------

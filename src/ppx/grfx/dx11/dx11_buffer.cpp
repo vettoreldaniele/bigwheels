@@ -12,7 +12,10 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
         return ppx::ERROR_FAILED;
     }
 
-    mUsage = ToD3D11Usage(pCreateInfo->memoryUsage);
+    bool dynamic = pCreateInfo->usageFlags.bits.uniformBuffer ||
+                   pCreateInfo->usageFlags.bits.indexBuffer ||
+                   pCreateInfo->usageFlags.bits.vertexBuffer;
+    mUsage = ToD3D11Usage(pCreateInfo->memoryUsage, dynamic);
 
     mCpuAccessFlags = 0;
     if (pCreateInfo->memoryUsage == grfx::MEMORY_USAGE_CPU_ONLY) {
@@ -20,6 +23,9 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
     }
     else if (pCreateInfo->memoryUsage == grfx::MEMORY_USAGE_CPU_TO_GPU) {
         mCpuAccessFlags |= D3D11_CPU_ACCESS_WRITE;
+        if (!dynamic) {
+            mCpuAccessFlags |= D3D11_CPU_ACCESS_READ;
+        }
     }
     else if (pCreateInfo->memoryUsage == grfx::MEMORY_USAGE_GPU_TO_CPU) {
         mCpuAccessFlags |= D3D11_CPU_ACCESS_READ;
@@ -69,11 +75,11 @@ Result Buffer::MapMemory(uint64_t offset, void** ppMappedAddress)
         mapType = D3D11_MAP_WRITE_DISCARD;
     }
     else if (mUsage == D3D11_USAGE_STAGING) {
-        mapType = D3D11_MAP_READ;
+        mapType = D3D11_MAP_READ_WRITE;
     }
 
     D3D11_MAPPED_SUBRESOURCE mappedSubres = {};
-    HRESULT hr = context->Map(mBuffer.Get(), 0, mapType, 0, &mappedSubres);
+    HRESULT                  hr           = context->Map(mBuffer.Get(), 0, mapType, 0, &mappedSubres);
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }

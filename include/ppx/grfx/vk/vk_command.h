@@ -26,22 +26,22 @@ private:
 
 public:
     virtual void TransitionImageLayout(
-        const grfx::Image*   pImage,
-        uint32_t             mipLevel,
-        uint32_t             mipLevelCount,
-        uint32_t             arrayLayer,
-        uint32_t             arrayLayerCount,
-        grfx::ResourceState  beforeState,
-        grfx::ResourceState  afterState,
-        const grfx::Queue*   pSrcQueue,
-        const grfx::Queue*   pDstQueue) override;
+        const grfx::Image*  pImage,
+        uint32_t            mipLevel,
+        uint32_t            mipLevelCount,
+        uint32_t            arrayLayer,
+        uint32_t            arrayLayerCount,
+        grfx::ResourceState beforeState,
+        grfx::ResourceState afterState,
+        const grfx::Queue*  pSrcQueue,
+        const grfx::Queue*  pDstQueue) override;
 
     virtual void BufferResourceBarrier(
-        const grfx::Buffer*  pBuffer,
-        grfx::ResourceState  beforeState,
-        grfx::ResourceState  afterState,
-        const grfx::Queue*   pSrcQueue = nullptr,
-        const grfx::Queue*   pDstQueue = nullptr) override;
+        const grfx::Buffer* pBuffer,
+        grfx::ResourceState beforeState,
+        grfx::ResourceState afterState,
+        const grfx::Queue*  pSrcQueue = nullptr,
+        const grfx::Queue*  pDstQueue = nullptr) override;
 
     virtual void SetViewports(
         uint32_t              viewportCount,
@@ -91,18 +91,18 @@ public:
 
     virtual void CopyBufferToBuffer(
         const grfx::BufferToBufferCopyInfo* pCopyInfo,
-        const grfx::Buffer*                 pSrcBuffer,
-        const grfx::Buffer*                 pDstBuffer) override;
+        grfx::Buffer*                       pSrcBuffer,
+        grfx::Buffer*                       pDstBuffer) override;
 
     virtual void CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,
-        const grfx::Buffer*                pSrcBuffer,
-        const grfx::Image*                 pDstImage) override;
+        grfx::Buffer*                      pSrcBuffer,
+        grfx::Image*                       pDstImage) override;
 
     virtual void CopyImageToBuffer(
         const grfx::ImageToBufferCopyInfo* pCopyInfo,
-        const grfx::Image*                 pSrcImage,
-        const grfx::Buffer*                pDstBuffer) override;
+        grfx::Image*                       pSrcImage,
+        grfx::Buffer*                      pDstBuffer) override;
 
     virtual void BeginQuery(
         const grfx::QueryPool* pQueryPool,

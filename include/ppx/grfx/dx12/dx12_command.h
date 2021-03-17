@@ -91,18 +91,18 @@ public:
 
     virtual void CopyBufferToBuffer(
         const grfx::BufferToBufferCopyInfo* pCopyInfo,
-        const grfx::Buffer*                 pSrcBuffer,
-        const grfx::Buffer*                 pDstBuffer) override;
+        grfx::Buffer*                       pSrcBuffer,
+        grfx::Buffer*                       pDstBuffer) override;
 
     virtual void CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,
-        const grfx::Buffer*                pSrcBuffer,
-        const grfx::Image*                 pDstImage) override;
+        grfx::Buffer*                      pSrcBuffer,
+        grfx::Image*                       pDstImage) override;
 
     virtual void CopyImageToBuffer(
         const grfx::ImageToBufferCopyInfo* pCopyInfo,
-        const grfx::Image*                 pSrcImage,
-        const grfx::Buffer*                pDstBuffer) override;
+        grfx::Image*                       pSrcImage,
+        grfx::Buffer*                      pDstBuffer) override;
 
     virtual void BeginQuery(
         const grfx::QueryPool* pQueryPool,

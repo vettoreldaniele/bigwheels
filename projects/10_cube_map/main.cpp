@@ -56,8 +56,8 @@ private:
     ppx::grfx::ImagePtr            mCubeMapImage;
     ppx::grfx::SampledImageViewPtr mCubeMapImageView;
     ppx::grfx::SamplerPtr          mCubeMapSampler;
-    float                          mRotY    = 0;
-    float                          mRotX    = 0;
+    float                          mRotY            = 0;
+    float                          mRotX            = 0;
     uint64_t                       mGpuWorkDuration = 0;
 
 private:
@@ -255,10 +255,12 @@ void ProjApp::Setup()
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
+#if !defined(PPX_D3D11)
         grfx::QueryPoolCreateInfo queryPoolCreateInfo = {};
         queryPoolCreateInfo.type                      = grfx::QUERY_TYPE_TIMESTAMP;
         queryPoolCreateInfo.count                     = 2;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.queryPool));
+#endif // ! defined(PPX_D3D11)
 
         mPerFrame.push_back(frame);
     }
@@ -280,6 +282,7 @@ void ProjApp::Render()
     // Wait for and reset render complete fence
     PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
 
+#if !defined(PPX_D3D11)
     // Read query results
     if (GetFrameCount() > 1) {
         uint64_t data[2] = {0};
@@ -288,6 +291,7 @@ void ProjApp::Render()
     }
     // Reset query
     frame.queryPool->Reset(0, 2);
+#endif // ! defined(PPX_D3D11)
 
     // Update uniform buffer
     {
@@ -336,8 +340,10 @@ void ProjApp::Render()
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
+#if !defined(PPX_D3D11)
         // Write start timestamp
         frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 0);
+#endif // ! defined(PPX_D3D11)
 
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
@@ -376,8 +382,10 @@ void ProjApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
 
+#if !defined(PPX_D3D11)
         // Write end timestamp
         frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 1);
+#endif // ! defined(PPX_D3D11)
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 

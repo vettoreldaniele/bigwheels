@@ -196,6 +196,15 @@ enum CullMode
     CULL_MODE_BACK  = 2,
 };
 
+enum D3DDescriptorType
+{
+    D3D_DESCRIPTOR_TYPE_UNDEFINED = 0,
+    D3D_DESCRIPTOR_TYPE_CBV      = 1,
+    D3D_DESCRIPTOR_TYPE_SRV      = 2,
+    D3D_DESCRIPTOR_TYPE_UAV      = 3,
+    D3D_DESCRIPTOR_TYPE_SAMPLER  = 4,
+};
+
 enum DescriptorType
 {
     // NOTE: These *DO NOT* match the enums in Vulkan
@@ -306,7 +315,7 @@ enum MemoryUsage
     MEMORY_USAGE_GPU_TO_CPU = 4,
 };
 
-// 
+//
 // VK: Maps to top/bottom of pipeline stages for timestamp queries.
 // DX: Maps to begin/end for timestamp queries.
 //
@@ -404,6 +413,7 @@ enum SampleCount
 
 enum ShaderStageBits
 {
+    SHADER_STAGE_UNDEFINED    = 0x00000000,
     SHADER_STAGE_VS           = 0x00000001,
     SHADER_STAGE_HS           = 0x00000002,
     SHADER_STAGE_DS           = 0x00000004,

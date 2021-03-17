@@ -28,7 +28,8 @@ public:
     Buffer() {}
     virtual ~Buffer() {}
 
-    uint64_t GetSize() const { return mCreateInfo.size; }
+    uint64_t                      GetSize() const { return mCreateInfo.size; }
+    const grfx::BufferUsageFlags& GetUsageFlags() const { return mCreateInfo.usageFlags; }
 
     virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) = 0;
     virtual void   UnmapMemory()                                      = 0;

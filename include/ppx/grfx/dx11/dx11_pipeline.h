@@ -15,6 +15,8 @@ public:
     ComputePipeline() {}
     virtual ~ComputePipeline() {}
 
+    typename D3D11ComputeShaderPtr::InterfaceType* GetCS() const { return mCS.Get(); };
+
 protected:
     virtual Result CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
@@ -32,14 +34,15 @@ public:
     GraphicsPipeline() {}
     virtual ~GraphicsPipeline() {}
 
-    typename D3D11VertexShaderPtr::InterfaceType*    GetVS() const { return mVS.Get(); };
-    typename D3D11HullShaderPtr::InterfaceType*      GetHS() const { return mHS.Get(); };
-    typename D3D11DomainShaderPtr::InterfaceType*    GetDS() const { return mDS.Get(); };
-    typename D3D11GeometryShaderPtr::InterfaceType*  GetGS() const { return mGS.Get(); };
-    typename D3D11PixelShaderPtr::InterfaceType*     GetPS() const { return mPS.Get(); };
-    typename D3D11InputLayoutPtr::InterfaceType*     GetInputLayout() const { return mInputLayout.Get(); };
-    D3D11_PRIMITIVE_TOPOLOGY                         GetPrimitiveTopology() const { return mPrimitiveTopology; }
-    typename D3D11RasterizerStatePtr::InterfaceType* GetRasterizerState() const { return mRasterizerState.Get(); };
+    typename D3D11VertexShaderPtr::InterfaceType*      GetVS() const { return mVS.Get(); };
+    typename D3D11HullShaderPtr::InterfaceType*        GetHS() const { return mHS.Get(); };
+    typename D3D11DomainShaderPtr::InterfaceType*      GetDS() const { return mDS.Get(); };
+    typename D3D11GeometryShaderPtr::InterfaceType*    GetGS() const { return mGS.Get(); };
+    typename D3D11PixelShaderPtr::InterfaceType*       GetPS() const { return mPS.Get(); };
+    typename D3D11InputLayoutPtr::InterfaceType*       GetInputLayout() const { return mInputLayout.Get(); };
+    D3D11_PRIMITIVE_TOPOLOGY                           GetPrimitiveTopology() const { return mPrimitiveTopology; }
+    typename D3D11RasterizerStatePtr::InterfaceType*   GetRasterizerState() const { return mRasterizerState.Get(); };
+    typename D3D11DepthStencilStatePtr::InterfaceType* GetDepthStencilstate() const { return mDepthStencilState.Get(); };
 
 protected:
     virtual Result CreateApiObjects(const grfx::GraphicsPipelineCreateInfo* pCreateInfo) override;
@@ -49,16 +52,18 @@ private:
     Result InitializeShaders(const grfx::GraphicsPipelineCreateInfo* pCreateInfo);
     Result InitializeInputLayout(const grfx::GraphicsPipelineCreateInfo* pCreateInfo);
     Result InitializeRasterizerState(const grfx::GraphicsPipelineCreateInfo* pCreateInfo);
+    Result InitializeDepthStencilState(const grfx::GraphicsPipelineCreateInfo* pCreateInfo);
 
 private:
-    D3D11VertexShaderPtr     mVS;
-    D3D11HullShaderPtr       mHS;
-    D3D11DomainShaderPtr     mDS;
-    D3D11GeometryShaderPtr   mGS;
-    D3D11PixelShaderPtr      mPS;
-    D3D11InputLayoutPtr      mInputLayout;
-    D3D11_PRIMITIVE_TOPOLOGY mPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-    D3D11RasterizerStatePtr  mRasterizerState;
+    D3D11VertexShaderPtr      mVS;
+    D3D11HullShaderPtr        mHS;
+    D3D11DomainShaderPtr      mDS;
+    D3D11GeometryShaderPtr    mGS;
+    D3D11PixelShaderPtr       mPS;
+    D3D11InputLayoutPtr       mInputLayout;
+    D3D11_PRIMITIVE_TOPOLOGY  mPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+    D3D11RasterizerStatePtr   mRasterizerState;
+    D3D11DepthStencilStatePtr mDepthStencilState;
 };
 
 // -------------------------------------------------------------------------------------------------

@@ -11,13 +11,16 @@ namespace grfx {
 //! *** WARNING ***
 //! 'DescriptorBinding::arrayCount' is *NOT* the same as 'VkDescriptorSetLayoutBinding::descriptorCount'.
 //!
+//! NOTE: D3D12 only supports shader visibility for a single individual stages or all stages so this
+//!       means that shader visibility can't be a combination of stage bits like Vulkan.
+//!       See: https://docs.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_shader_visibility
 //!
 struct DescriptorBinding
 {
     uint32_t              binding         = PPX_VALUE_IGNORED;               //
     grfx::DescriptorType  type            = grfx::DESCRIPTOR_TYPE_UNDEFINED; //
     uint32_t              arrayCount      = 1;                               // WARNING: Not VkDescriptorSetLayoutBinding::descriptorCount
-    grfx::ShaderStageBits shaderVisiblity = SHADER_STAGE_ALL;                // Single value not set of flags
+    grfx::ShaderStageBits shaderVisiblity = grfx::SHADER_STAGE_ALL;          // Single value not set of flags (see note above)
 
     DescriptorBinding() {}
 
@@ -156,6 +159,8 @@ public:
 protected:
     virtual Result Create(const grfx::DescriptorSetLayoutCreateInfo* pCreateInfo) override;
     friend class grfx::Device;
+
+private:
 };
 
 } // namespace grfx

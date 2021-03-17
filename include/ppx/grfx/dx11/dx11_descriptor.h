@@ -6,29 +6,53 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx11{
+namespace dx11 {
 
 class DescriptorPool
     : public grfx::DescriptorPool
 {
 public:
-    struct Allocation
-    {
-        const grfx::DescriptorSet* pSet    = nullptr;
-        uint32_t                   binding = UINT32_MAX;
-        uint32_t                   offset  = 0;
-        uint32_t                   count   = 0;
-    };
-
     DescriptorPool() {}
     virtual ~DescriptorPool() {}
 
-    Result AllocateDescriptorSet(uint32_t numDescriptorsCBVSRVUAV, uint32_t numDescriptorsSampler);
-    void   FreeDescriptorSet(uint32_t numDescriptorsCBVSRVUAV, uint32_t numDescriptorsSampler);
+    uint32_t GetRemainingCountCBV() const { return mRemainingCountCBV; }
+    uint32_t GetRemainingCountSRV() const { return mRemainingCountSRV; }
+    uint32_t GetRemainingCountUAV() const { return mRemainingCountUAV; }
+    uint32_t GetRemainingCountSampler() const { return mRemainingCountSampler; }
+
+    Result AllocateSet(
+        uint32_t bindingCountCBV,
+        uint32_t bindingCountSRV,
+        uint32_t bindingCountUAV,
+        uint32_t bindingCountSampler);
+    void FreeSet(
+        uint32_t bindingCountCBV,
+        uint32_t bindingCountSRV,
+        uint32_t bindingCountUAV,
+        uint32_t bindingCountSampler);
+
+private:
+    void UpdateRemainingCount();
 
 protected:
     virtual Result CreateApiObjects(const grfx::DescriptorPoolCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
+
+private:
+    uint32_t mTotalCountCBV     = 0;
+    uint32_t mTotalCountSRV     = 0;
+    uint32_t mTotalCountUAV     = 0;
+    uint32_t mTotalCountSampler = 0;
+
+    uint32_t mAllocatedCountCBV     = 0;
+    uint32_t mAllocatedCountSRV     = 0;
+    uint32_t mAllocatedCountUAV     = 0;
+    uint32_t mAllocatedCountSampler = 0;
+
+    uint32_t mRemainingCountCBV     = 0;
+    uint32_t mRemainingCountSRV     = 0;
+    uint32_t mRemainingCountUAV     = 0;
+    uint32_t mRemainingCountSampler = 0;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -40,11 +64,16 @@ public:
     DescriptorSet() {}
     virtual ~DescriptorSet() {}
 
+    const std::vector<DescriptorResourceBinding>& GetResourceBindings() const { return mResourceBindings; }
+
     virtual Result UpdateDescriptors(uint32_t writeCount, const grfx::WriteDescriptor* pWrites) override;
 
 protected:
     virtual Result CreateApiObjects(const grfx::internal::DescriptorSetCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
+
+private:
+    std::vector<DescriptorResourceBinding> mResourceBindings;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -62,9 +91,20 @@ public:
     DescriptorSetLayout() {}
     virtual ~DescriptorSetLayout() {}
 
+    uint32_t GetBindingCountCBV() const { return mBindingCountCBV; }
+    uint32_t GetBindingCountSRV() const { return mBindingCountSRV; }
+    uint32_t GetBindingCountUAV() const { return mBindingCountUAV; }
+    uint32_t GetBindingCountSampler() const { return mBindingCountSampler; }
+
 protected:
     virtual Result CreateApiObjects(const grfx::DescriptorSetLayoutCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
+
+private:
+    uint32_t mBindingCountCBV     = 0;
+    uint32_t mBindingCountSRV     = 0;
+    uint32_t mBindingCountUAV     = 0;
+    uint32_t mBindingCountSampler = 0;
 };
 
 } // namespace dx11

@@ -101,6 +101,7 @@ Result DescriptorSetLayout::Create(const grfx::DescriptorSetLayoutCreateInfo* pC
     for (size_t i = 0; i < bindingCount; ++i) {
         const grfx::DescriptorBinding& binding = pCreateInfo->bindings[i];
 
+        // Calculate range
         ppx::RangeU32 range = {};
         range.start         = binding.binding;
         range.end           = binding.binding + binding.arrayCount;

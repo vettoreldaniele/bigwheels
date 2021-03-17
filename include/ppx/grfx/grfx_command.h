@@ -106,7 +106,7 @@ struct ImageToBufferCopyInfo
 struct RenderPassBeginInfo
 {
     //
-    // The value of RTVClearCount cannot be less than the number 
+    // The value of RTVClearCount cannot be less than the number
     // of RTVs in pRenderPass.
     //
     const grfx::RenderPass*      pRenderPass                            = nullptr;
@@ -249,18 +249,18 @@ public:
 
     virtual void CopyBufferToBuffer(
         const grfx::BufferToBufferCopyInfo* pCopyInfo,
-        const grfx::Buffer*                 pSrcBuffer,
-        const grfx::Buffer*                 pDstBuffer) = 0;
+        grfx::Buffer*                       pSrcBuffer,
+        grfx::Buffer*                       pDstBuffer) = 0;
 
     virtual void CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,
-        const grfx::Buffer*                pSrcBuffer,
-        const grfx::Image*                 pDstImage) = 0;
+        grfx::Buffer*                      pSrcBuffer,
+        grfx::Image*                       pDstImage) = 0;
 
     virtual void CopyImageToBuffer(
         const grfx::ImageToBufferCopyInfo* pCopyInfo,
-        const grfx::Image*                 pSrcImage,
-        const grfx::Buffer*                pDstBuffer) = 0;
+        grfx::Image*                       pSrcImage,
+        grfx::Buffer*                      pDstBuffer) = 0;
 
     virtual void BeginQuery(
         const grfx::QueryPool* pQueryPool,

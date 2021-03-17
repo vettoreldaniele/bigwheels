@@ -168,7 +168,12 @@ Result Device::AllocateObject(grfx::ComputePipeline** ppObject)
 
 Result Device::AllocateObject(grfx::DepthStencilView** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::DepthStencilView* pObject = new dx11::DepthStencilView();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::DescriptorPool** ppObject)
@@ -278,12 +283,22 @@ Result Device::AllocateObject(grfx::RenderTargetView** ppObject)
 
 Result Device::AllocateObject(grfx::SampledImageView** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::SampledImageView* pObject = new dx11::SampledImageView();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Sampler** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::Sampler* pObject = new dx11::Sampler();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Semaphore** ppObject)
@@ -313,7 +328,12 @@ Result Device::AllocateObject(grfx::ShaderProgram** ppObject)
 
 Result Device::AllocateObject(grfx::StorageImageView** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::StorageImageView* pObject = new dx11::StorageImageView();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::Swapchain** ppObject)

@@ -23,21 +23,26 @@ namespace ppx {
 namespace grfx {
 namespace dx11 {
 
-using DXGIAdapterPtr           = ComPtr<IDXGIAdapter4>;
-using DXGIFactoryPtr           = ComPtr<IDXGIFactory7>;
-using DXGIDebugPtr             = ComPtr<IDXGIDebug1>;
-using DXGIInfoQueuePtr         = ComPtr<IDXGIInfoQueue>;
-using DXGISwapChainPtr         = ComPtr<IDXGISwapChain4>;
-using D3D11BufferPtr           = ComPtr<ID3D11Buffer>;
-using D3D11DevicePtr           = ComPtr<ID3D11Device5>;
-using D3D11DeviceContextPtr    = ComPtr<ID3D11DeviceContext3>;
-using D3D11InputLayoutPtr      = ComPtr<ID3D11InputLayout>;
-using D3D11RasterizerStatePtr  = ComPtr<ID3D11RasterizerState2>;
-using D3D11RenderTargetViewPtr = ComPtr<ID3D11RenderTargetView1>;
-using D3D11SamplerStatePtr     = ComPtr<ID3D11SamplerState>;
-using D3D11Texture1DPtr        = ComPtr<ID3D11Texture2D1>;
-using D3D11Texture2DPtr        = ComPtr<ID3D11Texture2D1>;
-using D3D11Texture3DPtr        = ComPtr<ID3D11Texture3D1>;
+using DXGIAdapterPtr              = ComPtr<IDXGIAdapter4>;
+using DXGIFactoryPtr              = ComPtr<IDXGIFactory7>;
+using DXGIDebugPtr                = ComPtr<IDXGIDebug1>;
+using DXGIInfoQueuePtr            = ComPtr<IDXGIInfoQueue>;
+using DXGISwapChainPtr            = ComPtr<IDXGISwapChain4>;
+using D3D11BufferPtr              = ComPtr<ID3D11Buffer>;
+using D3D11DepthStencilStatePtr   = ComPtr<ID3D11DepthStencilState>;
+using D3D11DepthStencilViewPtr    = ComPtr<ID3D11DepthStencilView>;
+using D3D11DevicePtr              = ComPtr<ID3D11Device5>;
+using D3D11DeviceContextPtr       = ComPtr<ID3D11DeviceContext3>;
+using D3D11InputLayoutPtr         = ComPtr<ID3D11InputLayout>;
+using D3D11RasterizerStatePtr     = ComPtr<ID3D11RasterizerState2>;
+using D3D11RenderTargetViewPtr    = ComPtr<ID3D11RenderTargetView1>;
+using D3D11ResourcePtr            = ComPtr<ID3D11Resource>;
+using D3D11SamplerStatePtr        = ComPtr<ID3D11SamplerState>;
+using D3D11ShaderResourceViewPtr  = ComPtr<ID3D11ShaderResourceView1>;
+using D3D11Texture1DPtr           = ComPtr<ID3D11Texture1D>;
+using D3D11Texture2DPtr           = ComPtr<ID3D11Texture2D1>;
+using D3D11Texture3DPtr           = ComPtr<ID3D11Texture3D1>;
+using D3D11UnorderedAccessViewPtr = ComPtr<ID3D11UnorderedAccessView1>;
 
 using D3D11ComputeShaderPtr  = ComPtr<ID3D11ComputeShader>;
 using D3D11DomainShaderPtr   = ComPtr<ID3D11DomainShader>;
@@ -269,6 +274,16 @@ typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(ObjPtr<GrfxTypeT>& pGrfxObje
     ApiType* pApiObject = static_cast<ApiType*>(pGrfxObject.Get());
     return pApiObject;
 }
+
+// -------------------------------------------------------------------------------------------------
+
+struct DescriptorResourceBinding
+{
+    uint32_t                binding          = UINT32_MAX;
+    grfx::D3DDescriptorType descriptorType   = grfx::D3D_DESCRIPTOR_TYPE_UNDEFINED;
+    grfx::ShaderStageBits   shaderVisibility = grfx::SHADER_STAGE_UNDEFINED;
+    std::vector<void*>      resources;
+};
 
 // -------------------------------------------------------------------------------------------------
 

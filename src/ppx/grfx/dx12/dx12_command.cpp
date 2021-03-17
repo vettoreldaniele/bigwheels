@@ -160,7 +160,7 @@ void CommandBuffer::BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginI
     uint32_t renderTargetCount = pRenderPass->GetRenderTargetCount();
     for (uint32_t i = 0; i < renderTargetCount; ++i) {
         dx12::RenderTargetView* pRTV = ToApi(pRenderPass->GetRenderTargetView(i).Get());
-        renderTargetDescriptors[i] = pRTV->GetCpuDescriptorHandle();
+        renderTargetDescriptors[i]   = pRTV->GetCpuDescriptorHandle();
     }
 
     // Get handle for depth stencil descriptor
@@ -343,11 +343,11 @@ void CommandBuffer::BindDescriptorSets(
     size_t&                           rdtCountSampler)
 {
     dx12::Device*                  pApiDevice             = ToApi(GetDevice());
-    D3D12DevicePtr               device                 = pApiDevice->GetDxDevice();
+    D3D12DevicePtr                 device                 = pApiDevice->GetDxDevice();
     const dx12::PipelineInterface* pApiPipelineInterface  = ToApi(pInterface);
-    const std::vector<uint32_t>& setNumbers             = pApiPipelineInterface->GetSetNumbers();
-    UINT                         incrementSizeCBVSRVUAV = pApiDevice->GetHandleIncrementSizeCBVSRVUAV();
-    UINT                         incrementSizeSampler   = pApiDevice->GetHandleIncrementSizeSampler();
+    const std::vector<uint32_t>&   setNumbers             = pApiPipelineInterface->GetSetNumbers();
+    UINT                           incrementSizeCBVSRVUAV = pApiDevice->GetHandleIncrementSizeCBVSRVUAV();
+    UINT                           incrementSizeSampler   = pApiDevice->GetHandleIncrementSizeSampler();
 
     uint32_t parameterIndexCount = pApiPipelineInterface->GetParameterIndexCount();
     if (parameterIndexCount > mRootDescriptorTablesCBVSRVUAV.size()) {
@@ -360,9 +360,9 @@ void CommandBuffer::BindDescriptorSets(
     rdtCountSampler   = 0;
     for (uint32_t setIndex = 0; setIndex < setCount; ++setIndex) {
         PPX_ASSERT_MSG(ppSets[setIndex] != nullptr, "ppSets[" << setIndex << "] is null");
-        uint32_t                 set      = setNumbers[setIndex];
+        uint32_t                   set      = setNumbers[setIndex];
         const dx12::DescriptorSet* pApiSet  = ToApi(ppSets[setIndex]);
-        auto&                    bindings = pApiSet->GetLayout()->GetBindings();
+        auto&                      bindings = pApiSet->GetLayout()->GetBindings();
 
         // Copy the descriptors
         {
@@ -555,8 +555,8 @@ void CommandBuffer::Dispatch(
 
 void CommandBuffer::CopyBufferToBuffer(
     const grfx::BufferToBufferCopyInfo* pCopyInfo,
-    const grfx::Buffer*                 pSrcBuffer,
-    const grfx::Buffer*                 pDstBuffer)
+    grfx::Buffer*                       pSrcBuffer,
+    grfx::Buffer*                       pDstBuffer)
 {
     mCommandList->CopyBufferRegion(
         ToApi(pDstBuffer)->GetDxResource(),
@@ -568,8 +568,8 @@ void CommandBuffer::CopyBufferToBuffer(
 
 void CommandBuffer::CopyBufferToImage(
     const grfx::BufferToImageCopyInfo* pCopyInfo,
-    const grfx::Buffer*                pSrcBuffer,
-    const grfx::Image*                 pDstImage)
+    grfx::Buffer*                      pSrcBuffer,
+    grfx::Image*                       pDstImage)
 {
     D3D12DevicePtr      device        = ToApi(GetDevice())->GetDxDevice();
     D3D12_RESOURCE_DESC resouceDesc   = ToApi(pDstImage)->GetDxResource()->GetDesc();
@@ -629,8 +629,8 @@ void CommandBuffer::CopyBufferToImage(
 
 void CommandBuffer::CopyImageToBuffer(
     const grfx::ImageToBufferCopyInfo* pCopyInfo,
-    const grfx::Image*                 pSrcImage,
-    const grfx::Buffer*                pDstBuffer)
+    grfx::Image*                       pSrcImage,
+    grfx::Buffer*                      pDstBuffer)
 {
     PPX_ASSERT_MSG(false, "not implemented");
 }

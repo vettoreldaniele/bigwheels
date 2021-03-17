@@ -61,14 +61,14 @@ public:
     // In place copy of buffer to buffer
     Result CopyBufferToBuffer(
         const grfx::BufferToBufferCopyInfo* pCopyInfo,
-        const grfx::Buffer*                 pSrcBuffer,
-        const grfx::Buffer*                 pDstBuffer);
+        grfx::Buffer*                       pSrcBuffer,
+        grfx::Buffer*                       pDstBuffer);
 
     // In pace copy of buffer to image
     Result CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,
-        const grfx::Buffer*                pSrcBuffer,
-        const grfx::Image*                 pDstImage,
+        grfx::Buffer*                      pSrcBuffer,
+        grfx::Image*                       pDstImage,
         uint32_t                           mipLevel,
         uint32_t                           mipLevelCount,
         uint32_t                           arrayLayer,
