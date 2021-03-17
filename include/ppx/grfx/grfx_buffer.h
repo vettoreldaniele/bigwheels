@@ -11,11 +11,12 @@ namespace grfx {
 //!
 struct BufferCreateInfo
 {
-    uint64_t               size         = 0;
-    grfx::BufferUsageFlags usageFlags   = 0;
-    grfx::MemoryUsage      memoryUsage  = grfx::MEMORY_USAGE_GPU_ONLY;
-    grfx::ResourceState    initialState = grfx::RESOURCE_STATE_GENERAL;
-    grfx::Ownership        ownership    = grfx::OWNERSHIP_REFERENCE;
+    uint64_t               size                    = 0;
+    uint32_t               structuredElementStride = 0; // HLSL StructuredBuffer<> only
+    grfx::BufferUsageFlags usageFlags              = 0;
+    grfx::MemoryUsage      memoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY;
+    grfx::ResourceState    initialState            = grfx::RESOURCE_STATE_GENERAL;
+    grfx::Ownership        ownership               = grfx::OWNERSHIP_REFERENCE;
 };
 
 //! @class Buffer
@@ -29,6 +30,7 @@ public:
     virtual ~Buffer() {}
 
     uint64_t                      GetSize() const { return mCreateInfo.size; }
+    uint32_t                      GetStructuredElementStride() const { return mCreateInfo.structuredElementStride; }
     const grfx::BufferUsageFlags& GetUsageFlags() const { return mCreateInfo.usageFlags; }
 
     virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) = 0;

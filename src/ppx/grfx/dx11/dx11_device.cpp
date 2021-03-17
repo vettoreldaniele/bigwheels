@@ -361,6 +361,46 @@ Result Device::ResolveQueryData(
     return ppx::ERROR_FAILED;
 }
 
+Result Device::GetStructuredBufferSRV(
+    const grfx::Buffer*                                  pBuffer,
+    UINT                                                 numElements,
+    typename D3D11ShaderResourceViewPtr::InterfaceType** ppSRV)
+{
+    typename D3D11ShaderResourceViewPtr::InterfaceType* pSRV = nullptr;
+    auto                                                it   = FindIf(
+        mStructuredBufferSRVs,
+        [pBuffer, numElements](const StructuredBufferSRV& elem) -> bool {
+            bool isSameBuffer = (elem.pBuffer == pBuffer);
+            bool isSameNumElements = (elem.numElements == numElements);
+            bool isSame = isSameBuffer && isSameNumElements;
+            return isSame; });
+    if (it != std::end(mStructuredBufferSRVs)) {
+        pSRV = it->SRV.Get();
+    }
+
+    if (IsNull(pSRV)) {
+        D3D11_SHADER_RESOURCE_VIEW_DESC1 desc = {};
+        desc.Format                           = DXGI_FORMAT_UNKNOWN;
+        desc.ViewDimension                    = D3D11_SRV_DIMENSION_BUFFER;
+        desc.Buffer.FirstElement              = 0;
+        desc.Buffer.NumElements               = numElements;
+
+        D3D11ShaderResourceViewPtr SRV;
+        HRESULT                    hr = mDevice->CreateShaderResourceView1(ToApi(pBuffer)->GetDxBuffer(), &desc, &SRV);
+        if (FAILED(hr)) {
+            return ppx::ERROR_API_FAILURE;
+        }
+
+        pSRV = SRV.Get();
+
+        mStructuredBufferSRVs.emplace_back(StructuredBufferSRV{pBuffer, numElements, SRV});
+    }
+
+    *ppSRV = pSRV;
+
+    return ppx::SUCCESS;
+}
+
 } // namespace dx11
 } // namespace grfx
 } // namespace ppx

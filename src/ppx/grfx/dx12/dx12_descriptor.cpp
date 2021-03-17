@@ -289,7 +289,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
                 desc.Shader4ComponentMapping         = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
                 desc.Buffer.FirstElement             = 0;
                 desc.Buffer.NumElements              = static_cast<UINT>(srcWrite.structuredElementCount);
-                desc.Buffer.StructureByteStride      = static_cast<UINT>(srcWrite.structuredElementStride);
+                desc.Buffer.StructureByteStride      = static_cast<UINT>(srcWrite.pBuffer->GetStructuredElementStride());
                 desc.Buffer.Flags                    = D3D12_BUFFER_SRV_FLAG_NONE;
 
                 SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeCBVSRVUAV * srcWrite.arrayIndex);

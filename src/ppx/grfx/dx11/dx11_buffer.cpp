@@ -8,8 +8,9 @@ namespace dx11 {
 Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
 {
     if (pCreateInfo->usageFlags.bits.structuredBuffer || pCreateInfo->usageFlags.bits.storageBuffer) {
-        PPX_ASSERT_MSG(false, "implementation incomplete");
-        return ppx::ERROR_FAILED;
+        int stopMe = 1;
+    //    PPX_ASSERT_MSG(false, "implementation incomplete");
+    //    return ppx::ERROR_FAILED;
     }
 
     bool dynamic = pCreateInfo->usageFlags.bits.uniformBuffer ||
@@ -42,7 +43,7 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
     desc.BindFlags           = ToD3D11BindFlags(pCreateInfo->usageFlags);
     desc.CPUAccessFlags      = mCpuAccessFlags;
     desc.MiscFlags           = miscFlags;
-    desc.StructureByteStride = 0;
+    desc.StructureByteStride = pCreateInfo->structuredElementStride;
 
     D3D11_SUBRESOURCE_DATA initialData = {};
     initialData.pSysMem                = nullptr;

@@ -27,6 +27,11 @@ public:
         uint64_t               dstDataSize,
         void*                  pDstData) override;
 
+    Result GetStructuredBufferSRV(
+        const grfx::Buffer*                                  pBuffer,
+        UINT                                                 numElements,
+        typename D3D11ShaderResourceViewPtr::InterfaceType** ppSRV);
+
 protected:
     virtual Result AllocateObject(grfx::Buffer** ppObject) override;
     virtual Result AllocateObject(grfx::CommandBuffer** ppObject) override;
@@ -62,6 +67,15 @@ private:
 private:
     D3D11DevicePtr        mDevice;
     D3D11DeviceContextPtr mDeviceContext;
+
+    struct StructuredBufferSRV
+    {
+        const grfx::Buffer*        pBuffer     = nullptr;
+        UINT                       numElements = 0;
+        D3D11ShaderResourceViewPtr SRV;
+    };
+
+    std::vector<StructuredBufferSRV> mStructuredBufferSRVs;
 };
 
 } // namespace dx11

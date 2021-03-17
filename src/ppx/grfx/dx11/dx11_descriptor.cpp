@@ -1,5 +1,6 @@
 #include "ppx/grfx/dx11/dx11_descriptor.h"
 #include "ppx/grfx/dx11/dx11_buffer.h"
+#include "ppx/grfx/dx11/dx11_device.h"
 #include "ppx/grfx/dx11/dx11_image.h"
 
 namespace ppx {
@@ -217,12 +218,17 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
             } break;
 
             case grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER: {
-                it->resources[write.arrayIndex] = ToApi(write.pBuffer)->GetDxBuffer();
+                typename D3D11ShaderResourceViewPtr::InterfaceType* pSRV = nullptr;
+                Result ppxres = ToApi(GetDevice())->GetStructuredBufferSRV(write.pBuffer, write.structuredElementCount, &pSRV);
+                if (Failed(ppxres)) {
+                    return ppxres;
+                }
+                it->resources[write.arrayIndex] = pSRV;
             } break;
 
             // UAV
             case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER: {
-                it->resources[write.arrayIndex] = ToApi(write.pBuffer)->GetDxBuffer();
+                PPX_ASSERT_MSG(false, "not implemented");
             } break;
 
             case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:

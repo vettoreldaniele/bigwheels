@@ -14,6 +14,23 @@ const grfx::Api kApi = grfx::API_VK_1_1;
 #define kWindowWidth  1920
 #define kWindowHeight 1080
 
+// b#
+#define SCENE_CONSTANTS_REGISTER    0
+#define MATERIAL_CONSTANTS_REGISTER 1
+#define MODEL_CONSTANTS_REGISTER    2
+// s#
+#define CLAMPED_SAMPLER_REGISTER 3
+// t#
+#define LIGHT_DATA_REGISTER         4
+#define ALBEDO_TEXTURE_REGISTER     5
+#define ROUGHNESS_TEXTURE_REGISTER  6
+#define METALNESS_TEXTURE_REGISTER  7
+#define NORMAL_MAP_TEXTURE_REGISTER 8
+#define AMB_OCC_TEXTURE_REGISTER    9
+#define HEIGHT_MAP_TEXTURE_REGISTER 10
+#define IBL_MAP_TEXTURE_REGISTER    11
+#define ENV_MAP_TEXTURE_REGISTER    12
+
 const float3 F0_MetalTitanium   = float3(0.542f, 0.497f, 0.449f);
 const float3 F0_MetalChromium   = float3(0.549f, 0.556f, 0.554f);
 const float3 F0_MetalIron       = float3(0.562f, 0.565f, 0.578f);
@@ -272,7 +289,8 @@ void ProjApp::SetupIBLResources()
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
     PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
 
-    // Layout
+    // Layout - the binding values here map to the Texture shader (Texture.hlsl)
+    //
     grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
@@ -432,7 +450,7 @@ void ProjApp::SetupMaterialResources(
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(albedoPath), &materialResources.albedoTexture));
 
         grfx::WriteDescriptor write = {};
-        write.binding               = 0;
+        write.binding               = ALBEDO_TEXTURE_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         write.pImageView            = materialResources.albedoTexture->GetSampledImageView();
@@ -444,7 +462,7 @@ void ProjApp::SetupMaterialResources(
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(roughnessPath), &materialResources.roughnessTexture));
 
         grfx::WriteDescriptor write = {};
-        write.binding               = 1;
+        write.binding               = ROUGHNESS_TEXTURE_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         write.pImageView            = materialResources.roughnessTexture->GetSampledImageView();
@@ -456,7 +474,7 @@ void ProjApp::SetupMaterialResources(
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(metalnessPath), &materialResources.metalnessTexture));
 
         grfx::WriteDescriptor write = {};
-        write.binding               = 2;
+        write.binding               = METALNESS_TEXTURE_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         write.pImageView            = materialResources.metalnessTexture->GetSampledImageView();
@@ -468,27 +486,27 @@ void ProjApp::SetupMaterialResources(
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(normalMapPath), &materialResources.normalMapTexture));
 
         grfx::WriteDescriptor write = {};
-        write.binding               = 3;
+        write.binding               = NORMAL_MAP_TEXTURE_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         write.pImageView            = materialResources.normalMapTexture->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
-    // Environment map
+    // IBL map
     {
         grfx::WriteDescriptor write = {};
-        write.binding               = 6;
+        write.binding               = IBL_MAP_TEXTURE_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         write.pImageView            = mIBLMaps[mCurrentIBLIndex]->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
-    // Reflection map
+    // Environment map
     {
         grfx::WriteDescriptor write = {};
-        write.binding               = 7;
+        write.binding               = ENV_MAP_TEXTURE_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
@@ -498,7 +516,7 @@ void ProjApp::SetupMaterialResources(
     // Sampler
     {
         grfx::WriteDescriptor write = {};
-        write.binding               = 8;
+        write.binding               = CLAMPED_SAMPLER_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
         write.pSampler              = mSampler;
@@ -512,13 +530,13 @@ void ProjApp::SetupMaterials()
 
     // Layout
     grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-    createInfo.bindings.push_back({grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-    createInfo.bindings.push_back({grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-    createInfo.bindings.push_back({grfx::DescriptorBinding{2, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-    createInfo.bindings.push_back({grfx::DescriptorBinding{3, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-    createInfo.bindings.push_back({grfx::DescriptorBinding{6, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-    createInfo.bindings.push_back({grfx::DescriptorBinding{7, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-    createInfo.bindings.push_back({grfx::DescriptorBinding{8, grfx::DESCRIPTOR_TYPE_SAMPLER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{ALBEDO_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{ROUGHNESS_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{METALNESS_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{NORMAL_MAP_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{IBL_MAP_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{ENV_MAP_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+    createInfo.bindings.push_back({grfx::DescriptorBinding{CLAMPED_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialResourcesLayout));
 
     // RustedIron
@@ -648,8 +666,8 @@ void ProjApp::Setup()
     // Scene data
     {
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-        createInfo.bindings.push_back({grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{SCENE_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{LIGHT_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataLayout));
 
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataLayout, &mSceneDataSet));
@@ -673,13 +691,14 @@ void ProjApp::Setup()
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mCpuLightConstants));
 
+        bufferCreateInfo.structuredElementStride          = 32;
         bufferCreateInfo.usageFlags.bits.transferDst      = true;
         bufferCreateInfo.usageFlags.bits.structuredBuffer = true;
         bufferCreateInfo.memoryUsage                      = grfx::MEMORY_USAGE_GPU_ONLY;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mGpuLightConstants));
 
         grfx::WriteDescriptor write = {};
-        write.binding               = 0;
+        write.binding               = SCENE_CONSTANTS_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         write.bufferOffset          = 0;
@@ -687,15 +706,14 @@ void ProjApp::Setup()
         write.pBuffer               = mGpuSceneConstants;
         PPX_CHECKED_CALL(ppxres = mSceneDataSet->UpdateDescriptors(1, &write));
 
-        write                         = {};
-        write.binding                 = 1;
-        write.arrayIndex              = 0;
-        write.type                    = grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER;
-        write.bufferOffset            = 0;
-        write.bufferRange             = PPX_WHOLE_SIZE;
-        write.structuredElementCount  = 1;
-        write.structuredElementStride = 64;
-        write.pBuffer                 = mGpuLightConstants;
+        write                        = {};
+        write.binding                = LIGHT_DATA_REGISTER;
+        write.arrayIndex             = 0;
+        write.type                   = grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER;
+        write.bufferOffset           = 0;
+        write.bufferRange            = PPX_WHOLE_SIZE;
+        write.structuredElementCount = 1;
+        write.pBuffer = mGpuLightConstants;
         PPX_CHECKED_CALL(ppxres = mSceneDataSet->UpdateDescriptors(1, &write));
     }
 
@@ -711,7 +729,7 @@ void ProjApp::Setup()
     // MaterialData data
     {
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-        createInfo.bindings.push_back({grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialDataLayout));
 
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mMaterialDataLayout, &mMaterialDataSet));
@@ -729,7 +747,7 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mGpuMaterialConstants));
 
         grfx::WriteDescriptor write = {};
-        write.binding               = 0;
+        write.binding               = MATERIAL_CONSTANTS_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         write.bufferOffset          = 0;
@@ -741,7 +759,7 @@ void ProjApp::Setup()
     // Model data
     {
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-        createInfo.bindings.push_back({grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{MODEL_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mModelDataLayout));
 
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mModelDataLayout, &mModelDataSet));
@@ -759,7 +777,7 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mGpuModelConstants));
 
         grfx::WriteDescriptor write = {};
-        write.binding               = 0;
+        write.binding               = MODEL_CONSTANTS_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         write.bufferOffset          = 0;
@@ -983,7 +1001,7 @@ void ProjApp::Render()
     // ---------------------------------------------------------------------------------------------
 
     // Update camera(s)
-    mCamera.LookAt(float3(0, 0, 5), float3(0, 0, 0));
+    mCamera.LookAt(float3(0, 0, 8), float3(0, 0, 0));
 
     // Update scene constants
     {
@@ -1143,7 +1161,6 @@ void ProjApp::Render()
         {
             frame.cmd->SetScissors(GetScissor());
             frame.cmd->SetViewports(GetViewport());
-
             // Draw model
             grfx::DescriptorSet* sets[4] = {nullptr};
             sets[0]                      = mSceneDataSet;

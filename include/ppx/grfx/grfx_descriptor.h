@@ -43,7 +43,6 @@ struct WriteDescriptor
     uint64_t               bufferOffset            = 0;
     uint64_t               bufferRange             = 0;
     uint32_t               structuredElementCount  = 0;
-    uint32_t               structuredElementStride = 0;
     const grfx::Buffer*    pBuffer                 = nullptr;
     const grfx::ImageView* pImageView              = nullptr;
     const grfx::Sampler*   pSampler                = nullptr;
