@@ -217,12 +217,12 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
             } break;
 
             case grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER: {
-                PPX_ASSERT_MSG(false, "not implemented");
+                it->resources[write.arrayIndex] = ToApi(write.pBuffer)->GetDxBuffer();
             } break;
 
             // UAV
             case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER: {
-                PPX_ASSERT_MSG(false, "not implemented");
+                it->resources[write.arrayIndex] = ToApi(write.pBuffer)->GetDxBuffer();
             } break;
 
             case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
