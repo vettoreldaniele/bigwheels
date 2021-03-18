@@ -47,7 +47,7 @@ struct GeometryOptions
     static GeometryOptions Interleaved();
     static GeometryOptions Planar();
 
-    GeometryOptions& IndexType(grfx::IndexType indexType);
+    GeometryOptions& IndexType(grfx::IndexType indexType_);
     GeometryOptions& IndexTypeU16();
     GeometryOptions& IndexTypeU32();
 
