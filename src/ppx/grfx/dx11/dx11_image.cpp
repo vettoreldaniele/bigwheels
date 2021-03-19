@@ -183,7 +183,7 @@ Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
     // minFilter, maxFilter, mipmapMode are all NEAREST
     D3D11_FILTER filter = pCreateInfo->compareEnable ? D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_POINT;
 
-    desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    desc.Filter         = filter;
     desc.AddressU       = ToD3D11TextureAddressMode(pCreateInfo->addressModeU);
     desc.AddressV       = ToD3D11TextureAddressMode(pCreateInfo->addressModeV);
     desc.AddressW       = ToD3D11TextureAddressMode(pCreateInfo->addressModeW);
@@ -191,9 +191,9 @@ Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
     desc.MaxAnisotropy  = 1;
     desc.ComparisonFunc = ToD3D11ComparisonFunc(pCreateInfo->compareOp);
     desc.BorderColor[0] = 0;
+    desc.BorderColor[1] = 0;
     desc.BorderColor[2] = 0;
     desc.BorderColor[3] = 0;
-    desc.BorderColor[4] = 0;
     desc.MinLOD         = static_cast<FLOAT>(pCreateInfo->minLod);
     desc.MaxLOD         = static_cast<FLOAT>(pCreateInfo->maxLod);
 
@@ -211,9 +211,9 @@ Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
 
     if ((pCreateInfo->borderColor == grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE) || (pCreateInfo->borderColor == grfx::BORDER_COLOR_INT_OPAQUE_WHITE)) {
         desc.BorderColor[0] = 1;
+        desc.BorderColor[1] = 1;
         desc.BorderColor[2] = 1;
         desc.BorderColor[3] = 1;
-        desc.BorderColor[4] = 1;
     }
 
     HRESULT hr = device->CreateSamplerState(&desc, &mSamplerState);

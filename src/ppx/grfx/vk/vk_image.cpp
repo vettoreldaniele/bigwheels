@@ -60,7 +60,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
 
             VmaAllocationCreateFlags createFlags = 0;
 
-            if ((memoryUsage == VMA_MEMORY_USAGE_CPU_ONLY) || (memoryUsage == VMA_MEMORY_USAGE_CPU_ONLY)) {
+            if ((memoryUsage == VMA_MEMORY_USAGE_CPU_ONLY) || (memoryUsage == VMA_MEMORY_USAGE_CPU_TO_GPU)) {
                 createFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
             }
 
