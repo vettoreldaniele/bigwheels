@@ -65,9 +65,9 @@ GeometryOptions GeometryOptions::Planar()
     return ci;
 }
 
-GeometryOptions& GeometryOptions::IndexType(grfx::IndexType indexType)
+GeometryOptions& GeometryOptions::IndexType(grfx::IndexType indexType_)
 {
-    indexType = indexType;
+    indexType = indexType_;
     return *this;
 }
 
