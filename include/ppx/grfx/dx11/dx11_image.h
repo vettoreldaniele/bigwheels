@@ -63,7 +63,7 @@ public:
     virtual ~DepthStencilView() {}
 
     typename D3D11DepthStencilViewPtr::InterfaceType* GetDxDepthStencilView() const { return mDepthStencilView.Get(); }
-    typename D3D11ResourcePtr::InterfaceType*         GetDxResource() const { ToApi(mCreateInfo.pImage)->GetDxResource(); }
+    typename D3D11ResourcePtr::InterfaceType*         GetDxResource() const { return ToApi(mCreateInfo.pImage)->GetDxResource(); }
 
 protected:
     virtual Result CreateApiObjects(const grfx::DepthStencilViewCreateInfo* pCreateInfo) override;
@@ -83,7 +83,7 @@ public:
     virtual ~RenderTargetView() {}
 
     typename D3D11RenderTargetViewPtr::InterfaceType* GetDxRenderTargetView() const { return mRenderTargetView.Get(); }
-    typename D3D11ResourcePtr::InterfaceType*         GetDxResource() const { ToApi(mCreateInfo.pImage)->GetDxResource(); }
+    typename D3D11ResourcePtr::InterfaceType*         GetDxResource() const { return ToApi(mCreateInfo.pImage)->GetDxResource(); }
 
 protected:
     virtual Result CreateApiObjects(const grfx::RenderTargetViewCreateInfo* pCreateInfo) override;
@@ -103,7 +103,7 @@ public:
     virtual ~SampledImageView() {}
 
     typename D3D11ShaderResourceViewPtr::InterfaceType* GetDxShaderResourceView() const { return mShaderResourceView.Get(); }
-    typename D3D11ResourcePtr::InterfaceType*           GetDxResource() const { ToApi(mCreateInfo.pImage)->GetDxResource(); }
+    typename D3D11ResourcePtr::InterfaceType*           GetDxResource() const { return ToApi(mCreateInfo.pImage)->GetDxResource(); }
 
 protected:
     virtual Result CreateApiObjects(const grfx::SampledImageViewCreateInfo* pCreateInfo) override;
@@ -123,7 +123,7 @@ public:
     virtual ~StorageImageView() {}
 
     typename D3D11UnorderedAccessViewPtr::InterfaceType* GetDxUnorderedAccessView() const { return mUnorderedAccessView.Get(); }
-    typename D3D11ResourcePtr::InterfaceType*            GetDxResource() const { ToApi(mCreateInfo.pImage)->GetDxResource(); }
+    typename D3D11ResourcePtr::InterfaceType*            GetDxResource() const { return ToApi(mCreateInfo.pImage)->GetDxResource(); }
 
 protected:
     virtual Result CreateApiObjects(const grfx::StorageImageViewCreateInfo* pCreateInfo) override;
