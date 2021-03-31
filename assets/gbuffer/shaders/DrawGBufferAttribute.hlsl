@@ -1,6 +1,23 @@
 
 #include "GBuffer.hlsli"
 
+#if defined(PPX_D3D11) // -----------------------------------------------------
+
+Texture2D    GBufferRT0 : register(GBUFFER_RT0_REGISTER);
+Texture2D    GBufferRT1 : register(GBUFFER_RT1_REGISTER);
+Texture2D    GBufferRT2 : register(GBUFFER_RT2_REGISTER);
+Texture2D    GBufferRT3 : register(GBUFFER_RT3_REGISTER);
+SamplerState ClampedSampler : register(GBUFFER_SAMPLER_REGISTER);
+
+cbuffer GBufferData : register(GBUFFER_CONSTANTS_REGISTER)
+{
+    uint enableIBL;
+    uint enableEnv;
+    uint debugAttrIndex;
+};
+
+#else
+
 Texture2D    GBufferRT0     : register(GBUFFER_RT0_REGISTER,     GBUFFER_SPACE);
 Texture2D    GBufferRT1     : register(GBUFFER_RT1_REGISTER,     GBUFFER_SPACE);
 Texture2D    GBufferRT2     : register(GBUFFER_RT2_REGISTER,     GBUFFER_SPACE);
@@ -13,6 +30,8 @@ cbuffer GBufferData : register(b16, GBUFFER_SPACE)
     uint enableEnv;
     uint debugAttrIndex;
 };
+
+#endif
 
 struct VSOutput {
 	float4 Position : SV_POSITION;

@@ -2,6 +2,7 @@
 .DS_Store
 .vscode/
 build-vs2017/
+build-vs2019/
 .vs/
 bin/
 lib/
@@ -11,3 +12,5 @@ CMakeSettings.json
 *.dxil
 *.spv
 *.dxbc
+*.dxbc50
+*.dxbc51
