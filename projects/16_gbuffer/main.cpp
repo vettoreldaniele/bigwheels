@@ -222,8 +222,8 @@ void ProjApp::SetupIBLResources()
     // Layout
     grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(GBUFFER_IBL_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
+    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(GBUFFER_ENV_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
+    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(GBUFFER_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER));
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mIBLLayout));
 
     // Uniform buffer
@@ -307,7 +307,7 @@ void ProjApp::SetupIBLResources()
         writes[0].bufferOffset          = 0;
         writes[0].bufferRange           = PPX_WHOLE_SIZE;
         writes[0].pBuffer               = mIBLConstants;
-        writes[1].binding               = 2;
+        writes[1].binding               = GBUFFER_ENV_REGISTER;
         writes[1].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
         writes[1].pSampler              = mSampler;
         PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(2, writes));
@@ -889,7 +889,7 @@ void ProjApp::UpdateEnvDescriptors()
             PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
 
             write            = {};
-            write.binding    = 1;
+            write.binding    = GBUFFER_ENV_REGISTER;
             write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
             write.pImageView = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
             PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
