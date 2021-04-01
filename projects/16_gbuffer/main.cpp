@@ -219,11 +219,12 @@ void ProjApp::SetupIBLResources()
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
     PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
 
-    // Layout
+    // Layout - the binding values here map to the Texture shader (Texture.hlsl)
+    //
     grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(GBUFFER_IBL_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(GBUFFER_ENV_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(GBUFFER_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER));
+    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
+    layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mIBLLayout));
 
     // Uniform buffer
@@ -302,12 +303,12 @@ void ProjApp::SetupIBLResources()
     //
     {
         grfx::WriteDescriptor writes[2] = {};
-        writes[0].binding               = GBUFFER_IBL_REGISTER;
+        writes[0].binding               = 0;
         writes[0].type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         writes[0].bufferOffset          = 0;
         writes[0].bufferRange           = PPX_WHOLE_SIZE;
         writes[0].pBuffer               = mIBLConstants;
-        writes[1].binding               = GBUFFER_ENV_REGISTER;
+        writes[1].binding               = 2;
         writes[1].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
         writes[1].pSampler              = mSampler;
         PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(2, writes));
@@ -602,13 +603,13 @@ void ProjApp::Setup()
     {
         // clang-format off
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT0_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT1_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT2_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT3_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_ENV_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_IBL_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER,        1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT0_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT1_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT2_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT3_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_ENV_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_IBL_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_SAMPLER_REGISTER,   grfx::DESCRIPTOR_TYPE_SAMPLER,        1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mGBufferReadLayout));
         // clang-format on
@@ -747,8 +748,8 @@ void ProjApp::UpdateConstants()
         mCamSwing += (mTargetCamSwing - mCamSwing) * 0.1f;
 
         float t = glm::radians(mCamSwing - kPi / 2.0f);
-        float x = 6.0f * cos(t);
-        float z = 6.0f * sin(t);
+        float x = 8.0f * cos(t);
+        float z = 8.0f * sin(t);
         mCamera.LookAt(float3(x, 3, z), float3(0, 0.5f, 0));
 
         PPX_HLSL_PACK_BEGIN();
@@ -881,7 +882,7 @@ void ProjApp::UpdateEnvDescriptors()
         // Update IBL render descriptors
         {
             grfx::WriteDescriptor write = {};
-            write.binding               = GBUFFER_IBL_REGISTER;
+            write.binding               = 0;
             write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             write.bufferOffset          = 0;
             write.bufferRange           = PPX_WHOLE_SIZE;
@@ -889,7 +890,7 @@ void ProjApp::UpdateEnvDescriptors()
             PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
 
             write            = {};
-            write.binding    = GBUFFER_ENV_REGISTER;
+            write.binding    = 1;
             write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
             write.pImageView = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
             PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));

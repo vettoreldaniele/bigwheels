@@ -4,7 +4,6 @@
 #include "GBuffer.hlsli"
 
 #if defined(PPX_D3D11) // -----------------------------------------------------
-
 cbuffer Scene : register(SCENE_CONSTANTS_REGISTER)
 {
     SceneData Scene;
@@ -16,8 +15,8 @@ Texture2D    GBufferRT0 : register(GBUFFER_RT0_REGISTER);
 Texture2D    GBufferRT1 : register(GBUFFER_RT1_REGISTER);
 Texture2D    GBufferRT2 : register(GBUFFER_RT2_REGISTER);
 Texture2D    GBufferRT3 : register(GBUFFER_RT3_REGISTER);
-Texture2D    IBLTex : register(IBL_MAP_TEXTURE_REGISTER);
-Texture2D    EnvMapTex : register(ENV_MAP_TEXTURE_REGISTER);
+Texture2D    IBLTex     : register(GBUFFER_ENV_REGISTER);
+Texture2D    EnvMapTex  : register(GBUFFER_IBL_REGISTER);
 
 SamplerState ClampedSampler : register(CLAMPED_SAMPLER_REGISTER);
 
@@ -27,28 +26,25 @@ cbuffer GBufferData : register(GBUFFER_CONSTANTS_REGISTER)
     uint enableEnv;
     uint debugAttrIndex;
 };
-
-#else
-
-ConstantBuffer<SceneData>    Scene    : register(b0, SCENE_DATA_SPACE);
-StructuredBuffer<Light>      Lights   : register(t1, SCENE_DATA_SPACE);
+#else // --- D3D12 / Vulkan ----------------------------------------------------
+ConstantBuffer<SceneData>    Scene    : register(SCENE_CONSTANTS_REGISTER, SCENE_DATA_SPACE);
+StructuredBuffer<Light>      Lights   : register(LIGHT_DATA_REGISTER,      SCENE_DATA_SPACE);
 
 Texture2D    GBufferRT0     : register(GBUFFER_RT0_REGISTER,     GBUFFER_SPACE);
 Texture2D    GBufferRT1     : register(GBUFFER_RT1_REGISTER,     GBUFFER_SPACE);
 Texture2D    GBufferRT2     : register(GBUFFER_RT2_REGISTER,     GBUFFER_SPACE);
 Texture2D    GBufferRT3     : register(GBUFFER_RT3_REGISTER,     GBUFFER_SPACE);
-Texture2D    IBLTex         : register(IBL_MAP_TEXTURE_REGISTER, GBUFFER_SPACE);
-Texture2D    EnvMapTex      : register(ENV_MAP_TEXTURE_REGISTER, GBUFFER_SPACE);
+Texture2D    IBLTex         : register(GBUFFER_ENV_REGISTER,     GBUFFER_SPACE);
+Texture2D    EnvMapTex      : register(GBUFFER_IBL_REGISTER,     GBUFFER_SPACE);
 SamplerState ClampedSampler : register(GBUFFER_SAMPLER_REGISTER, GBUFFER_SPACE);
 
-cbuffer GBufferData : register(b16, GBUFFER_SPACE)
+cbuffer GBufferData : register(GBUFFER_CONSTANTS_REGISTER, GBUFFER_SPACE)
 {
     uint enableIBL;
     uint enableEnv;
     uint debugAttrIndex;
 };
-
-#endif
+#endif // -- defined (PPX_D3D11) -----------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
 
