@@ -64,7 +64,7 @@ public:
     DescriptorSet() {}
     virtual ~DescriptorSet() {}
 
-    const std::vector<DescriptorResourceBinding>& GetResourceBindings() const { return mResourceBindings; }
+    const std::vector<dx11::DescriptorArray>& GetDescriptorArrays() const { return mDescriptorArrays; }
 
     virtual Result UpdateDescriptors(uint32_t writeCount, const grfx::WriteDescriptor* pWrites) override;
 
@@ -73,7 +73,7 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-    std::vector<DescriptorResourceBinding> mResourceBindings;
+    std::vector<dx11::DescriptorArray> mDescriptorArrays;
 };
 
 // -------------------------------------------------------------------------------------------------

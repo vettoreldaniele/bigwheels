@@ -66,7 +66,7 @@ protected:
 
 private:
     D3D12_DEPTH_STENCIL_VIEW_DESC mDesc       = {};
-    dx12::DescriptorHandle          mDescriptor = {};
+    dx12::DescriptorHandle        mDescriptor = {};
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ protected:
 
 private:
     D3D12_RENDER_TARGET_VIEW_DESC mDesc       = {};
-    dx12::DescriptorHandle          mDescriptor = {};
+    dx12::DescriptorHandle        mDescriptor = {};
 };
 
 // -------------------------------------------------------------------------------------------------

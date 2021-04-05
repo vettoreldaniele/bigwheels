@@ -277,7 +277,7 @@ typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(ObjPtr<GrfxTypeT>& pGrfxObje
 
 // -------------------------------------------------------------------------------------------------
 
-struct DescriptorResourceBinding
+struct DescriptorArray
 {
     uint32_t                binding          = UINT32_MAX;
     grfx::D3DDescriptorType descriptorType   = grfx::D3D_DESCRIPTOR_TYPE_UNDEFINED;

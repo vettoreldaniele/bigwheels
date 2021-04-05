@@ -173,40 +173,62 @@ static bool IsPS(grfx::ShaderStageBits shaderVisbility)
     return match;
 }
 
-void CommandBuffer::CopyDescriptors(const DescriptorResourceBinding& srcBinding, std::vector<ResourceBinding>& dstBindings)
+void CommandBuffer::CopyDescriptors(const dx11::DescriptorArray& bindings, std::vector<ResourceSlotArray>& slots)
 {
-    size_t numResources = srcBinding.resources.size();
-    size_t numPopulated = 0;
+    const size_t numResources = bindings.resources.size();
+    size_t       numPopulated = 0;
     for (size_t i = 0; i < numResources; ++i) {
-        if (!IsNull(srcBinding.resources[i])) {
+        if (!IsNull(bindings.resources[i])) {
             numPopulated += 1;
         }
     }
 
+    // This means that the descriptors bindings are contiguous and
+    // can be set in a single call to one of the ID3D11DeviceContext::*Set*()
+    // functions. For example, the following sets 3 constant buffers for
+    // slots 1, 2, and 3:
+    //
+    //    ResourceSlotArray slots = {};
+    //    slots.descriptorType    = D3D_DESCRIPTOR_TYPE_CBV;
+    //    slots.startSlot         = 1;
+    //    slots.resources.push_back(buffer0);
+    //    slots.resources.push_back(buffer1);
+    //    slots.resources.push_back(buffer2);
+    //
+    //    VSSetConstantBuffers(
+    //        slots.startSlot,
+    //        slots.resources.size(),
+    //        reinterpret_cast<ID3D11Buffer* const*>(slots.resources.data()));
+    //
     if (numPopulated == numResources) {
-        // Create entry in dst bindigns
-        dstBindings.emplace_back(ResourceBinding{srcBinding.descriptorType, srcBinding.binding});
+        // Create entry in resource slot array
+        slots.emplace_back(ResourceSlotArray{bindings.descriptorType, bindings.binding});
         // Allocate space
-        ResourceBinding& dst = dstBindings.back();
+        ResourceSlotArray& dst = slots.back();
         dst.resources.resize(numResources);
-        // Copy descriptors
+        // Copy resource pointers from bindings to slots
         size_t copySize = numResources * sizeof(void*);
-        memcpy(dst.resources.data(), srcBinding.resources.data(), copySize);
+        memcpy(dst.resources.data(), bindings.resources.data(), copySize);
     }
+    //
+    // This means that descriptor bindings are disparate and
+    // must be sent individually. In this case each ResourceSlotArray
+    // object will only contain one resource.
+    //
     else {
-        // Create an entry for every populated eleent
+        // Create an entry for every populated element
         for (size_t i = 0; i < numResources; ++i) {
             // Skip anything that isn't populated
-            if (IsNull(srcBinding.resources[i])) {
+            if (IsNull(bindings.resources[i])) {
                 continue;
             }
             // Start slot is binding plus offset in array
-            UINT startSlot = static_cast<UINT>(srcBinding.binding + i);
+            const UINT startSlot = static_cast<UINT>(bindings.binding + i);
             // Create entry in dst bindings
-            dstBindings.emplace_back(ResourceBinding{srcBinding.descriptorType, startSlot});
+            slots.emplace_back(ResourceSlotArray{bindings.descriptorType, startSlot});
             // Copy descriptor
-            ResourceBinding& dst = dstBindings.back();
-            dst.resources.push_back(srcBinding.resources[i]);
+            ResourceSlotArray& slot = slots.back();
+            slot.resources.push_back(bindings.resources[i]);
         }
     }
 }
@@ -222,11 +244,11 @@ void CommandBuffer::BindGraphicsDescriptorSets(
 
     for (uint32_t setIndex = 0; setIndex < setCount; ++setIndex) {
         const grfx::dx11::DescriptorSet* pApiSet          = ToApi(ppSets[setIndex]);
-        const auto&                      resourceBindings = pApiSet->GetResourceBindings();
+        const auto&                      descriptorArrays = pApiSet->GetDescriptorArrays();
 
-        size_t bindingCount = resourceBindings.size();
-        for (size_t bindingIndex = 0; bindingIndex < bindingCount; ++bindingIndex) {
-            const DescriptorResourceBinding& binding = resourceBindings[bindingIndex];
+        size_t daCount = descriptorArrays.size();
+        for (size_t daIndex = 0; daIndex < daCount; ++daIndex) {
+            const DescriptorArray& binding = descriptorArrays[daIndex];
             if (IsVS(binding.shaderVisibility)) {
                 CopyDescriptors(binding, pState->VS);
             }
@@ -279,13 +301,13 @@ void CommandBuffer::BindComputeDescriptorSets(
 
     for (uint32_t setIndex = 0; setIndex < setCount; ++setIndex) {
         const grfx::dx11::DescriptorSet* pApiSet          = ToApi(ppSets[setIndex]);
-        const auto&                      resourceBindings = pApiSet->GetResourceBindings();
+        const auto&                      descriptorArrays = pApiSet->GetDescriptorArrays();
 
-        size_t bindingCount = resourceBindings.size();
-        for (size_t bindingIndex = 0; bindingIndex < bindingCount; ++bindingIndex) {
-            const DescriptorResourceBinding& binding = resourceBindings[bindingIndex];
-            if (IsCS(binding.shaderVisibility)) {
-                CopyDescriptors(binding, pState->CS);
+        size_t daCount = descriptorArrays.size();
+        for (size_t daIndex = 0; daIndex < daCount; ++daIndex) {
+            const dx11::DescriptorArray& descriptorArray = descriptorArrays[daIndex];
+            if (IsCS(descriptorArray.shaderVisibility)) {
+                CopyDescriptors(descriptorArray, pState->CS);
             }
         }
     }
