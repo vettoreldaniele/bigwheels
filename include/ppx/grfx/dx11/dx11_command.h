@@ -201,7 +201,7 @@ private:
         UINT8 stencil;
     };
 
-    struct ResourceBinding
+    struct ResourceSlotArray
     {
         grfx::D3DDescriptorType descriptorType = grfx::D3D_DESCRIPTOR_TYPE_UNDEFINED;
         UINT                    startSlot      = 0;
@@ -301,7 +301,7 @@ private:
 
     struct ComputeDescriptorState
     {
-        std::vector<ResourceBinding> CS;
+        std::vector<ResourceSlotArray> CS;
 
         void Reset()
         {
@@ -314,11 +314,11 @@ private:
 
     struct GraphicsDescriptorState
     {
-        std::vector<ResourceBinding> VS;
-        std::vector<ResourceBinding> HS;
-        std::vector<ResourceBinding> DS;
-        std::vector<ResourceBinding> GS;
-        std::vector<ResourceBinding> PS;
+        std::vector<ResourceSlotArray> VS;
+        std::vector<ResourceSlotArray> HS;
+        std::vector<ResourceSlotArray> DS;
+        std::vector<ResourceSlotArray> GS;
+        std::vector<ResourceSlotArray> PS;
 
         void Reset()
         {
@@ -348,7 +348,7 @@ private:
         }
     };
 
-    static void CopyDescriptors(const DescriptorResourceBinding& srcBinding, std::vector<ResourceBinding>& dstBindings);
+    static void CopyDescriptors(const dx11::DescriptorArray& descriptors, std::vector<ResourceSlotArray>& slots);
 
     // ---------------------------------------------------------------------------------------------
     // Args [BEGIN]

@@ -116,35 +116,35 @@ void Queue::SetGraphicsState(const grfx::dx11::CommandBuffer::ActionCmd& cmd, co
 
         if (!IsNull(pipelineState.VS)) {
             for (size_t i = 0; i < state.VS.size(); ++i) {
-                const grfx::dx11::CommandBuffer::ResourceBinding& binding = state.VS[i];
-                switch (binding.descriptorType) {
+                const grfx::dx11::CommandBuffer::ResourceSlotArray& slots = state.VS[i];
+                switch (slots.descriptorType) {
                     default: {
                         PPX_ASSERT_MSG(false, "unknown descriptor type");
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_CBV: {
-                        UINT                 numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11Buffer* const* ppResources  = reinterpret_cast<ID3D11Buffer* const*>(binding.resources.data());
+                        UINT                 numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11Buffer* const* ppResources  = reinterpret_cast<ID3D11Buffer* const*>(slots.resources.data());
                         mDeviceContext->VSSetConstantBuffers(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppResources);
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_SRV: {
-                        UINT                             numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11ShaderResourceView* const* ppResources  = reinterpret_cast<ID3D11ShaderResourceView* const*>(binding.resources.data());
+                        UINT                             numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11ShaderResourceView* const* ppResources  = reinterpret_cast<ID3D11ShaderResourceView* const*>(slots.resources.data());
                         mDeviceContext->VSSetShaderResources(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppResources);
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_SAMPLER: {
-                        UINT                       numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11SamplerState* const* ppResources  = reinterpret_cast<ID3D11SamplerState* const*>(binding.resources.data());
+                        UINT                       numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11SamplerState* const* ppResources  = reinterpret_cast<ID3D11SamplerState* const*>(slots.resources.data());
                         mDeviceContext->VSSetSamplers(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppResources);
                     } break;
@@ -159,35 +159,35 @@ void Queue::SetGraphicsState(const grfx::dx11::CommandBuffer::ActionCmd& cmd, co
         }
         if (!IsNull(pipelineState.PS)) {
             for (size_t i = 0; i < state.PS.size(); ++i) {
-                const grfx::dx11::CommandBuffer::ResourceBinding& binding = state.PS[i];
-                switch (binding.descriptorType) {
+                const grfx::dx11::CommandBuffer::ResourceSlotArray& slots = state.PS[i];
+                switch (slots.descriptorType) {
                     default: {
                         PPX_ASSERT_MSG(false, "unknown descriptor type");
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_CBV: {
-                        UINT                 numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11Buffer* const* ppResources  = reinterpret_cast<ID3D11Buffer* const*>(binding.resources.data());
+                        UINT                 numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11Buffer* const* ppResources  = reinterpret_cast<ID3D11Buffer* const*>(slots.resources.data());
                         mDeviceContext->PSSetConstantBuffers(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppResources);
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_SRV: {
-                        UINT                             numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11ShaderResourceView* const* ppResources  = reinterpret_cast<ID3D11ShaderResourceView* const*>(binding.resources.data());
+                        UINT                             numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11ShaderResourceView* const* ppResources  = reinterpret_cast<ID3D11ShaderResourceView* const*>(slots.resources.data());
                         mDeviceContext->PSSetShaderResources(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppResources);
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_SAMPLER: {
-                        UINT                       numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11SamplerState* const* ppResources  = reinterpret_cast<ID3D11SamplerState* const*>(binding.resources.data());
+                        UINT                       numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11SamplerState* const* ppResources  = reinterpret_cast<ID3D11SamplerState* const*>(slots.resources.data());
                         mDeviceContext->PSSetSamplers(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppResources);
                     } break;
@@ -223,35 +223,35 @@ void Queue::SetComputeState(const grfx::dx11::CommandBuffer::ActionCmd& cmd, con
 
         if (!IsNull(pipelineState.CS)) {
             for (size_t i = 0; i < state.CS.size(); ++i) {
-                const grfx::dx11::CommandBuffer::ResourceBinding& binding = state.CS[i];
-                switch (binding.descriptorType) {
+                const grfx::dx11::CommandBuffer::ResourceSlotArray& slots = state.CS[i];
+                switch (slots.descriptorType) {
                     default: {
                         PPX_ASSERT_MSG(false, "unknown descriptor type");
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_CBV: {
-                        UINT                 numBuffers        = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11Buffer* const* ppConstantBuffers = reinterpret_cast<ID3D11Buffer* const*>(binding.resources.data());
+                        UINT                 numBuffers        = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11Buffer* const* ppConstantBuffers = reinterpret_cast<ID3D11Buffer* const*>(slots.resources.data());
                         mDeviceContext->CSSetConstantBuffers(
-                            binding.startSlot,
+                            slots.startSlot,
                             numBuffers,
                             ppConstantBuffers);
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_SRV: {
-                        UINT                             numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11ShaderResourceView* const* ppViews      = reinterpret_cast<ID3D11ShaderResourceView* const*>(binding.resources.data());
+                        UINT                             numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11ShaderResourceView* const* ppViews      = reinterpret_cast<ID3D11ShaderResourceView* const*>(slots.resources.data());
                         mDeviceContext->CSSetShaderResources(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppViews);
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_UAV: {
-                        UINT                              numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11UnorderedAccessView* const* ppViews      = reinterpret_cast<ID3D11UnorderedAccessView* const*>(binding.resources.data());
+                        UINT                              numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11UnorderedAccessView* const* ppViews      = reinterpret_cast<ID3D11UnorderedAccessView* const*>(slots.resources.data());
                         mDeviceContext->CSSetUnorderedAccessViews(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppViews,
                             nullptr);
@@ -260,16 +260,16 @@ void Queue::SetComputeState(const grfx::dx11::CommandBuffer::ActionCmd& cmd, con
                         // if/when there is an image layout transition.
                         //
                         for (UINT i = 0; i < numResources; ++i) {
-                            UINT slot = binding.startSlot + i;
+                            UINT slot = slots.startSlot + i;
                             ppViews[i]->GetResource(reinterpret_cast<ID3D11Resource**>(&mBoundUAVs[slot].pResource));
                         }
                     } break;
 
                     case grfx::D3D_DESCRIPTOR_TYPE_SAMPLER: {
-                        UINT                       numResources = static_cast<UINT>(CountU32(binding.resources));
-                        ID3D11SamplerState* const* ppResources  = reinterpret_cast<ID3D11SamplerState* const*>(binding.resources.data());
+                        UINT                       numResources = static_cast<UINT>(CountU32(slots.resources));
+                        ID3D11SamplerState* const* ppResources  = reinterpret_cast<ID3D11SamplerState* const*>(slots.resources.data());
                         mDeviceContext->CSSetSamplers(
-                            binding.startSlot,
+                            slots.startSlot,
                             numResources,
                             ppResources);
                     } break;

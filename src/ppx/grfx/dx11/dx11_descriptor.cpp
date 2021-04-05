@@ -128,39 +128,39 @@ Result DescriptorSet::CreateApiObjects(const grfx::internal::DescriptorSetCreate
 
             // CBV
             case grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER: {
-                DescriptorResourceBinding resourceBinding = {binding.binding, grfx::D3D_DESCRIPTOR_TYPE_CBV, binding.shaderVisiblity};
-                resourceBinding.resources.resize(binding.arrayCount);
-                mResourceBindings.push_back(resourceBinding);
+                dx11::DescriptorArray array = {binding.binding, grfx::D3D_DESCRIPTOR_TYPE_CBV, binding.shaderVisiblity};
+                array.resources.resize(binding.arrayCount);
+                mDescriptorArrays.push_back(array);
             } break;
 
             // SRV
             case grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE:
             case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
             case grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER: {
-                DescriptorResourceBinding resourceBinding = {binding.binding, grfx::D3D_DESCRIPTOR_TYPE_SRV, binding.shaderVisiblity};
-                resourceBinding.resources.resize(binding.arrayCount);
-                mResourceBindings.push_back(resourceBinding);
+                dx11::DescriptorArray array = {binding.binding, grfx::D3D_DESCRIPTOR_TYPE_SRV, binding.shaderVisiblity};
+                array.resources.resize(binding.arrayCount);
+                mDescriptorArrays.push_back(array);
             } break;
 
             // UAV
             case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER:
             case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
             case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE: {
-                DescriptorResourceBinding resourceBinding = {binding.binding, grfx::D3D_DESCRIPTOR_TYPE_UAV, binding.shaderVisiblity};
-                resourceBinding.resources.resize(binding.arrayCount);
-                mResourceBindings.push_back(resourceBinding);
+                dx11::DescriptorArray array = {binding.binding, grfx::D3D_DESCRIPTOR_TYPE_UAV, binding.shaderVisiblity};
+                array.resources.resize(binding.arrayCount);
+                mDescriptorArrays.push_back(array);
             } break;
 
             // SAMPLER
             case grfx::DESCRIPTOR_TYPE_SAMPLER: {
-                DescriptorResourceBinding resourceBinding = {binding.binding, grfx::D3D_DESCRIPTOR_TYPE_SAMPLER, binding.shaderVisiblity};
-                resourceBinding.resources.resize(binding.arrayCount);
-                mResourceBindings.push_back(resourceBinding);
+                dx11::DescriptorArray array = {binding.binding, grfx::D3D_DESCRIPTOR_TYPE_SAMPLER, binding.shaderVisiblity};
+                array.resources.resize(binding.arrayCount);
+                mDescriptorArrays.push_back(array);
             } break;
         }
     }
 
-    PPX_ASSERT_MSG((mResourceBindings.size() == bindings.size()), "resource bindings count doesn't match descriptor binding count");
+    PPX_ASSERT_MSG((mDescriptorArrays.size() == bindings.size()), "descriptor array count doesn't match descriptor binding count");
 
     return ppx::SUCCESS;
 }
@@ -184,11 +184,11 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
 
         // Find resource binding
         auto it = FindIf(
-            mResourceBindings,
-            [&write](const DescriptorResourceBinding& elem) -> bool {
+            mDescriptorArrays,
+            [&write](const dx11::DescriptorArray& elem) -> bool {
                         bool isMatch = (elem.binding == write.binding);
                         return isMatch; });
-        if (it == std::end(mResourceBindings)) {
+        if (it == std::end(mDescriptorArrays)) {
             PPX_ASSERT_MSG(false, "binding " << write.binding << " is not in set");
             return ppx::ERROR_GRFX_BINDING_NOT_IN_SET;
         }
