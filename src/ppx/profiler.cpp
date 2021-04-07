@@ -13,7 +13,7 @@ thread_local unsigned int sThreadIndex = UINT32_MAX;
 static unsigned int GetThreadIndex()
 {
     if (sThreadIndex == UINT32_MAX) {
-        std::lock_guard lock(sThreadIndexMutex);
+        std::lock_guard<std::mutex> lock(sThreadIndexMutex);
         sThreadIndex = sThreadCount;
         sThreadCount = sThreadCount + 1;
     };
@@ -99,7 +99,7 @@ Result Profiler::RegisterEvent(ProfilerEventType type, const std::string& name, 
         return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
     }
 
-    std::lock_guard lock(sThreadIndexMutex);
+    std::lock_guard<std::mutex> lock(sThreadIndexMutex);
 
     ProfilerEventToken token = XXH64(name.c_str(), name.length(), 0xDEADBEEF);
 
