@@ -208,16 +208,31 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
 
             // CBV
             case grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER: {
+                if (it->descriptorType != grfx::D3D_DESCRIPTOR_TYPE_CBV) {
+                    PPX_ASSERT_MSG(false, "invalid descriptor type");
+                    return ppx::ERROR_GRFX_INVALID_DESCRIPTOR_TYPE;
+                }
+
                 it->resources[write.arrayIndex] = ToApi(write.pBuffer)->GetDxBuffer();
             } break;
 
             // SRV
             case grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE:
             case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: {
+                if (it->descriptorType != grfx::D3D_DESCRIPTOR_TYPE_SRV) {
+                    PPX_ASSERT_MSG(false, "invalid descriptor type");
+                    return ppx::ERROR_GRFX_INVALID_DESCRIPTOR_TYPE;
+                }
+
                 it->resources[write.arrayIndex] = static_cast<const dx11::SampledImageView*>(write.pImageView)->GetDxShaderResourceView();
             } break;
 
             case grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER: {
+                if (it->descriptorType != grfx::D3D_DESCRIPTOR_TYPE_SRV) {
+                    PPX_ASSERT_MSG(false, "invalid descriptor type");
+                    return ppx::ERROR_GRFX_INVALID_DESCRIPTOR_TYPE;
+                }
+
                 typename D3D11ShaderResourceViewPtr::InterfaceType* pSRV = nullptr;
                 Result ppxres = ToApi(GetDevice())->GetStructuredBufferSRV(write.pBuffer, write.structuredElementCount, &pSRV);
                 if (Failed(ppxres)) {
@@ -233,11 +248,21 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
 
             case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
             case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE: {
+                if (it->descriptorType != grfx::D3D_DESCRIPTOR_TYPE_UAV) {
+                    PPX_ASSERT_MSG(false, "invalid descriptor type");
+                    return ppx::ERROR_GRFX_INVALID_DESCRIPTOR_TYPE;
+                }
+
                 it->resources[write.arrayIndex] = static_cast<const dx11::StorageImageView*>(write.pImageView)->GetDxUnorderedAccessView();
             } break;
 
             // SAMPLER
             case grfx::DESCRIPTOR_TYPE_SAMPLER: {
+                if (it->descriptorType != grfx::D3D_DESCRIPTOR_TYPE_SAMPLER) {
+                    PPX_ASSERT_MSG(false, "invalid descriptor type");
+                    return ppx::ERROR_GRFX_INVALID_DESCRIPTOR_TYPE;
+                }
+
                 it->resources[write.arrayIndex] = ToApi(write.pSampler)->GetDxSamplerState();
             } break;
         }

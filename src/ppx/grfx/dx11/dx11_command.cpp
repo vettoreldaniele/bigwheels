@@ -233,6 +233,11 @@ void CommandBuffer::CopyDescriptors(const dx11::DescriptorArray& bindings, std::
     }
 }
 
+void SetVSSlots(const dx11::DescriptorArray& descriptorArray)
+{
+    
+}
+
 void CommandBuffer::BindGraphicsDescriptorSets(
     const grfx::PipelineInterface*    pInterface,
     uint32_t                          setCount,
