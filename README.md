@@ -1,6 +1,8 @@
 # Overview
 ## Sample Prefixes
- * **dx** - D3D12 with SM 5.1
+ * **dx11** - D3D11 with SM 5.1
+   * Shaders are compiled with FXC
+ * **dx12** - D3D12 with SM 5.1
    * Shaders are compiled with FXC
  * **dxil** - D3D12 with SM 6.0+ 
    * Shaders are compiled with DXC/DXIL
