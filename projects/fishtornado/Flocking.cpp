@@ -1,6 +1,7 @@
 #include "Flocking.h"
 #include "FishTornado.h"
 #include "ppx/graphics_util.h"
+#include "ppx/random.h"
 
 #define NUM_THREADS_X 8
 #define NUM_THREADS_Y 8
