@@ -1,5 +1,7 @@
 #include "ppx/grfx/dx11/dx11_command_list.h"
 
+#include <algorithm>
+
 namespace ppx::grfx::dx11 {
 
 class ContextBoundState
@@ -11,8 +13,9 @@ public:
     bool VSGetBoundSRVSlot(const ID3D11Resource* pResource, UINT* pSlot) const
     {
         if (!IsNull(pResource)) {
-            for (UINT i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; ++i) {
-                if (mBoundState.VS.SRVs[i] == pResource) {
+            UINT n = std::min<UINT>(mBoundState.VS.maxSlotSRV, (D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1));
+            for (UINT i = 0; i <= n; ++i) {
+                if (mBoundState.VS.SRVs[i].Get() == pResource) {
                     *pSlot = i;
                     return true;
                 }
@@ -24,8 +27,9 @@ public:
     bool HSGetBoundSRVSlot(const ID3D11Resource* pResource, UINT* pSlot) const
     {
         if (!IsNull(pResource)) {
-            for (UINT i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; ++i) {
-                if (mBoundState.HS.SRVs[i] == pResource) {
+            UINT n = std::min<UINT>(mBoundState.HS.maxSlotSRV, (D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1));
+            for (UINT i = 0; i <= n; ++i) {
+                if (mBoundState.HS.SRVs[i].Get() == pResource) {
                     *pSlot = i;
                     return true;
                 }
@@ -37,8 +41,9 @@ public:
     bool DSGetBoundSRVSlot(const ID3D11Resource* pResource, UINT* pSlot) const
     {
         if (!IsNull(pResource)) {
-            for (UINT i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; ++i) {
-                if (mBoundState.DS.SRVs[i] == pResource) {
+            UINT n = std::min<UINT>(mBoundState.DS.maxSlotSRV, (D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1));
+            for (UINT i = 0; i <= n; ++i) {
+                if (mBoundState.DS.SRVs[i].Get() == pResource) {
                     *pSlot = i;
                     return true;
                 }
@@ -50,8 +55,9 @@ public:
     bool GSGetBoundSRVSlot(const ID3D11Resource* pResource, UINT* pSlot) const
     {
         if (!IsNull(pResource)) {
-            for (UINT i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; ++i) {
-                if (mBoundState.GS.SRVs[i] == pResource) {
+            UINT n = std::min<UINT>(mBoundState.GS.maxSlotSRV, (D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1));
+            for (UINT i = 0; i <= n; ++i) {
+                if (mBoundState.GS.SRVs[i].Get() == pResource) {
                     *pSlot = i;
                     return true;
                 }
@@ -63,8 +69,9 @@ public:
     bool PSGetBoundSRVSlot(const ID3D11Resource* pResource, UINT* pSlot) const
     {
         if (!IsNull(pResource)) {
-            for (UINT i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; ++i) {
-                if (mBoundState.PS.SRVs[i] == pResource) {
+            UINT n = std::min<UINT>(mBoundState.PS.maxSlotSRV, (D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1));
+            for (UINT i = 0; i <= n; ++i) {
+                if (mBoundState.PS.SRVs[i].Get() == pResource) {
                     *pSlot = i;
                     return true;
                 }
@@ -76,8 +83,9 @@ public:
     bool CSGetBoundSRVSlot(const ID3D11Resource* pResource, UINT* pSlot) const
     {
         if (!IsNull(pResource)) {
-            for (UINT i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; ++i) {
-                if (mBoundState.CS.SRVs[i] == pResource) {
+            UINT n = std::min<UINT>(mBoundState.CS.maxSlotSRV, (D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1));
+            for (UINT i = 0; i <= n; ++i) {
+                if (mBoundState.CS.SRVs[i].Get() == pResource) {
                     *pSlot = i;
                     return true;
                 }
@@ -89,8 +97,9 @@ public:
     bool CSGetBoundUAVSlot(const ID3D11Resource* pResource, UINT* pSlot) const
     {
         if (!IsNull(pResource)) {
-            for (UINT i = 0; i < D3D11_1_UAV_SLOT_COUNT; ++i) {
-                if (mBoundState.CS.UAVs[i] == pResource) {
+            UINT n = std::min<UINT>(mBoundState.CS.maxSlotUAV, (D3D11_1_UAV_SLOT_COUNT - 1));
+            for (UINT i = 0; i <= n; ++i) {
+                if (mBoundState.CS.UAVs[i].Get() == pResource) {
                     *pSlot = i;
                     return true;
                 }
@@ -99,79 +108,96 @@ public:
         return false;
     }
 
-    void VSSetBoundSRVSlot(UINT slot, ID3D11Resource* pResource)
+    void VSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
             return;
         }
-        mBoundState.VS.SRVs[slot] = pResource;
+        mBoundState.VS.SRVs[slot].Reset();
+        mBoundState.VS.SRVs[slot] = resource;
+        mBoundState.VS.maxSlotSRV = std::max<UINT>(mBoundState.VS.maxSlotSRV, slot);
     }
 
-    void HSSetBoundSRVSlot(UINT slot, ID3D11Resource* pResource)
+    void HSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
             return;
         }
-        mBoundState.HS.SRVs[slot] = pResource;
+        mBoundState.HS.SRVs[slot].Reset();
+        mBoundState.HS.SRVs[slot] = resource;
+        mBoundState.HS.maxSlotSRV = std::max<UINT>(mBoundState.HS.maxSlotSRV, slot);
     }
 
-    void DSSetBoundSRVSlot(UINT slot, ID3D11Resource* pResource)
+    void DSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
             return;
         }
-        mBoundState.DS.SRVs[slot] = pResource;
+        mBoundState.DS.SRVs[slot].Reset();
+        mBoundState.DS.SRVs[slot] = resource;
+        mBoundState.DS.maxSlotSRV = std::max<UINT>(mBoundState.DS.maxSlotSRV, slot);
     }
 
-    void GSSetBoundSRVSlot(UINT slot, ID3D11Resource* pResource)
+    void GSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
             return;
         }
-        mBoundState.GS.SRVs[slot] = pResource;
+        mBoundState.GS.SRVs[slot].Reset();
+        mBoundState.GS.SRVs[slot] = resource;
+        mBoundState.GS.maxSlotSRV = std::max<UINT>(mBoundState.GS.maxSlotSRV, slot);
     }
 
-    void PSSetBoundSRVSlot(UINT slot, ID3D11Resource* pResource)
+    void PSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
             return;
         }
-        mBoundState.PS.SRVs[slot] = pResource;
+        mBoundState.PS.SRVs[slot].Reset();
+        mBoundState.PS.SRVs[slot] = resource;
+        mBoundState.PS.maxSlotSRV = std::max<UINT>(mBoundState.CS.maxSlotSRV, slot);
     }
 
-    void CSSetBoundSRVSlot(UINT slot, ID3D11Resource* pResource)
+    void CSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
             return;
         }
-        mBoundState.CS.SRVs[slot] = pResource;
+        mBoundState.CS.SRVs[slot].Reset();
+        mBoundState.CS.SRVs[slot] = resource;
+        mBoundState.CS.maxSlotSRV = std::max<UINT>(mBoundState.CS.maxSlotSRV, slot);
     }
 
-    void CSSetBoundUAVSlot(UINT slot, ID3D11Resource* pResource)
+    void CSSetBoundUAVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_1_UAV_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for UAV");
             return;
         }
-        mBoundState.CS.UAVs[slot] = pResource;
+        mBoundState.CS.UAVs[slot].Reset();
+        mBoundState.CS.UAVs[slot] = resource;
+        mBoundState.CS.maxSlotUAV = std::max<UINT>(mBoundState.CS.maxSlotUAV, slot);
     }
 
 private:
     struct ComputeShaderBoundState
     {
-        ID3D11Resource* SRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-        ID3D11Resource* UAVs[D3D11_1_UAV_SLOT_COUNT];
+        UINT                   maxSlotSRV = 0;
+        UINT                   maxSlotUAV = 0;
+        ComPtr<ID3D11Resource> SRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+        ComPtr<ID3D11Resource> UAVs[D3D11_1_UAV_SLOT_COUNT];
     };
 
     struct GraphicsShaderBoundState
     {
-        ID3D11Resource* SRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+        UINT                   maxSlotSRV = 0;
+        ComPtr<ID3D11Resource> SRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
     };
 
     struct BoundState
@@ -314,6 +340,13 @@ void CommandList::CSSetShaderResources(
 {
     ComputeSlotState* pState = mComputeSlotState.GetCurrent();
     UpdateShaderResourceViews(StartSlot, NumViews, ppShaderResourceViews, pState->CS.ShaderResourceViews);
+
+    for (UINT i = 0; i < NumViews; ++i) {
+        UINT            slot      = StartSlot + i;
+        ComPtr<ID3D11Resource> resource;
+        ppShaderResourceViews[i]->GetResource(&resource);
+        sContextBoundState.CSSetBoundSRVSlot(slot, resource);
+    }
 }
 
 void CommandList::CSSetSamplers(
@@ -335,10 +368,9 @@ void CommandList::CSSetUnorderedAccess(
 
     for (UINT i = 0; i < NumViews; ++i) {
         UINT            slot      = StartSlot + i;
-        ID3D11Resource* pResource = nullptr;
-
-        ppUnorderedAccessViews[i]->GetResource(&pResource);
-        sContextBoundState.CSSetBoundUAVSlot(slot, pResource);
+        ComPtr<ID3D11Resource> resource;
+        ppUnorderedAccessViews[i]->GetResource(&resource);
+        sContextBoundState.CSSetBoundUAVSlot(slot, resource);
     }
 }
 
@@ -361,10 +393,9 @@ void CommandList::DSSetShaderResources(
 
     for (UINT i = 0; i < NumViews; ++i) {
         UINT            slot      = StartSlot + i;
-        ID3D11Resource* pResource = nullptr;
-
-        ppShaderResourceViews[i]->GetResource(&pResource);
-        sContextBoundState.DSSetBoundSRVSlot(slot, pResource);
+        ComPtr<ID3D11Resource> resource;
+        ppShaderResourceViews[i]->GetResource(&resource);
+        sContextBoundState.DSSetBoundSRVSlot(slot, resource);
     }
 }
 
@@ -396,10 +427,9 @@ void CommandList::GSSetShaderResources(
 
     for (UINT i = 0; i < NumViews; ++i) {
         UINT            slot      = StartSlot + i;
-        ID3D11Resource* pResource = nullptr;
-
-        ppShaderResourceViews[i]->GetResource(&pResource);
-        sContextBoundState.GSSetBoundSRVSlot(slot, pResource);
+        ComPtr<ID3D11Resource> resource;
+        ppShaderResourceViews[i]->GetResource(&resource);
+        sContextBoundState.GSSetBoundSRVSlot(slot, resource);
     }
 }
 
@@ -431,10 +461,9 @@ void CommandList::HSSetShaderResources(
 
     for (UINT i = 0; i < NumViews; ++i) {
         UINT            slot      = StartSlot + i;
-        ID3D11Resource* pResource = nullptr;
-
-        ppShaderResourceViews[i]->GetResource(&pResource);
-        sContextBoundState.HSSetBoundSRVSlot(slot, pResource);
+        ComPtr<ID3D11Resource> resource;
+        ppShaderResourceViews[i]->GetResource(&resource);
+        sContextBoundState.HSSetBoundSRVSlot(slot, resource);
     }
 }
 
@@ -465,11 +494,10 @@ void CommandList::PSSetShaderResources(
     UpdateShaderResourceViews(StartSlot, NumViews, ppShaderResourceViews, pState->PS.ShaderResourceViews);
 
     for (UINT i = 0; i < NumViews; ++i) {
-        UINT            slot      = StartSlot + i;
-        ID3D11Resource* pResource = nullptr;
-
-        ppShaderResourceViews[i]->GetResource(&pResource);
-        sContextBoundState.PSSetBoundSRVSlot(slot, pResource);
+        UINT                   slot = StartSlot + i;
+        ComPtr<ID3D11Resource> resource;
+        ppShaderResourceViews[i]->GetResource(&resource);
+        sContextBoundState.PSSetBoundSRVSlot(slot, resource);
     }
 }
 
@@ -501,10 +529,9 @@ void CommandList::VSSetShaderResources(
 
     for (UINT i = 0; i < NumViews; ++i) {
         UINT            slot      = StartSlot + i;
-        ID3D11Resource* pResource = nullptr;
-
-        ppShaderResourceViews[i]->GetResource(&pResource);
-        sContextBoundState.VSSetBoundSRVSlot(slot, pResource);
+        ComPtr<ID3D11Resource> resource;
+        ppShaderResourceViews[i]->GetResource(&resource);
+        sContextBoundState.VSSetBoundSRVSlot(slot, resource);
     }
 }
 
@@ -967,34 +994,34 @@ static void ExecuteNullify(
         UINT slot = UINT32_MAX;
         if (sContextBoundState.VSGetBoundSRVSlot(args.pResource, &slot)) {
             pDeviceContext->VSSetShaderResources(slot, 1, nullSRV);
-            sContextBoundState.VSSetBoundSRVSlot(slot, nullptr);
+            sContextBoundState.VSSetBoundSRVSlot(slot, ComPtr<ID3D11Resource>());
         }
         if (sContextBoundState.HSGetBoundSRVSlot(args.pResource, &slot)) {
             pDeviceContext->HSSetShaderResources(slot, 1, nullSRV);
-            sContextBoundState.HSSetBoundSRVSlot(slot, nullptr);
+            sContextBoundState.HSSetBoundSRVSlot(slot, ComPtr<ID3D11Resource>());
         }
         if (sContextBoundState.DSGetBoundSRVSlot(args.pResource, &slot)) {
             pDeviceContext->DSSetShaderResources(slot, 1, nullSRV);
-            sContextBoundState.DSSetBoundSRVSlot(slot, nullptr);
+            sContextBoundState.DSSetBoundSRVSlot(slot, ComPtr<ID3D11Resource>());
         }
         if (sContextBoundState.GSGetBoundSRVSlot(args.pResource, &slot)) {
             pDeviceContext->GSSetShaderResources(slot, 1, nullSRV);
-            sContextBoundState.GSSetBoundSRVSlot(slot, nullptr);
+            sContextBoundState.GSSetBoundSRVSlot(slot, ComPtr<ID3D11Resource>());
         }
         if (sContextBoundState.PSGetBoundSRVSlot(args.pResource, &slot)) {
             pDeviceContext->PSSetShaderResources(slot, 1, nullSRV);
-            sContextBoundState.PSSetBoundSRVSlot(slot, nullptr);
+            sContextBoundState.PSSetBoundSRVSlot(slot, ComPtr<ID3D11Resource>());
         }
         if (sContextBoundState.CSGetBoundSRVSlot(args.pResource, &slot)) {
             pDeviceContext->CSSetShaderResources(slot, 1, nullSRV);
-            sContextBoundState.CSSetBoundSRVSlot(slot, nullptr);
+            sContextBoundState.CSSetBoundSRVSlot(slot, ComPtr<ID3D11Resource>());
         }
     }
     else if (args.Type == NULLIFY_TYPE_UAV) {
         UINT slot = UINT32_MAX;
         if (sContextBoundState.CSGetBoundUAVSlot(args.pResource, &slot)) {
             pDeviceContext->CSSetUnorderedAccessViews(slot, 1, nullUAV, nullptr);
-            sContextBoundState.CSSetBoundUAVSlot(slot, nullptr);
+            sContextBoundState.CSSetBoundUAVSlot(slot, ComPtr<ID3D11Resource>());
         }
     }
 }
