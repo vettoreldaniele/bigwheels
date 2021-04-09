@@ -126,7 +126,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
 void Image::DestroyApiObjects()
 {
     if (mResource) {
-        mResource.Detach();
+        mResource.Reset();
     }
 
     // Reset if resource isn't external
