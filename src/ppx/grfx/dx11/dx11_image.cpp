@@ -255,24 +255,24 @@ Result DepthStencilView::CreateApiObjects(const grfx::DepthStencilViewCreateInfo
 
     switch (desc.ViewDimension) {
         default: {
-            PPX_ASSERT_MSG(false, "unknown RTV dimension");
+            PPX_ASSERT_MSG(false, "unknown DSV dimension");
         } break;
 
-        case D3D11_RTV_DIMENSION_TEXTURE1D: {
+        case D3D11_DSV_DIMENSION_TEXTURE1D: {
             desc.Texture1D.MipSlice = static_cast<UINT>(pCreateInfo->mipLevel);
         } break;
 
-        case D3D11_RTV_DIMENSION_TEXTURE1DARRAY: {
+        case D3D11_DSV_DIMENSION_TEXTURE1DARRAY: {
             desc.Texture1DArray.MipSlice        = static_cast<UINT>(pCreateInfo->mipLevel);
             desc.Texture1DArray.FirstArraySlice = static_cast<UINT>(pCreateInfo->arrayLayer);
             desc.Texture1DArray.ArraySize       = static_cast<UINT>(pCreateInfo->arrayLayerCount);
         } break;
 
-        case D3D11_RTV_DIMENSION_TEXTURE2D: {
+        case D3D11_DSV_DIMENSION_TEXTURE2D: {
             desc.Texture2D.MipSlice = static_cast<UINT>(pCreateInfo->mipLevel);
         } break;
 
-        case D3D11_RTV_DIMENSION_TEXTURE2DARRAY: {
+        case D3D11_DSV_DIMENSION_TEXTURE2DARRAY: {
             desc.Texture2DArray.MipSlice        = static_cast<UINT>(pCreateInfo->mipLevel);
             desc.Texture2DArray.FirstArraySlice = static_cast<UINT>(pCreateInfo->arrayLayer);
             desc.Texture2DArray.ArraySize       = static_cast<UINT>(pCreateInfo->arrayLayerCount);

@@ -9,8 +9,8 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
 {
     if (pCreateInfo->usageFlags.bits.structuredBuffer || pCreateInfo->usageFlags.bits.storageBuffer) {
         int stopMe = 1;
-    //    PPX_ASSERT_MSG(false, "implementation incomplete");
-    //    return ppx::ERROR_FAILED;
+        //    PPX_ASSERT_MSG(false, "implementation incomplete");
+        //    return ppx::ERROR_FAILED;
     }
 
     bool dynamic = pCreateInfo->usageFlags.bits.uniformBuffer ||
@@ -67,16 +67,26 @@ void Buffer::DestroyApiObjects()
     }
 }
 
-Result Buffer::MapMemory(uint64_t offset, void** ppMappedAddress)
+D3D11_MAP Buffer::GetMapType() const
 {
-    D3D11DeviceContextPtr context = ToApi(GetDevice())->GetDxDeviceContext();
-
     D3D11_MAP mapType = InvalidValue<D3D11_MAP>();
     if (mUsage == D3D11_USAGE_DYNAMIC) {
         mapType = D3D11_MAP_WRITE_DISCARD;
     }
     else if (mUsage == D3D11_USAGE_STAGING) {
         mapType = D3D11_MAP_READ_WRITE;
+    }
+    return mapType;
+}
+
+Result Buffer::MapMemory(uint64_t offset, void** ppMappedAddress)
+{
+    D3D11DeviceContextPtr context = ToApi(GetDevice())->GetDxDeviceContext();
+
+    D3D11_MAP mapType = GetMapType();
+    if (mapType == InvalidValue<D3D11_MAP>()) {
+        PPX_ASSERT_MSG(false, "invalid maptype");
+        return ppx::ERROR_API_FAILURE;        
     }
 
     D3D11_MAPPED_SUBRESOURCE mappedSubres = {};
