@@ -29,28 +29,9 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-    void ResetGraphicsState();
-    void SetGraphicsState(const grfx::dx11::CommandBuffer::ActionCmd& cmd, const grfx::dx11::CommandBuffer* pCmdBuf);
-    void ResetComputeState();
-    void SetComputeState(const grfx::dx11::CommandBuffer::ActionCmd& cmd, const grfx::dx11::CommandBuffer* pCmdBuf);
 
 private:
     D3D11DeviceContextPtr mDeviceContext;
-    uint32_t              mViewportStateIndex           = kInvalidStateIndex;
-    uint32_t              mScissorStateIndex            = kInvalidStateIndex;
-    uint32_t              mIndexBufferStateIndex        = kInvalidStateIndex;
-    uint32_t              mVertexBufferStateIndex       = kInvalidStateIndex;
-    uint32_t              mGraphicsPipelineStateIndex   = kInvalidStateIndex;
-    uint32_t              mGraphicsDescriptorStateIndex = kInvalidStateIndex;
-    uint32_t              mComputePipelineStateIndex    = kInvalidStateIndex;
-    uint32_t              mComputeDescriptorStateIndex  = kInvalidStateIndex;
-
-    struct BoundResource
-    {
-        void* pResource = nullptr;
-    };
-
-    std::array<BoundResource, PPX_D3D11_COMPAT_MAX_UAV_SLOTS> mBoundUAVs;
 };
 
 } // namespace dx11

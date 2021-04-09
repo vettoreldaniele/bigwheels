@@ -254,6 +254,7 @@ if (PPX_D3D11)
         ${INC_DIR}/ppx/grfx/dx11/000_dx11_config.h
         ${INC_DIR}/ppx/grfx/dx11/dx11_buffer.h
         ${INC_DIR}/ppx/grfx/dx11/dx11_command.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_command_list.h
         ${INC_DIR}/ppx/grfx/dx11/dx11_descriptor.h
         ${INC_DIR}/ppx/grfx/dx11/dx11_descriptor_helper.h
         ${INC_DIR}/ppx/grfx/dx11/dx11_device.h
@@ -274,6 +275,7 @@ if (PPX_D3D11)
         APPEND PPX_GRFX_DX11_SOURCE_FILES
         ${SRC_DIR}/ppx/grfx/dx11/dx11_buffer.cpp
         ${SRC_DIR}/ppx/grfx/dx11/dx11_command.cpp
+        ${SRC_DIR}/ppx/grfx/dx11/dx11_command_list.cpp
         ${SRC_DIR}/ppx/grfx/dx11/dx11_descriptor.cpp
         ${SRC_DIR}/ppx/grfx/dx11/dx11_descriptor_helper.cpp
         ${SRC_DIR}/ppx/grfx/dx11/dx11_device.cpp

@@ -361,6 +361,8 @@ Result Device::ResolveQueryData(
     return ppx::ERROR_FAILED;
 }
 
+
+
 Result Device::GetStructuredBufferSRV(
     const grfx::Buffer*                                  pBuffer,
     UINT                                                 numElements,

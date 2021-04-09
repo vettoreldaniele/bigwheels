@@ -11,6 +11,18 @@ list(APPEND COMMON_FILES
 )
 
 # --------------------------------------------------------------------------------------------------
+# Vertex/Pixel Shader(s)
+# --------------------------------------------------------------------------------------------------
+list(APPEND HLSL_FILES
+    "${PPX_DIR}/assets/basic/shaders/Texture.hlsl"
+)
+
+foreach(HLSL_PATH ${HLSL_FILES})
+    CompileShaderVSPS("${HLSL_PATH}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
+endforeach()
+
+
+# --------------------------------------------------------------------------------------------------
 # Vertex Shader(s)
 # --------------------------------------------------------------------------------------------------
 
@@ -39,6 +51,7 @@ endforeach()
 
 list(APPEND ADDITIONAL_FILES
     ${COMMON_FILES}
+    ${HLSL_FILES}
     ${VS_HLSL_FILES}
     ${PS_HLSL_FILES}
     ${SHADER_DIR}/Config.hlsli

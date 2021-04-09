@@ -16,8 +16,6 @@ namespace dx11 {
 // -------------------------------------------------------------------------------------------------
 Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo)
 {
-    mActionCmds.reserve(32);
-
     return ppx::SUCCESS;
 }
 
@@ -27,16 +25,8 @@ void CommandBuffer::DestroyApiObjects()
 
 Result CommandBuffer::Begin()
 {
-    mViewportState.Reset();
-    mScissorState.Reset();
-    mIndexBufferState.Reset();
-    mVertexBuffersState.Reset();
-    mComputePipelineState.Reset();
-    mGraphicsPipelineState.Reset();
-    mComputeDescriptorState.Reset();
-    mGraphicsDescriptorState.Reset();
+    mCommandList.Reset();
 
-    mActionCmds.clear();
     return ppx::SUCCESS;
 }
 
@@ -47,32 +37,49 @@ Result CommandBuffer::End()
 
 void CommandBuffer::BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginInfo)
 {
-    uint32_t rtvCount = pBeginInfo->pRenderPass->GetRenderTargetCount();
-    PPX_ASSERT_MSG((rtvCount <= PPX_MAX_RENDER_TARGETS), "Number of clear values exceeds limit");
+    const RenderPass* pRenderPass = ToApi(pBeginInfo->pRenderPass);
+    UINT              rtvCount    = static_cast<UINT>(pRenderPass->GetRenderTargetCount());
+    UINT              dsvCount    = pRenderPass->HasDepthStencil() ? 1 : 0;
 
-    mActionCmds.emplace_back(ActionCmd(CMD_BEGIN_RENDER_PASS));
-
-    ActionCmd&      cmd  = mActionCmds.back();
-    RenderPassArgs& args = cmd.args.renderPass;
-
-    args.rtvs.numViews = rtvCount;
-    for (uint32_t i = 0; i < args.rtvs.numViews; ++i) {
-        auto pApiRtv         = ToApi(pBeginInfo->pRenderPass->GetRenderTargetView(i));
-        args.rtvs.views[i]   = pApiRtv->GetDxRenderTargetView();
-        args.rtvs.loadOps[i] = pApiRtv->GetLoadOp();
-        memcpy(args.rtvs.clearValues[i].rgba.data(), pBeginInfo->RTVClearValues[i].rgba, 4 * sizeof(float));
+    ID3D11RenderTargetView* pRTVs[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = {};
+    for (UINT i = 0; i < rtvCount; ++i) {
+        auto pApiRtv = ToApi(pBeginInfo->pRenderPass->GetRenderTargetView(i));
+        pRTVs[i]     = pApiRtv->GetDxRenderTargetView();
     }
 
-    args.dsv.pView         = nullptr;
-    args.dsv.depthLoadOp   = grfx::ATTACHMENT_LOAD_OP_LOAD;
-    args.dsv.stencilLoadOp = grfx::ATTACHMENT_LOAD_OP_LOAD;
-    if (pBeginInfo->pRenderPass->HasDepthStencil()) {
-        auto pApiDsv                = ToApi(pBeginInfo->pRenderPass->GetDepthStencilView());
-        args.dsv.pView              = pApiDsv->GetDxDepthStencilView();
-        args.dsv.depthLoadOp        = pApiDsv->GetDepthLoadOp();
-        args.dsv.stencilLoadOp      = pApiDsv->GetDepthLoadOp();
-        args.dsv.clearValue.depth   = pBeginInfo->DSVClearValue.depth;
-        args.dsv.clearValue.stencil = static_cast<UINT8>(pBeginInfo->DSVClearValue.depth);
+    ID3D11DepthStencilView* pDSV = nullptr;
+    if (dsvCount > 0) {
+        auto pApiDsv = ToApi(pBeginInfo->pRenderPass->GetDepthStencilView());
+        pDSV         = pApiDsv->GetDxDepthStencilView();
+    }
+
+    mCommandList.OMSetRenderTargets(rtvCount, pRTVs, pDSV);
+
+    for (UINT i = 0; i < pBeginInfo->RTVClearCount; ++i) {
+        auto pApiRtv = ToApi(pBeginInfo->pRenderPass->GetRenderTargetView(i));
+        if (pApiRtv->GetLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
+            mCommandList.ClearRenderTargetView(
+                pRTVs[i],
+                pBeginInfo->RTVClearValues[i].rgba);
+        }
+    }
+
+    if (dsvCount > 0) {
+        auto pApiDsv    = ToApi(pBeginInfo->pRenderPass->GetDepthStencilView());
+        UINT clearFlags = 0;
+        if (pApiDsv->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
+            clearFlags |= D3D11_CLEAR_DEPTH;
+        }
+        if (pApiDsv->GetStencilLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
+            clearFlags |= D3D11_CLEAR_STENCIL;
+        }
+        if (clearFlags != 0) {
+            mCommandList.ClearDepthStencilView(
+                pDSV,
+                clearFlags,
+                pBeginInfo->DSVClearValue.depth,
+                static_cast<UINT8>(pBeginInfo->DSVClearValue.stencil));
+        }
     }
 }
 
@@ -91,13 +98,21 @@ void CommandBuffer::TransitionImageLayout(
     const grfx::Queue*  pSrcQueue,
     const grfx::Queue*  pDstQueue)
 {
-    mActionCmds.emplace_back(ActionCmd(CMD_TRANSITION_IMAGE_LAYOUT));
+    dx11::Device*              pDevice     = ToApi(GetDevice());
+    ID3D11ShaderResourceView*  nullSRVs[1] = {nullptr};
+    ID3D11UnorderedAccessView* nullUAVs[1] = {nullptr};
 
-    ActionCmd&      cmd  = mActionCmds.back();
-    TransitionArgs& args = cmd.args.transition;
-    args.resource        = ToApi(pImage)->GetDxResource();
-    args.beforeState     = beforeState;
-    args.afterState      = afterState;
+    switch (beforeState) {
+        default: break;
+
+        case grfx::RESOURCE_STATE_SHADER_RESOURCE: {
+            mCommandList.Nullify(ToApi(pImage)->GetDxResource(), NULLIFY_TYPE_SRV);
+        } break;
+
+        case grfx::RESOURCE_STATE_UNORDERED_ACCESS: {
+            mCommandList.Nullify(ToApi(pImage)->GetDxResource(), NULLIFY_TYPE_UAV);
+        } break;
+    }
 }
 
 void CommandBuffer::BufferResourceBarrier(
@@ -113,34 +128,40 @@ void CommandBuffer::SetViewports(
     uint32_t              viewportCount,
     const grfx::Viewport* pViewports)
 {
-    viewportCount = std::min<uint32_t>(viewportCount, PPX_MAX_VIEWPORTS);
+    D3D11_VIEWPORT viewports[PPX_MAX_VIEWPORTS];
 
-    ViewportState* pState = mViewportState.GetCurrent();
-    pState->numViewports  = static_cast<UINT>(viewportCount);
+    viewportCount = std::min<uint32_t>(viewportCount, PPX_MAX_VIEWPORTS);
     for (uint32_t i = 0; i < viewportCount; ++i) {
-        pState->viewports[i].TopLeftX = pViewports[i].x;
-        pState->viewports[i].TopLeftY = pViewports[i].y;
-        pState->viewports[i].Width    = pViewports[i].width;
-        pState->viewports[i].Height   = pViewports[i].height;
-        pState->viewports[i].MinDepth = pViewports[i].minDepth;
-        pState->viewports[i].MaxDepth = pViewports[i].maxDepth;
-    }
+        viewports[i].TopLeftX = pViewports[i].x;
+        viewports[i].TopLeftY = pViewports[i].y;
+        viewports[i].Width    = pViewports[i].width;
+        viewports[i].Height   = pViewports[i].height;
+        viewports[i].MinDepth = pViewports[i].minDepth;
+        viewports[i].MaxDepth = pViewports[i].maxDepth;
+    };
+
+    mCommandList.RSSetViewports(
+        static_cast<UINT>(viewportCount),
+        viewports);
 }
 
 void CommandBuffer::SetScissors(
     uint32_t          scissorCount,
     const grfx::Rect* pScissors)
 {
-    scissorCount = std::min<uint32_t>(scissorCount, PPX_MAX_SCISSORS);
+    D3D11_RECT rects[PPX_MAX_SCISSORS];
 
-    ScissorState* pState = mScissorState.GetCurrent();
-    pState->numRects     = scissorCount;
+    scissorCount = std::min<uint32_t>(scissorCount, PPX_MAX_SCISSORS);
     for (uint32_t i = 0; i < scissorCount; ++i) {
-        pState->rects[i].left   = pScissors[i].x;
-        pState->rects[i].top    = pScissors[i].y;
-        pState->rects[i].right  = pScissors[i].x + pScissors[i].width;
-        pState->rects[i].bottom = pScissors[i].y + pScissors[i].height;
-    }
+        rects[i].left   = pScissors[i].x;
+        rects[i].top    = pScissors[i].y;
+        rects[i].right  = pScissors[i].x + pScissors[i].width;
+        rects[i].bottom = pScissors[i].y + pScissors[i].height;
+    };
+
+    mCommandList.RSSetScissorRects(
+        static_cast<UINT>(scissorCount),
+        rects);
 }
 
 static bool IsVS(grfx::ShaderStageBits shaderVisbility)
@@ -173,63 +194,46 @@ static bool IsPS(grfx::ShaderStageBits shaderVisbility)
     return match;
 }
 
-void CommandBuffer::CopyDescriptors(const dx11::DescriptorArray& bindings, std::vector<ResourceSlotArray>& slots)
+static void SetSlots(
+    dx11::CommandList* pCmdList,
+    void (dx11::CommandList::*SetConstantBufferFn)(UINT, UINT, ID3D11Buffer* const*),
+    void (dx11::CommandList::*SetShaderResourcesFn)(UINT, UINT, ID3D11ShaderResourceView* const*),
+    void (dx11::CommandList::*SetSamplersFn)(UINT, UINT, ID3D11SamplerState* const*),
+    void (dx11::CommandList::*SetUnorderedAccesssFn)(UINT, UINT, ID3D11UnorderedAccessView* const*),
+    const dx11::DescriptorArray& descriptorArray)
 {
-    const size_t numResources = bindings.resources.size();
-    size_t       numPopulated = 0;
-    for (size_t i = 0; i < numResources; ++i) {
-        if (!IsNull(bindings.resources[i])) {
-            numPopulated += 1;
-        }
-    }
+    switch (descriptorArray.descriptorType) {
+        default: {
+            PPX_ASSERT_MSG(false, "unrecognized descriptor type");
+        } break;
 
-    // This means that the descriptors bindings are contiguous and
-    // can be set in a single call to one of the ID3D11DeviceContext::*Set*()
-    // functions. For example, the following sets 3 constant buffers for
-    // slots 1, 2, and 3:
-    //
-    //    ResourceSlotArray slots = {};
-    //    slots.descriptorType    = D3D_DESCRIPTOR_TYPE_CBV;
-    //    slots.startSlot         = 1;
-    //    slots.resources.push_back(buffer0);
-    //    slots.resources.push_back(buffer1);
-    //    slots.resources.push_back(buffer2);
-    //
-    //    VSSetConstantBuffers(
-    //        slots.startSlot,
-    //        slots.resources.size(),
-    //        reinterpret_cast<ID3D11Buffer* const*>(slots.resources.data()));
-    //
-    if (numPopulated == numResources) {
-        // Create entry in resource slot array
-        slots.emplace_back(ResourceSlotArray{bindings.descriptorType, bindings.binding});
-        // Allocate space
-        ResourceSlotArray& dst = slots.back();
-        dst.resources.resize(numResources);
-        // Copy resource pointers from bindings to slots
-        size_t copySize = numResources * sizeof(void*);
-        memcpy(dst.resources.data(), bindings.resources.data(), copySize);
-    }
-    //
-    // This means that descriptor bindings are disparate and
-    // must be sent individually. In this case each ResourceSlotArray
-    // object will only contain one resource.
-    //
-    else {
-        // Create an entry for every populated element
-        for (size_t i = 0; i < numResources; ++i) {
-            // Skip anything that isn't populated
-            if (IsNull(bindings.resources[i])) {
-                continue;
-            }
-            // Start slot is binding plus offset in array
-            const UINT startSlot = static_cast<UINT>(bindings.binding + i);
-            // Create entry in dst bindings
-            slots.emplace_back(ResourceSlotArray{bindings.descriptorType, startSlot});
-            // Copy descriptor
-            ResourceSlotArray& slot = slots.back();
-            slot.resources.push_back(bindings.resources[i]);
-        }
+        case grfx::D3D_DESCRIPTOR_TYPE_CBV: {
+            UINT                 StartSlot  = static_cast<UINT>(descriptorArray.binding);
+            UINT                 NumBuffers = static_cast<UINT>(CountU32(descriptorArray.resources));
+            ID3D11Buffer* const* ppBuffers  = reinterpret_cast<ID3D11Buffer* const*>(DataPtr(descriptorArray.resources));
+            (pCmdList->*SetConstantBufferFn)(StartSlot, NumBuffers, ppBuffers);
+        } break;
+
+        case grfx::D3D_DESCRIPTOR_TYPE_SRV: {
+            UINT                             StartSlot = static_cast<UINT>(descriptorArray.binding);
+            UINT                             NumViews  = static_cast<UINT>(CountU32(descriptorArray.resources));
+            ID3D11ShaderResourceView* const* ppViews   = reinterpret_cast<ID3D11ShaderResourceView* const*>(DataPtr(descriptorArray.resources));
+            (pCmdList->*SetShaderResourcesFn)(StartSlot, NumViews, ppViews);
+        } break;
+
+        case grfx::D3D_DESCRIPTOR_TYPE_SAMPLER: {
+            UINT                       StartSlot   = static_cast<UINT>(descriptorArray.binding);
+            UINT                       NumSamplers = static_cast<UINT>(CountU32(descriptorArray.resources));
+            ID3D11SamplerState* const* ppSamplers  = reinterpret_cast<ID3D11SamplerState* const*>(DataPtr(descriptorArray.resources));
+            (pCmdList->*SetSamplersFn)(StartSlot, NumSamplers, ppSamplers);
+        } break;
+
+        case grfx::D3D_DESCRIPTOR_TYPE_UAV: {
+            UINT                              StartSlot = static_cast<UINT>(descriptorArray.binding);
+            UINT                              NumViews  = static_cast<UINT>(CountU32(descriptorArray.resources));
+            ID3D11UnorderedAccessView* const* ppViews   = reinterpret_cast<ID3D11UnorderedAccessView* const*>(DataPtr(descriptorArray.resources));
+            (pCmdList->*SetUnorderedAccesssFn)(StartSlot, NumViews, ppViews);
+        } break;
     }
 }
 
@@ -240,29 +244,57 @@ void CommandBuffer::BindGraphicsDescriptorSets(
 {
     setCount = std::min<uint32_t>(setCount, PPX_MAX_BOUND_DESCRIPTOR_SETS);
 
-    GraphicsDescriptorState* pState = mGraphicsDescriptorState.GetCurrent();
-
     for (uint32_t setIndex = 0; setIndex < setCount; ++setIndex) {
-        const grfx::dx11::DescriptorSet* pApiSet          = ToApi(ppSets[setIndex]);
+        const grfx::dx11::DescriptorSet* pApiSet          = dx11::ToApi(ppSets[setIndex]);
         const auto&                      descriptorArrays = pApiSet->GetDescriptorArrays();
 
         size_t daCount = descriptorArrays.size();
         for (size_t daIndex = 0; daIndex < daCount; ++daIndex) {
-            const DescriptorArray& binding = descriptorArrays[daIndex];
-            if (IsVS(binding.shaderVisibility)) {
-                CopyDescriptors(binding, pState->VS);
+            const dx11::DescriptorArray& descriptorArray = descriptorArrays[daIndex];
+            if (IsVS(descriptorArray.shaderVisibility)) {
+                SetSlots(
+                    &mCommandList,
+                    &dx11::CommandList::VSSetConstantBuffers,
+                    &dx11::CommandList::VSSetShaderResources,
+                    &dx11::CommandList::VSSetSamplers,
+                    nullptr,
+                    descriptorArray);
             }
-            if (IsHS(binding.shaderVisibility)) {
-                CopyDescriptors(binding, pState->HS);
+            if (IsHS(descriptorArray.shaderVisibility)) {
+                SetSlots(
+                    &mCommandList,
+                    &dx11::CommandList::HSSetConstantBuffers,
+                    &dx11::CommandList::HSSetShaderResources,
+                    &dx11::CommandList::HSSetSamplers,
+                    nullptr,
+                    descriptorArray);
             }
-            if (IsDS(binding.shaderVisibility)) {
-                CopyDescriptors(binding, pState->HS);
+            if (IsDS(descriptorArray.shaderVisibility)) {
+                SetSlots(
+                    &mCommandList,
+                    &dx11::CommandList::DSSetConstantBuffers,
+                    &dx11::CommandList::DSSetShaderResources,
+                    &dx11::CommandList::DSSetSamplers,
+                    nullptr,
+                    descriptorArray);
             }
-            if (IsGS(binding.shaderVisibility)) {
-                CopyDescriptors(binding, pState->GS);
+            if (IsGS(descriptorArray.shaderVisibility)) {
+                SetSlots(
+                    &mCommandList,
+                    &dx11::CommandList::GSSetConstantBuffers,
+                    &dx11::CommandList::GSSetShaderResources,
+                    &dx11::CommandList::GSSetSamplers,
+                    nullptr,
+                    descriptorArray);
             }
-            if (IsPS(binding.shaderVisibility)) {
-                CopyDescriptors(binding, pState->PS);
+            if (IsPS(descriptorArray.shaderVisibility)) {
+                SetSlots(
+                    &mCommandList,
+                    &dx11::CommandList::PSSetConstantBuffers,
+                    &dx11::CommandList::PSSetShaderResources,
+                    &dx11::CommandList::PSSetSamplers,
+                    nullptr,
+                    descriptorArray);
             }
         }
     }
@@ -272,16 +304,18 @@ void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline
 {
     const dx11::GraphicsPipeline* pApiPipeline = ToApi(pPipeline);
 
-    GraphicsPipelineState* pState = mGraphicsPipelineState.GetCurrent();
-    pState->VS                    = pApiPipeline->GetVS();
-    pState->HS                    = pApiPipeline->GetHS();
-    pState->DS                    = pApiPipeline->GetDS();
-    pState->GS                    = pApiPipeline->GetGS();
-    pState->PS                    = pApiPipeline->GetPS();
-    pState->inputLayout           = pApiPipeline->GetInputLayout();
-    pState->primitiveTopology     = pApiPipeline->GetPrimitiveTopology();
-    pState->rasterizerState       = pApiPipeline->GetRasterizerState();
-    pState->depthStencilState     = pApiPipeline->GetDepthStencilstate();
+    dx11::PipelineState pipelineState = {};
+    pipelineState.VS                  = pApiPipeline->GetVS();
+    pipelineState.HS                  = pApiPipeline->GetHS();
+    pipelineState.DS                  = pApiPipeline->GetDS();
+    pipelineState.GS                  = pApiPipeline->GetGS();
+    pipelineState.PS                  = pApiPipeline->GetPS();
+    pipelineState.InputLayout         = pApiPipeline->GetInputLayout();
+    pipelineState.PrimitiveTopology   = pApiPipeline->GetPrimitiveTopology();
+    pipelineState.RasterizerState     = pApiPipeline->GetRasterizerState();
+    pipelineState.DepthStencilState   = pApiPipeline->GetDepthStencilstate();
+
+    mCommandList.SetPipelineState(&pipelineState);
 }
 
 static bool IsCS(grfx::ShaderStageBits shaderVisbility)
@@ -297,17 +331,21 @@ void CommandBuffer::BindComputeDescriptorSets(
 {
     setCount = std::min<uint32_t>(setCount, PPX_MAX_BOUND_DESCRIPTOR_SETS);
 
-    ComputeDescriptorState* pState = mComputeDescriptorState.GetCurrent();
-
     for (uint32_t setIndex = 0; setIndex < setCount; ++setIndex) {
-        const grfx::dx11::DescriptorSet* pApiSet          = ToApi(ppSets[setIndex]);
+        const grfx::dx11::DescriptorSet* pApiSet          = dx11::ToApi(ppSets[setIndex]);
         const auto&                      descriptorArrays = pApiSet->GetDescriptorArrays();
 
         size_t daCount = descriptorArrays.size();
         for (size_t daIndex = 0; daIndex < daCount; ++daIndex) {
             const dx11::DescriptorArray& descriptorArray = descriptorArrays[daIndex];
             if (IsCS(descriptorArray.shaderVisibility)) {
-                CopyDescriptors(descriptorArray, pState->CS);
+                SetSlots(
+                    &mCommandList,
+                    &dx11::CommandList::CSSetConstantBuffers,
+                    &dx11::CommandList::CSSetShaderResources,
+                    &dx11::CommandList::CSSetSamplers,
+                    &dx11::CommandList::CSSetUnorderedAccess,
+                    descriptorArray);
             }
         }
     }
@@ -317,30 +355,41 @@ void CommandBuffer::BindComputePipeline(const grfx::ComputePipeline* pPipeline)
 {
     const dx11::ComputePipeline* pApiPipeline = ToApi(pPipeline);
 
-    ComputePipelineState* pState = mComputePipelineState.GetCurrent();
-    pState->CS                   = pApiPipeline->GetCS();
+    dx11::PipelineState pipelineState = {};
+    pipelineState.CS                  = pApiPipeline->GetCS();
+
+    mCommandList.SetPipelineState(&pipelineState);
 }
 
 void CommandBuffer::BindIndexBuffer(const grfx::IndexBufferView* pView)
 {
-    IndexBufferState* pState = mIndexBufferState.GetCurrent();
-    pState->buffer           = ToApi(pView->pBuffer)->GetDxBuffer();
-    pState->format           = ToD3D11IndexFormat(pView->indexType);
-    pState->offset           = static_cast<UINT>(pView->offset);
+    mCommandList.IASetIndexBuffer(
+        ToApi(pView->pBuffer)->GetDxBuffer(),
+        ToD3D11IndexFormat(pView->indexType),
+        static_cast<UINT>(pView->offset));
 }
 
 void CommandBuffer::BindVertexBuffers(
     uint32_t                      viewCount,
     const grfx::VertexBufferView* pViews)
 {
-    VertexBufferState* pState = mVertexBuffersState.GetCurrent();
-    pState->startSlot         = 0;
-    pState->numBuffers        = static_cast<UINT>(viewCount);
+    ID3D11Buffer* ppBuffers[PPX_MAX_VERTEX_BINDINGS];
+    UINT          strides[PPX_MAX_VERTEX_BINDINGS];
+    UINT          offsets[PPX_MAX_VERTEX_BINDINGS];
+
+    viewCount = std::min<uint32_t>(viewCount, PPX_MAX_VERTEX_BINDINGS);
     for (uint32_t i = 0; i < viewCount; ++i) {
-        pState->buffers[i] = ToApi(pViews[i].pBuffer)->GetDxBuffer();
-        pState->strides[i] = pViews[i].stride;
-        pState->offsets[i] = 0;
+        ppBuffers[i] = ToApi(pViews[i].pBuffer)->GetDxBuffer();
+        strides[i]   = pViews[i].stride;
+        offsets[i]   = 0;
     }
+
+    mCommandList.IASetVertexBuffers(
+        0,
+        static_cast<UINT>(viewCount),
+        ppBuffers,
+        strides,
+        offsets);
 }
 
 void CommandBuffer::Draw(
@@ -349,21 +398,11 @@ void CommandBuffer::Draw(
     uint32_t firstVertex,
     uint32_t firstInstance)
 {
-    mActionCmds.emplace_back(ActionCmd(CMD_DRAW));
-
-    ActionCmd& cmd                   = mActionCmds.back();
-    cmd.viewportStateIndex           = mViewportState.Commit();
-    cmd.scissorStateIndex            = mScissorState.Commit();
-    cmd.indexBuffereStateIndex       = kInvalidStateIndex;
-    cmd.vertexBufferStateIndex       = mVertexBuffersState.Commit();
-    cmd.graphicsPipleineStateIndex   = mGraphicsPipelineState.Commit();
-    cmd.graphicsDescriptorstateIndex = mGraphicsDescriptorState.Commit();
-
-    DrawArgs& args              = cmd.args.draw;
-    args.vertexCountPerInstance = static_cast<UINT>(vertexCount);
-    args.instanceCount          = static_cast<UINT>(instanceCount);
-    args.startVertexLocation    = static_cast<UINT>(firstVertex);
-    args.startInstanceLocation  = static_cast<UINT>(firstInstance);
+    mCommandList.DrawInstanced(
+        static_cast<UINT>(vertexCount),
+        static_cast<UINT>(instanceCount),
+        static_cast<UINT>(firstVertex),
+        static_cast<UINT>(firstInstance));
 }
 
 void CommandBuffer::DrawIndexed(
@@ -373,22 +412,12 @@ void CommandBuffer::DrawIndexed(
     int32_t  vertexOffset,
     uint32_t firstInstance)
 {
-    mActionCmds.emplace_back(ActionCmd(CMD_DRAW_INDEXED));
-
-    ActionCmd& cmd                   = mActionCmds.back();
-    cmd.viewportStateIndex           = mViewportState.Commit();
-    cmd.scissorStateIndex            = mScissorState.Commit();
-    cmd.indexBuffereStateIndex       = mIndexBufferState.Commit();
-    cmd.vertexBufferStateIndex       = mVertexBuffersState.Commit();
-    cmd.graphicsPipleineStateIndex   = mGraphicsPipelineState.Commit();
-    cmd.graphicsDescriptorstateIndex = mGraphicsDescriptorState.Commit();
-
-    DrawIndexedArgs& args      = cmd.args.drawIndexed;
-    args.indexCountPerInstance = static_cast<UINT>(indexCount);
-    args.instanceCount         = static_cast<UINT>(instanceCount);
-    args.startIndexLocation    = static_cast<UINT>(firstIndex);
-    args.baseVertexLocation    = static_cast<UINT>(vertexOffset);
-    args.startInstanceLocation = static_cast<UINT>(firstInstance);
+    mCommandList.DrawIndexedInstanced(
+        static_cast<UINT>(indexCount),
+        static_cast<UINT>(instanceCount),
+        static_cast<UINT>(firstIndex),
+        static_cast<UINT>(vertexOffset),
+        static_cast<UINT>(firstInstance));
 }
 
 void CommandBuffer::Dispatch(
@@ -396,16 +425,10 @@ void CommandBuffer::Dispatch(
     uint32_t groupCountY,
     uint32_t groupCountZ)
 {
-    mActionCmds.emplace_back(ActionCmd(CMD_DISPATCH));
-
-    ActionCmd& cmd                  = mActionCmds.back();
-    cmd.computePipleineStateIndex   = mComputePipelineState.Commit();
-    cmd.computeDescriptorstateIndex = mComputeDescriptorState.Commit();
-
-    DispatchArgs& args     = cmd.args.dispatch;
-    args.threadGroupCountX = static_cast<UINT>(groupCountX);
-    args.threadGroupCountY = static_cast<UINT>(groupCountY);
-    args.threadGroupCountZ = static_cast<UINT>(groupCountZ);
+    mCommandList.Dispatch(
+        static_cast<UINT>(groupCountX),
+        static_cast<UINT>(groupCountY),
+        static_cast<UINT>(groupCountZ));
 }
 
 void CommandBuffer::CopyBufferToBuffer(
@@ -413,13 +436,14 @@ void CommandBuffer::CopyBufferToBuffer(
     grfx::Buffer*                       pSrcBuffer,
     grfx::Buffer*                       pDstBuffer)
 {
-    mActionCmds.emplace_back(ActionCmd(CMD_COPY_BUFFER_TO_BUFFER));
+    dx11::args::CopyBufferToBuffer copyArgs = {};
+    copyArgs.size                           = static_cast<uint32_t>(pCopyInfo->size);
+    copyArgs.srcBufferOffset                = static_cast<uint32_t>(pCopyInfo->srcBuffer.offset);
+    copyArgs.dstBufferOffset                = static_cast<uint32_t>(pCopyInfo->dstBuffer.offset);
+    copyArgs.pSrcResource                   = ToApi(pSrcBuffer)->GetDxBuffer();
+    copyArgs.pDstResource                   = ToApi(pDstBuffer)->GetDxBuffer();
 
-    ActionCmd&              cmd  = mActionCmds.back();
-    CopyBufferToBufferArgs& args = cmd.args.copyBufferToBuffer;
-    args.copyInfo                = *pCopyInfo;
-    args.pSrcBuffer              = pSrcBuffer;
-    args.pDstBuffer              = pDstBuffer;
+    mCommandList.CopyBufferToBuffer(&copyArgs);
 }
 
 void CommandBuffer::CopyBufferToImage(
@@ -427,36 +451,31 @@ void CommandBuffer::CopyBufferToImage(
     grfx::Buffer*                      pSrcBuffer,
     grfx::Image*                       pDstImage)
 {
-    mActionCmds.emplace_back(ActionCmd(CMD_COPY_BUFFER_TO_IMAGE));
+    dx11::args::CopyBufferToImage copyArgs = {};
 
-    ActionCmd&             cmd  = mActionCmds.back();
-    CopyBufferToImageArgs& args = cmd.args.copyBufferToImage;
-    args.copyInfo               = *pCopyInfo;
-    args.pSrcBuffer             = pSrcBuffer;
-    args.pDstImage              = pDstImage;
+    copyArgs.srcBuffer.imageWidth      = pCopyInfo->srcBuffer.imageWidth;
+    copyArgs.srcBuffer.imageHeight     = pCopyInfo->srcBuffer.imageHeight;
+    copyArgs.srcBuffer.imageRowStride  = pCopyInfo->srcBuffer.imageRowStride;
+    copyArgs.srcBuffer.footprintOffset = pCopyInfo->srcBuffer.footprintOffset;
+    copyArgs.srcBuffer.footprintWidth  = pCopyInfo->srcBuffer.footprintWidth;
+    copyArgs.srcBuffer.footprintHeight = pCopyInfo->srcBuffer.footprintHeight;
+    copyArgs.srcBuffer.footprintDepth  = pCopyInfo->srcBuffer.footprintDepth;
+    copyArgs.dstImage.mipLevel         = pCopyInfo->dstImage.mipLevel;
+    copyArgs.dstImage.arrayLayer       = pCopyInfo->dstImage.arrayLayer;
+    copyArgs.dstImage.arrayLayerCount  = pCopyInfo->dstImage.arrayLayerCount;
+    copyArgs.dstImage.x                = pCopyInfo->dstImage.x;
+    copyArgs.dstImage.y                = pCopyInfo->dstImage.y;
+    copyArgs.dstImage.z                = pCopyInfo->dstImage.z;
+    copyArgs.dstImage.width            = pCopyInfo->dstImage.width;
+    copyArgs.dstImage.height           = pCopyInfo->dstImage.height;
+    copyArgs.dstImage.depth            = pCopyInfo->dstImage.depth;
+    copyArgs.mapType                   = ToApi(pSrcBuffer)->GetMapType();
+    copyArgs.isCube                    = (pDstImage->GetType() == grfx::IMAGE_TYPE_CUBE);
+    copyArgs.mipSpan                   = pDstImage->GetMipLevelCount();
+    copyArgs.pSrcResource              = ToApi(pSrcBuffer)->GetDxBuffer();
+    copyArgs.pDstResource              = ToApi(pDstImage)->GetDxResource();
 
-    //const uint32_t mipLevelCount = pDstImage->GetMipLevelCount();
-    //
-    //for (uint32_t i = 0; i < pCopyInfo->dstImage.arrayLayerCount; ++i) {
-    //    uint32_t arrayLayer = pCopyInfo->dstImage.arrayLayer + i;
-    //
-    //    mActionCmds.emplace_back(ActionCmd(CMD_COPY_BUFFER_TO_IMAGE));
-    //
-    //    ActionCmd& cmd                  = mActionCmds.back();
-    //    cmd.computePipleineStateIndex   = mComputePipelineState.Commit();
-    //    cmd.computeDescriptorstateIndex = mComputeDescriptorState.Commit();
-    //
-    //    UINT subresourceIndex = static_cast<UINT>((arrayLayer * mipLevelCount) + pCopyInfo->dstImage.mipLevel);
-    //
-    //    CopyBufferToImageArgs& args = cmd.args.copyBufferToImage;
-    //    args.pDstResource           = ToApi(pDstImage)->GetDxResource();
-    //    args.dstSubresource         = subresourceIndex;
-    //    args.dstX                   = static_cast<UINT>(pCopyInfo->dstImage.x);
-    //    args.dstY                   = static_cast<UINT>(pCopyInfo->dstImage.y);
-    //    args.dstZ                   = static_cast<UINT>(pCopyInfo->dstImage.z);
-    //    args.pSrcResource           = ToApi(pSrcBuffer)->GetDxBuffer();
-    //    args.srcSubresource         = 0;
-    //}
+    mCommandList.CopyBufferToImage(&copyArgs);
 }
 
 void CommandBuffer::CopyImageToBuffer(
@@ -491,10 +510,7 @@ void CommandBuffer::WriteTimestamp(
 
 void CommandBuffer::ImGuiRender(void (*pFn)(void))
 {
-    mActionCmds.emplace_back(ActionCmd(CMD_IM_GUI_RENDER));
-
-    ActionCmd& cmd                 = mActionCmds.back();
-    cmd.args.imGuiRender.pRenderFn = pFn;
+    mCommandList.ImGuiRender(pFn);
 }
 
 // -------------------------------------------------------------------------------------------------

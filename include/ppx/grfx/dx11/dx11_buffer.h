@@ -16,6 +16,7 @@ public:
     virtual ~Buffer() {}
 
     typename D3D11BufferPtr::InterfaceType* GetDxBuffer() const { return mBuffer.Get(); }
+    D3D11_MAP                               GetMapType() const;
 
     virtual Result MapMemory(uint64_t offset, void** ppMappedAddress) override;
     virtual void   UnmapMemory() override;

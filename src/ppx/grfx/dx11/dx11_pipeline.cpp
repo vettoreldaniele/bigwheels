@@ -213,6 +213,11 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
         return ppxres;
     }
 
+    ppxres = InitializeDepthStencilState(pCreateInfo);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
     return ppx::SUCCESS;
 }
 
