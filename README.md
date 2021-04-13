@@ -44,7 +44,7 @@
 # Build Instructions
 ## GGP (on Windows)
 ```
-git clone --recursive git@github.com:chaoticbob/BigWheels.git
+git clone --recursive git@github.com:googlestadia/BigWheels.git
 cd BigWheels
 mkdir build-ggp
 cd build-ggp
@@ -59,7 +59,7 @@ Built binaries are written to `BigWheels\bin`.
 
 ## GGP (on Linux)
 ```
-git clone --recursive git@github.com:chaoticbob/BigWheels.git
+git clone --recursive git@github.com:googlestadia/BigWheels.git
 cd BigWheels
 mkdir build-ggp
 cd build-ggp
@@ -79,7 +79,7 @@ ggp ssh put -r assets
 
 ## Linux
 ```
-git clone --recursive git@github.com:chaoticbob/BigWheels.git
+git clone --recursive git@github.com:googlestadia/BigWheels.git
 cd BigWheels
 mkdir build-make
 cd build-make
@@ -91,7 +91,7 @@ Built binaries are written to `BigWheels/bin`.
 
 ## Windows 
 ```
-git clone --recursive git@github.com:chaoticbob/BigWheels.git
+git clone --recursive git@github.com:googlestadia/BigWheels.git
 cd BigWheels
 mkdir build-vs2019
 cd build-vs2019

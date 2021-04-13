@@ -1,0 +1,11 @@
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "contrib",
+    srcs = [
+        "MIPFile/MIPFile.cpp",
+    ],
+    hdrs = [
+        "MIPFile/MIPFile.h",
+    ],
+)
