@@ -90,7 +90,19 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
 
 void Swapchain::Destroy()
 {
-    grfx::DeviceObject<grfx::SwapchainCreateInfo>::Destroy();
+    for (auto& elem : mClearRenderPasses) {
+        if (elem) {
+            GetDevice()->DestroyRenderPass(elem);
+        }
+    }
+    mClearRenderPasses.clear();
+
+    for (auto& elem : mLoadRenderPasses) {
+        if (elem) {
+            GetDevice()->DestroyRenderPass(elem);
+        }
+    }
+    mLoadRenderPasses.clear();
 
     for (auto& elem : mDepthImages) {
         if (elem) {
@@ -106,19 +118,7 @@ void Swapchain::Destroy()
     }
     mColorImages.clear();
 
-    for (auto& elem : mClearRenderPasses) {
-        if (elem) {
-            GetDevice()->DestroyRenderPass(elem);
-        }
-    }
-    mClearRenderPasses.clear();
-
-    for (auto& elem : mLoadRenderPasses) {
-        if (elem) {
-            GetDevice()->DestroyRenderPass(elem);
-        }
-    }
-    mLoadRenderPasses.clear();
+    grfx::DeviceObject<grfx::SwapchainCreateInfo>::Destroy();
 }
 
 Result Swapchain::GetColorImage(uint32_t imageIndex, grfx::Image** ppImage) const

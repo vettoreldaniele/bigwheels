@@ -1,0 +1,11 @@
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "VulkanMemoryAllocator",
+    hdrs = [
+        "src/vk_mem_alloc.h",
+    ],
+    includes = [
+        "src",
+    ],
+)

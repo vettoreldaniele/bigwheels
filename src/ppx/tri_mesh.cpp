@@ -305,14 +305,15 @@ uint32_t TriMesh::AppendTriangle(uint32_t v0, uint32_t v1, uint32_t v2)
 uint32_t TriMesh::AppendPosition(const float3& value)
 {
     mPositions.push_back(value);
+    // Update bounding box
     uint32_t count = GetCountPositions();
-    if (count > 0) {
+    if (count > 1) {
         mBoundingBoxMin.x = std::min<float>(mBoundingBoxMin.x, value.x);
         mBoundingBoxMin.y = std::min<float>(mBoundingBoxMin.y, value.y);
         mBoundingBoxMin.z = std::min<float>(mBoundingBoxMin.z, value.z);
-        mBoundingBoxMax.x = std::min<float>(mBoundingBoxMax.x, value.x);
-        mBoundingBoxMax.y = std::min<float>(mBoundingBoxMax.y, value.y);
-        mBoundingBoxMax.z = std::min<float>(mBoundingBoxMax.z, value.z);
+        mBoundingBoxMax.x = std::max<float>(mBoundingBoxMax.x, value.x);
+        mBoundingBoxMax.y = std::max<float>(mBoundingBoxMax.y, value.y);
+        mBoundingBoxMax.z = std::max<float>(mBoundingBoxMax.z, value.z);
     }
     else {
         mBoundingBoxMin = mBoundingBoxMax = value;

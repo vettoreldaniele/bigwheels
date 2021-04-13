@@ -51,6 +51,7 @@ void Device::Destroy()
     DestroyAllObjects(mSemaphores);
     DestroyAllObjects(mStorageImageViews);
     DestroyAllObjects(mShaderModules);
+    DestroyAllObjects(mSwapchains);
 
     grfx::InstanceObject<grfx::DeviceCreateInfo>::Destroy();
     PPX_LOG_INFO("Destroyed device: " << mCreateInfo.pGpu->GetDeviceName());
