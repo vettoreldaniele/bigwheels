@@ -5,22 +5,13 @@ project(15_basic_material)
 set(SHADER_DIR "${PPX_DIR}/assets/materials/shaders")
 
 # --------------------------------------------------------------------------------------------------
-# Common header and source files
-# --------------------------------------------------------------------------------------------------
-list(APPEND COMMON_FILES
-)
-
-# --------------------------------------------------------------------------------------------------
 # Vertex/Pixel Shader(s)
 # --------------------------------------------------------------------------------------------------
 list(APPEND HLSL_FILES
     "${PPX_DIR}/assets/basic/shaders/Texture.hlsl"
 )
 
-foreach(HLSL_PATH ${HLSL_FILES})
-    CompileShaderVSPS("${HLSL_PATH}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
-endforeach()
-
+CompileShadersVSPS("${HLSL_FILES}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
 
 # --------------------------------------------------------------------------------------------------
 # Vertex Shader(s)
@@ -30,9 +21,7 @@ list(APPEND VS_HLSL_FILES
     ${SHADER_DIR}/VertexShader.hlsl
 )
 
-foreach(HLSL_PATH ${VS_HLSL_FILES})
-    CompileShaderVS("${HLSL_PATH}" "${SHADER_DIR}" "${PPX_DIR}")
-endforeach()
+CompileShadersVS("${VS_HLSL_FILES}" "${SHADER_DIR}" "${PPX_DIR}")
 
 # --------------------------------------------------------------------------------------------------
 # Pixel Shader(s)
@@ -45,9 +34,7 @@ list(APPEND PS_HLSL_FILES
     ${SHADER_DIR}/PBR.hlsl
 )
 
-foreach(HLSL_PATH ${PS_HLSL_FILES})
-    CompileShaderPS("${HLSL_PATH}" "${SHADER_DIR}" "${PPX_DIR}")
-endforeach()
+CompileShadersPS("${PS_HLSL_FILES}" "${SHADER_DIR}" "${PPX_DIR}")
 
 list(APPEND ADDITIONAL_FILES
     ${COMMON_FILES}
@@ -61,3 +48,4 @@ add_vk_sample(${PROJECT_NAME}   TRUE "${ADDITIONAL_FILES}")
 add_dx11_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dx12_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dxil_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
+add_dxvk_sample(${PROJECT_NAME} TRUE "${HLSL_FILES}")

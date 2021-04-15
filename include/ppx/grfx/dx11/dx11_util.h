@@ -33,4 +33,4 @@ D3D11_USAGE                ToD3D11Usage(grfx::MemoryUsage value, bool dynamic = 
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_util_h
+#endif // ppx_grfx_dx11_util_h

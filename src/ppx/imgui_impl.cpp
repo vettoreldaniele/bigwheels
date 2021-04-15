@@ -1,18 +1,7 @@
 #include "ppx/imgui_impl.h"
 #include "ppx/imgui/font_inconsolata.h"
-
 #include "ppx/application.h"
-
 #include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_vulkan.h"
-
-#include "ppx/grfx/vk/vk_command.h"
-#include "ppx/grfx/vk/vk_descriptor.h"
-#include "ppx/grfx/vk/vk_device.h"
-#include "ppx/grfx/vk/vk_gpu.h"
-#include "ppx/grfx/vk/vk_instance.h"
-#include "ppx/grfx/vk/vk_queue.h"
-#include "ppx/grfx/vk/vk_render_pass.h"
 
 #if defined(PPX_D3D11)
 #include "backends/imgui_impl_dx11.h"
@@ -27,6 +16,18 @@
 #include "ppx/grfx/dx12/dx12_command.h"
 #include "ppx/grfx/dx12/dx12_device.h"
 #endif // defined(PPX_D3D12)
+
+#if defined(PPX_VULKAN)
+#include "backends/imgui_impl_vulkan.h"
+
+#include "ppx/grfx/vk/vk_command.h"
+#include "ppx/grfx/vk/vk_descriptor.h"
+#include "ppx/grfx/vk/vk_device.h"
+#include "ppx/grfx/vk/vk_gpu.h"
+#include "ppx/grfx/vk/vk_instance.h"
+#include "ppx/grfx/vk/vk_queue.h"
+#include "ppx/grfx/vk/vk_render_pass.h"
+#endif // defined(PPX_VULKAN)
 
 #if defined(PPX_MSW)
 #include <ShellScalingApi.h>
@@ -141,8 +142,139 @@ void ImGuiImpl::NewFrame()
 }
 
 // -------------------------------------------------------------------------------------------------
+// ImGuiImplDx11
+// -------------------------------------------------------------------------------------------------
+#if defined(PPX_D3D11)
+
+Result ImGuiImplDx11::InitApiObjects(ppx::Application* pApp)
+{
+    // Setup GLFW binding - yes...we're using the one for Vulkan :)
+    GLFWwindow* pWindow = static_cast<GLFWwindow*>(pApp->GetWindow());
+    ImGui_ImplGlfw_InitForVulkan(pWindow, false);
+
+    // Setup style
+    SetColorStyle();
+
+    // Setup DX11 binding
+    const grfx::dx11::Device* pDevice =  grfx::dx11::ToApi(pApp->GetDevice());
+    bool result = ImGui_ImplDX11_Init(pDevice->GetDxDevice(), pDevice->GetDxDeviceContext());
+    if (!result) {
+        return ppx::ERROR_IMGUI_INITIALIZATION_FAILED;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void ImGuiImplDx11::Shutdown(ppx::Application* pApp)
+{
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
+void ImGuiImplDx11::NewFrameApi()
+{
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+static void ImGuiImplDx11_CallImGuiRender()
+{
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void ImGuiImplDx11::Render(grfx::CommandBuffer* pCommandBuffer)
+{
+    grfx::dx11::ToApi(pCommandBuffer)->ImGuiRender(&ImGuiImplDx11_CallImGuiRender);
+}
+
+#endif // defined(PPX_D3D11)
+
+// -------------------------------------------------------------------------------------------------
+// ImGuiImplDx12
+// -------------------------------------------------------------------------------------------------
+#if defined(PPX_D3D12)
+
+Result ImGuiImplDx12::InitApiObjects(ppx::Application* pApp)
+{
+    // Setup GLFW binding - yes...we're using the one for Vulkan :)
+    GLFWwindow* pWindow = static_cast<GLFWwindow*>(pApp->GetWindow());
+    ImGui_ImplGlfw_InitForVulkan(pWindow, false);
+
+    // Setup style
+    SetColorStyle();
+
+    // Setup descriptor heap
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.NumDescriptors             = 1;
+        desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        desc.NodeMask                   = 0;
+
+        grfx::dx12::D3D12DevicePtr device = grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice();
+        HRESULT                  hr     = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
+        if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CBVSRVUAV) failed");
+            return ppx::ERROR_API_FAILURE;
+        }
+        PPX_LOG_OBJECT_CREATION(D3D12DescriptorHeap(CBVSRVUAV), mHeapCBVSRVUAV.Get());
+    }
+
+    // Setup DX12 binding
+    bool result = ImGui_ImplDX12_Init(
+        grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice(),
+        static_cast<int>(pApp->GetNumFramesInFlight()),
+        grfx::dx::ToDxgiFormat(pApp->GetSwapchain()->GetColorFormat()),
+        mHeapCBVSRVUAV,
+        mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart(),
+        mHeapCBVSRVUAV->GetGPUDescriptorHandleForHeapStart());
+    if (!result) {
+        return ppx::ERROR_IMGUI_INITIALIZATION_FAILED;
+    }
+
+    return ppx::SUCCESS;
+}
+
+void ImGuiImplDx12::Shutdown(ppx::Application* pApp)
+{
+    ImGui_ImplDX12_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    if (mHeapCBVSRVUAV != nullptr) {
+        mHeapCBVSRVUAV->Release();
+        mHeapCBVSRVUAV = nullptr;
+    }
+}
+
+void ImGuiImplDx12::NewFrameApi()
+{
+    ImGui_ImplDX12_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+void ImGuiImplDx12::Render(grfx::CommandBuffer* pCommandBuffer)
+{
+    grfx::dx12::D3D12GraphicsCommandListPtr commandList = grfx::dx12::ToApi(pCommandBuffer)->GetDxCommandList();
+    commandList->SetDescriptorHeaps(1, &mHeapCBVSRVUAV);
+
+    ImGui::Render();
+    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), grfx::dx12::ToApi(pCommandBuffer)->GetDxCommandList());
+}
+
+#endif // defined(PPX_D3D12)
+
+
+
+// -------------------------------------------------------------------------------------------------
 // ImGuiImplVk
 // -------------------------------------------------------------------------------------------------
+#if defined(PPX_VULKAN)
+
 Result ImGuiImplVk::InitApiObjects(ppx::Application* pApp)
 {
     // Setup GLFW binding
@@ -267,131 +399,6 @@ void ImGuiImplVk::Render(grfx::CommandBuffer* pCommandBuffer)
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), grfx::vk::ToApi(pCommandBuffer)->GetVkCommandBuffer());
 }
 
-// -------------------------------------------------------------------------------------------------
-// ImGuiImplDx11
-// -------------------------------------------------------------------------------------------------
-#if defined(PPX_D3D11)
-
-Result ImGuiImplDx11::InitApiObjects(ppx::Application* pApp)
-{
-    // Setup GLFW binding - yes...we're using the one for Vulkan :)
-    GLFWwindow* pWindow = static_cast<GLFWwindow*>(pApp->GetWindow());
-    ImGui_ImplGlfw_InitForVulkan(pWindow, false);
-
-    // Setup style
-    SetColorStyle();
-
-    // Setup DX11 binding
-    grfx::dx11::Device* pDevice =  grfx::dx11::ToApi(pApp->GetDevice());
-    bool result = ImGui_ImplDX11_Init(pDevice->GetDxDevice(), pDevice->GetDxDeviceContext());
-    if (!result) {
-        return ppx::ERROR_IMGUI_INITIALIZATION_FAILED;
-    }
-
-    return ppx::SUCCESS;
-}
-
-void ImGuiImplDx11::Shutdown(ppx::Application* pApp)
-{
-    ImGui_ImplDX11_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-}
-
-void ImGuiImplDx11::NewFrameApi()
-{
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
-
-static void ImGuiImplDx11_CallImGuiRender()
-{
-    ImGui::Render();
-    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-}
-
-void ImGuiImplDx11::Render(grfx::CommandBuffer* pCommandBuffer)
-{
-    grfx::dx11::ToApi(pCommandBuffer)->ImGuiRender(&ImGuiImplDx11_CallImGuiRender);
-}
-
-#endif // defined(PPX_D3D11)
-
-// -------------------------------------------------------------------------------------------------
-// ImGuiImplDx12
-// -------------------------------------------------------------------------------------------------
-#if defined(PPX_D3D12)
-
-Result ImGuiImplDx12::InitApiObjects(ppx::Application* pApp)
-{
-    // Setup GLFW binding - yes...we're using the one for Vulkan :)
-    GLFWwindow* pWindow = static_cast<GLFWwindow*>(pApp->GetWindow());
-    ImGui_ImplGlfw_InitForVulkan(pWindow, false);
-
-    // Setup style
-    SetColorStyle();
-
-    // Setup descriptor heap
-    {
-        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-        desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        desc.NumDescriptors             = 1;
-        desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        desc.NodeMask                   = 0;
-
-        grfx::dx12::D3D12DevicePtr device = grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice();
-        HRESULT                  hr     = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
-        if (FAILED(hr)) {
-            PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CBVSRVUAV) failed");
-            return ppx::ERROR_API_FAILURE;
-        }
-        PPX_LOG_OBJECT_CREATION(D3D12DescriptorHeap(CBVSRVUAV), mHeapCBVSRVUAV.Get());
-    }
-
-    // Setup DX12 binding
-    bool result = ImGui_ImplDX12_Init(
-        grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice(),
-        static_cast<int>(pApp->GetNumFramesInFlight()),
-        grfx::dx::ToDxgiFormat(pApp->GetSwapchain()->GetColorFormat()),
-        mHeapCBVSRVUAV,
-        mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart(),
-        mHeapCBVSRVUAV->GetGPUDescriptorHandleForHeapStart());
-    if (!result) {
-        return ppx::ERROR_IMGUI_INITIALIZATION_FAILED;
-    }
-
-    return ppx::SUCCESS;
-}
-
-void ImGuiImplDx12::Shutdown(ppx::Application* pApp)
-{
-    ImGui_ImplDX12_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    if (mHeapCBVSRVUAV != nullptr) {
-        mHeapCBVSRVUAV->Release();
-        mHeapCBVSRVUAV = nullptr;
-    }
-}
-
-void ImGuiImplDx12::NewFrameApi()
-{
-    ImGui_ImplDX12_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
-
-void ImGuiImplDx12::Render(grfx::CommandBuffer* pCommandBuffer)
-{
-    grfx::dx12::D3D12GraphicsCommandListPtr commandList = grfx::dx12::ToApi(pCommandBuffer)->GetDxCommandList();
-    commandList->SetDescriptorHeaps(1, &mHeapCBVSRVUAV);
-
-    ImGui::Render();
-    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), grfx::dx12::ToApi(pCommandBuffer)->GetDxCommandList());
-}
-
-#endif // defined(PPX_D3D12)
+#endif // defined(PPX_VULKAN)
 
 } // namespace ppx

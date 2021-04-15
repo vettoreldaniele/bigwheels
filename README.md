@@ -56,6 +56,20 @@ Built binaries are written to `BigWheels\bin`.
 
 **NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
 
+## GGP using DXVK (libporto) (on Windows)
+```
+git clone --recursive git@github.com:googlestadia/BigWheels.git
+cd BigWheels
+mkdir build-ggp
+cd build-ggp
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK=1 -DLIBPORTO_DIR=<path to libport>
+```
+Open `BigWheels.sln` and build
+
+Built binaries are written to `BigWheels\bin`.
+
+**NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
+
 
 ## GGP (on Linux)
 ```

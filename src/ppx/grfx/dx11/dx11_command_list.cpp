@@ -108,7 +108,7 @@ public:
         return false;
     }
 
-    void VSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
+    void VSSetBoundSRVSlot(UINT slot, const ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
@@ -119,7 +119,7 @@ public:
         mBoundState.VS.maxSlotSRV = std::max<UINT>(mBoundState.VS.maxSlotSRV, slot);
     }
 
-    void HSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
+    void HSSetBoundSRVSlot(UINT slot, const ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
@@ -130,7 +130,7 @@ public:
         mBoundState.HS.maxSlotSRV = std::max<UINT>(mBoundState.HS.maxSlotSRV, slot);
     }
 
-    void DSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
+    void DSSetBoundSRVSlot(UINT slot, const ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
@@ -141,7 +141,7 @@ public:
         mBoundState.DS.maxSlotSRV = std::max<UINT>(mBoundState.DS.maxSlotSRV, slot);
     }
 
-    void GSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
+    void GSSetBoundSRVSlot(UINT slot, const ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
@@ -152,7 +152,7 @@ public:
         mBoundState.GS.maxSlotSRV = std::max<UINT>(mBoundState.GS.maxSlotSRV, slot);
     }
 
-    void PSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
+    void PSSetBoundSRVSlot(UINT slot, const ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
@@ -163,7 +163,7 @@ public:
         mBoundState.PS.maxSlotSRV = std::max<UINT>(mBoundState.CS.maxSlotSRV, slot);
     }
 
-    void CSSetBoundSRVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
+    void CSSetBoundSRVSlot(UINT slot, const ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for SRV");
@@ -174,7 +174,7 @@ public:
         mBoundState.CS.maxSlotSRV = std::max<UINT>(mBoundState.CS.maxSlotSRV, slot);
     }
 
-    void CSSetBoundUAVSlot(UINT slot, ComPtr<ID3D11Resource>& resource)
+    void CSSetBoundUAVSlot(UINT slot, const ComPtr<ID3D11Resource>& resource)
     {
         if (slot >= D3D11_1_UAV_SLOT_COUNT) {
             PPX_ASSERT_MSG(false, "invalid slot (" << slot << " for UAV");

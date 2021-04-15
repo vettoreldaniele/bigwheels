@@ -73,9 +73,33 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     if (GetInstance()->IsDebugEnabled()) {
         flags |= D3D11_CREATE_DEVICE_DEBUG;
     }
+
     //
     // When creating a device from an existing adapter (i.e. pAdapter is non-NULL), DriverType must be D3D_DRIVER_TYPE_UNKNOWN.
     //
+#if defined(PPX_DXVK)
+    ID3D11Device*        pDevice        = nullptr;
+    ID3D11DeviceContext* pDeviceContext = nullptr;
+    D3D_FEATURE_LEVEL    supportedFeatureLevel = InvalidValue<D3D_FEATURE_LEVEL>();
+    //
+    HRESULT hr = D3D11CreateDevice(
+        pAdapter,                // IDXGIAdapter*            pAdapter
+        D3D_DRIVER_TYPE_UNKNOWN, // D3D_DRIVER_TYPE          DriverType
+        nullptr,                 // HMODULE                  Software
+        flags,                   // UINT                     Flags
+        &featureLevel,           // const D3D_FEATURE_LEVEL* pFeatureLevels
+        1,                       // UINT                     FeatureLevels
+        D3D11_SDK_VERSION,       // UINT                     SDKVersion
+        &pDevice,                // ID3D11Device**           ppDevice
+        &supportedFeatureLevel,  // D3D_FEATURE_LEVEL*       pFeatureLevel
+        &pDeviceContext);        // ID3D11DeviceContext**    ppImmediateContex
+    if (FAILED(hr)) {
+        return ppx::ERROR_API_FAILURE;
+    }
+    mDevice        = (typename D3D11DevicePtr::InterfaceType*)pDevice;
+    mDeviceContext = (typename D3D11DeviceContextPtr::InterfaceType*)pDeviceContext;
+    PPX_LOG_OBJECT_CREATION(D3D12Device, mDevice.Get());
+#else
     ComPtr<ID3D11Device>        device;
     ComPtr<ID3D11DeviceContext> deviceContext;
     D3D_FEATURE_LEVEL           supportedFeatureLevel = InvalidValue<D3D_FEATURE_LEVEL>();
@@ -103,6 +127,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         return ppx::ERROR_API_FAILURE;
     }
     PPX_LOG_OBJECT_CREATION(D3D12Device, mDevice.Get());
+#endif // defined(PPX_DXVK)
 
     // Create queues
     Result ppxres = CreateQueues(pCreateInfo);

@@ -5,6 +5,10 @@
 #include <map>
 #include <unordered_map>
 
+#if defined(PPX_GGP) && defined(PPX_DXVK)
+#include "porto.h"
+#endif // defined(PPX_GGP) && defined(PPX_DXVK)
+
 #if defined(PPX_LINUX_XCB)
 #include <X11/Xlib-xcb.h>
 #elif defined(PPX_LINUX_XLIB)
@@ -402,7 +406,9 @@ struct WindowEvents
                 static_cast<int32_t>(event_y),
                 buttons);
         }
+#if !defined(PPX_DXVK)
         ImGui_ImplGlfw_MouseButtonCallback(window, event_button, event_action, event_mods);
+#endif
     }
 
     static void MouseMoveCallback(GLFWwindow* window, double event_x, double event_y)
@@ -442,7 +448,9 @@ struct WindowEvents
             static_cast<float>(xoffset),
             static_cast<float>(yoffset));
 
+#if !defined(PPX_DXVK)
         ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+#endif
     }
 
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -469,7 +477,9 @@ struct WindowEvents
             }
         }
 
+#if !defined(PPX_DXVK)
         ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+#endif
     }
 
     static void CharCallback(GLFWwindow* window, unsigned int c)
@@ -478,7 +488,10 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
+
+#if !defined(PPX_DXVK)
         ImGui_ImplGlfw_CharCallback(window, c);
+#endif
     }
 
     static Result RegisterWindowEvents(GLFWwindow* window, Application* application)
@@ -599,6 +612,12 @@ Result Application::InitializePlatform()
         PPX_ASSERT_MSG(false, "glfwInit failed");
         return ppx::ERROR_GLFW_INIT_FAILED;
     }
+
+#if defined(PPX_GGP) && defined(PPX_DXVK)
+    PortoConfig config = CreatePortoConfig();
+    InitPorto(config);
+#endif // defined(PPX_GGP) && defined(PPX_DXVK)
+
     return ppx::SUCCESS;
 }
 
@@ -669,7 +688,9 @@ Result Application::InitializeGrfxSurface()
         grfx::SurfaceCreateInfo ci = {};
         ci.pGpu                    = mDevice->GetGpu();
 #if defined(PPX_GGP)
-        // Nothing to do
+  #if defined(PPX_DXVK)
+        ci.hwnd      = CreateHWNDFromStreamDescriptor(kGgpPrimaryStreamDescriptor);
+  #endif
 #elif defined(PPX_LINUX_XCB)
         ci.connection = XGetXCBConnection(glfwGetX11Display());
         ci.window     = glfwGetX11Window(static_cast<GLFWwindow*>(mWindow));
@@ -759,7 +780,9 @@ Result Application::InitializeImGui()
 #if defined(PPX_D3D11)
         case grfx::API_DX_11_0:
         case grfx::API_DX_11_1: {
+#if !defined(PPX_DXVK)
             mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplDx11());
+#endif // !defined(PPX_DXVK)
         } break;
 #endif // defined(PPX_D3D11)
 
@@ -770,26 +793,32 @@ Result Application::InitializeImGui()
         } break;
 #endif // defined(PPX_D3D12)
 
+#if defined(PPX_VULKAN)
         case grfx::API_VK_1_1:
         case grfx::API_VK_1_2: {
             mImGui = std::unique_ptr<ImGuiImpl>(new ImGuiImplVk());
         } break;
+#endif // defined(PPX_VULKAN)
     }
 
+#if !defined(PPX_DXVK)
     Result ppxres = mImGui->Init(this);
     if (Failed(ppxres)) {
         return ppxres;
     }
+#endif // !defined(PPX_DXVK)
 
     return ppx::SUCCESS;
 }
 
 void Application::ShutdownImGui()
 {
+#if !defined(PPX_DXVK)
     if (mImGui) {
         mImGui->Shutdown(this);
         mImGui.reset();
     }
+#endif // !defined(PPX_DXVK)
 }
 
 void Application::StopGrfx()
@@ -967,9 +996,11 @@ void Application::ResizeCallback(uint32_t width, uint32_t height)
 
 void Application::KeyDownCallback(KeyCode key)
 {
+#if !defined(PPX_DXVK)
     if (ImGui::GetIO().WantCaptureKeyboard) {
         return;
     }
+#endif
 
     mKeyStates[key].down     = true;
     mKeyStates[key].timeDown = GetElapsedSeconds();
@@ -978,9 +1009,11 @@ void Application::KeyDownCallback(KeyCode key)
 
 void Application::KeyUpCallback(KeyCode key)
 {
+#if !defined(PPX_DXVK)
     if (ImGui::GetIO().WantCaptureKeyboard) {
         return;
     }
+#endif
 
     mKeyStates[key].down     = false;
     mKeyStates[key].timeDown = FLT_MAX;
@@ -989,9 +1022,11 @@ void Application::KeyUpCallback(KeyCode key)
 
 void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
 {
+#if !defined(PPX_DXVK)
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
+#endif
 
     int32_t dx12 = (mPreviousMouseX != INT32_MAX) ? (x - mPreviousMouseX) : 0;
     int32_t dy   = (mPreviousMouseY != INT32_MAX) ? (y - mPreviousMouseY) : 0;
@@ -1002,27 +1037,33 @@ void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
 
 void Application::MouseDownCallback(int32_t x, int32_t y, uint32_t buttons)
 {
+#if !defined(PPX_DXVK)
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
+#endif
 
     DispatchMouseDown(x, y, buttons);
 }
 
 void Application::MouseUpCallback(int32_t x, int32_t y, uint32_t buttons)
 {
+#if !defined(PPX_DXVK)
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
+#endif
 
     DispatchMouseUp(x, y, buttons);
 }
 
 void Application::ScrollCallback(float dx12, float dy)
 {
+#if !defined(PPX_DXVK)
     if (ImGui::GetIO().WantCaptureMouse) {
         return;
     }
+#endif
 
     DispatchScroll(dx12, dy);
 }

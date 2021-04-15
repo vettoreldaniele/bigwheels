@@ -82,4 +82,4 @@ private:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_device_h
+#endif // ppx_grfx_dx11_device_h

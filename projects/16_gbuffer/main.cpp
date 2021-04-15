@@ -669,6 +669,7 @@ void ProjApp::Setup()
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mCpuLightConstants));
 
+        bufferCreateInfo.structuredElementStride          = 32;
         bufferCreateInfo.usageFlags.bits.transferDst      = true;
         bufferCreateInfo.usageFlags.bits.structuredBuffer = true;
         bufferCreateInfo.memoryUsage                      = grfx::MEMORY_USAGE_GPU_ONLY;
@@ -696,7 +697,6 @@ void ProjApp::Setup()
         writes[1].bufferOffset            = 0;
         writes[1].bufferRange             = PPX_WHOLE_SIZE;
         writes[1].structuredElementCount  = 1;
-        writes[1].structuredElementStride = 64;
         writes[1].pBuffer                 = mGpuLightConstants;
         PPX_CHECKED_CALL(ppxres = mSceneDataSet->UpdateDescriptors(2, writes));
     }

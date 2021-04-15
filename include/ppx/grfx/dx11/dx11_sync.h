@@ -48,4 +48,4 @@ private:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_sync_h
+#endif // ppx_grfx_dx11_sync_h

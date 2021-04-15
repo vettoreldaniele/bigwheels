@@ -34,7 +34,12 @@ if (NOT DXC_PATH)
     message(FATAL_ERROR "Could not locate DXC executable - DXC is required")
 endif()
 
-if (PPX_MSW AND NOT FXC_PATH)
+# Hacky
+if (PPX_DXVK)
+    set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0.18362.0")
+endif()
+
+if ((PPX_MSW OR PPX_DXVK) AND NOT FXC_PATH)
     message("CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is set to: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}.")
     if (NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
         message(FATAL_ERROR "Windows SDK not found on this system. Make sure that CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is set.")
@@ -58,335 +63,585 @@ function(CompileShaderMakeOutputDir OUTPUT_FILE)
     endif()
 endfunction()
 
-# @fn compile_vs_ps - Compiles an HLSL file with VS and PS to DXBC, DXIL, and SPV
+function(CompileToDXBC50_VS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+      
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling VS Shader [DXBC50] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXBC 5.0
+        COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC50] Compiling VS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${FXC_PATH} -T vs_5_0 -E vsmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+    )    
+endfunction()
+
+function(CompileToDXBC51_VS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling VS Shader [DXBC51] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXBC 5.1
+        COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC51] Compiling VS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${FXC_PATH} -T vs_5_1 -E vsmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX12_FLAGS}
+    )    
+endfunction()
+
+function(CompileToDXIL_VS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling VS Shader [DXC-DXIL] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXIL
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling VS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -T vs_6_0 -E vsmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
+    )    
+endfunction()
+
+function(CompileToSPV_VS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling VS Shader [DXC-SPV] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to SPIR-V
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling VS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -spirv -T vs_6_0 -E vsmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+    )    
+endfunction()
+
+function(CompileToDXBC50_PS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling PS Shader ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXBC 5.0
+        COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${FXC_PATH} -T ps_5_0 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+    )    
+endfunction()
+
+function(CompileToDXBC51_PS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling PS Shader ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXBC 5.1
+        COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${FXC_PATH} -T ps_5_1 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX12_FLAGS}
+    )    
+endfunction()
+
+function(CompileToDXIL_PS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling PS Shader [DXC-DXIL] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXIL
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -T ps_6_0 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
+    )    
+endfunction()
+
+function(CompileToSPV_PS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling PS Shader [DXC-SPV] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to SPIR-V
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -spirv -T ps_6_0 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+    )    
+endfunction()
+
+function(CompileToDXBC50_CS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling CS Shader ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXBC 5.0
+        COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling CS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${FXC_PATH} -T cs_5_0 -E csmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+    )    
+endfunction()
+
+function(CompileToDXBC51_CS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling CS Shader ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXBC 5.1
+        COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling CS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${FXC_PATH} -T cs_5_1 -E csmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX12_FLAGS}
+    )    
+endfunction()
+
+function(CompileToDXIL_CS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling CS Shader [DXC-DXIL] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to DXIL
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling CS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -T cs_6_0 -E csmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
+    )    
+endfunction()
+
+function(CompileToSPV_CS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+   
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling CS Shader [DXC-SPV] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to SPIR-V
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling CS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -spirv -T cs_6_0 -E csmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+    )    
+endfunction()
+
+# @fn compile_vs_ps - Compiles a list of HLSL files with VS and PS to DXBC, DXIL, and SPV
 #   
-# This function is a bit clumsy because I couldn't find a way to get the shaders
-# to conditionally build based on the current program target. When a shader has 
-# source changes, it will get built for all bytecode targets but only once.
-#
 # @param ARGV0 HLSL_PATH
 # @param ARGV1 OUTPUT_DIR
 # @parma ARGV2 WORKING_DIR
 #
-function(CompileShaderVSPS)
-    set(HLSL_PATH   ${ARGV0})
+function(CompileShadersVSPS)
+    set(HLSL_FILES  ${ARGV0})
     set(OUTPUT_DIR  ${ARGV1})
     set(WORKING_DIR ${ARGV2})
-
-    # SPV targets
-    string(REPLACE "hlsl" "vs.spv" vs_file ${HLSL_PATH})
-    string(REPLACE "hlsl" "ps.spv" ps_file ${HLSL_PATH})
-    get_filename_component(vs_file ${vs_file} NAME)
-    get_filename_component(ps_file ${ps_file} NAME)
-    set(spv_vs_file ${OUTPUT_DIR}/spv/${vs_file})
-    set(spv_ps_file ${OUTPUT_DIR}/spv/${ps_file})
+          
+    set(BUILD_DXBC50 FALSE)
+    set(BUILD_DXBC51 FALSE)
+    set(BUILD_DXIL   FALSE)
+    set(BUILD_SPIRV  FALSE)
     
-    # DXIL targets
-    string(REPLACE "hlsl" "vs.dxil" vs_file ${HLSL_PATH})
-    string(REPLACE "hlsl" "ps.dxil" ps_file ${HLSL_PATH})
-    get_filename_component(vs_file ${vs_file} NAME)
-    get_filename_component(ps_file ${ps_file} NAME)
-    set(dxil_vs_file ${OUTPUT_DIR}/dxil/${vs_file})
-    set(dxil_ps_file ${OUTPUT_DIR}/dxil/${ps_file})    
+    if (PPX_D3D11 OR PPX_DXVK)
+        set(BUILD_DXBC50 TRUE)
+    endif()
+    if (PPX_D3D12)
+        set(BUILD_DXBC51 TRUE)
+        set(BUILD_DXIL   TRUE)
+    endif()
+    if (PPX_VULKAN)
+        set(BUILD_SPIRV TRUE)
+    endif()
 
-    # DXBC 5.0 targets
-    string(REPLACE "hlsl" "vs.dxbc50" vs_file ${HLSL_PATH})
-    string(REPLACE "hlsl" "ps.dxbc50" ps_file ${HLSL_PATH})
-    get_filename_component(vs_file ${vs_file} NAME)
-    get_filename_component(ps_file ${ps_file} NAME)
-    set(dxbc50_vs_file ${OUTPUT_DIR}/dxbc50/${vs_file})
-    set(dxbc50_ps_file ${OUTPUT_DIR}/dxbc50/${ps_file})    
+    list(APPEND outputs_dxbc50)
+    list(APPEND outputs_dxbc51)
+    list(APPEND outputs_dxil)
+    list(APPEND outputs_spv)
+    foreach(HLSL_PATH ${HLSL_FILES})   
+        # SPV targets
+        string(REPLACE "hlsl" "vs.spv" vs_file ${HLSL_PATH})
+        string(REPLACE "hlsl" "ps.spv" ps_file ${HLSL_PATH})
+        get_filename_component(vs_file ${vs_file} NAME)
+        get_filename_component(ps_file ${ps_file} NAME)
+        set(spv_vs_file ${OUTPUT_DIR}/spv/${vs_file})
+        set(spv_ps_file ${OUTPUT_DIR}/spv/${ps_file})
+        
+        # DXIL targets
+        string(REPLACE "hlsl" "vs.dxil" vs_file ${HLSL_PATH})
+        string(REPLACE "hlsl" "ps.dxil" ps_file ${HLSL_PATH})
+        get_filename_component(vs_file ${vs_file} NAME)
+        get_filename_component(ps_file ${ps_file} NAME)
+        set(dxil_vs_file ${OUTPUT_DIR}/dxil/${vs_file})
+        set(dxil_ps_file ${OUTPUT_DIR}/dxil/${ps_file})    
+        
+        # DXBC 5.0 targets
+        string(REPLACE "hlsl" "vs.dxbc50" vs_file ${HLSL_PATH})
+        string(REPLACE "hlsl" "ps.dxbc50" ps_file ${HLSL_PATH})
+        get_filename_component(vs_file ${vs_file} NAME)
+        get_filename_component(ps_file ${ps_file} NAME)
+        set(dxbc50_vs_file ${OUTPUT_DIR}/dxbc50/${vs_file})
+        set(dxbc50_ps_file ${OUTPUT_DIR}/dxbc50/${ps_file})    
+        
+        # DXBC 5.1 targets
+        string(REPLACE "hlsl" "vs.dxbc51" vs_file ${HLSL_PATH})
+        string(REPLACE "hlsl" "ps.dxbc51" ps_file ${HLSL_PATH})
+        get_filename_component(vs_file ${vs_file} NAME)
+        get_filename_component(ps_file ${ps_file} NAME)
+        set(dxbc51_vs_file ${OUTPUT_DIR}/dxbc51/${vs_file})
+        set(dxbc51_ps_file ${OUTPUT_DIR}/dxbc51/${ps_file})
+        
+        if (BUILD_DXBC50)
+            CompileToDXBC50_VS(${HLSL_PATH} "${dxbc50_vs_file}" ${WORKING_DIR})
+            CompileToDXBC50_PS(${HLSL_PATH} "${dxbc50_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxbc50 ${dxbc50_vs_file} ${dxbc50_ps_file})            
+        endif()
+        
+        if (BUILD_DXBC51)
+            CompileToDXBC51_VS(${HLSL_PATH} "${dxbc51_vs_file}" ${WORKING_DIR})
+            CompileToDXBC51_PS(${HLSL_PATH} "${dxbc51_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxbc51 ${dxbc51_vs_file} ${dxbc51_ps_file})          
+        endif()
+        
+        if (BUILD_DXIL)
+            CompileToDXIL_VS(${HLSL_PATH} "${dxil_vs_file}" ${WORKING_DIR})
+            CompileToDXIL_PS(${HLSL_PATH} "${dxil_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxil ${dxil_vs_file} ${dxil_ps_file})          
+        endif()
+        
+        if (BUILD_SPIRV)
+            CompileToSPV_VS(${HLSL_PATH} "${spv_vs_file}" ${WORKING_DIR})
+            CompileToSPV_PS(${HLSL_PATH} "${spv_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_spv ${spv_vs_file} ${spv_ps_file})          
+        endif()
+    endforeach()   
     
-    # DXBC 5.1 targets
-    string(REPLACE "hlsl" "vs.dxbc51" vs_file ${HLSL_PATH})
-    string(REPLACE "hlsl" "ps.dxbc51" ps_file ${HLSL_PATH})
-    get_filename_component(vs_file ${vs_file} NAME)
-    get_filename_component(ps_file ${ps_file} NAME)
-    set(dxbc51_vs_file ${OUTPUT_DIR}/dxbc51/${vs_file})
-    set(dxbc51_ps_file ${OUTPUT_DIR}/dxbc51/${ps_file})
-
-    if (PPX_VULKAN AND PPX_D3D12)
-        CompileShaderMakeOutputDir(${spv_vs_file})
-        CompileShaderMakeOutputDir(${spv_ps_file})
-        CompileShaderMakeOutputDir(${dxil_vs_file}) 
-        CompileShaderMakeOutputDir(${dxil_ps_file})
-        CompileShaderMakeOutputDir(${dxbc50_vs_file})
-        CompileShaderMakeOutputDir(${dxbc50_ps_file})
-        CompileShaderMakeOutputDir(${dxbc51_vs_file})
-        CompileShaderMakeOutputDir(${dxbc51_ps_file})
-
-        add_custom_command(
-            # Compile to SPV
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling PS ${HLSL_PATH} to ${spv_ps_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T ps_6_0 -E psmain -Fo ${spv_ps_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-            
-            # Compile to DXIL
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling VS ${HLSL_PATH} to ${dxil_vs_file}"
-            COMMAND ${DXC_PATH} -T vs_6_0 -E vsmain -Fo ${dxil_vs_file} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling PS ${HLSL_PATH} to ${dxil_ps_file}"       
-            COMMAND ${DXC_PATH} -T ps_6_0 -E psmain -Fo ${dxil_ps_file} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
-            
-            # Compile to DXBC 5.0
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc50_vs_file}"
-            COMMAND ${FXC_PATH} -T vs_5_0 -E vsmain -Fo ${dxbc50_vs_file} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${dxbc50_ps_file}"
-            COMMAND ${FXC_PATH} -T ps_5_0 -E psmain -Fo ${dxbc50_ps_file} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
-            
-            # Compile to DXBC 5.1
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc51_vs_file}"
-            COMMAND ${FXC_PATH} -T vs_5_1 -E vsmain -Fo ${dxbc51_vs_file} ${HLSL_PATH} ${PPX_FXC_DX12_FLAGS}
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${dxbc51_ps_file}"
-            COMMAND ${FXC_PATH} -T ps_5_1 -E psmain -Fo ${dxbc51_ps_file} ${HLSL_PATH} ${PPX_FXC_DX12_FLAGS}
-            
-            
-            MAIN_DEPENDENCY ${HLSL_PATH}
-            OUTPUT ${spv_vs_file}
-                   ${spv_ps_file} 
-                   ${dxil_vs_file} 
-                   ${dxil_ps_file} 
-                   ${dxbc50_vs_file}
-                   ${dxbc50_ps_file}
-                   ${dxbc51_vs_file}
-                   ${dxbc51_ps_file}
-            WORKING_DIRECTORY ${WORKING_DIR}
-            COMMENT "------ Compiling VSPS Shader(s) ------"        
-        )
-    else()
-        CompileShaderMakeOutputDir(${spv_vs_file})
-        CompileShaderMakeOutputDir(${spv_ps_file})
-
-        add_custom_command(
-            # Compile to SPV
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling PS ${HLSL_PATH} to ${spv_ps_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T ps_6_0 -E psmain -Fo ${spv_ps_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-                       
-            MAIN_DEPENDENCY ${HLSL_PATH}
-            OUTPUT ${spv_vs_file}
-                   ${spv_ps_file} 
-            WORKING_DIRECTORY ${WORKING_DIR}
-            COMMENT "------ Compiling VSPS Shader(s) ------"        
-        )
+    if (BUILD_DXBC50)
+        set(target_name ${PROJECT_NAME}-dxbc50-vsps)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxbc50})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxbc50")
+    endif()
+    
+    if (BUILD_DXBC51)
+        set(target_name ${PROJECT_NAME}-dxbc51-vsps)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxbc51})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxbc51")
+    endif()
+    
+    if (BUILD_DXIL)
+        set(target_name ${PROJECT_NAME}-dxil-vsps)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxil})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxil")
+    endif()
+    
+    if (BUILD_SPIRV)
+        set(target_name ${PROJECT_NAME}-spv-vsps)
+        add_custom_target(${target_name} DEPENDS ${outputs_spv})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/spv")
     endif()
 endfunction()
 
-function(CompileShaderCS)
-    set(HLSL_PATH   ${ARGV0})
+function(CompileShadersVS)
+    set(HLSL_FILES  ${ARGV0})
     set(OUTPUT_DIR  ${ARGV1})
     set(WORKING_DIR ${ARGV2})
-
-    # SPV targets
-    string(REPLACE "hlsl" "cs.spv" cs_file ${HLSL_PATH})
-    get_filename_component(cs_file ${cs_file} NAME)
-    set(spv_cs_file ${OUTPUT_DIR}/spv/${cs_file})
+          
+    set(BUILD_DXBC50 FALSE)
+    set(BUILD_DXBC51 FALSE)
+    set(BUILD_DXIL   FALSE)
+    set(BUILD_SPIRV  FALSE)
     
-    # DXIL targets
-    string(REPLACE "hlsl" "cs.dxil" cs_file ${HLSL_PATH})
-    get_filename_component(cs_file ${cs_file} NAME)
-    set(dxil_cs_file ${OUTPUT_DIR}/dxil/${cs_file})
+    if (PPX_D3D11 OR PPX_DXVK)
+        set(BUILD_DXBC50 TRUE)
+    endif()
+    if (PPX_D3D12)
+        set(BUILD_DXBC51 TRUE)
+        set(BUILD_DXIL   TRUE)
+    endif()
+    if (PPX_VULKAN)
+        set(BUILD_SPIRV TRUE)
+    endif()
+
+    list(APPEND outputs_dxbc50)
+    list(APPEND outputs_dxbc51)
+    list(APPEND outputs_dxil)
+    list(APPEND outputs_spv)
+    foreach(HLSL_PATH ${HLSL_FILES})   
+        # SPV targets
+        string(REPLACE "hlsl" "vs.spv" vs_file ${HLSL_PATH})
+        get_filename_component(vs_file ${vs_file} NAME)
+        set(spv_vs_file ${OUTPUT_DIR}/spv/${vs_file})
+        
+        # DXIL targets
+        string(REPLACE "hlsl" "vs.dxil" vs_file ${HLSL_PATH})
+        get_filename_component(vs_file ${vs_file} NAME)
+        set(dxil_vs_file ${OUTPUT_DIR}/dxil/${vs_file})
+        
+        # DXBC 5.0 targets
+        string(REPLACE "hlsl" "vs.dxbc50" vs_file ${HLSL_PATH})
+        get_filename_component(vs_file ${vs_file} NAME)
+        set(dxbc50_vs_file ${OUTPUT_DIR}/dxbc50/${vs_file})
+        
+        # DXBC 5.1 targets
+        string(REPLACE "hlsl" "vs.dxbc51" vs_file ${HLSL_PATH})
+        get_filename_component(vs_file ${vs_file} NAME)
+        set(dxbc51_vs_file ${OUTPUT_DIR}/dxbc51/${vs_file})
+        
+        if (BUILD_DXBC50)
+            CompileToDXBC50_VS(${HLSL_PATH} "${dxbc50_vs_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxbc50 ${dxbc50_vs_file} ${dxbc50_ps_file})            
+        endif()
+        
+        if (BUILD_DXBC51)
+            CompileToDXBC51_VS(${HLSL_PATH} "${dxbc51_vs_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxbc51 ${dxbc51_vs_file} ${dxbc51_ps_file})          
+        endif()
+        
+        if (BUILD_DXIL)
+            CompileToDXIL_VS(${HLSL_PATH} "${dxil_vs_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxil ${dxil_vs_file} ${dxil_ps_file})          
+        endif()
+        
+        if (BUILD_SPIRV)
+            CompileToSPV_VS(${HLSL_PATH} "${spv_vs_file}" ${WORKING_DIR})
+            list(APPEND outputs_spv ${spv_vs_file} ${spv_ps_file})          
+        endif()
+    endforeach()   
     
-    # DXBC 5.0 targets
-    string(REPLACE "hlsl" "cs.dxbc50" cs_file ${HLSL_PATH})
-    get_filename_component(cs_file ${cs_file} NAME)
-    set(dxbc50_cs_file ${OUTPUT_DIR}/dxbc50/${cs_file})
+    if (BUILD_DXBC50)
+        set(target_name ${PROJECT_NAME}-dxbc50-vs)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxbc50})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxbc50")
+    endif()
     
-    # DXBC 5.1 targets
-    string(REPLACE "hlsl" "cs.dxbc51" cs_file ${HLSL_PATH})
-    get_filename_component(cs_file ${cs_file} NAME)
-    set(dxbc51_cs_file ${OUTPUT_DIR}/dxbc51/${cs_file})    
-
-    if (PPX_VULKAN AND PPX_D3D12)
-        CompileShaderMakeOutputDir(${spv_cs_file})
-        CompileShaderMakeOutputDir(${dxil_cs_file}) 
-        CompileShaderMakeOutputDir(${dxbc50_cs_file}) 
-        CompileShaderMakeOutputDir(${dxbc51_cs_file})
-
-        add_custom_command(
-            # Compile to SPV
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_cs_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T cs_6_0 -E csmain -Fo ${spv_cs_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-            
-            # Compile to DXIL
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling VS ${HLSL_PATH} to ${dxil_cs_file}"
-            COMMAND ${DXC_PATH} -T cs_6_0 -E csmain -Fo ${dxil_cs_file} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
-            
-            # Compile to DXBC 5.0
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc50_cs_file}"
-            COMMAND ${FXC_PATH} -T cs_5_0 -E csmain -Fo ${dxbc50_cs_file} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
-            
-            # Compile to DXBC 5.1
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc51_cs_file}"
-            COMMAND ${FXC_PATH} -T cs_5_1 -E csmain -Fo ${dxbc51_cs_file} ${HLSL_PATH} ${PPX_FXC_DX12_FLAGS}
-            
-            
-            MAIN_DEPENDENCY ${HLSL_PATH}
-            OUTPUT ${spv_cs_file}
-                   ${dxil_cs_file} 
-                   ${dxbc50_cs_file}
-                   ${dxbc51_cs_file}
-            WORKING_DIRECTORY ${WORKING_DIR}
-            COMMENT "------ Compiling CS Shader(s) ------"        
-        )
-    else()
-        CompileShaderMakeOutputDir(${spv_cs_file})
-
-        add_custom_command(
-            # Compile to SPV
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_cs_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T cs_6_0 -E csmain -Fo ${spv_cs_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-            
-            MAIN_DEPENDENCY ${HLSL_PATH}
-            OUTPUT ${spv_cs_file}
-            WORKING_DIRECTORY ${WORKING_DIR}
-            COMMENT "------ Compiling CS Shader(s) ------"        
-        )
+    if (BUILD_DXBC51)
+        set(target_name ${PROJECT_NAME}-dxbc51-vs)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxbc51})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxbc51")
+    endif()
+    
+    if (BUILD_DXIL)
+        set(target_name ${PROJECT_NAME}-dxil-vs)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxil})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxil")
+    endif()
+    
+    if (BUILD_SPIRV)
+        set(target_name ${PROJECT_NAME}-spv-vs)
+        add_custom_target(${target_name} DEPENDS ${outputs_spv})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/spv")
     endif()
 endfunction()
 
-function(CompileShaderVS)
-    set(HLSL_PATH   ${ARGV0})
+function(CompileShadersPS)
+    set(HLSL_FILES  ${ARGV0})
     set(OUTPUT_DIR  ${ARGV1})
     set(WORKING_DIR ${ARGV2})
-
-    # SPV targets
-    string(REPLACE "hlsl" "vs.spv" vs_file ${HLSL_PATH})
-    get_filename_component(vs_file ${vs_file} NAME)
-    set(spv_vs_file ${OUTPUT_DIR}/spv/${vs_file})
+          
+    set(BUILD_DXBC50 FALSE)
+    set(BUILD_DXBC51 FALSE)
+    set(BUILD_DXIL   FALSE)
+    set(BUILD_SPIRV  FALSE)
     
-    # DXIL targets
-    string(REPLACE "hlsl" "vs.dxil" vs_file ${HLSL_PATH})
-    get_filename_component(vs_file ${vs_file} NAME)
-    set(dxil_vs_file ${OUTPUT_DIR}/dxil/${vs_file})
+    if (PPX_D3D11 OR PPX_DXVK)
+        set(BUILD_DXBC50 TRUE)
+    endif()
+    if (PPX_D3D12)
+        set(BUILD_DXBC51 TRUE)
+        set(BUILD_DXIL   TRUE)
+    endif()
+    if (PPX_VULKAN)
+        set(BUILD_SPIRV TRUE)
+    endif()
+
+    list(APPEND outputs_dxbc50)
+    list(APPEND outputs_dxbc51)
+    list(APPEND outputs_dxil)
+    list(APPEND outputs_spv)
+    foreach(HLSL_PATH ${HLSL_FILES})   
+        # SPV targets
+        string(REPLACE "hlsl" "ps.spv" ps_file ${HLSL_PATH})
+        get_filename_component(ps_file ${ps_file} NAME)
+        set(spv_ps_file ${OUTPUT_DIR}/spv/${ps_file})
+        
+        # DXIL targets
+        string(REPLACE "hlsl" "ps.dxil" ps_file ${HLSL_PATH})
+        get_filename_component(ps_file ${ps_file} NAME)
+        set(dxil_ps_file ${OUTPUT_DIR}/dxil/${ps_file})
+        
+        # DXBC 5.0 targets
+        string(REPLACE "hlsl" "ps.dxbc50" ps_file ${HLSL_PATH})
+        get_filename_component(ps_file ${ps_file} NAME)
+        set(dxbc50_ps_file ${OUTPUT_DIR}/dxbc50/${ps_file})
+        
+        # DXBC 5.1 targets
+        string(REPLACE "hlsl" "ps.dxbc51" ps_file ${HLSL_PATH})
+        get_filename_component(ps_file ${ps_file} NAME)
+        set(dxbc51_ps_file ${OUTPUT_DIR}/dxbc51/${ps_file})
+        
+        if (BUILD_DXBC50)
+            CompileToDXBC50_PS(${HLSL_PATH} "${dxbc50_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxbc50 ${dxbc50_ps_file} ${dxbc50_ps_file})            
+        endif()
+        
+        if (BUILD_DXBC51)
+            CompileToDXBC51_PS(${HLSL_PATH} "${dxbc51_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxbc51 ${dxbc51_ps_file} ${dxbc51_ps_file})          
+        endif()
+        
+        if (BUILD_DXIL)
+            CompileToDXIL_PS(${HLSL_PATH} "${dxil_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxil ${dxil_ps_file} ${dxil_ps_file})          
+        endif()
+        
+        if (BUILD_SPIRV)
+            CompileToSPV_PS(${HLSL_PATH} "${spv_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_spv ${spv_ps_file} ${spv_ps_file})          
+        endif()
+    endforeach()   
     
-    # DXBC 5.0 targets
-    string(REPLACE "hlsl" "vs.dxbc50" vs_file ${HLSL_PATH})
-    get_filename_component(vs_file ${vs_file} NAME)
-    set(dxbc50_vs_file ${OUTPUT_DIR}/dxbc50/${vs_file})
+    if (BUILD_DXBC50)
+        set(target_name ${PROJECT_NAME}-dxbc50-ps)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxbc50})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxbc50")
+    endif()
     
-    # DXBC 5.1 targets
-    string(REPLACE "hlsl" "vs.dxbc51" vs_file ${HLSL_PATH})
-    get_filename_component(vs_file ${vs_file} NAME)
-    set(dxbc51_vs_file ${OUTPUT_DIR}/dxbc51/${vs_file})
-
-    if (PPX_VULKAN AND PPX_D3D12)
-        CompileShaderMakeOutputDir(${spv_vs_file})
-        CompileShaderMakeOutputDir(${dxil_vs_file}) 
-        CompileShaderMakeOutputDir(${dxbc50_vs_file}) 
-        CompileShaderMakeOutputDir(${dxbc51_vs_file})
-
-        add_custom_command(
-            # Compile to SPV
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-            
-            # Compile to DXIL
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling VS ${HLSL_PATH} to ${dxil_vs_file}"
-            COMMAND ${DXC_PATH} -T vs_6_0 -E vsmain -Fo ${dxil_vs_file} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
-            
-            # Compile to DXBC 5.0
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc50_vs_file}"
-            COMMAND ${FXC_PATH} -T vs_5_0 -E vsmain -Fo ${dxbc50_vs_file} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
-            
-            # Compile to DXBC 5.1
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc51_vs_file}"
-            COMMAND ${FXC_PATH} -T vs_5_1 -E vsmain -Fo ${dxbc51_vs_file} ${HLSL_PATH}  ${PPX_FXC_DX12_FLAGS}
-            
-            
-            MAIN_DEPENDENCY ${HLSL_PATH}
-            OUTPUT ${spv_vs_file}
-                   ${dxil_vs_file} 
-                   ${dxbc50_vs_file}
-                   ${dxbc51_vs_file}
-            WORKING_DIRECTORY ${WORKING_DIR}
-            COMMENT "------ Compiling VS (depth only) Shader(s) ------"        
-        )        
-    else()
-        CompileShaderMakeOutputDir(${spv_vs_file})
-
-        add_custom_command(
-            # Compile to SPV
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling VS ${HLSL_PATH} to ${spv_vs_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo ${spv_vs_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-           
-            MAIN_DEPENDENCY ${HLSL_PATH}
-            OUTPUT ${spv_vs_file}
-            WORKING_DIRECTORY ${WORKING_DIR}
-            COMMENT "------ Compiling VS (depth only) Shader(s) ------"
-        )
+    if (BUILD_DXBC51)
+        set(target_name ${PROJECT_NAME}-dxbc51-ps)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxbc51})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxbc51")
+    endif()
+    
+    if (BUILD_DXIL)
+        set(target_name ${PROJECT_NAME}-dxil-ps)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxil})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxil")
+    endif()
+    
+    if (BUILD_SPIRV)
+        set(target_name ${PROJECT_NAME}-spv-ps)
+        add_custom_target(${target_name} DEPENDS ${outputs_spv})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/spv")
     endif()
 endfunction()
 
-function(CompileShaderPS)
-    set(HLSL_PATH   ${ARGV0})
+function(CompileShadersCS)
+    set(HLSL_FILES  ${ARGV0})
     set(OUTPUT_DIR  ${ARGV1})
     set(WORKING_DIR ${ARGV2})
-
-    # SPV targets
-    string(REPLACE "hlsl" "ps.spv" ps_file ${HLSL_PATH})
-    get_filename_component(ps_file ${ps_file} NAME)
-    set(spv_ps_file ${OUTPUT_DIR}/spv/${ps_file})
+          
+    set(BUILD_DXBC50 FALSE)
+    set(BUILD_DXBC51 FALSE)
+    set(BUILD_DXIL   FALSE)
+    set(BUILD_SPIRV  FALSE)
     
-    # DXIL targets
-    string(REPLACE "hlsl" "ps.dxil" ps_file ${HLSL_PATH})
-    get_filename_component(ps_file ${ps_file} NAME)
-    set(dxil_ps_file ${OUTPUT_DIR}/dxil/${ps_file})
+    if (PPX_D3D11 OR PPX_DXVK)
+        set(BUILD_DXBC50 TRUE)
+    endif()
+    if (PPX_D3D12)
+        set(BUILD_DXBC51 TRUE)
+        set(BUILD_DXIL   TRUE)
+    endif()
+    if (PPX_VULKAN)
+        set(BUILD_SPIRV TRUE)
+    endif()
+
+    list(APPEND outputs_dxbc50)
+    list(APPEND outputs_dxbc51)
+    list(APPEND outputs_dxil)
+    list(APPEND outputs_spv)
+    foreach(HLSL_PATH ${HLSL_FILES})   
+        # SPV targets
+        string(REPLACE "hlsl" "cs.spv" cs_file ${HLSL_PATH})
+        get_filename_component(cs_file ${cs_file} NAME)
+        set(spv_cs_file ${OUTPUT_DIR}/spv/${cs_file})
+        
+        # DXIL targets
+        string(REPLACE "hlsl" "cs.dxil" cs_file ${HLSL_PATH})
+        get_filename_component(cs_file ${cs_file} NAME)
+        set(dxil_cs_file ${OUTPUT_DIR}/dxil/${cs_file})
+        
+        # DXBC 5.0 targets
+        string(REPLACE "hlsl" "cs.dxbc50" cs_file ${HLSL_PATH})
+        get_filename_component(cs_file ${cs_file} NAME)
+        set(dxbc50_cs_file ${OUTPUT_DIR}/dxbc50/${cs_file})
+        
+        # DXBC 5.1 targets
+        string(REPLACE "hlsl" "cs.dxbc51" cs_file ${HLSL_PATH})
+        get_filename_component(cs_file ${cs_file} NAME)
+        set(dxbc51_cs_file ${OUTPUT_DIR}/dxbc51/${cs_file})
+        
+        if (BUILD_DXBC50)
+            CompileToDXBC50_CS(${HLSL_PATH} "${dxbc50_cs_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxbc50 ${dxbc50_cs_file} ${dxbc50_ps_file})            
+        endif()
+        
+        if (BUILD_DXBC51)
+            CompileToDXBC51_CS(${HLSL_PATH} "${dxbc51_cs_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxbc51 ${dxbc51_cs_file} ${dxbc51_ps_file})          
+        endif()
+        
+        if (BUILD_DXIL)
+            CompileToDXIL_CS(${HLSL_PATH} "${dxil_cs_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxil ${dxil_cs_file} ${dxil_ps_file})          
+        endif()
+        
+        if (BUILD_SPIRV)
+            CompileToSPV_CS(${HLSL_PATH} "${spv_cs_file}" ${WORKING_DIR})
+            list(APPEND outputs_spv ${spv_cs_file} ${spv_ps_file})          
+        endif()
+    endforeach()   
     
-    # DXBC targets
-    string(REPLACE "hlsl" "ps.dxbc50" ps_file ${HLSL_PATH})
-    get_filename_component(ps_file ${ps_file} NAME)
-    set(dxbc50_ps_file ${OUTPUT_DIR}/dxbc50/${ps_file})
+    if (BUILD_DXBC50)
+        set(target_name ${PROJECT_NAME}-dxbc50-cs)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxbc50})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxbc50")
+    endif()
     
-    # DXBC 5.1 targets
-    string(REPLACE "hlsl" "ps.dxbc51" ps_file ${HLSL_PATH})
-    get_filename_component(ps_file ${ps_file} NAME)
-    set(dxbc51_ps_file ${OUTPUT_DIR}/dxbc51/${ps_file})    
-
-    if (PPX_VULKAN AND PPX_D3D12)
-        CompileShaderMakeOutputDir(${spv_ps_file})
-        CompileShaderMakeOutputDir(${dxil_ps_file}) 
-        CompileShaderMakeOutputDir(${dxbc50_ps_file}) 
-        CompileShaderMakeOutputDir(${dxbc51_ps_file})
-
-        add_custom_command(
-            # Compile to SPV
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling PS ${HLSL_PATH} to ${spv_ps_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T ps_6_0 -E psmain -Fo ${spv_ps_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-            
-            # Compile to DXIL
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL] Compiling PS ${HLSL_PATH} to ${dxil_ps_file}"
-            COMMAND ${DXC_PATH} -T ps_6_0 -E psmain -Fo ${dxil_ps_file} ${HLSL_PATH} ${PPX_DXC_DXIL_FLAGS}
-            
-            # Compile to DXBC 5.0
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling PS ${HLSL_PATH} to ${dxbc50_ps_file}"
-            COMMAND ${FXC_PATH} -T ps_5_0 -E psmain -Fo ${dxbc50_ps_file} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
-            
-            # Compile to DXBC 5.1
-            COMMAND ${CMAKE_COMMAND} -E echo "[FXC-DXBC] Compiling VS ${HLSL_PATH} to ${dxbc51_ps_file}"
-            COMMAND ${FXC_PATH} -T ps_5_1 -E psmain -Fo ${dxbc51_ps_file} ${HLSL_PATH}  ${PPX_FXC_DX12_FLAGS}            
-            
-            MAIN_DEPENDENCY ${HLSL_PATH}
-            OUTPUT ${spv_ps_file}
-                   ${dxil_ps_file} 
-                   ${dxbc50_ps_file}
-                   ${dxbc51_ps_file}
-            WORKING_DIRECTORY ${WORKING_DIR}
-            COMMENT "------ Compiling PS (depth only) Shader(s) ------"        
-        )        
-    else()
-        CompileShaderMakeOutputDir(${spv_ps_file})
-
-        add_custom_command(
-            # Compile to SPV
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV ] Compiling PS ${HLSL_PATH} to ${spv_ps_file}"
-            COMMAND ${DXC_PATH} -spirv -fvk-use-dx-layout -T ps_6_0 -E psmain -Fo ${spv_ps_file} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
-           
-            MAIN_DEPENDENCY ${HLSL_PATH}
-            OUTPUT ${spv_ps_file}
-            WORKING_DIRECTORY ${WORKING_DIR}
-            COMMENT "------ Compiling PS (pixel shader only) Shader(s) ------"
-        )
+    if (BUILD_DXBC51)
+        set(target_name ${PROJECT_NAME}-dxbc51-cs)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxbc51})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxbc51")
+    endif()
+    
+    if (BUILD_DXIL)
+        set(target_name ${PROJECT_NAME}-dxil-cs)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxil})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxil")
+    endif()
+    
+    if (BUILD_SPIRV)
+        set(target_name ${PROJECT_NAME}-spv-cs)
+        add_custom_target(${target_name} DEPENDS ${outputs_spv})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/spv")
     endif()
 endfunction()
+

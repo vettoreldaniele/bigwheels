@@ -15,4 +15,4 @@ DXGI_FORMAT ToDxgiFormat(grfx::Format value);
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx_util_h
+#endif // ppx_grfx_dx_util_h

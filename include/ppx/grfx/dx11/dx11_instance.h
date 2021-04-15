@@ -15,7 +15,10 @@ public:
     Instance() {}
     virtual ~Instance() {}
 
+#if ! defined(PPX_DXVK)
     typename DXGIDebugPtr::InterfaceType*   GetDxgiDebug() const { return mDXGIDebug.Get(); }
+#endif // ! defined(PPX_DXVK
+
     typename DXGIFactoryPtr::InterfaceType* GetDxFactory() const { return mFactory.Get(); }
 
 protected:
@@ -31,8 +34,11 @@ private:
     Result EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel, bool enableDebug);
 
 private:
+#if ! defined(PPX_DXVK)
     DXGIDebugPtr     mDXGIDebug;
     DXGIInfoQueuePtr mDXGIInfoQueue;
+#endif // ! defined(PPX_DXVK
+
     DXGIFactoryPtr   mFactory;
 };
 
@@ -40,4 +46,4 @@ private:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_instance_h
+#endif // ppx_grfx_dx11_instance_h

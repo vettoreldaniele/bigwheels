@@ -92,13 +92,18 @@ list(APPEND IMGUI_SOURCE_FILES
     ${IMGUI_DIR}/imgui_tables.cpp
     ${IMGUI_DIR}/imgui_widgets.cpp
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-    ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
 )
 
 list(APPEND XXHASH_FILES
     ${PPX_DIR}/third_party/xxHash/xxhash.h
     ${PPX_DIR}/third_party/xxHash/xxhash.c
 )
+
+if (PPX_VULKAN)
+    list(APPEND IMGUI_SOURCE_FILES
+        ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
+    )
+endif()
 
 if (PPX_D3D11)
     list(APPEND IMGUI_SOURCE_FILES
@@ -236,7 +241,7 @@ list(
     ${SRC_DIR}/ppx/io/obj_loader.cpp
 )
 
-if (PPX_D3D11 OR PPX_D3D12)
+if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK)
     list(
         APPEND PPX_GRFX_DX_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx/dx_util.h
@@ -248,7 +253,7 @@ if (PPX_D3D11 OR PPX_D3D12)
     )
 endif()
 
-if (PPX_D3D11)
+if (PPX_D3D11 OR PPX_DXVK)
     list(
         APPEND PPX_GRFX_DX11_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx11/000_dx11_config.h
@@ -338,48 +343,50 @@ if (PPX_D3D12)
     )
 endif()
 
-list(
-    APPEND PPX_GRFX_VK_HEADER_FILES
-    ${INC_DIR}/ppx/grfx/vk/000_vk_config.h
-    ${INC_DIR}/ppx/grfx/vk/000_vk_config_platform.h
-    ${INC_DIR}/ppx/grfx/vk/vk_buffer.h
-    ${INC_DIR}/ppx/grfx/vk/vk_command.h
-    ${INC_DIR}/ppx/grfx/vk/vk_descriptor.h
-    ${INC_DIR}/ppx/grfx/vk/vk_device.h
-    ${INC_DIR}/ppx/grfx/vk/vk_gpu.h
-    ${INC_DIR}/ppx/grfx/vk/vk_image.h
-    ${INC_DIR}/ppx/grfx/vk/vk_instance.h
-    ${INC_DIR}/ppx/grfx/vk/vk_pipeline.h
-    ${INC_DIR}/ppx/grfx/vk/vk_query.h
-    ${INC_DIR}/ppx/grfx/vk/vk_queue.h
-    ${INC_DIR}/ppx/grfx/vk/vk_render_pass.h
-    ${INC_DIR}/ppx/grfx/vk/vk_shader.h
-    ${INC_DIR}/ppx/grfx/vk/vk_swapchain.h
-    ${INC_DIR}/ppx/grfx/vk/vk_sync.h
-    ${INC_DIR}/ppx/grfx/vk/vk_util.h
-)
+if (PPX_VULKAN)
+    list(
+        APPEND PPX_GRFX_VK_HEADER_FILES
+        ${INC_DIR}/ppx/grfx/vk/000_vk_config.h
+        ${INC_DIR}/ppx/grfx/vk/000_vk_config_platform.h
+        ${INC_DIR}/ppx/grfx/vk/vk_buffer.h
+        ${INC_DIR}/ppx/grfx/vk/vk_command.h
+        ${INC_DIR}/ppx/grfx/vk/vk_descriptor.h
+        ${INC_DIR}/ppx/grfx/vk/vk_device.h
+        ${INC_DIR}/ppx/grfx/vk/vk_gpu.h
+        ${INC_DIR}/ppx/grfx/vk/vk_image.h
+        ${INC_DIR}/ppx/grfx/vk/vk_instance.h
+        ${INC_DIR}/ppx/grfx/vk/vk_pipeline.h
+        ${INC_DIR}/ppx/grfx/vk/vk_query.h
+        ${INC_DIR}/ppx/grfx/vk/vk_queue.h
+        ${INC_DIR}/ppx/grfx/vk/vk_render_pass.h
+        ${INC_DIR}/ppx/grfx/vk/vk_shader.h
+        ${INC_DIR}/ppx/grfx/vk/vk_swapchain.h
+        ${INC_DIR}/ppx/grfx/vk/vk_sync.h
+        ${INC_DIR}/ppx/grfx/vk/vk_util.h
+    )
 
-list(
-    APPEND PPX_GRFX_VK_SOURCE_FILES
-    ${SRC_DIR}/ppx/grfx/vk/vk_buffer.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_command.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_descriptor.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_device.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_gpu.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_image.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_instance.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_pipeline.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_profiler_fn_wrapper.h
-    ${SRC_DIR}/ppx/grfx/vk/vk_profiler_fn_wrapper.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_query.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_queue.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_render_pass.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_shader.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_swapchain.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_sync.cpp
-    ${SRC_DIR}/ppx/grfx/vk/vk_util.cpp
-    ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src/vk_mem_alloc.h
-)
+    list(
+        APPEND PPX_GRFX_VK_SOURCE_FILES
+        ${SRC_DIR}/ppx/grfx/vk/vk_buffer.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_command.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_descriptor.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_device.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_gpu.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_image.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_instance.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_pipeline.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_profiler_fn_wrapper.h
+        ${SRC_DIR}/ppx/grfx/vk/vk_profiler_fn_wrapper.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_query.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_queue.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_render_pass.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_shader.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_swapchain.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_sync.cpp
+        ${SRC_DIR}/ppx/grfx/vk/vk_util.cpp
+        ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src/vk_mem_alloc.h
+    )
+endif()
 
 list(
     APPEND CONTRIB_FILES
@@ -568,6 +575,13 @@ if (PPX_VULKAN)
     endif()
 endif()
 
+if (PPX_DXVK)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PPX_DXVK PPX_D3D11
+    )
+endif()
+
 # ------------------------------------------------------------------------------
 # Graphics API link libraries
 # ------------------------------------------------------------------------------
@@ -578,7 +592,7 @@ if (PPX_D3D11 OR PPX_D3D12)
     )
 endif()
 
-if (PPX_D3D12)
+if (PPX_D3D11)
     # Link in d3d11.lib
     target_link_libraries(${PROJECT_NAME} 
         PUBLIC d3d11.lib
@@ -627,6 +641,17 @@ if (PPX_VULKAN)
     elseif (PPX_MSW)
         target_link_libraries(${PROJECT_NAME} 
             PUBLIC "${VULKAN_LIBRARY_DIR}/vulkan-1.lib"
+        )
+    endif()
+endif()
+
+if (PPX_DXVK)
+    target_link_libraries(${PROJECT_NAME} 
+        PUBLIC dxvk_core dxvk_d3d11 dxvk_dxgi
+    )
+    if (PPX_GGP)
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC libporto
         )
     endif()
 endif()

@@ -24,4 +24,4 @@ protected:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_render_pass_h
+#endif // ppx_grfx_dx11_render_pass_h

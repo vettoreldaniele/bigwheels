@@ -30,4 +30,4 @@ private:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_shader_h
+#endif // ppx_grfx_dx11_shader_h

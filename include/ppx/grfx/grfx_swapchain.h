@@ -28,7 +28,10 @@ struct SurfaceCreateInfo
     // clang-format off
     grfx::Gpu*            pGpu = nullptr;
 #if defined(PPX_GGP)
-    // Nothing
+  #if defined(PPX_DXVK)
+    HINSTANCE             hinstance;
+    HWND                  hwnd;
+  #endif
 #elif defined(PPX_LINUX_WAYLAND)
     struct wl_display*    display;
     struct wl_surface*    surface;

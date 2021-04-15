@@ -148,4 +148,4 @@ protected:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_command_h
+#endif // ppx_grfx_dx11_command_h

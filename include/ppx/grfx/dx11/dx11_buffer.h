@@ -35,4 +35,4 @@ private:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_buffer_h
+#endif // ppx_grfx_dx11_buffer_h

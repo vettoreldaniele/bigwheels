@@ -2,16 +2,7 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 project(fishtornado)
 
-# ------------------------------------------------------------------------------
-# Basic shaders
-# ------------------------------------------------------------------------------
-list(APPEND BASIC_VSPS_HLSL_FILES
-    "${PPX_DIR}/assets/basic/shaders/VertexColors.hlsl"
-)
 
-foreach(HLSL_PATH ${BASIC_VSPS_HLSL_FILES})
-    CompileShaderVSPS("${HLSL_PATH}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
-endforeach()
 
 # ------------------------------------------------------------------------------
 # Fish Tornado shaders
@@ -22,6 +13,7 @@ list(APPEND HLSL_INCLUDE_FILES
 )
 
 list(APPEND VSPS_HLSL_FILES
+    "${PPX_DIR}/assets/basic/shaders/VertexColors.hlsl"
     "${PPX_DIR}/assets/fishtornado/shaders/DebugDraw.hlsl"
     "${PPX_DIR}/assets/fishtornado/shaders/FlockingRender.hlsl"
     "${PPX_DIR}/assets/fishtornado/shaders/OceanBeam.hlsl"
@@ -40,17 +32,11 @@ list(APPEND CS_HLSL_FILES
     "${PPX_DIR}/assets/fishtornado/shaders/FlockingVelocity.hlsl"
 )
 
-foreach(HLSL_PATH ${VSPS_HLSL_FILES})
-    CompileShaderVSPS("${HLSL_PATH}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
-endforeach()
+CompileShadersVSPS("${VSPS_HLSL_FILES}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
 
-foreach(HLSL_PATH ${VS_HLSL_FILES})
-    CompileShaderVS("${HLSL_PATH}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
-endforeach()
+CompileShadersVS("${VS_HLSL_FILES}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
 
-foreach(HLSL_PATH ${CS_HLSL_FILES})
-    CompileShaderCS("${HLSL_PATH}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
-endforeach()
+CompileShadersCS("${CS_HLSL_FILES}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
 
 # ------------------------------------------------------------------------------
 # C/C++
@@ -84,3 +70,4 @@ add_vk_sample(${PROJECT_NAME}   TRUE "${ADDITIONAL_FILES}")
 add_dx11_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dx12_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dxil_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
+add_dxvk_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")

@@ -13,4 +13,4 @@ namespace dx11{
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_descriptor_helper_h
+#endif // ppx_grfx_dx11_descriptor_helper_h

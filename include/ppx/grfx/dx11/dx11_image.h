@@ -137,4 +137,4 @@ private:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_image_h
+#endif // ppx_grfx_dx11_image_h

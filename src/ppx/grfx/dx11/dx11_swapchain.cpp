@@ -126,6 +126,10 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         return ppx::ERROR_API_FAILURE;
     }
 
+#if defined(PPX_DXVK)
+    // Force sync interval to zero for now
+    mSyncInterval = 0;
+#else
     mFrameLatencyWaitableObject = mSwapchain->GetFrameLatencyWaitableObject();
     if (IsNull(mFrameLatencyWaitableObject)) {
         PPX_ASSERT_MSG(false, "IDXGISwapChain2::GetFrameLatencyWaitableObject failed");
@@ -137,6 +141,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, "IDXGISwapChain2::SetMaximumFrameLatency failed");
         return ppx::ERROR_API_FAILURE;
     }
+#endif // !defined(PPX_DXVK)
 
     // Create images
     {
@@ -153,7 +158,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         // See: https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-1-4-improvements?redirectedfrom=MSDN
         //
         D3D11Texture2DPtr surface;
-        hr = mSwapchain->GetBuffer(0, IID_PPV_ARGS(&surface));
+        hr = mSwapchain->GetBuffer(0, __uuidof(typename D3D11Texture2DPtr::InterfaceType), &surface);
         if (!SUCCEEDED(hr)) {
             return ppx::ERROR_API_FAILURE;
         }

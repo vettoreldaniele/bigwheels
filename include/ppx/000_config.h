@@ -3,7 +3,7 @@
 
 // clang-format off
 #if defined(PPX_MSW)
-#   if !defined(NOMINMAX)
+#   if !defined(VC_EXTRALEAN)
 #       define VC_EXTRALEAN
 #   endif
 #   if !defined(WIN32_LEAN_AND_MEAN)

@@ -1,13 +1,15 @@
 #include "ppx/grfx/grfx_instance.h"
 #include "ppx/grfx/grfx_device.h"
 #include "ppx/grfx/grfx_gpu.h"
-#include "ppx/grfx/vk/vk_instance.h"
 #if defined(PPX_D3D11)
 #include "ppx/grfx/dx11/dx11_instance.h"
 #endif // defined(PPX_D3D12)
 #if defined(PPX_D3D12)
 #include "ppx/grfx/dx12/dx12_instance.h"
 #endif // defined(PPX_D3D12)
+#if defined(PPX_VULKAN)
+#include "ppx/grfx/vk/vk_instance.h"
+#endif // defined(PPX_VULKAN)
 
 namespace ppx {
 namespace grfx {
@@ -244,6 +246,7 @@ Result CreateInstance(const grfx::InstanceCreateInfo* pCreateInfo, grfx::Instanc
         } break;
 #endif // defiend(PPX_D3D12)
 
+#if defined(PPX_VULKAN)
         case grfx::API_VK_1_1:
         case grfx::API_VK_1_2: {
             pObject = new vk::Instance();
@@ -251,6 +254,7 @@ Result CreateInstance(const grfx::InstanceCreateInfo* pCreateInfo, grfx::Instanc
                 return ppx::ERROR_ALLOCATION_FAILED;
             }
         } break;
+#endif // defined(PPX_VULKAN)
     }
 
     Result ppxres = pObject->Create(pCreateInfo);
@@ -277,6 +281,7 @@ void DestroyInstance(const grfx::Instance* pInstance)
     sInstance->Destroy();
     // Delete allocation
     grfx::Instance* ptr = sInstance.Get();
+    delete ptr;
     // Reset static var
     sInstance.Reset();
 }

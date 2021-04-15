@@ -40,7 +40,7 @@ endif()
 # Configure graphics API
 # ------------------------------------------------------------------------------
 
-if (NOT (PPX_D3D11 OR PPX_D3D12 OR PPX_VULKAN))
+if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK) AND (NOT DEFINED PPX_VULKAN))
     message("No PPX graphics API(s) specified - configuring based on current host")
     if (GGP)
         set(PPX_VULKAN TRUE)
@@ -55,29 +55,39 @@ endif()
 
 set(PPX_D3D11_MSG  FALSE)
 set(PPX_D3D12_MSG  FALSE)
+set(PPX_DXVK_MSG   FALSE)
 set(PPX_VULKAN_MSG FALSE)
 
 # D3D12
 if (PPX_D3D11)
-    set(PPX_D3D11_MSG  TRUE)
+    set(PPX_D3D11_MSG TRUE)
 endif()
 # D3D12
 if (PPX_D3D12)
-    set(PPX_D3D12_MSG  TRUE)
+    set(PPX_D3D12_MSG TRUE)
+endif()
+# DXVK
+if (PPX_DXVK)
+    if(NOT GGP)
+        message(FATAL_ERROR "PPX_DXVK requires PPX_DXVK")
+    endif()
+    set(PPX_DXVK_MSG TRUE)
 endif()
 # Vulkan
 if (PPX_VULKAN)
-    set(PPX_VULKAN_MSG  TRUE)
+    set(PPX_VULKAN_MSG TRUE)
 endif()
 
 message("Graphics API D3D11  : ${PPX_D3D11_MSG}")
 message("Graphics API D3D12  : ${PPX_D3D12_MSG}")
+message("Graphics API DXVK   : ${PPX_DXVK_MSG}")
 message("Graphics API Vulkan : ${PPX_VULKAN_MSG}")
 
 # ------------------------------------------------------------------------------
 # Add shader compile functions - needs to come after platform and API config
 # ------------------------------------------------------------------------------
 
+set(GLOBAL_COUNT 0 CACHE INTERNAL "")
 include(ShaderCompile)
 
 # ------------------------------------------------------------------------------
@@ -128,6 +138,10 @@ add_subdirectory(${PPX_THIRD_PARTY_DIR}/cpu_features)
 # ------------------------------------------------------------------------------
 # Add PPX library
 # ------------------------------------------------------------------------------
+
+if (PPX_DXVK)
+    add_subdirectory(${PPX_THIRD_PARTY_DIR}/libporto)
+endif()
 
 add_subdirectory(src)
 

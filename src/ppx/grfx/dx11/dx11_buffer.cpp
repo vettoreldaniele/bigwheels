@@ -7,12 +7,6 @@ namespace dx11 {
 
 Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
 {
-    if (pCreateInfo->usageFlags.bits.structuredBuffer || pCreateInfo->usageFlags.bits.storageBuffer) {
-        int stopMe = 1;
-        //    PPX_ASSERT_MSG(false, "implementation incomplete");
-        //    return ppx::ERROR_FAILED;
-    }
-
     bool dynamic = pCreateInfo->usageFlags.bits.uniformBuffer ||
                    pCreateInfo->usageFlags.bits.indexBuffer ||
                    pCreateInfo->usageFlags.bits.vertexBuffer;

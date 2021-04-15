@@ -84,4 +84,4 @@ protected:
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_pipeline_h
+#endif // ppx_grfx_dx11_pipeline_h
