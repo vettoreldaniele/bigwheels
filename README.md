@@ -6,6 +6,8 @@
    * Shaders are compiled with FXC
  * **dxil** - D3D12 with SM 6.0+ 
    * Shaders are compiled with DXC/DXIL
+ * **dxvk** - D3D11 using DXVK with SM 5.0
+   * Shaders are compiled with FXC
  * **vk** - Vulkan
    * Shaders are compiled with DXC/SPIR-V
 
