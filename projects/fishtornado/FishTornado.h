@@ -6,6 +6,7 @@
 using namespace ppx;
 
 #include "Buffer.h"
+#include "Config.h"
 #include "Flocking.h"
 #include "Ocean.h"
 #include "ShaderConfig.h"
@@ -86,8 +87,10 @@ private:
         grfx::DrawPassPtr      shadowDrawPass;
         grfx::DescriptorSetPtr sceneSet;
         grfx::DescriptorSetPtr sceneShadowSet; // See note in SetupSetLayouts()
+#if ENABLE_QUERIES
         grfx::QueryPoolPtr     timestampQuery;
         grfx::QueryPoolPtr     pipelineStatsQuery;
+#endif //ENABLE_QUERIES
     };
 
     grfx::DescriptorPoolPtr      mDescriptorPool;

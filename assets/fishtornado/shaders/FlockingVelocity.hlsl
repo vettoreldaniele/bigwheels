@@ -1,9 +1,19 @@
 #include "Config.hlsli"
 
-ConstantBuffer<FlockingData> Flocking           : register(b0, space0); // Flocking params
-Texture2D<float4>            InPositionTexture  : register(t1, space0); // Previous position
-Texture2D<float4>            InVelocityTexture  : register(t2, space0); // Previous velocity
-RWTexture2D<float4>          OutVelocityTexture : register(u3, space0); // Out position
+#if defined(PPX_D3D11) // -----------------------------------------------------
+cbuffer Flocking : register(RENDER_FLOCKING_DATA_REGISTER)
+{
+    FlockingData Flocking;
+};
+Texture2D<float4>   InPositionTexture : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER); // Previous position
+Texture2D<float4>   InVelocityTexture : register(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER);  // Current velocity
+RWTexture2D<float4> OutVelocityTexture : register(RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER);  // Out position
+#else                                                                                        // --- D3D12 / Vulkan ----------------------------------------------------
+ConstantBuffer<FlockingData> Flocking : register(RENDER_FLOCKING_DATA_REGISTER, space0);                      // Flocking params
+Texture2D<float4>            InPositionTexture : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, space0); // Previous position
+Texture2D<float4>            InVelocityTexture : register(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, space0);  // Current velocity
+RWTexture2D<float4>          OutVelocityTexture : register(RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER, space0);  // Out position
+#endif // -- defined (PPX_D3D11) -----------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
 

@@ -1,4 +1,6 @@
 #include "Flocking.h"
+
+#include "Config.h"
 #include "FishTornado.h"
 #include "ppx/graphics_util.h"
 
@@ -81,13 +83,13 @@ void Flocking::SetupSetLayouts()
     // See FlockingPosition.hlsl and FlockingVelocity.hlsl
     //
     grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-    createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER}); // b0
-    createInfo.bindings.push_back(grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t1
-    createInfo.bindings.push_back(grfx::DescriptorBinding{2, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t2
-    createInfo.bindings.push_back(grfx::DescriptorBinding{3, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE});  // u3
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_FLOCKING_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});            // b0
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE}); // t1
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_CURRENT_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t2
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_OUTPUT_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE});   // u3
     PPX_CHECKED_CALL(ppxres = device->CreateDescriptorSetLayout(&createInfo, &mFlockingSetLayout));
 
-    // See FlockingRender.hlsl
+    // See FlockingRender.hlsl - DX11_TODO
     createInfo = {};
     createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER}); // b0
     createInfo.bindings.push_back(grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t1
@@ -114,34 +116,34 @@ void Flocking::SetupSets()
         frame.modelSet->UpdateUniformBuffer(0, 0, frame.modelConstants.GetGpuBuffer());
 
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingSetLayout, &frame.positionSet));
-        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateUniformBuffer(0, 0, frame.flockingConstants.GetGpuBuffer()));
-        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateSampledImage(1, 0, prevFrame.positionTexture));
-        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateSampledImage(2, 0, frame.velocityTexture));
-        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateStorageImage(3, 0, frame.positionTexture));
+        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateUniformBuffer(RENDER_FLOCKING_DATA_REGISTER, 0, frame.flockingConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateSampledImage(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, 0, prevFrame.positionTexture));
+        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateSampledImage(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
+        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateStorageImage(RENDER_CURRENT_POSITION_TEXTURE_REGISTER, 0, frame.positionTexture));
 
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingSetLayout, &frame.velocitySet));
-        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateUniformBuffer(0, 0, frame.flockingConstants.GetGpuBuffer()));
-        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateSampledImage(1, 0, prevFrame.positionTexture));
-        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateSampledImage(2, 0, prevFrame.velocityTexture));
-        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateStorageImage(3, 0, frame.velocityTexture));
+        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateUniformBuffer(RENDER_FLOCKING_DATA_REGISTER, 0, frame.flockingConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateSampledImage(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, 0, prevFrame.positionTexture));
+        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateSampledImage(RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER, 0, prevFrame.velocityTexture));
+        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateStorageImage(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
 
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mRenderSetLayout, &frame.renderSet));
-        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateUniformBuffer(0, 0, frame.flockingConstants.GetGpuBuffer()));
-        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(1, 0, prevFrame.positionTexture));
-        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(2, 0, frame.positionTexture));
-        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(3, 0, frame.velocityTexture));
+        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateUniformBuffer(RENDER_FLOCKING_DATA_REGISTER, 0, frame.flockingConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, 0, prevFrame.positionTexture));
+        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(RENDER_CURRENT_POSITION_TEXTURE_REGISTER, 0, frame.positionTexture));
+        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
     }
 
     PPX_CHECKED_CALL(ppxres = mMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
     PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mMaterialSet));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateUniformBuffer(0, 0, mMaterialConstants.GetGpuBuffer()));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(1, 0, mAlbedoTexture));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(2, 0, mRoughnessTexture));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(3, 0, mNormalMapTexture));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(4, 0, pApp->GetCausticsTexture()));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(5, 0, pApp->GetClampedSampler()));
-    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(6, 0, pApp->GetRepeatSampler()));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateUniformBuffer(RENDER_MATERIAL_DATA_REGISTER, 0, mMaterialConstants.GetGpuBuffer()));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(RENDER_ALBEDO_TEXTURE_REGISTER, 0, mAlbedoTexture));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(RENDER_ROUGHNESS_TEXTURE_REGISTER, 0, mRoughnessTexture));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(RENDER_NORMAL_MAP_TEXTURE_REGISTER, 0, mNormalMapTexture));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampledImage(RENDER_CAUSTICS_TEXTURE_REGISTER, 0, pApp->GetCausticsTexture()));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(RENDER_CLAMPED_SAMPLER_REGISTER, 0, pApp->GetClampedSampler()));
+    PPX_CHECKED_CALL(ppxres = mMaterialSet->UpdateSampler(RENDER_REPEAT_SAMPLER_REGISTER, 0, pApp->GetRepeatSampler()));
 }
 
 void Flocking::SetupPipelineInterfaces()
