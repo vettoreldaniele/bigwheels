@@ -25,5 +25,6 @@
 #define RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER 17
 
 #define ENABLE_QUERIES 0 //TODO: Implement Queries on DX11
+#define ENABLE_SHADOWS 0 //TODO: Fix Shadows in Fish Tornado
 
 #endif //CONFIG_H
