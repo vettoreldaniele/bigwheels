@@ -27,21 +27,21 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         {
             PPX_CHECKED_CALL(ppxres = mPerFrame[i].floorModelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
             PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, modelSetLayout, &frame.floorModelSet));
-            PPX_CHECKED_CALL(ppxres = frame.floorModelSet->UpdateUniformBuffer(0, 0, frame.floorModelConstants.GetGpuBuffer()));
+            PPX_CHECKED_CALL(ppxres = frame.floorModelSet->UpdateUniformBuffer(RENDER_MODEL_DATA_REGISTER, 0, frame.floorModelConstants.GetGpuBuffer()));
         }
 
         // Surface
         {
             PPX_CHECKED_CALL(ppxres = mPerFrame[i].surfaceModelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
             PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, modelSetLayout, &frame.surfaceModelSet));
-            PPX_CHECKED_CALL(ppxres = frame.surfaceModelSet->UpdateUniformBuffer(0, 0, frame.surfaceModelConstants.GetGpuBuffer()));
+            PPX_CHECKED_CALL(ppxres = frame.surfaceModelSet->UpdateUniformBuffer(RENDER_MODEL_DATA_REGISTER, 0, frame.surfaceModelConstants.GetGpuBuffer()));
         }
 
         // Beam
         {
             PPX_CHECKED_CALL(ppxres = mPerFrame[i].beamModelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
             PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, modelSetLayout, &frame.beamModelSet));
-            PPX_CHECKED_CALL(ppxres = frame.beamModelSet->UpdateUniformBuffer(0, 0, frame.beamModelConstants.GetGpuBuffer()));
+            PPX_CHECKED_CALL(ppxres = frame.beamModelSet->UpdateUniformBuffer(RENDER_MODEL_DATA_REGISTER, 0, frame.beamModelConstants.GetGpuBuffer()));
         }
     }
 
@@ -60,13 +60,13 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(ppxres = mFloorMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mFloorMaterialSet));
-        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateUniformBuffer(0, 0, mFloorMaterialConstants.GetGpuBuffer()));
-        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(1, 0, mFloorAlbedoTexture));
-        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(2, 0, mFloorRoughnessTexture));
-        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(3, 0, mFloorNormalMapTexture));
-        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(4, 0, pApp->GetCausticsTexture()));
-        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampler(5, 0, pApp->GetClampedSampler()));
-        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampler(6, 0, pApp->GetRepeatSampler()));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateUniformBuffer(RENDER_MATERIAL_DATA_REGISTER, 0, mFloorMaterialConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(RENDER_ALBEDO_TEXTURE_REGISTER, 0, mFloorAlbedoTexture));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(RENDER_ROUGHNESS_TEXTURE_REGISTER, 0, mFloorRoughnessTexture));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(RENDER_NORMAL_MAP_TEXTURE_REGISTER, 0, mFloorNormalMapTexture));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampledImage(RENDER_CAUSTICS_TEXTURE_REGISTER, 0, pApp->GetCausticsTexture()));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampler(RENDER_CLAMPED_SAMPLER_REGISTER, 0, pApp->GetClampedSampler()));
+        PPX_CHECKED_CALL(ppxres = mFloorMaterialSet->UpdateSampler(RENDER_REPEAT_SAMPLER_REGISTER, 0, pApp->GetRepeatSampler()));
     }
 
     // Surface
@@ -84,13 +84,13 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(ppxres = mSurfaceMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mSurfaceMaterialSet));
-        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateUniformBuffer(0, 0, mSurfaceMaterialConstants.GetGpuBuffer()));
-        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(1, 0, mSurfaceAlbedoTexture));
-        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(2, 0, mSurfaceRoughnessTexture));
-        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(3, 0, mSurfaceNormalMapTexture));
-        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(4, 0, pApp->GetCausticsTexture()));
-        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampler(5, 0, pApp->GetClampedSampler()));
-        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampler(6, 0, pApp->GetRepeatSampler()));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateUniformBuffer(RENDER_MATERIAL_DATA_REGISTER, 0, mSurfaceMaterialConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(RENDER_ALBEDO_TEXTURE_REGISTER, 0, mSurfaceAlbedoTexture));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(RENDER_ROUGHNESS_TEXTURE_REGISTER, 0, mSurfaceRoughnessTexture));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(RENDER_NORMAL_MAP_TEXTURE_REGISTER, 0, mSurfaceNormalMapTexture));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampledImage(RENDER_CAUSTICS_TEXTURE_REGISTER, 0, pApp->GetCausticsTexture()));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampler(RENDER_CLAMPED_SAMPLER_REGISTER, 0, pApp->GetClampedSampler()));
+        PPX_CHECKED_CALL(ppxres = mSurfaceMaterialSet->UpdateSampler(RENDER_REPEAT_SAMPLER_REGISTER, 0, pApp->GetRepeatSampler()));
     }
 
     // Beam
@@ -272,6 +272,6 @@ void Ocean::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
         pCmd->BindIndexBuffer(mBeamModel);
         pCmd->BindVertexBuffers(mBeamModel);
-        pCmd->DrawIndexed(mBeamModel->GetIndexCount(), 1);
+       // DX11_TODO:  pCmd->DrawIndexed(mBeamModel->GetIndexCount(), 1);
     }
 }

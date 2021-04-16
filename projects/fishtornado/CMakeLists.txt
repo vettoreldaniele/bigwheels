@@ -58,6 +58,7 @@ endforeach()
 list(APPEND CPP_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/Buffer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Buffer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Config.h
     ${CMAKE_CURRENT_SOURCE_DIR}/FishTornado.h
     ${CMAKE_CURRENT_SOURCE_DIR}/FishTornado.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Flocking.h
