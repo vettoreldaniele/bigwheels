@@ -139,6 +139,7 @@ void FishTornadoApp::SetupDescriptorPool()
     createInfo.sampledImage                   = 1000;
     createInfo.uniformBuffer                  = 1000;
     createInfo.structuredBuffer               = 1000;
+    createInfo.storageTexelBuffer             = 1000;
 
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
 }
@@ -275,7 +276,7 @@ void FishTornadoApp::SetupPerFrame()
 
         // Allocate scene descriptor set
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneSet));
-        
+
         // Update scene descriptor
         PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateUniformBuffer(RENDER_SCENE_DATA_REGISTER, 0, frame.sceneConstants.GetGpuBuffer()));
         PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, frame.shadowDrawPass->GetDepthStencilTexture()));
@@ -492,7 +493,7 @@ void FishTornadoApp::Render()
     }
     // Reset query
     frame.timestampQuery->Reset(0, 2);
-#else 
+#else
     mTotalGpuFrameTime = 0;
 #endif //ENABLE_QUERIES
 
@@ -558,7 +559,7 @@ void FishTornadoApp::Render()
         {
             frame.cmd->SetScissors(renderPass->GetScissor());
             frame.cmd->SetViewports(renderPass->GetViewport());
-            
+
             mShark.DrawForward(frameIndex, frame.cmd);
 
 #if ENABLE_QUERIES

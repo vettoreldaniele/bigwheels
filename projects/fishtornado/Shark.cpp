@@ -30,7 +30,7 @@ void Shark::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, modelSetLayout, &frame.modelSet));
 
         // Update descriptor
-        PPX_CHECKED_CALL(ppxres = frame.modelSet->UpdateUniformBuffer(0, 0, frame.modelConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(ppxres = frame.modelSet->UpdateUniformBuffer(RENDER_MODEL_DATA_REGISTER, 0, frame.modelConstants.GetGpuBuffer()));
     }
 
     mForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "Shark.vs", "Shark.ps");

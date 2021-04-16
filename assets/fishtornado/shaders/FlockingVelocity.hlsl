@@ -8,7 +8,7 @@ cbuffer Flocking : register(RENDER_FLOCKING_DATA_REGISTER)
 Texture2D<float4>   InPositionTexture : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER); // Previous position
 Texture2D<float4>   InVelocityTexture : register(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER);  // Current velocity
 RWTexture2D<float4> OutVelocityTexture : register(RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER);  // Out position
-#else                                                                                        // --- D3D12 / Vulkan ----------------------------------------------------
+#else // --- D3D12 / Vulkan ----------------------------------------------------                                                                                     // --- D3D12 / Vulkan ----------------------------------------------------
 ConstantBuffer<FlockingData> Flocking : register(RENDER_FLOCKING_DATA_REGISTER, space0);                      // Flocking params
 Texture2D<float4>            InPositionTexture : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, space0); // Previous position
 Texture2D<float4>            InVelocityTexture : register(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, space0);  // Current velocity

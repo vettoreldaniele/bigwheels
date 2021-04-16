@@ -80,21 +80,30 @@ void Flocking::SetupSetLayouts()
     FishTornadoApp* pApp   = FishTornadoApp::GetThisApp();
     grfx::DevicePtr device = pApp->GetDevice();
 
-    // See FlockingPosition.hlsl and FlockingVelocity.hlsl
+    // See FlockingPosition.hlsl
     //
     grfx::DescriptorSetLayoutCreateInfo createInfo = {};
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_FLOCKING_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});            // b0
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE}); // t1
-    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_CURRENT_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t2
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t2
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_OUTPUT_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE});   // u3
-    PPX_CHECKED_CALL(ppxres = device->CreateDescriptorSetLayout(&createInfo, &mFlockingSetLayout));
+    PPX_CHECKED_CALL(ppxres = device->CreateDescriptorSetLayout(&createInfo, &mFlockingPositionSetLayout));
 
-    // See FlockingRender.hlsl - DX11_TODO
+    // See FlockingVelocity.hlsl
+    //
     createInfo = {};
-    createInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER}); // b0
-    createInfo.bindings.push_back(grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t1
-    createInfo.bindings.push_back(grfx::DescriptorBinding{2, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t2
-    createInfo.bindings.push_back(grfx::DescriptorBinding{3, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t3
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_FLOCKING_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});            // b0
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE}); // t1
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE}); // t2
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE});   // u3
+    PPX_CHECKED_CALL(ppxres = device->CreateDescriptorSetLayout(&createInfo, &mFlockingVelocitySetLayout));
+
+    // See FlockingRender.hlsl
+    createInfo = {};
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_FLOCKING_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});            // b0
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE}); // t1
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_CURRENT_POSITION_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t2
+    createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});  // t3
     PPX_CHECKED_CALL(ppxres = device->CreateDescriptorSetLayout(&createInfo, &mRenderSetLayout));
 }
 
@@ -113,25 +122,25 @@ void Flocking::SetupSets()
         PerFrame& prevFrame      = mPerFrame[prevFrameIndex];
 
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, modelSetLayout, &frame.modelSet));
-        frame.modelSet->UpdateUniformBuffer(0, 0, frame.modelConstants.GetGpuBuffer());
+        frame.modelSet->UpdateUniformBuffer(RENDER_MODEL_DATA_REGISTER, 0, frame.modelConstants.GetGpuBuffer());
 
-        PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingSetLayout, &frame.positionSet));
+        PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingPositionSetLayout, &frame.positionSet));
         PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateUniformBuffer(RENDER_FLOCKING_DATA_REGISTER, 0, frame.flockingConstants.GetGpuBuffer()));
         PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateSampledImage(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, 0, prevFrame.positionTexture));
         PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateSampledImage(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
-        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateStorageImage(RENDER_CURRENT_POSITION_TEXTURE_REGISTER, 0, frame.positionTexture));
+        PPX_CHECKED_CALL(ppxres = frame.positionSet->UpdateStorageImage(RENDER_OUTPUT_POSITION_TEXTURE_REGISTER, 0, frame.positionTexture));
 
-        PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingSetLayout, &frame.velocitySet));
+        PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingVelocitySetLayout, &frame.velocitySet));
         PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateUniformBuffer(RENDER_FLOCKING_DATA_REGISTER, 0, frame.flockingConstants.GetGpuBuffer()));
         PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateSampledImage(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, 0, prevFrame.positionTexture));
         PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateSampledImage(RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER, 0, prevFrame.velocityTexture));
-        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateStorageImage(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
+        PPX_CHECKED_CALL(ppxres = frame.velocitySet->UpdateStorageImage(RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
 
         PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mRenderSetLayout, &frame.renderSet));
         PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateUniformBuffer(RENDER_FLOCKING_DATA_REGISTER, 0, frame.flockingConstants.GetGpuBuffer()));
         PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, 0, prevFrame.positionTexture));
         PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(RENDER_CURRENT_POSITION_TEXTURE_REGISTER, 0, frame.positionTexture));
-        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
+        PPX_CHECKED_CALL(ppxres = frame.renderSet->UpdateSampledImage(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
     }
 
     PPX_CHECKED_CALL(ppxres = mMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
@@ -174,8 +183,16 @@ void Flocking::SetupPipelineInterfaces()
     createInfo                 = {};
     createInfo.setCount        = 1;
     createInfo.sets[0].set     = 0;
-    createInfo.sets[0].pLayout = mFlockingSetLayout;
-    PPX_CHECKED_CALL(ppxres = device->CreatePipelineInterface(&createInfo, &mFlockingPipelineInterface));
+    createInfo.sets[0].pLayout = mFlockingPositionSetLayout;
+    PPX_CHECKED_CALL(ppxres = device->CreatePipelineInterface(&createInfo, &mFlockingPositionPipelineInterface));
+
+    // [set0] : resources for position and velocity calculations
+    //
+    createInfo                 = {};
+    createInfo.setCount        = 1;
+    createInfo.sets[0].set     = 0;
+    createInfo.sets[0].pLayout = mFlockingVelocitySetLayout;
+    PPX_CHECKED_CALL(ppxres = device->CreatePipelineInterface(&createInfo, &mFlockingVelocityPipelineInterface));
 }
 
 void Flocking::SetupPipelines()
@@ -191,7 +208,7 @@ void Flocking::SetupPipelines()
 
         grfx::ComputePipelineCreateInfo createInfo = {};
         createInfo.CS                              = {CS, "csmain"};
-        createInfo.pPipelineInterface              = mFlockingPipelineInterface;
+        createInfo.pPipelineInterface              = mFlockingPositionPipelineInterface;
         PPX_CHECKED_CALL(ppxres = device->CreateComputePipeline(&createInfo, &mFlockingPositionPipeline));
 
         device->DestroyShaderModule(CS);
@@ -204,7 +221,7 @@ void Flocking::SetupPipelines()
 
         grfx::ComputePipelineCreateInfo createInfo = {};
         createInfo.CS                              = {CS, "csmain"};
-        createInfo.pPipelineInterface              = mFlockingPipelineInterface;
+        createInfo.pPipelineInterface              = mFlockingVelocityPipelineInterface;
         PPX_CHECKED_CALL(ppxres = device->CreateComputePipeline(&createInfo, &mFlockingVelocityPipeline));
 
         device->DestroyShaderModule(CS);
@@ -253,8 +270,8 @@ void Flocking::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromBitmap(queue, &positionData, &frame.positionTexture, textureOptions));
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromBitmap(queue, &velocityData, &frame.velocityTexture, textureOptions));
 
-        PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingSetLayout, &frame.positionSet));
-        PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingSetLayout, &frame.velocitySet));
+        PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingPositionSetLayout, &frame.positionSet));
+        PPX_CHECKED_CALL(ppxres = device->AllocateDescriptorSet(pool, mFlockingVelocitySetLayout, &frame.velocitySet));
     }
 
     // Create model
@@ -366,7 +383,7 @@ void Flocking::Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     {
         pCmd->TransitionImageLayout(frame.velocityTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_GENERAL);
 
-        pCmd->BindComputeDescriptorSets(mFlockingPipelineInterface, 1, &frame.velocitySet);
+        pCmd->BindComputeDescriptorSets(mFlockingVelocityPipelineInterface, 1, &frame.velocitySet);
         pCmd->BindComputePipeline(mFlockingVelocityPipeline);
         pCmd->Dispatch(groupCountX, groupCountY, groupCountZ);
 
@@ -377,7 +394,7 @@ void Flocking::Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     {
         pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_GENERAL);
 
-        pCmd->BindComputeDescriptorSets(mFlockingPipelineInterface, 1, &frame.positionSet);
+        pCmd->BindComputeDescriptorSets(mFlockingPositionPipelineInterface, 1, &frame.positionSet);
         pCmd->BindComputePipeline(mFlockingPositionPipeline);
         pCmd->Dispatch(groupCountX, groupCountY, groupCountZ);
 
@@ -392,19 +409,19 @@ void Flocking::DrawDebug(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 void Flocking::DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 {
     FishTornadoApp* pApp = FishTornadoApp::GetThisApp();
-    
+
     PerFrame& frame = mPerFrame[frameIndex];
-    
+
     grfx::DescriptorSet* sets[4] = {nullptr};
     sets[0]                      = pApp->GetSceneShadowSet(frameIndex);
     sets[1]                      = frame.modelSet;
     sets[2]                      = mMaterialSet;
     sets[3]                      = frame.renderSet;
-    
+
     pCmd->BindGraphicsDescriptorSets(mForwardPipelineInterface, 4, sets);
-    
+
     pCmd->BindGraphicsPipeline(mShadowPipeline);
-    
+
     pCmd->BindIndexBuffer(mModel);
     pCmd->BindVertexBuffers(mModel);
     pCmd->DrawIndexed(mModel->GetIndexCount(), mResX * mResY);
