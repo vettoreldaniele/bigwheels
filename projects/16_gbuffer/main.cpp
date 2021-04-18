@@ -219,7 +219,8 @@ void ProjApp::SetupIBLResources()
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
     PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
 
-    // Layout
+    // Layout - the binding values here map to the Texture shader (Texture.hlsl)
+    //
     grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
@@ -545,6 +546,7 @@ void ProjApp::SetupDrawToSwapchain()
         writes[0].arrayIndex            = 0;
         writes[0].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         writes[0].pImageView            = mGBufferLightPass->GetRenderTargetTexture(0)->GetSampledImageView();
+
         writes[1].binding               = 1;
         writes[1].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
         writes[1].pSampler              = mSampler;
@@ -601,14 +603,14 @@ void ProjApp::Setup()
     {
         // clang-format off
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT0_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT1_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT2_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT3_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_ENV_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_IBL_REGISTER,     grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER,        1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{16,                       grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT0_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT1_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT2_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_RT3_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_ENV_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_IBL_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_SAMPLER_REGISTER,   grfx::DESCRIPTOR_TYPE_SAMPLER,        1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mGBufferReadLayout));
         // clang-format on
 
@@ -636,7 +638,7 @@ void ProjApp::Setup()
         writes[4].binding               = GBUFFER_SAMPLER_REGISTER;
         writes[4].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
         writes[4].pSampler              = mSampler;
-        writes[5].binding               = 16;
+        writes[5].binding               = GBUFFER_CONSTANTS_REGISTER;
         writes[5].type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         writes[5].bufferOffset          = 0;
         writes[5].bufferRange           = PPX_WHOLE_SIZE;
@@ -667,6 +669,7 @@ void ProjApp::Setup()
         bufferCreateInfo.size                        = PPX_MINIUM_STRUCTURED_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.transferSrc = true;
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
+        bufferCreateInfo.structuredElementStride     = 32;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mCpuLightConstants));
 
         bufferCreateInfo.structuredElementStride          = 32;
@@ -677,8 +680,8 @@ void ProjApp::Setup()
 
         // Descriptor set layout
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-        createInfo.bindings.push_back({grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{1, grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{SCENE_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{LIGHT_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataLayout));
 
         // Allocate descriptor set
@@ -691,7 +694,8 @@ void ProjApp::Setup()
         writes[0].bufferOffset            = 0;
         writes[0].bufferRange             = PPX_WHOLE_SIZE;
         writes[0].pBuffer                 = mGpuSceneConstants;
-        writes[1].binding                 = LIGHT_CONSTANTS_REGISTER;
+
+        writes[1].binding                 = LIGHT_DATA_REGISTER;
         writes[1].arrayIndex              = 0;
         writes[1].type                    = grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER;
         writes[1].bufferOffset            = 0;
@@ -745,8 +749,8 @@ void ProjApp::UpdateConstants()
         mCamSwing += (mTargetCamSwing - mCamSwing) * 0.1f;
 
         float t = glm::radians(mCamSwing - kPi / 2.0f);
-        float x = 6.0f * cos(t);
-        float z = 6.0f * sin(t);
+        float x = 8.0f * cos(t);
+        float z = 8.0f * sin(t);
         mCamera.LookAt(float3(x, 3, z), float3(0, 0.5f, 0));
 
         PPX_HLSL_PACK_BEGIN();

@@ -3,14 +3,23 @@
 
 #define GBUFFER_SPACE space1
 
-#define GBUFFER_RT0_REGISTER     t0
-#define GBUFFER_RT1_REGISTER     t1
-#define GBUFFER_RT2_REGISTER     t2
-#define GBUFFER_RT3_REGISTER     t3
-#define GBUFFER_ENV_REGISTER     t6
-#define GBUFFER_IBL_REGISTER     t7
-#define GBUFFER_SAMPLER_REGISTER s8
+#define GBUFFER_CONSTANTS_REGISTER b3
 
+// 
+// The register numbers are purposely incremental to
+// achieve compatability between all D3D11, D3D12 and
+// Vulkan.
+//
+#define GBUFFER_RT0_REGISTER     t16
+#define GBUFFER_RT1_REGISTER     t17
+#define GBUFFER_RT2_REGISTER     t18
+#define GBUFFER_RT3_REGISTER     t19
+#define GBUFFER_ENV_REGISTER     t20
+#define GBUFFER_IBL_REGISTER     t21
+
+#define GBUFFER_SAMPLER_REGISTER s6
+
+// GBuffer Attributes
 #define GBUFFER_POSITION     0
 #define GBUFFER_NORMAL       1
 #define GBUFFER_ALBEDO       2

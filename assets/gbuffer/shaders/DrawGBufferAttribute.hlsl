@@ -1,36 +1,51 @@
 
 #include "GBuffer.hlsli"
 
+#if defined(PPX_D3D11) // -----------------------------------------------------
+Texture2D    GBufferRT0     : register(GBUFFER_RT0_REGISTER);
+Texture2D    GBufferRT1     : register(GBUFFER_RT1_REGISTER);
+Texture2D    GBufferRT2     : register(GBUFFER_RT2_REGISTER);
+Texture2D    GBufferRT3     : register(GBUFFER_RT3_REGISTER);
+SamplerState ClampedSampler : register(GBUFFER_SAMPLER_REGISTER);
+
+cbuffer GBufferData : register(GBUFFER_CONSTANTS_REGISTER)
+{
+    uint enableIBL;
+    uint enableEnv;
+    uint debugAttrIndex;
+};
+#else // --- D3D12 / Vulkan ----------------------------------------------------
 Texture2D    GBufferRT0     : register(GBUFFER_RT0_REGISTER,     GBUFFER_SPACE);
 Texture2D    GBufferRT1     : register(GBUFFER_RT1_REGISTER,     GBUFFER_SPACE);
 Texture2D    GBufferRT2     : register(GBUFFER_RT2_REGISTER,     GBUFFER_SPACE);
 Texture2D    GBufferRT3     : register(GBUFFER_RT3_REGISTER,     GBUFFER_SPACE);
 SamplerState ClampedSampler : register(GBUFFER_SAMPLER_REGISTER, GBUFFER_SPACE);
 
-cbuffer GBufferData : register(b16, GBUFFER_SPACE)
+cbuffer GBufferData : register(GBUFFER_CONSTANTS_REGISTER, GBUFFER_SPACE)
 {
     uint enableIBL;
     uint enableEnv;
     uint debugAttrIndex;
 };
+#endif // -- defined (PPX_D3D11) -----------------------------------------------
 
 struct VSOutput {
-	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD;
+    float4 Position : SV_POSITION;
+    float2 TexCoord : TEXCOORD;
 };
 
 VSOutput vsmain(uint id : SV_VertexID)
 {
-	VSOutput result;
+    VSOutput result;
     
     // Clip space position
-	result.Position.x = (float)(id / 2) * 4.0 - 1.0;
+	result.Position.x = (float)(id / 2) * 4.0 - 1.0;    
     result.Position.y = (float)(id % 2) * 4.0 - 1.0;
     result.Position.z = 0.0;
     result.Position.w = 1.0;
     
     // Texture coordinates
-	result.TexCoord.x = (float)(id / 2) * 2.0;
+    result.TexCoord.x = (float)(id / 2) * 2.0;
     result.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
     
 	return result;

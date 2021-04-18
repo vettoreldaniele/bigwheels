@@ -1,27 +1,38 @@
 #ifndef GBUFFER_H
 #define GBUFFER_H
 
-#define SCENE_CONSTANTS_REGISTER             0 // b0
-#define LIGHT_CONSTANTS_REGISTER             1 // t1
-#define MATERIAL_ALBEDO_TEXTURE_REGISTER     0 // t0
-#define MATERIAL_ROUGHNESS_TEXTURE_REGISTER  1 // t1
-#define MATERIAL_METALNESS_TEXTURE_REGISTER  2 // t2
-#define MATERIAL_NORMAL_MAP_TEXTURE_REGISTER 3 // t3
-#define MATERIAL_AMB_OCC_TEXTURE_REGISTER    4 // t4
-#define MATERIAL_HEIGHT_TEXTURE_REGISTER     5 // t5
-#define MATERIAL_IBL_TEXTURE_REGISTER        6 // t6
-#define MATERIAL_ENV_TEXTURE_REGISTER        7 // t7
-#define MATERILA_CLAMPED_SAMPLER_REGISTER    8 // s8
-#define MODEL_CONSTANTS_REGISTER             0 // b0
+// b#
+#define SCENE_CONSTANTS_REGISTER    0
+#define MATERIAL_CONSTANTS_REGISTER 1
+#define MODEL_CONSTANTS_REGISTER    2
+#define GBUFFER_CONSTANTS_REGISTER  3
 
-#define GBUFFER_RT0_REGISTER     0
-#define GBUFFER_RT1_REGISTER     1
-#define GBUFFER_RT2_REGISTER     2
-#define GBUFFER_RT3_REGISTER     3
-#define GBUFFER_ENV_REGISTER     6
-#define GBUFFER_IBL_REGISTER     7
-#define GBUFFER_SAMPLER_REGISTER 8
+// s#
+#define CLAMPED_SAMPLER_REGISTER 4
 
+// t#
+#define LIGHT_DATA_REGISTER                  5
+#define MATERIAL_ALBEDO_TEXTURE_REGISTER     6  // DeferredRender only
+#define MATERIAL_ROUGHNESS_TEXTURE_REGISTER  7  // DeferredRender only
+#define MATERIAL_METALNESS_TEXTURE_REGISTER  8  // DeferredRender only
+#define MATERIAL_NORMAL_MAP_TEXTURE_REGISTER 9  // DeferredRender only
+#define MATERIAL_AMB_OCC_TEXTURE_REGISTER    10 // DeferredRender only
+#define MATERIAL_HEIGHT_MAP_TEXTURE_REGISTER 11 // DeferredRender only
+#define MATERIAL_IBL_MAP_TEXTURE_REGISTER    12
+#define MATERIAL_ENV_MAP_TEXTURE_REGISTER    13
+
+// t#
+#define GBUFFER_RT0_REGISTER 16 // DeferredLight only
+#define GBUFFER_RT1_REGISTER 17 // DeferredLight only
+#define GBUFFER_RT2_REGISTER 18 // DeferredLight only
+#define GBUFFER_RT3_REGISTER 19 // DeferredLight only
+#define GBUFFER_ENV_REGISTER 20 // DeferredLight only
+#define GBUFFER_IBL_REGISTER 21 // DeferredLight only
+
+// s#
+#define GBUFFER_SAMPLER_REGISTER 6  // DeferredLight only
+
+// GBuffer Attributes
 #define GBUFFER_POSITION     0
 #define GBUFFER_NORMAL       1
 #define GBUFFER_ALBEDO       2

@@ -171,7 +171,7 @@ ppx::Result Material::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool
         writes[3].arrayIndex            = 0;
         writes[3].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         writes[3].pImageView            = mNormalMapTexture->GetSampledImageView();
-        writes[4].binding               = MATERILA_CLAMPED_SAMPLER_REGISTER;
+        writes[4].binding               = CLAMPED_SAMPLER_REGISTER;
         writes[4].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
         writes[4].pSampler              = sClampedSampler;
 
@@ -184,7 +184,7 @@ ppx::Result Material::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool
     // Update material data descriptors
     {
         grfx::WriteDescriptor write = {};
-        write.binding               = MODEL_CONSTANTS_REGISTER;
+        write.binding               = MATERIAL_CONSTANTS_REGISTER;
         write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         write.bufferOffset          = 0;
         write.bufferRange           = PPX_WHOLE_SIZE;
@@ -231,7 +231,7 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_ROUGHNESS_TEXTURE_REGISTER,  grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_METALNESS_TEXTURE_REGISTER,  grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_NORMAL_MAP_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        createInfo.bindings.push_back({grfx::DescriptorBinding{MATERILA_CLAMPED_SAMPLER_REGISTER,    grfx::DESCRIPTOR_TYPE_SAMPLER,       1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{CLAMPED_SAMPLER_REGISTER,             grfx::DESCRIPTOR_TYPE_SAMPLER,       1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = pDevice->CreateDescriptorSetLayout(&createInfo, &sMaterialResourcesLayout));
         // clang-format on
     }
@@ -239,7 +239,7 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
     // Material data layout
     {
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
-        createInfo.bindings.push_back({grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
+        createInfo.bindings.push_back({grfx::DescriptorBinding{MATERIAL_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         PPX_CHECKED_CALL(ppxres = pDevice->CreateDescriptorSetLayout(&createInfo, &sMaterialDataLayout));
     }
 
@@ -354,7 +354,7 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/albedo.png");
         createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/roughness.png");
         //createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/metalness.png");
-        createInfo.normalTexturePath    = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/normal.png");
+        createInfo.normalTexturePath = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/normal.png");
 
         PPX_CHECKED_CALL(ppxres = sStoneTile.Create(pQueue, pPool, &createInfo));
     }
