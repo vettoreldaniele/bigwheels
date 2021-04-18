@@ -98,10 +98,6 @@ void CommandBuffer::TransitionImageLayout(
     const grfx::Queue*  pSrcQueue,
     const grfx::Queue*  pDstQueue)
 {
-    dx11::Device*              pDevice     = ToApi(GetDevice());
-    ID3D11ShaderResourceView*  nullSRVs[1] = {nullptr};
-    ID3D11UnorderedAccessView* nullUAVs[1] = {nullptr};
-
     switch (beforeState) {
         default: break;
 

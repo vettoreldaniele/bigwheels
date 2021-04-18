@@ -50,7 +50,7 @@ static Result LoadTexture(grfx::Queue* pQueue, const fs::path& path, grfx::Textu
     Result ppxres = ppx::ERROR_FAILED;
 
     if (!fs::exists(path)) {
-        ppx::ERROR_PATH_DOES_NOT_EXIST;
+        return ppx::ERROR_PATH_DOES_NOT_EXIST;
     }
 
     // Try to load from cache

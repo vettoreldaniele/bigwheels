@@ -9,6 +9,8 @@
 #if ! defined(PPX_DXVK)
 #include <d3dcompiler.h>
 #include <dxgidebug.h>
+#else
+#include <d3d11shader.h>
 #endif //! defined(PPX_DXVK)
 
 #if defined(PPX_MSW)
@@ -34,6 +36,7 @@ namespace dx11 {
 using DXGIAdapterPtr              = ComPtr<IDXGIAdapter4>;
 using DXGIFactoryPtr              = ComPtr<IDXGIFactory7>;
 using DXGISwapChainPtr            = ComPtr<IDXGISwapChain4>;
+using D3D11BlendStatePtr          = ComPtr<ID3D11BlendState1>;
 using D3D11BufferPtr              = ComPtr<ID3D11Buffer>;
 using D3D11DepthStencilStatePtr   = ComPtr<ID3D11DepthStencilState>;
 using D3D11DepthStencilViewPtr    = ComPtr<ID3D11DepthStencilView>;

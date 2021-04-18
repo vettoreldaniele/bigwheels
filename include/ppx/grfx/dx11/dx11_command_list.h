@@ -185,7 +185,7 @@ struct ComputeSlotState
 
     void Reset()
     {
-        std::memset(&CS, 0, sizeof(ComputeShaderSlots));
+        std::memset(reinterpret_cast<void*>(&CS), 0, sizeof(ComputeShaderSlots));
     }
 
     void NewCommitInit()
@@ -204,11 +204,11 @@ struct GraphicsSlotState
 
     void Reset()
     {
-        std::memset(&VS, 0, sizeof(GraphicsShaderSlot));
-        std::memset(&HS, 0, sizeof(GraphicsShaderSlot));
-        std::memset(&DS, 0, sizeof(GraphicsShaderSlot));
-        std::memset(&GS, 0, sizeof(GraphicsShaderSlot));
-        std::memset(&PS, 0, sizeof(GraphicsShaderSlot));
+        std::memset(reinterpret_cast<void*>(&VS), 0, sizeof(GraphicsShaderSlot));
+        std::memset(reinterpret_cast<void*>(&HS), 0, sizeof(GraphicsShaderSlot));
+        std::memset(reinterpret_cast<void*>(&DS), 0, sizeof(GraphicsShaderSlot));
+        std::memset(reinterpret_cast<void*>(&GS), 0, sizeof(GraphicsShaderSlot));
+        std::memset(reinterpret_cast<void*>(&PS), 0, sizeof(GraphicsShaderSlot));
     }
 
     void NewCommitInit()

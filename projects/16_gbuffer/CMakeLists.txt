@@ -13,7 +13,7 @@ list(APPEND VSPS_HLSL_FILES
     ${SHADER_DIR}/DeferredLight.hlsl
 )
 
-CompileShadersVSPS("${HLSL_FILES}" "${SHADER_DIR}" "${PPX_DIR}")
+CompileShadersVSPS("${VSPS_HLSL_FILES}" "${SHADER_DIR}" "${PPX_DIR}")
 
 # --------------------------------------------------------------------------------------------------
 # Vertex Shader(s)
@@ -53,4 +53,4 @@ add_vk_sample(${PROJECT_NAME}   TRUE "${ADDITIONAL_FILES}")
 add_dx11_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dx12_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dxil_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
-add_dxvk_sample(${PROJECT_NAME} TRUE "${HLSL_FILES}")
+add_dxvk_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")

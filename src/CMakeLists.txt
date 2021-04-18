@@ -101,19 +101,29 @@ list(APPEND XXHASH_FILES
 
 if (PPX_VULKAN)
     list(APPEND IMGUI_SOURCE_FILES
+        ${IMGUI_DIR}/backends/imgui_impl_vulkan.h
         ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
     )
 endif()
 
 if (PPX_D3D11)
     list(APPEND IMGUI_SOURCE_FILES
+        ${IMGUI_DIR}/backends/imgui_impl_dx11.h
         ${IMGUI_DIR}/backends/imgui_impl_dx11.cpp
     )
 endif()
 
 if (PPX_D3D12)
     list(APPEND IMGUI_SOURCE_FILES
+        ${IMGUI_DIR}/backends/imgui_impl_dx12.h
         ${IMGUI_DIR}/backends/imgui_impl_dx12.cpp
+    )
+endif()
+
+if (PPX_DXVK)
+    list(APPEND IMGUI_SOURCE_FILES
+        ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx11.h
+        ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx11.cpp
     )
 endif()
 

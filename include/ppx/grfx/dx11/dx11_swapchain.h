@@ -17,12 +17,12 @@ public:
 
     HWND GetWindowHandle() const { return mWindowHandle; }
 
-    virtual uint32_t GetMinImageWidth() const override { return 0; }
-    virtual uint32_t GetMinImageHeight() const override { return 0; }
-    virtual uint32_t GetMinImageCount() const override { return 1; }
-    virtual uint32_t GetMaxImageWidth() const override { return 65536; }
-    virtual uint32_t GetMaxImageHeight() const override { return 65536; }
-    virtual uint32_t GetMaxImageCount() const override { return DXGI_MAX_SWAP_CHAIN_BUFFERS; }
+    virtual uint32_t GetMinImageWidth() const override;
+    virtual uint32_t GetMinImageHeight() const override;
+    virtual uint32_t GetMinImageCount() const override;
+    virtual uint32_t GetMaxImageWidth() const override;
+    virtual uint32_t GetMaxImageHeight() const override;
+    virtual uint32_t GetMaxImageCount() const override;
 
 protected:
     virtual Result CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo) override;

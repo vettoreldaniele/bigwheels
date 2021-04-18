@@ -327,8 +327,7 @@ static void UpdateSamplers(
         Slots.Samplers[slot]        = sampler;
     }
 
-    UINT Index    = Slots.NumBindings;
-    UINT NumSlots = IsNull(ppSamplers) ? 0 : NumSamplers;
+    UINT Index = Slots.NumBindings;
     PPX_ASSERT_MSG((Index < D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT), "Index (" << Index << ") exceed D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT (" << D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT << ")");
 
     Slots.Bindings[Index].StartSlot = StartSlot;
