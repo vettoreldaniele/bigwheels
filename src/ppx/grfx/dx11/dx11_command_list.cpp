@@ -181,7 +181,7 @@ public:
         }
         mBoundState.PS.SRVs[slot].Reset();
         mBoundState.PS.SRVs[slot] = resource;
-        mBoundState.PS.maxSlotSRV = std::max<UINT>(mBoundState.CS.maxSlotSRV, slot);
+        mBoundState.PS.maxSlotSRV = std::max<UINT>(mBoundState.PS.maxSlotSRV, slot);
     }
 
     void CSSetBoundSRVSlot(UINT slot, const ComPtr<ID3D11Resource>& resource)
@@ -747,6 +747,7 @@ static bool ExecuteIndexChanged(uint32_t& execIndex, const uint32_t stateIndex)
 }
 
 static void ExecuteSetConstantBufferSlots(
+    D3D11_SHADER_VERSION_TYPE                      shaderType, // For debugging
     typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
     void (D3D11DeviceContextPtr::InterfaceType::*SetConstantBuffersFn)(UINT, UINT, ID3D11Buffer* const*),
     const ConstantBufferSlots& slots)
@@ -759,6 +760,7 @@ static void ExecuteSetConstantBufferSlots(
 }
 
 static void ExecuteSetShaderResourceViewSlots(
+    D3D11_SHADER_VERSION_TYPE                      shaderType, // For debugging
     typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
     void (D3D11DeviceContextPtr::InterfaceType::*SetShaderResourceViewsFn)(UINT, UINT, ID3D11ShaderResourceView* const*),
     void (ContextBoundState::*SetBoundSRVSlotFn)(UINT, const ComPtr<ID3D11Resource>&),
@@ -777,6 +779,7 @@ static void ExecuteSetShaderResourceViewSlots(
 }
 
 static void ExecuteSetSamplerSlots(
+    D3D11_SHADER_VERSION_TYPE                      shaderType, // For debugging
     typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
     void (D3D11DeviceContextPtr::InterfaceType::*SetSamplersFn)(UINT, UINT, ID3D11SamplerState* const*),
     const SamplerSlots& slots)
@@ -811,15 +814,18 @@ static void ExecuteSetComputeSlotState(
     const ComputeSlotState& state)
 {
     ExecuteSetConstantBufferSlots(
+        D3D11_SHVER_COMPUTE_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::CSSetConstantBuffers,
         state.CS.ConstantBuffers);
     ExecuteSetShaderResourceViewSlots(
+        D3D11_SHVER_COMPUTE_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::CSSetShaderResources,
         &ContextBoundState::CSSetBoundSRVSlot,
         state.CS.ShaderResourceViews);
     ExecuteSetSamplerSlots(
+        D3D11_SHVER_COMPUTE_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::CSSetSamplers,
         state.CS.Samplers);
@@ -836,75 +842,90 @@ static void ExecuteSetGraphicsSlotState(
 {
     // VS
     ExecuteSetConstantBufferSlots(
+        D3D11_SHVER_VERTEX_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::VSSetConstantBuffers,
         state.VS.ConstantBuffers);
     ExecuteSetShaderResourceViewSlots(
+        D3D11_SHVER_VERTEX_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::VSSetShaderResources,
         &ContextBoundState::VSSetBoundSRVSlot,
         state.VS.ShaderResourceViews);
     ExecuteSetSamplerSlots(
+        D3D11_SHVER_VERTEX_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::VSSetSamplers,
         state.VS.Samplers);
 
     // HS
     ExecuteSetConstantBufferSlots(
+        D3D11_SHVER_HULL_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::HSSetConstantBuffers,
         state.HS.ConstantBuffers);
     ExecuteSetShaderResourceViewSlots(
+        D3D11_SHVER_HULL_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::HSSetShaderResources,
         &ContextBoundState::HSSetBoundSRVSlot,
         state.HS.ShaderResourceViews);
     ExecuteSetSamplerSlots(
+        D3D11_SHVER_HULL_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::HSSetSamplers,
         state.HS.Samplers);
 
     // DS
     ExecuteSetConstantBufferSlots(
+        D3D11_SHVER_DOMAIN_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::DSSetConstantBuffers,
         state.DS.ConstantBuffers);
     ExecuteSetShaderResourceViewSlots(
+        D3D11_SHVER_DOMAIN_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::DSSetShaderResources,
         &ContextBoundState::DSSetBoundSRVSlot,
         state.DS.ShaderResourceViews);
     ExecuteSetSamplerSlots(
+        D3D11_SHVER_DOMAIN_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::DSSetSamplers,
         state.DS.Samplers);
 
     // GS
     ExecuteSetConstantBufferSlots(
+        D3D11_SHVER_GEOMETRY_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::GSSetConstantBuffers,
         state.GS.ConstantBuffers);
     ExecuteSetShaderResourceViewSlots(
+        D3D11_SHVER_GEOMETRY_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::GSSetShaderResources,
         &ContextBoundState::GSSetBoundSRVSlot,
         state.GS.ShaderResourceViews);
     ExecuteSetSamplerSlots(
+        D3D11_SHVER_GEOMETRY_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::GSSetSamplers,
         state.GS.Samplers);
 
     // PS
     ExecuteSetConstantBufferSlots(
+        D3D11_SHVER_PIXEL_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::PSSetConstantBuffers,
         state.PS.ConstantBuffers);
     ExecuteSetShaderResourceViewSlots(
+        D3D11_SHVER_PIXEL_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::PSSetShaderResources,
         &ContextBoundState::PSSetBoundSRVSlot,
         state.PS.ShaderResourceViews);
     ExecuteSetSamplerSlots(
+        D3D11_SHVER_PIXEL_SHADER,
         execState.pDeviceContext,
         &D3D11DeviceContextPtr::InterfaceType::PSSetSamplers,
         state.PS.Samplers);

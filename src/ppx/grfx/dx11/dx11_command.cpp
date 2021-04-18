@@ -105,6 +105,8 @@ void CommandBuffer::TransitionImageLayout(
     switch (beforeState) {
         default: break;
 
+        case grfx::RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE:
+        case grfx::RESOURCE_STATE_PIXEL_SHADER_RESOURCE:
         case grfx::RESOURCE_STATE_SHADER_RESOURCE: {
             mCommandList.Nullify(ToApi(pImage)->GetDxResource(), NULLIFY_TYPE_SRV);
         } break;
