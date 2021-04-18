@@ -61,6 +61,12 @@ private:
         float3                    location;
         float3                    dimension;
         enum EntityKind           kind;
+
+        // Place this entity in a random location within the given sub-grid index.
+        // @param subGridIx - Index identifying the sub-grid where the object should be randomly positioned.
+        // @param subGridWidth - Width of the sub-grid.
+        // @param subGridDepth - Depth of the sub-grid.
+        void Place(size_t subGridIx, ppx::Random random, const int2& gridDim, const int2& subGridDim);
     };
 
     std::vector<PerFrame>        mPerFrame;
@@ -142,6 +148,32 @@ void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInf
     PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
 }
 
+void ProjApp::Entity::Place(size_t subGridIx, ppx::Random random, const int2& gridDim, const int2& subGridDim)
+{
+    // The original grid has been split in equal-sized sub-grids that preserve the same ratio.  There are
+    // as many sub-grids as entities to place.  The entity will be placed at random inside the sub-grid
+    // with index @param subGridIx.
+    //
+    // Each sub-grid is assumed to have its origin at top-left.
+    int32_t sgx = random.UInt32() % subGridDim[0];
+    int32_t sgz = random.UInt32() % subGridDim[1];
+    PPX_LOG_INFO("Object location in grid #" << subGridIx << ": (" << sgx << ", " << sgz << ")");
+
+    // Translate the location relative to the sub-grid location to the main grid coordinates.
+    int32_t xDisplacement = subGridDim[0] * subGridIx;
+    int32_t x             = (xDisplacement + sgx) % gridDim[0];
+    int32_t z             = sgz + (subGridDim[1] * (xDisplacement / gridDim[0]));
+    PPX_LOG_INFO("xDisplacement: " << xDisplacement);
+    PPX_LOG_INFO("Object location in main grid: (" << x << ", " << z << ")");
+
+    // All the calculations above assume that the main grid has its origin at the top-left corner,
+    // but grids have their origin in the center.  So, we need to shift the location accordingly.
+    int32_t adjX = x - gridDim[0] / 2;
+    int32_t adjZ = z - gridDim[1] / 2;
+    PPX_LOG_INFO("Adjusted object location in main grid: (" << adjX << ", " << adjZ << ")\n\n");
+    location = float3(adjX, 1, adjZ);
+}
+
 void ProjApp::SetupEntities()
 {
     GeometryOptions geometryOptions = GeometryOptions::Planar().AddColor();
@@ -152,10 +184,30 @@ void ProjApp::SetupEntities()
     int numObstacles = (kNumEntities > 1) ? kNumEntities - 1 : 0;
     PPX_ASSERT_MSG(numObstacles > 0, "There should be at least 1 obstacle in the grid");
 
-    float squareArea = (kGridWidth * kGridDepth) / static_cast<float>(numObstacles);
-    float squareSide = std::floor(std::sqrt(squareArea));
+    // Using the total area of the main grid and the grid ratio, compute the height and
+    // width of each sub-grid where each object will be placed at random. Each sub-grid
+    // has the same ratio as the original grid.
+    //
+    // To compute the depth (SGD) and width (SGW) of each sub-grid, we start with:
+    //
+    // Grid area:  A = kGridWidth * kGridDepth
+    // Grid ratio: R = kGridWidth / kGridDepth
+    // Number of objects: N
+    // Sub-grid area: SGA = A / N
+    //
+    // SGA = SGW * SGD
+    // R = SGW / SGD
+    //
+    // Solving for SGW and SGD, we get:
+    //
+    // SGD = sqrt(SGA / R)
+    // SGW = SGA / SGD
+    float gridRatio    = static_cast<float>(kGridWidth) / static_cast<float>(kGridDepth);
+    float subGridArea  = (kGridWidth * kGridDepth) / static_cast<float>(numObstacles);
+    float subGridDepth = std::sqrtf(subGridArea / gridRatio);
+    float subGridWidth = subGridArea / subGridDepth;
 
-    ppx::Random r;
+    ppx::Random random;
     for (size_t i = 0; i < kNumEntities; ++i) {
         auto& entity = mEntities.emplace_back();
 
@@ -170,7 +222,7 @@ void ProjApp::SetupEntities()
         }
         else {
             TriMesh  triMesh;
-            uint32_t distribution = r.UInt32() % 100;
+            uint32_t distribution = random.UInt32() % 100;
 
             // NOTE: TriMeshOptions added here must match the number of bindings when creating this entity's pipeline.
             // See the handling of different entities in ProjApp::SetupPipelines.
@@ -183,7 +235,7 @@ void ProjApp::SetupEntities()
             else {
                 float3         lb      = {0, 0, 0};
                 float3         ub      = {1, 1, 1};
-                TriMeshOptions options = TriMeshOptions().Indices().ObjectColor(r.Float3(lb, ub));
+                TriMeshOptions options = TriMeshOptions().Indices().ObjectColor(random.Float3(lb, ub));
                 triMesh                = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/monkey.obj"), options);
                 entity.kind            = OBJECT;
                 entity.dimension       = triMesh.GetBoundingBoxMax();
@@ -192,10 +244,9 @@ void ProjApp::SetupEntities()
 
             SetupEntity(triMesh, geometryOptions, &entity);
 
-            int   sign      = (r.UInt32() % 100 > 50) ? 1 : -1;
-            float x         = sign * static_cast<float>(r.UInt32() % (kGridWidth / 3));
-            float z         = sign * static_cast<float>(r.UInt32() % (kGridDepth / 3));
-            entity.location = float3(x, 1, z);
+            // Compute a random location for this object.  The location is computed within the boundaries of
+            // the object's home grid.
+            entity.Place(i - 1, random, int2(kGridWidth, kGridDepth), int2(subGridWidth, subGridDepth));
         }
     }
 }
