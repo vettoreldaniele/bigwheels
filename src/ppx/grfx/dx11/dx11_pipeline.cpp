@@ -167,7 +167,7 @@ Result GraphicsPipeline::InitializeDepthStencilState(const grfx::GraphicsPipelin
 {
     D3D11DevicePtr device = ToApi(GetDevice())->GetDxDevice();
 
-    D3D11_DEPTH_STENCIL_DESC desc = {};
+    D3D11_DEPTH_STENCIL_DESC desc     = {};
     desc.DepthEnable                  = static_cast<BOOL>(pCreateInfo->depthStencilState.depthTestEnable);
     desc.DepthWriteMask               = pCreateInfo->depthStencilState.depthWriteEnable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
     desc.DepthFunc                    = ToD3D11ComparisonFunc(pCreateInfo->depthStencilState.depthCompareOp);
@@ -183,8 +183,40 @@ Result GraphicsPipeline::InitializeDepthStencilState(const grfx::GraphicsPipelin
     desc.BackFace.StencilPassOp       = ToD3D11StencilOp(pCreateInfo->depthStencilState.back.passOp);
     desc.BackFace.StencilFunc         = ToD3D11ComparisonFunc(pCreateInfo->depthStencilState.back.compareOp);
 
-
     HRESULT hr = device->CreateDepthStencilState(&desc, &mDepthStencilState);
+    if (FAILED(hr)) {
+        return ppx::ERROR_FAILED;
+    }
+
+    return ppx::SUCCESS;
+}
+
+Result GraphicsPipeline::InitializeBlendState(const grfx::GraphicsPipelineCreateInfo* pCreateInfo)
+{
+    D3D11DevicePtr device = ToApi(GetDevice())->GetDxDevice();
+
+    D3D11_BLEND_DESC1 desc      = {};
+    desc.AlphaToCoverageEnable  = static_cast<BOOL>(pCreateInfo->multisampleState.alphaToCoverageEnable);
+    desc.IndependentBlendEnable = (pCreateInfo->colorBlendState.blendAttachmentCount > 0) ? TRUE : FALSE;
+
+    PPX_ASSERT_MSG(pCreateInfo->colorBlendState.blendAttachmentCount < PPX_MAX_RENDER_TARGETS, "blendAttachmentCount exceeds PPX_MAX_RENDER_TARGETS");
+    for (uint32_t i = 0; i < pCreateInfo->colorBlendState.blendAttachmentCount; ++i) {
+        const grfx::BlendAttachmentState& ppxBlend = pCreateInfo->colorBlendState.blendAttachments[i];
+        D3D11_RENDER_TARGET_BLEND_DESC1&  d3dBlend = desc.RenderTarget[i];
+
+        d3dBlend.BlendEnable           = static_cast<BOOL>(ppxBlend.blendEnable);
+        d3dBlend.LogicOpEnable         = static_cast<BOOL>(pCreateInfo->colorBlendState.logicOpEnable);
+        d3dBlend.SrcBlend              = ToD3D11Blend(ppxBlend.srcColorBlendFactor);
+        d3dBlend.DestBlend             = ToD3D11Blend(ppxBlend.dstColorBlendFactor);
+        d3dBlend.BlendOp               = ToD3D11BlendOp(ppxBlend.colorBlendOp);
+        d3dBlend.SrcBlendAlpha         = ToD3D11Blend(ppxBlend.srcAlphaBlendFactor);
+        d3dBlend.DestBlendAlpha        = ToD3D11Blend(ppxBlend.dstAlphaBlendFactor);
+        d3dBlend.BlendOpAlpha          = ToD3D11BlendOp(ppxBlend.alphaBlendOp);
+        d3dBlend.LogicOp               = static_cast<D3D11_LOGIC_OP>(ToD3D11LogicOp(pCreateInfo->colorBlendState.logicOp));
+        d3dBlend.RenderTargetWriteMask = ToD3D11WriteMask(ppxBlend.colorWriteMask);
+    }
+
+    HRESULT hr = device->CreateBlendState1(&desc, &mBlendState);
     if (FAILED(hr)) {
         return ppx::ERROR_FAILED;
     }
@@ -217,6 +249,14 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
     if (Failed(ppxres)) {
         return ppxres;
     }
+
+    ppxres = InitializeBlendState(pCreateInfo);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    size_t size = 4 * sizeof(float);
+    std::memcpy(mBlendFactors, pCreateInfo->colorBlendState.blendConstants, size);
 
     return ppx::SUCCESS;
 }

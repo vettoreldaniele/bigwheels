@@ -11,6 +11,8 @@ namespace ppx {
 namespace grfx {
 namespace dx11 {
 
+D3D11_BLEND                ToD3D11Blend(grfx::BlendFactor value);
+D3D11_BLEND_OP             ToD3D11BlendOp(grfx::BlendOp value);
 UINT                       ToD3D11BindFlags(const grfx::BufferUsageFlags& value);
 UINT                       ToD3D11BindFlags(const grfx::ImageUsageFlags& value);
 D3D11_COMPARISON_FUNC      ToD3D11ComparisonFunc(grfx::CompareOp value);
@@ -20,6 +22,7 @@ D3D11_FILL_MODE            ToD3D11FillMode(grfx::PolygonMode value);
 D3D11_FILTER_TYPE          ToD3D11FilterType(grfx::Filter value);
 D3D11_FILTER_TYPE          ToD3D11FilterType(grfx::SamplerMipmapMode value);
 DXGI_FORMAT                ToD3D11IndexFormat(grfx::IndexType value);
+UINT                       ToD3D11LogicOp(grfx::LogicOp value);
 D3D11_PRIMITIVE_TOPOLOGY   ToD3D11PrimitiveTopology(grfx::PrimitiveTopology value);
 D3D11_RTV_DIMENSION        ToD3D11RTVDimension(grfx::ImageViewType value);
 D3D11_STENCIL_OP           ToD3D11StencilOp(grfx::StencilOp value);
@@ -28,9 +31,10 @@ D3D11_TEXTURE_ADDRESS_MODE ToD3D11TextureAddressMode(grfx::SamplerAddressMode va
 D3D11_RESOURCE_DIMENSION   ToD3D11TextureResourceDimension(grfx::ImageType value);
 D3D11_UAV_DIMENSION        ToD3D11UAVDimension(grfx::ImageViewType value, uint32_t arrayLayerCount);
 D3D11_USAGE                ToD3D11Usage(grfx::MemoryUsage value, bool dynamic = false);
+UINT8                      ToD3D11WriteMask(uint32_t value);
 
 } // namespace dx11
 } // namespace grfx
 } // namespace ppx
 
-#endif ppx_grfx_dx11_util_h
+#endif // ppx_grfx_dx11_util_h

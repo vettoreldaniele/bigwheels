@@ -266,7 +266,7 @@ void Flocking::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(ppxres = frame.modelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
         PPX_CHECKED_CALL(ppxres = frame.flockingConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
-        grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE);
+        grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromBitmap(queue, &positionData, &frame.positionTexture, textureOptions));
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromBitmap(queue, &velocityData, &frame.velocityTexture, textureOptions));
 
@@ -393,11 +393,11 @@ void Flocking::Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     // Position
     {
         pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_GENERAL);
-
+    
         pCmd->BindComputeDescriptorSets(mFlockingPositionPipelineInterface, 1, &frame.positionSet);
         pCmd->BindComputePipeline(mFlockingPositionPipeline);
         pCmd->Dispatch(groupCountX, groupCountY, groupCountZ);
-
+    
         pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_GENERAL, grfx::RESOURCE_STATE_SHADER_RESOURCE);
     }
 }

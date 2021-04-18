@@ -531,7 +531,7 @@ void FishTornadoApp::Render()
 
         // -----------------------------------------------------------------------------------------
 
-#if ENABLE_SHADOWS
+        // Shadow mapping
         frame.cmd->TransitionImageLayout(frame.shadowDrawPass, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE);
         frame.cmd->BeginRenderPass(frame.shadowDrawPass);
         {
@@ -543,7 +543,6 @@ void FishTornadoApp::Render()
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(frame.shadowDrawPass, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE, grfx::RESOURCE_STATE_SHADER_RESOURCE);
-#endif //ENABLE_SHADOWS
 
         // -----------------------------------------------------------------------------------------
 
