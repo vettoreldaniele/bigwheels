@@ -105,10 +105,13 @@ void CommandBuffer::TransitionImageLayout(
     switch (beforeState) {
         default: break;
 
+        case grfx::RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE:
+        case grfx::RESOURCE_STATE_PIXEL_SHADER_RESOURCE:
         case grfx::RESOURCE_STATE_SHADER_RESOURCE: {
             mCommandList.Nullify(ToApi(pImage)->GetDxResource(), NULLIFY_TYPE_SRV);
         } break;
 
+        case grfx::RESOURCE_STATE_GENERAL:
         case grfx::RESOURCE_STATE_UNORDERED_ACCESS: {
             mCommandList.Nullify(ToApi(pImage)->GetDxResource(), NULLIFY_TYPE_UAV);
         } break;
@@ -313,7 +316,12 @@ void CommandBuffer::BindGraphicsPipeline(const grfx::GraphicsPipeline* pPipeline
     pipelineState.InputLayout         = pApiPipeline->GetInputLayout();
     pipelineState.PrimitiveTopology   = pApiPipeline->GetPrimitiveTopology();
     pipelineState.RasterizerState     = pApiPipeline->GetRasterizerState();
-    pipelineState.DepthStencilState   = pApiPipeline->GetDepthStencilstate();
+    pipelineState.DepthStencilState   = pApiPipeline->GetDepthStencilState();
+    pipelineState.BlendState          = pApiPipeline->GetBlendState();
+    pipelineState.SampleMask          = pApiPipeline->GetSampleMask();
+
+    size_t size = 4 * sizeof(FLOAT);
+    std::memcpy(pipelineState.BlendFactors, pApiPipeline->GetBlendFactors(), size);
 
     mCommandList.SetPipelineState(&pipelineState);
 }

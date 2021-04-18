@@ -151,6 +151,8 @@ ppx::Result Material::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool
     // Allocate descriptor sets
     PPX_CHECKED_CALL(ppxres = pDevice->AllocateDescriptorSet(pPool, sMaterialResourcesLayout, &mMaterialResourcesSet));
     PPX_CHECKED_CALL(ppxres = pDevice->AllocateDescriptorSet(pPool, sMaterialDataLayout, &mMaterialDataSet));
+    mMaterialResourcesSet->SetName("Material Resource");
+    mMaterialDataSet->SetName("Material Data");
 
     // Update material resource descriptors
     {

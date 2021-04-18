@@ -274,6 +274,9 @@ class DeviceObject
     : public CreateDestroyTraits<CreatInfoT>
 {
 public:
+    const std::string& GetName() const { return mName; }
+    void               SetName(const std::string& name) { mName = name; }
+
     grfx::Device* GetDevice() const
     {
         grfx::Device* ptr = mDevice;
@@ -288,6 +291,7 @@ private:
     friend class grfx::Device;
 
 private:
+    std::string     mName;
     grfx::DevicePtr mDevice;
 };
 

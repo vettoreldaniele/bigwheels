@@ -42,6 +42,7 @@ ppx::Result Entity::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool* 
     // Allocate descriptor set
     {
         PPX_CHECKED_CALL(ppxres = pDevice->AllocateDescriptorSet(pPool, sModelDataLayout, &mModelDataSet));
+        mModelDataSet->SetName("Model Data");
     }
 
     // Update descriptors
