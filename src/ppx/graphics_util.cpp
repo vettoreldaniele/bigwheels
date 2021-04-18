@@ -179,8 +179,8 @@ Result CreateImageFromBitmap(
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
     // Cap mip level count
-    uint32_t mipLevelCount = options.mMipLevelCount;
-    mipLevelCount          = Mipmap::CalculateLevelCount(pBitmap->GetWidth(), pBitmap->GetHeight());
+    uint32_t maxMipLevelCount = Mipmap::CalculateLevelCount(pBitmap->GetWidth(), pBitmap->GetHeight());
+    uint32_t mipLevelCount    = std::min<uint32_t>(options.mMipLevelCount, maxMipLevelCount);
 
     // Create target image
     grfx::ImagePtr targetImage;
@@ -490,8 +490,8 @@ Result CreateTextureFromBitmap(
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
     // Cap mip level count
-    uint32_t mipLevelCount = options.mMipLevelCount;
-    mipLevelCount          = Mipmap::CalculateLevelCount(pBitmap->GetWidth(), pBitmap->GetHeight());
+    uint32_t maxMipLevelCount = Mipmap::CalculateLevelCount(pBitmap->GetWidth(), pBitmap->GetHeight());
+    uint32_t mipLevelCount    = std::min<uint32_t>(options.mMipLevelCount, maxMipLevelCount);
 
     // Create target texture
     grfx::TexturePtr targetTexture;

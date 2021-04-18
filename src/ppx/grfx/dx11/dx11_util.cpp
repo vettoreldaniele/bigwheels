@@ -4,6 +4,50 @@ namespace ppx {
 namespace grfx {
 namespace dx11 {
 
+D3D11_BLEND ToD3D11Blend(grfx::BlendFactor value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::BLEND_FACTOR_ZERO                     : return D3D11_BLEND_ZERO; break;
+        case grfx::BLEND_FACTOR_ONE                      : return D3D11_BLEND_ONE; break;
+        case grfx::BLEND_FACTOR_SRC_COLOR                : return D3D11_BLEND_SRC_COLOR; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_SRC_COLOR      : return D3D11_BLEND_INV_SRC_COLOR; break;
+        case grfx::BLEND_FACTOR_SRC_ALPHA                : return D3D11_BLEND_SRC_ALPHA; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA      : return D3D11_BLEND_INV_SRC_ALPHA; break;
+        case grfx::BLEND_FACTOR_DST_ALPHA                : return D3D11_BLEND_DEST_ALPHA; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_DST_ALPHA      : return D3D11_BLEND_INV_DEST_ALPHA; break;
+        case grfx::BLEND_FACTOR_DST_COLOR                : return D3D11_BLEND_DEST_COLOR; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_DST_COLOR      : return D3D11_BLEND_INV_DEST_COLOR; break;
+        case grfx::BLEND_FACTOR_SRC_ALPHA_SATURATE       : return D3D11_BLEND_SRC_ALPHA_SAT; break;
+        case grfx::BLEND_FACTOR_CONSTANT_COLOR           : return D3D11_BLEND_BLEND_FACTOR; break;     // D3D11 does not have constants
+        case grfx::BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR : return D3D11_BLEND_INV_BLEND_FACTOR; break; // for color and alpha blend
+        case grfx::BLEND_FACTOR_CONSTANT_ALPHA           : return D3D11_BLEND_BLEND_FACTOR; break;     // constants. 
+        case grfx::BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA : return D3D11_BLEND_INV_BLEND_FACTOR; break; //
+        case grfx::BLEND_FACTOR_SRC1_COLOR               : return D3D11_BLEND_SRC1_COLOR; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_SRC1_COLOR     : return D3D11_BLEND_INV_SRC1_COLOR; break;
+        case grfx::BLEND_FACTOR_SRC1_ALPHA               : return D3D11_BLEND_SRC1_ALPHA; break;
+        case grfx::BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA     : return D3D11_BLEND_INV_SRC1_ALPHA; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D11_BLEND>();
+}
+
+D3D11_BLEND_OP ToD3D11BlendOp(grfx::BlendOp value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::BLEND_OP_ADD              : return D3D11_BLEND_OP_ADD; break;
+        case grfx::BLEND_OP_SUBTRACT         : return D3D11_BLEND_OP_SUBTRACT; break;
+        case grfx::BLEND_OP_REVERSE_SUBTRACT : return D3D11_BLEND_OP_REV_SUBTRACT; break;
+        case grfx::BLEND_OP_MIN              : return D3D11_BLEND_OP_MIN; break;
+        case grfx::BLEND_OP_MAX              : return D3D11_BLEND_OP_MAX; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D11_BLEND_OP>();
+}
+
 UINT ToD3D11BindFlags(const grfx::BufferUsageFlags& value)
 {
     UINT flags = 0;
@@ -137,6 +181,32 @@ DXGI_FORMAT ToD3D11IndexFormat(grfx::IndexType value)
     return DXGI_FORMAT_UNKNOWN;
 }
 
+UINT ToD3D11LogicOp(grfx::LogicOp value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::LOGIC_OP_CLEAR         : return D3D11_LOGIC_OP_CLEAR; break;
+        case grfx::LOGIC_OP_SET           : return D3D11_LOGIC_OP_SET; break;
+        case grfx::LOGIC_OP_COPY          : return D3D11_LOGIC_OP_COPY; break;
+        case grfx::LOGIC_OP_COPY_INVERTED : return D3D11_LOGIC_OP_COPY_INVERTED; break;
+        case grfx::LOGIC_OP_NO_OP         : return D3D11_LOGIC_OP_NOOP; break;
+        case grfx::LOGIC_OP_INVERT        : return D3D11_LOGIC_OP_INVERT; break;
+        case grfx::LOGIC_OP_AND           : return D3D11_LOGIC_OP_AND; break;
+        case grfx::LOGIC_OP_NAND          : return D3D11_LOGIC_OP_NAND; break;
+        case grfx::LOGIC_OP_OR            : return D3D11_LOGIC_OP_OR; break;
+        case grfx::LOGIC_OP_NOR           : return D3D11_LOGIC_OP_NOR; break;
+        case grfx::LOGIC_OP_XOR           : return D3D11_LOGIC_OP_XOR; break;
+        case grfx::LOGIC_OP_EQUIVALENT    : return D3D11_LOGIC_OP_EQUIV; break;
+        case grfx::LOGIC_OP_AND_REVERSE   : return D3D11_LOGIC_OP_AND_REVERSE; break;
+        case grfx::LOGIC_OP_AND_INVERTED  : return D3D11_LOGIC_OP_AND_INVERTED; break;
+        case grfx::LOGIC_OP_OR_REVERSE    : return D3D11_LOGIC_OP_OR_REVERSE; break;
+        case grfx::LOGIC_OP_OR_INVERTED   : return D3D11_LOGIC_OP_OR_INVERTED; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<UINT>();
+}
+
 D3D11_PRIMITIVE_TOPOLOGY ToD3D11PrimitiveTopology(grfx::PrimitiveTopology value)
 {
     // clang-format off
@@ -257,6 +327,20 @@ D3D11_USAGE ToD3D11Usage(grfx::MemoryUsage value, bool dynamic)
     }
     // clang-format on
     return ppx::InvalidValue<D3D11_USAGE>();
+}
+
+UINT8 ToD3D11WriteMask(uint32_t value)
+{
+    UINT8 mask = 0;
+    if (value & grfx::COLOR_COMPONENT_R)
+        mask |= D3D11_COLOR_WRITE_ENABLE_RED;
+    if (value & grfx::COLOR_COMPONENT_G)
+        mask |= D3D11_COLOR_WRITE_ENABLE_GREEN;
+    if (value & grfx::COLOR_COMPONENT_B)
+        mask |= D3D11_COLOR_WRITE_ENABLE_BLUE;
+    if (value & grfx::COLOR_COMPONENT_A)
+        mask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+    return mask;
 }
 
 } // namespace dx11

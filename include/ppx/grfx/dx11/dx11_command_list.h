@@ -58,14 +58,26 @@ struct ConstantBufferSlots
     ID3D11Buffer* Buffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
     UINT          NumBindings = 0;
     SlotBindings  Bindings[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+
+    void NewCommitInit()
+    {
+        NumBindings = 0;
+        std::memset(&Bindings, 0, sizeof(SlotBindings) * D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+    }
 };
 
 struct ShaderResourceViewSlots
 {
-    //ID3D11Resource*           Resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
     ID3D11ShaderResourceView* Views[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+    ComPtr<ID3D11Resource>    Resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
     UINT                      NumBindings = 0;
     SlotBindings              Bindings[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+
+    void NewCommitInit()
+    {
+        NumBindings = 0;
+        std::memset(&Bindings, 0, sizeof(SlotBindings) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT);
+    }
 };
 
 struct SamplerSlots
@@ -73,14 +85,26 @@ struct SamplerSlots
     ID3D11SamplerState* Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
     UINT                NumBindings = 0;
     SlotBindings        Bindings[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+
+    void NewCommitInit()
+    {
+        NumBindings = 0;
+        std::memset(&Bindings, 0, sizeof(SlotBindings) * D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT);
+    }
 };
 
 struct UnorderedAccessViewSlots
 {
-    //ID3D11Resource*            Resources[D3D11_1_UAV_SLOT_COUNT];
     ID3D11UnorderedAccessView* Views[D3D11_1_UAV_SLOT_COUNT];
+    ComPtr<ID3D11Resource>     Resources[D3D11_1_UAV_SLOT_COUNT];
     UINT                       NumBindings = 0;
     SlotBindings               Bindings[D3D11_1_UAV_SLOT_COUNT];
+
+    void NewCommitInit()
+    {
+        NumBindings = 0;
+        std::memset(&Bindings, 0, sizeof(SlotBindings) * D3D11_1_UAV_SLOT_COUNT);
+    }
 };
 
 struct ComputeShaderSlots
@@ -89,6 +113,14 @@ struct ComputeShaderSlots
     ShaderResourceViewSlots  ShaderResourceViews;
     SamplerSlots             Samplers;
     UnorderedAccessViewSlots UnorderedAccessViews;
+
+    void NewCommitInit()
+    {
+        ConstantBuffers.NewCommitInit();
+        ShaderResourceViews.NewCommitInit();
+        Samplers.NewCommitInit();
+        UnorderedAccessViews.NewCommitInit();
+    }
 };
 
 struct GraphicsShaderSlot
@@ -96,6 +128,13 @@ struct GraphicsShaderSlot
     ConstantBufferSlots     ConstantBuffers;
     ShaderResourceViewSlots ShaderResourceViews;
     SamplerSlots            Samplers;
+
+    void NewCommitInit()
+    {
+        ConstantBuffers.NewCommitInit();
+        ShaderResourceViews.NewCommitInit();
+        Samplers.NewCommitInit();
+    }
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -114,6 +153,8 @@ struct IndexBufferState
         Format       = DXGI_FORMAT_UNKNOWN;
         Offset       = 0;
     }
+
+    void NewCommitInit() {}
 };
 
 struct VertexBufferState
@@ -134,6 +175,8 @@ struct VertexBufferState
             pOffsets[i]        = 0;
         }
     }
+
+    void NewCommitInit() {}
 };
 
 struct ComputeSlotState
@@ -143,6 +186,11 @@ struct ComputeSlotState
     void Reset()
     {
         std::memset(&CS, 0, sizeof(ComputeShaderSlots));
+    }
+
+    void NewCommitInit()
+    {
+        CS.NewCommitInit();
     }
 };
 
@@ -162,6 +210,15 @@ struct GraphicsSlotState
         std::memset(&GS, 0, sizeof(GraphicsShaderSlot));
         std::memset(&PS, 0, sizeof(GraphicsShaderSlot));
     }
+
+    void NewCommitInit()
+    {
+        VS.NewCommitInit();
+        HS.NewCommitInit();
+        DS.NewCommitInit();
+        GS.NewCommitInit();
+        PS.NewCommitInit();
+    }
 };
 
 struct ScissorState
@@ -174,6 +231,8 @@ struct ScissorState
         NumRects = 0;
         std::memset(pRects, 0, PPX_MAX_SCISSORS * sizeof(D3D11_RECT));
     }
+
+    void NewCommitInit() {}
 };
 
 struct ViewportState
@@ -186,6 +245,8 @@ struct ViewportState
         NumViewports = 0;
         std::memset(pViewports, 0, PPX_MAX_VIEWPORTS * sizeof(D3D11_VIEWPORT));
     }
+
+    void NewCommitInit() {}
 };
 
 struct RTVDSVState
@@ -202,6 +263,8 @@ struct RTVDSVState
         size_t size = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT * sizeof(ID3D11RenderTargetView*);
         std::memset(ppRenderTargetViews, 0, size);
     }
+
+    void NewCommitInit() {}
 };
 
 struct PipelineState
@@ -216,6 +279,9 @@ struct PipelineState
     D3D11_PRIMITIVE_TOPOLOGY PrimitiveTopology;
     ID3D11RasterizerState2*  RasterizerState;
     ID3D11DepthStencilState* DepthStencilState;
+    ID3D11BlendState*        BlendState;
+    FLOAT                    BlendFactors[4];
+    UINT                     SampleMask;
 
     void Reset()
     {
@@ -229,7 +295,10 @@ struct PipelineState
         PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
         RasterizerState   = nullptr;
         DepthStencilState = nullptr;
+        BlendState        = nullptr;
     }
+
+    void NewCommitInit() {}
 };
 
 struct ExecutionState
@@ -262,6 +331,7 @@ public:
         mStack.resize(1);
         mCurrent = &mStack.back();
         mCurrent->Reset();
+        mCommitedIndex = 0;
     }
 
     DataT* GetCurrent()
@@ -285,19 +355,21 @@ public:
 
     uint32_t Commit()
     {
-        const uint32_t committedIndex = CountU32(mStack) - 1;
         if (mDirty) {
+            mCommitedIndex = static_cast<uint32_t>(mStack.size() - 1);
             mStack.emplace_back(mStack.back());
             mCurrent = &mStack.back();
-            mDirty   = false;
+            mCurrent->NewCommitInit();
+            mDirty = false;
         }
-        return committedIndex;
+        return mCommitedIndex;
     }
 
 private:
-    bool               mDirty   = false;
-    std::vector<DataT> mStack   = {};
-    DataT*             mCurrent = nullptr;
+    bool               mDirty         = false;
+    std::vector<DataT> mStack         = {};
+    DataT*             mCurrent       = nullptr;
+    uint32_t           mCommitedIndex = 0;
 };
 
 // -------------------------------------------------------------------------------------------------

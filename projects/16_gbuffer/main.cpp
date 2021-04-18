@@ -297,6 +297,7 @@ void ProjApp::SetupIBLResources()
 
     // Allocate descriptor set
     PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mIBLLayout, &mIBLSet));
+    mIBLSet->SetName("IBL");
 
     // Update IBL render descriptors - just constant buffer and sampler for
     // now. We'll update the image later.
@@ -616,6 +617,7 @@ void ProjApp::Setup()
 
         // Allocate descriptor set
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mGBufferReadLayout, &mGBufferReadSet));
+        mGBufferReadSet->SetName("GBuffer Read");
 
         // Write descriptors
         grfx::WriteDescriptor writes[6] = {};
@@ -686,6 +688,7 @@ void ProjApp::Setup()
 
         // Allocate descriptor set
         PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataLayout, &mSceneDataSet));
+        mSceneDataSet->SetName("Scene Data");
 
         // Update descriptor
         grfx::WriteDescriptor writes[2]   = {};

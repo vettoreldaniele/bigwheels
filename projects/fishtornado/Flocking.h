@@ -50,8 +50,10 @@ private:
     float    mMaxSpeed;
     float    mZoneRadius;
 
-    grfx::DescriptorSetLayoutPtr mFlockingSetLayout;
-    grfx::PipelineInterfacePtr   mFlockingPipelineInterface;
+    grfx::DescriptorSetLayoutPtr mFlockingPositionSetLayout;
+    grfx::DescriptorSetLayoutPtr mFlockingVelocitySetLayout;
+    grfx::PipelineInterfacePtr   mFlockingPositionPipelineInterface;
+    grfx::PipelineInterfacePtr   mFlockingVelocityPipelineInterface;
     grfx::ComputePipelinePtr     mFlockingPositionPipeline;
     grfx::ComputePipelinePtr     mFlockingVelocityPipeline;
     grfx::DescriptorSetLayoutPtr mRenderSetLayout;

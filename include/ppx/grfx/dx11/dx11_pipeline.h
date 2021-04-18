@@ -42,7 +42,10 @@ public:
     typename D3D11InputLayoutPtr::InterfaceType*       GetInputLayout() const { return mInputLayout.Get(); };
     D3D11_PRIMITIVE_TOPOLOGY                           GetPrimitiveTopology() const { return mPrimitiveTopology; }
     typename D3D11RasterizerStatePtr::InterfaceType*   GetRasterizerState() const { return mRasterizerState.Get(); };
-    typename D3D11DepthStencilStatePtr::InterfaceType* GetDepthStencilstate() const { return mDepthStencilState.Get(); };
+    typename D3D11DepthStencilStatePtr::InterfaceType* GetDepthStencilState() const { return mDepthStencilState.Get(); };
+    typename D3D11BlendStatePtr::InterfaceType*        GetBlendState() const { return mBlendState.Get(); };
+    const FLOAT*                                       GetBlendFactors() const { return mBlendFactors; }
+    UINT                                               GetSampleMask() const { return mSampleMask; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::GraphicsPipelineCreateInfo* pCreateInfo) override;
@@ -53,6 +56,7 @@ private:
     Result InitializeInputLayout(const grfx::GraphicsPipelineCreateInfo* pCreateInfo);
     Result InitializeRasterizerState(const grfx::GraphicsPipelineCreateInfo* pCreateInfo);
     Result InitializeDepthStencilState(const grfx::GraphicsPipelineCreateInfo* pCreateInfo);
+    Result InitializeBlendState(const grfx::GraphicsPipelineCreateInfo* pCreateInfo);
 
 private:
     D3D11VertexShaderPtr      mVS;
@@ -64,6 +68,9 @@ private:
     D3D11_PRIMITIVE_TOPOLOGY  mPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
     D3D11RasterizerStatePtr   mRasterizerState;
     D3D11DepthStencilStatePtr mDepthStencilState;
+    D3D11BlendStatePtr        mBlendState;
+    FLOAT                     mBlendFactors[4];
+    UINT                      mSampleMask = UINT_MAX; // @TODO: Figure out the right way to handle this
 };
 
 // -------------------------------------------------------------------------------------------------
