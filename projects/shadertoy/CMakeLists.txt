@@ -6,7 +6,7 @@ list(APPEND VSPS_HLSL_FILES
     "${PPX_DIR}/assets/basic/shaders/FullScreenTriangle.hlsl"
 )
 
-CompileShadersVSPS("${HLSL_FILES}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
+CompileShadersVSPS("${VSPS_HLSL_FILES}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
 
 list(APPEND CS_HLSL_FILES
     "${PPX_DIR}/assets/shadertoy/shaders/Fractal_Land.hlsl"
@@ -17,7 +17,7 @@ list(APPEND CS_HLSL_FILES
     "${PPX_DIR}/assets/shadertoy/shaders/Xyptonjtroz.hlsl"
 )
 
-CompileShadersCS("${CS_HLSL_FILES}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
+CompileShadersCS("${CS_HLSL_FILES}" "${PPX_DIR}/assets/shadertoy/shaders" "${PPX_DIR}")
 
 list(APPEND HLSL_FILES
     ${VSPS_HLSL_FILES}

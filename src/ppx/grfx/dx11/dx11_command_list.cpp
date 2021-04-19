@@ -1152,6 +1152,8 @@ static void ExecuteCopyBufferToImage(
             srcDepthPitch,
             copyFlags);
     }
+
+    pDeviceContext->Unmap(args.pSrcResource, 0);
 }
 
 void CommandList::ExecuteClearDSV(ExecutionState& execState, const Action& action) const

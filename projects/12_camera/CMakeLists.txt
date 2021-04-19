@@ -6,7 +6,7 @@ list(APPEND VSPS_HLSL_FILES
     "${PPX_DIR}/assets/basic/shaders/DiffuseShadow.hlsl"
 )
 
-CompileShadersVSPS("${HLSL_FILES}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
+CompileShadersVSPS("${VSPS_HLSL_FILES}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")
 
 list(APPEND VS_HLSL_FILES
     "${PPX_DIR}/assets/basic/shaders/Depth.hlsl"
