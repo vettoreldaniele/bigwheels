@@ -24,6 +24,7 @@ D3D11_FILTER_TYPE          ToD3D11FilterType(grfx::SamplerMipmapMode value);
 DXGI_FORMAT                ToD3D11IndexFormat(grfx::IndexType value);
 UINT                       ToD3D11LogicOp(grfx::LogicOp value);
 D3D11_PRIMITIVE_TOPOLOGY   ToD3D11PrimitiveTopology(grfx::PrimitiveTopology value);
+D3D11_QUERY                ToD3D11QueryType(grfx::QueryType value);
 D3D11_RTV_DIMENSION        ToD3D11RTVDimension(grfx::ImageViewType value);
 D3D11_STENCIL_OP           ToD3D11StencilOp(grfx::StencilOp value);
 D3D11_SRV_DIMENSION        ToD3D11SRVDimension(grfx::ImageViewType value, uint32_t arrayLayerCount);

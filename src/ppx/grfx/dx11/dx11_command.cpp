@@ -498,14 +498,18 @@ void CommandBuffer::BeginQuery(
     const grfx::QueryPool* pQueryPool,
     uint32_t               queryIndex)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+
+    ToApi(pQueryPool)->Begin(queryIndex);
 }
 
 void CommandBuffer::EndQuery(
     const grfx::QueryPool* pQueryPool,
     uint32_t               queryIndex)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+
+    ToApi(pQueryPool)->End(queryIndex);
 }
 
 void CommandBuffer::WriteTimestamp(
@@ -513,7 +517,9 @@ void CommandBuffer::WriteTimestamp(
     const grfx::QueryPool* pQueryPool,
     uint32_t               queryIndex)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    PPX_ASSERT_NULL_ARG(pQueryPool);
+
+    ToApi(pQueryPool)->WriteTimestamp(pipelineStage, queryIndex);
 }
 
 void CommandBuffer::ImGuiRender(void (*pFn)(void))

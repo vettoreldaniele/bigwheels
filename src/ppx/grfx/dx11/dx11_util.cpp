@@ -224,6 +224,19 @@ D3D11_PRIMITIVE_TOPOLOGY ToD3D11PrimitiveTopology(grfx::PrimitiveTopology value)
     return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
 }
 
+D3D11_QUERY ToD3D11QueryType(grfx::QueryType value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case grfx::QUERY_TYPE_OCCLUSION: return D3D11_QUERY_OCCLUSION; break;
+        case grfx::QUERY_TYPE_TIMESTAMP: return D3D11_QUERY_TIMESTAMP; break;
+        case grfx::QUERY_TYPE_PIPELINE_STATISTICS: return D3D11_QUERY_PIPELINE_STATISTICS; break;
+    }
+    // clang-format on
+    return ppx::InvalidValue<D3D11_QUERY>();
+}
+
 D3D11_RTV_DIMENSION ToD3D11RTVDimension(grfx::ImageViewType value)
 {
     // clang-format off
