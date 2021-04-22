@@ -32,6 +32,7 @@ private:
 
 private:
     D3D11DeviceContextPtr mDeviceContext;
+    ID3D11Query* mFrequencyQuery;
 };
 
 } // namespace dx11
