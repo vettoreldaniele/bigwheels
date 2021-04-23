@@ -29,10 +29,11 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-
-private:
     D3D11DeviceContextPtr mDeviceContext;
-    ID3D11Query* mFrequencyQuery;
+
+    static const int QUERY_FRAME_DELAY = 3, MAX_QUERIES_IN_FLIGHT = QUERY_FRAME_DELAY + 1;
+    ID3D11Query*     mFrequencyQuery[MAX_QUERIES_IN_FLIGHT];
+    uint32_t         mReadFrequencyQuery, mWriteFrequencyQuery;
 };
 
 } // namespace dx11
