@@ -4,6 +4,7 @@
 #include "ppx/camera.h"
 #include "ppx/graphics_util.h"
 #include <ppx/random.h>
+#include <set>
 
 using namespace ppx;
 
@@ -29,11 +30,26 @@ class ProjApp
     : public ppx::Application
 {
 public:
+    ProjApp()
+        : mPerFrame(),
+          mVS(nullptr),
+          mPS(nullptr),
+          mPipelineInterface(nullptr),
+          mDescriptorPool(nullptr),
+          mDescriptorSetLayout(nullptr),
+          mEntities(),
+          mPerspCamera(),
+          mArcballCamera(),
+          mCurrentCamera(nullptr),
+          mPressedKeys(),
+          mRateOfMove(0.0),
+          mLastInputCheck(0.0) {}
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
     virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) override;
-    virtual void Scroll(float dx, float dy) override;
     virtual void Render() override;
+    virtual void KeyDown(KeyCode key) override;
+    virtual void KeyUp(KeyCode key) override;
 
 private:
     struct PerFrame
@@ -61,12 +77,20 @@ private:
         float3                    location;
         float3                    dimension;
         enum EntityKind           kind;
+        Entity()
+            : model(nullptr),
+              descriptorSet(nullptr),
+              uniformBuffer(nullptr),
+              pipeline(nullptr),
+              location(0, 0, 0),
+              dimension(0, 0, 0),
+              kind(FLOOR) {}
 
         // Place this entity in a random location within the given sub-grid index.
         // @param subGridIx - Index identifying the sub-grid where the object should be randomly positioned.
         // @param subGridWidth - Width of the sub-grid.
         // @param subGridDepth - Depth of the sub-grid.
-        void Place(size_t subGridIx, ppx::Random random, const int2& gridDim, const int2& subGridDim);
+        void Place(int32_t subGridIx, ppx::Random random, const int2& gridDim, const int2& subGridDim);
     };
 
     std::vector<PerFrame>        mPerFrame;
@@ -76,17 +100,22 @@ private:
     grfx::DescriptorPoolPtr      mDescriptorPool;
     grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
     std::vector<Entity>          mEntities;
+    PerspCamera                  mPerspCamera;
+    ArcballCamera                mArcballCamera;
+    PerspCamera*                 mCurrentCamera;
+    std::set<KeyCode>            mPressedKeys;
+    float                        mRateOfMove;
+    float                        mLastInputCheck;
 
-    ArcballCamera mArcballCamera;
-
-private:
     void SetupDescriptors();
     void SetupPipelines();
     void SetupPerFrameData();
     void SetupCamera();
+    void UpdateCamera(PerspCamera* camera, float3 cameraPosition, float3 lookAt);
     void SetupEntities();
     void SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
     void SetupEntity(const WireMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
+    void ProcessInput();
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -148,7 +177,7 @@ void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInf
     PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
 }
 
-void ProjApp::Entity::Place(size_t subGridIx, ppx::Random random, const int2& gridDim, const int2& subGridDim)
+void ProjApp::Entity::Place(int32_t subGridIx, ppx::Random random, const int2& gridDim, const int2& subGridDim)
 {
     // The original grid has been split in equal-sized sub-grids that preserve the same ratio.  There are
     // as many sub-grids as entities to place.  The entity will be placed at random inside the sub-grid
@@ -208,7 +237,7 @@ void ProjApp::SetupEntities()
     float subGridWidth = subGridArea / subGridDepth;
 
     ppx::Random random;
-    for (size_t i = 0; i < kNumEntities; ++i) {
+    for (int32_t i = 0; i < kNumEntities; ++i) {
         auto& entity = mEntities.emplace_back();
 
         if (i == 0) {
@@ -340,14 +369,25 @@ void ProjApp::SetupPerFrameData(void)
 
 void ProjApp::SetupCamera()
 {
-    mArcballCamera.LookAt(float3(4, 5, 8), float3(0, 0, 0), float3(0, 1, 0));
-    mArcballCamera.SetPerspective(60.0f, GetWindowAspect());
+    float3 lookAt(0, 0, 1);
+    float3 cameraPosition(0, 1, -10);
+    mCurrentCamera = &mPerspCamera;
+    mRateOfMove    = 2.0;
+    UpdateCamera(&mPerspCamera, cameraPosition, lookAt);
+    UpdateCamera(&mArcballCamera, cameraPosition, lookAt);
+}
+
+void ProjApp::UpdateCamera(PerspCamera* camera, float3 cameraPosition, float3 lookAt)
+{
+    camera->LookAt(cameraPosition, lookAt, ppx::PPX_CAMERA_DEFAULT_WORLD_UP);
+    camera->SetPerspective(60.f, GetWindowAspect());
+
+    PPX_LOG_DEBUG("Camera looking at: (" << camera->GetTarget()[0] << ", " << camera->GetTarget()[1] << ", " << camera->GetTarget()[2] << ")");
+    PPX_LOG_DEBUG("Camera position:   (" << camera->GetEyePosition()[0] << ", " << camera->GetEyePosition()[1] << ", " << camera->GetEyePosition()[2] << ")\n");
 }
 
 void ProjApp::Setup()
 {
-    Result ppxres = ppx::SUCCESS;
-
     SetupDescriptors();
     SetupEntities();
     SetupPipelines();
@@ -357,30 +397,80 @@ void ProjApp::Setup()
 
 void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons)
 {
-    if (buttons & ppx::MOUSE_BUTTON_LEFT) {
-        int32_t prevX = x - dx;
-        int32_t prevY = y - dy;
-
-        float2 prevPos = GetNormalizedDeviceCoordinates(prevX, prevY);
-        float2 curPos  = GetNormalizedDeviceCoordinates(x, y);
-
-        mArcballCamera.Rotate(prevPos, curPos);
-    }
-    else if (buttons & ppx::MOUSE_BUTTON_RIGHT) {
-        int32_t prevX = x - dx;
-        int32_t prevY = y - dy;
-
-        float2 prevPos = GetNormalizedDeviceCoordinates(prevX, prevY);
-        float2 curPos  = GetNormalizedDeviceCoordinates(x, y);
-        float2 delta   = curPos - prevPos;
-
-        mArcballCamera.Pan(delta);
-    }
+    float2 prevPos  = GetNormalizedDeviceCoordinates(x - dx, y - dy);
+    float2 curPos   = GetNormalizedDeviceCoordinates(x, y);
+    float2 deltaPos = prevPos - curPos;
+    float3 lookAt   = mCurrentCamera->GetTarget() + float3(deltaPos[0] * 60.0, -deltaPos[1] * 60.0, 0);
+    UpdateCamera(mCurrentCamera, mCurrentCamera->GetEyePosition(), lookAt);
 }
 
-void ProjApp::Scroll(float dx, float dy)
+void ProjApp::KeyDown(KeyCode key)
 {
-    mArcballCamera.Zoom(dy / 2.0f);
+    mPressedKeys.insert(key);
+}
+
+void ProjApp::KeyUp(KeyCode key)
+{
+    mPressedKeys.erase(key);
+}
+
+void ProjApp::ProcessInput()
+{
+    if (mPressedKeys.empty()) {
+        return;
+    }
+
+    // Process key events every 10ms.
+    float msElapsed = GetElapsedSeconds() * 1000.0f;
+    if (mLastInputCheck + 10.0 > msElapsed) {
+        return;
+    }
+    mLastInputCheck = msElapsed;
+
+    float3 eyePosition(mCurrentCamera->GetEyePosition());
+    float3 lookAt(mCurrentCamera->GetTarget());
+
+    if (mPressedKeys.count(ppx::KEY_W) > 0) {
+        mCurrentCamera->MoveAlongViewDirection(mRateOfMove);
+        return;
+    }
+    else if (mPressedKeys.count(ppx::KEY_A) > 0) {
+        eyePosition += float3(-mRateOfMove, 0, 0);
+    }
+    else if (mPressedKeys.count(ppx::KEY_S) > 0) {
+        mCurrentCamera->MoveAlongViewDirection(-mRateOfMove);
+        return;
+    }
+    else if (mPressedKeys.count(ppx::KEY_D) > 0) {
+        eyePosition += float3(mRateOfMove, 0, 0);
+    }
+    else if (mPressedKeys.count(ppx::KEY_SPACE) > 0) {
+        SetupCamera();
+        return;
+    }
+    else if (mPressedKeys.count(ppx::KEY_1) > 0) {
+        mCurrentCamera = &mPerspCamera;
+    }
+    else if (mPressedKeys.count(ppx::KEY_2) > 0) {
+        mCurrentCamera = &mArcballCamera;
+    }
+    else if (mPressedKeys.count(ppx::KEY_LEFT) > 0) {
+        lookAt += float3(mRateOfMove, 0, 0);
+    }
+    else if (mPressedKeys.count(ppx::KEY_RIGHT) > 0) {
+        lookAt += float3(-mRateOfMove, 0, 0);
+    }
+    else if (mPressedKeys.count(ppx::KEY_UP) > 0) {
+        lookAt += float3(0, mRateOfMove, 0);
+    }
+    else if (mPressedKeys.count(ppx::KEY_DOWN) > 0) {
+        lookAt += float3(0, -mRateOfMove, 0);
+    }
+    else {
+        return;
+    }
+
+    UpdateCamera(mCurrentCamera, eyePosition, lookAt);
 }
 
 void ProjApp::Render()
@@ -401,8 +491,10 @@ void ProjApp::Render()
 
     // Update uniform buffers
     {
-        const float4x4& P = mArcballCamera.GetProjectionMatrix();
-        const float4x4& V = mArcballCamera.GetViewMatrix();
+        ProcessInput();
+
+        const float4x4& P = mCurrentCamera->GetProjectionMatrix();
+        const float4x4& V = mCurrentCamera->GetViewMatrix();
 
         for (auto& entity : mEntities) {
             float4x4 T   = glm::translate(entity.location);

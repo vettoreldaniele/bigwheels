@@ -27,6 +27,7 @@ public:
     virtual void LookAt(const float3& eye, const float3& target, const float3& up = PPX_CAMERA_DEFAULT_WORLD_UP);
 
     const float3& GetEyePosition() const { return mEyePosition; }
+    const float3& GetTarget() const { return mTarget; }
 
     const float4x4& GetViewMatrix() const { return mViewMatrix; }
     const float4x4& GetProjectionMatrix() const { return mProjectionMatrix; }
