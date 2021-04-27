@@ -461,7 +461,7 @@ void FishTornadoApp::Render()
     uint32_t           frameIndex     = GetInFlightFrameIndex();
     PerFrame&          frame          = mPerFrame[frameIndex];
     uint32_t           prevFrameIndex = GetPreviousInFlightFrameIndex();
-    PerFrame&          prevFrame      = mPerFrame[frameIndex];
+    PerFrame&          prevFrame      = mPerFrame[prevFrameIndex];
     grfx::SwapchainPtr swapchain      = GetSwapchain();
 
     UpdateTime();
