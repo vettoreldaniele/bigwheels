@@ -500,7 +500,11 @@ void CommandBuffer::BeginQuery(
 {
     PPX_ASSERT_NULL_ARG(pQueryPool);
 
-    ToApi(pQueryPool)->Begin(queryIndex);
+    dx11::args::BeginQuery beginQueryArgs = {};
+
+    beginQueryArgs.pQuery = ToApi(pQueryPool)->GetQuery(queryIndex);
+
+    mCommandList.BeginQuery(&beginQueryArgs);
 }
 
 void CommandBuffer::EndQuery(
@@ -509,7 +513,11 @@ void CommandBuffer::EndQuery(
 {
     PPX_ASSERT_NULL_ARG(pQueryPool);
 
-    ToApi(pQueryPool)->End(queryIndex);
+    dx11::args::EndQuery endQueryArgs = {};
+
+    endQueryArgs.pQuery = ToApi(pQueryPool)->GetQuery(queryIndex);
+
+    mCommandList.EndQuery(&endQueryArgs);
 }
 
 void CommandBuffer::WriteTimestamp(
@@ -519,7 +527,11 @@ void CommandBuffer::WriteTimestamp(
 {
     PPX_ASSERT_NULL_ARG(pQueryPool);
 
-    ToApi(pQueryPool)->WriteTimestamp(pipelineStage, queryIndex);
+    dx11::args::WriteTimestamp writeTimestampArgs = {};
+
+    writeTimestampArgs.pQuery = ToApi(pQueryPool)->GetQuery(queryIndex);
+
+    mCommandList.WriteTimestamp(&writeTimestampArgs);
 }
 
 void CommandBuffer::ImGuiRender(void (*pFn)(void))

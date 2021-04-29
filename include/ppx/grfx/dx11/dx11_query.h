@@ -17,10 +17,6 @@ public:
     QueryPool() {}
     virtual ~QueryPool() {}
 
-    void Begin(uint32_t queryIndex) const;
-    void End(uint32_t queryIndex) const;
-    void WriteTimestamp(grfx::PipelineStage pipelineStage, uint32_t queryIndex) const;
-
     ID3D11Query* GetQuery(uint32_t queryIndex) const;
     D3D11_QUERY GetQueryType() const { return mQueryType; }
 

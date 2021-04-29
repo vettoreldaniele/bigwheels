@@ -25,29 +25,6 @@ Result QueryPool::CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo)
     return ppx::SUCCESS;
 }
 
-void QueryPool::Begin(uint32_t queryIndex) const
-{
-    PPX_ASSERT_MSG(queryIndex < mQueryPool.size(), "invalid query index");
-
-    ToApi(GetDevice())->GetDxDeviceContext()->Begin(mQueryPool[queryIndex]);
-}
-
-void QueryPool::End(uint32_t queryIndex) const
-{
-    PPX_ASSERT_MSG(queryIndex < mQueryPool.size(), "invalid query index");
-
-    ToApi(GetDevice())->GetDxDeviceContext()->End(mQueryPool[queryIndex]);
-}
-
-void QueryPool::WriteTimestamp(grfx::PipelineStage pipelineStage, uint32_t queryIndex) const
-{
-    PPX_ASSERT_MSG(queryIndex < mQueryPool.size(), "invalid query index");
-
-    // ID3D11DeviceContext::Begin is disabled for WriteTimestamp Queries
-
-    ToApi(GetDevice())->GetDxDeviceContext()->End(mQueryPool[queryIndex]);
-}
-
 ID3D11Query* QueryPool::GetQuery(uint32_t queryIndex) const
 {
     PPX_ASSERT_MSG(queryIndex < mQueryPool.size(), "invalid query index");

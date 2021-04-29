@@ -730,6 +730,27 @@ void CommandList::CopyBufferToImage(const args::CopyBufferToImage* pCopyArgs)
     std::memcpy(&action.args.copyBufferToImage, pCopyArgs, sizeof(args::CopyBufferToImage));
 }
 
+void CommandList::BeginQuery(const args::BeginQuery* pBeginQuery)
+{
+    Action& action = NewAction(CMD_BEGIN_QUERY);
+
+    std::memcpy(&action.args.beginQuery, pBeginQuery, sizeof(args::BeginQuery));
+}
+
+void CommandList::EndQuery(const args::EndQuery* pEndQuery)
+{
+    Action& action = NewAction(CMD_END_QUERY);
+
+    std::memcpy(&action.args.endQuery, pEndQuery, sizeof(args::EndQuery));
+}
+
+void CommandList::WriteTimestamp(const args::WriteTimestamp* pWriteTimestamp)
+{
+    Action& action = NewAction(CMD_WRITE_TIMESTAMP);
+
+    std::memcpy(&action.args.writeTimestamp, pWriteTimestamp, sizeof(args::WriteTimestamp));
+}
+
 void CommandList::ImGuiRender(void (*pFn)(void))
 {
     Action& action = NewAction(CMD_IMGUI_RENDER);
@@ -1155,6 +1176,27 @@ static void ExecuteCopyBufferToImage(
     }
 }
 
+static void ExecuteBeginQuery(
+    typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
+    const args::BeginQuery&                        args)
+{
+    pDeviceContext->Begin(args.pQuery);
+}
+
+static void ExecuteEndQuery(
+    typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
+    const args::EndQuery&                          args)
+{
+    pDeviceContext->End(args.pQuery);
+}
+
+static void ExecuteWriteTimestamp(
+    typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
+    const args::WriteTimestamp&                    args)
+{
+    pDeviceContext->End(args.pQuery);
+}
+
 void CommandList::ExecuteClearDSV(ExecutionState& execState, const Action& action) const
 {
     const args::ClearDSV& args = action.args.clearDSV;
@@ -1320,6 +1362,18 @@ void CommandList::Execute(typename D3D11DeviceContextPtr::InterfaceType* pDevice
 
             case CMD_COPY_BUFFER_TO_IMAGE: {
                 ExecuteCopyBufferToImage(pDeviceContext, action.args.copyBufferToImage);
+            } break;
+
+            case CMD_BEGIN_QUERY: {
+                ExecuteBeginQuery(pDeviceContext, action.args.beginQuery);
+            } break;
+
+            case CMD_END_QUERY: {
+                ExecuteEndQuery(pDeviceContext, action.args.endQuery);
+            } break;
+
+            case CMD_WRITE_TIMESTAMP: {
+                ExecuteWriteTimestamp(pDeviceContext, action.args.writeTimestamp);
             } break;
 
             case CMD_IMGUI_RENDER: {

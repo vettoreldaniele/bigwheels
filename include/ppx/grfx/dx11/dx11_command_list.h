@@ -22,6 +22,9 @@ enum Cmd
     CMD_DRAW_INDEXED,
     CMD_COPY_BUFFER_TO_BUFFER,
     CMD_COPY_BUFFER_TO_IMAGE,
+    CMD_BEGIN_QUERY,
+    CMD_END_QUERY,
+    CMD_WRITE_TIMESTAMP,
     CMD_IMGUI_RENDER,
 };
 
@@ -488,6 +491,21 @@ struct CopyBufferToImage
     ID3D11Resource* pDstResource = nullptr;
 };
 
+struct BeginQuery
+{
+    ID3D11Query* pQuery;
+};
+
+struct EndQuery
+{
+    ID3D11Query* pQuery;
+};
+
+struct WriteTimestamp
+{
+    ID3D11Query* pQuery;
+};
+
 struct ImGuiRender
 {
     void (*pRenderFn)(void) = nullptr;
@@ -516,6 +534,9 @@ struct Action
             args::DrawIndexed        drawIndexed;
             args::CopyBufferToBuffer copyBufferToBuffer;
             args::CopyBufferToImage  copyBufferToImage;
+            args::BeginQuery         beginQuery;
+            args::EndQuery           endQuery;
+            args::WriteTimestamp     writeTimestamp;
             args::ImGuiRender        imGuiRender;
         };
     } args;
@@ -686,6 +707,10 @@ public:
     void CopyBufferToBuffer(const args::CopyBufferToBuffer* pCopyArgs);
 
     void CopyBufferToImage(const args::CopyBufferToImage* pCopyArgs);
+
+    void BeginQuery(const args::BeginQuery* pBeginQuery);
+    void EndQuery(const args::EndQuery* pEndQuery);
+    void WriteTimestamp(const args::WriteTimestamp* pWriteTimestamp);
 
     void ImGuiRender(void (*pFn)(void));
 
