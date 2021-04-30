@@ -1,10 +1,11 @@
 #include <cstdlib>
+#include <set>
 
 #include "ppx/ppx.h"
 #include "ppx/camera.h"
 #include "ppx/graphics_util.h"
-#include <ppx/random.h>
-#include <set>
+#include "ppx/random.h"
+#include "ppx/math_util.h"
 
 using namespace ppx;
 
@@ -42,8 +43,7 @@ public:
           mArcballCamera(),
           mCurrentCamera(nullptr),
           mPressedKeys(),
-          mRateOfMove(0.0),
-          mLastInputCheck(0.0) {}
+          mPerson() {}
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
     virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) override;
@@ -61,22 +61,16 @@ private:
         grfx::FencePtr         renderCompleteFence;
     };
 
-    enum EntityKind
+    class Entity
     {
-        FLOOR    = 0,
-        TRI_MESH = 1,
-        OBJECT   = 2
-    };
+    public:
+        enum class EntityKind
+        {
+            FLOOR    = 0,
+            TRI_MESH = 1,
+            OBJECT   = 2
+        };
 
-    struct Entity
-    {
-        grfx::ModelPtr            model;
-        grfx::DescriptorSetPtr    descriptorSet;
-        grfx::BufferPtr           uniformBuffer;
-        grfx::GraphicsPipelinePtr pipeline;
-        float3                    location;
-        float3                    dimension;
-        enum EntityKind           kind;
         Entity()
             : model(nullptr),
               descriptorSet(nullptr),
@@ -84,13 +78,80 @@ private:
               pipeline(nullptr),
               location(0, 0, 0),
               dimension(0, 0, 0),
-              kind(FLOOR) {}
+              kind(EntityKind::FLOOR) {}
 
         // Place this entity in a random location within the given sub-grid index.
         // @param subGridIx - Index identifying the sub-grid where the object should be randomly positioned.
         // @param subGridWidth - Width of the sub-grid.
         // @param subGridDepth - Depth of the sub-grid.
-        void Place(int32_t subGridIx, ppx::Random random, const int2& gridDim, const int2& subGridDim);
+        void Place(int32_t subGridIx, ppx::Random& random, const int2& gridDim, const int2& subGridDim);
+
+        grfx::ModelPtr            model;
+        grfx::DescriptorSetPtr    descriptorSet;
+        grfx::BufferPtr           uniformBuffer;
+        grfx::GraphicsPipelinePtr pipeline;
+        float3                    location;
+        float3                    dimension;
+        EntityKind                kind;
+    };
+
+    class Person
+    {
+    public:
+        enum class MovementDirection
+        {
+            FORWARD,
+            LEFT,
+            RIGHT,
+            BACKWARD
+        };
+
+        Person() { Setup(); }
+
+        // Initialize the location of this person.
+        void Setup()
+        {
+            location   = float3(0, 1, 0);
+            azimuth    = pi<float>() / 2.0f;
+            altitude   = pi<float>() / 2.0f;
+            rateOfMove = 0.2f;
+            rateOfTurn = 0.02f;
+        }
+
+        // Move the location of this person in @param dir direction for @param distance units.
+        // All the symbolic directions are computed using the current direction where the person
+        // is looking at (azimuth).
+        void Move(MovementDirection dir, float distance);
+
+        // Change the location where the person is looking at by turning @param deltaAzimuth
+        // radians and looking up @param deltaAltitude radians. @param deltaAzimuth is an angle in
+        // the range [0, 2pi].  @param deltaAltitude is an angle in the range [0, pi].
+        void Turn(float deltaAzimuth, float deltaAltitude);
+
+        // Return the coordinates in world space that the person is looking at.
+        const float3 GetLookAt() const { return location + SphericalToCartesian(azimuth, altitude); }
+
+        // Return the location of the person in world space.
+        const float3& GetLocation() const { return location; }
+
+        float GetAzimuth() const { return azimuth; }
+        float GetAltitude() const { return altitude; }
+        float GetRateOfMove() const { return rateOfMove; }
+        float GetRateOfTurn() const { return rateOfTurn; }
+
+    private:
+        // Coordinate in world space where the person is standing.
+        float3 location;
+
+        // Spherical coordinates in world space where the person is looking at.
+        // azimuth is an angle in the range [0, 2pi].
+        // altitude is an angle in the range [0, pi].
+        float azimuth;
+        float altitude;
+
+        // Rate of motion (grid units) and turning (radians).
+        float rateOfMove;
+        float rateOfTurn;
     };
 
     std::vector<PerFrame>        mPerFrame;
@@ -104,18 +165,19 @@ private:
     ArcballCamera                mArcballCamera;
     PerspCamera*                 mCurrentCamera;
     std::set<KeyCode>            mPressedKeys;
-    float                        mRateOfMove;
-    float                        mLastInputCheck;
+    Person                       mPerson;
 
     void SetupDescriptors();
     void SetupPipelines();
     void SetupPerFrameData();
     void SetupCamera();
-    void UpdateCamera(PerspCamera* camera, float3 cameraPosition, float3 lookAt);
+    void UpdateCamera(PerspCamera* camera);
     void SetupEntities();
     void SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
     void SetupEntity(const WireMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
     void ProcessInput();
+    void DrawCameraInfo();
+    void DrawInstructions();
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -125,7 +187,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
-    settings.grfx.enableDebug           = true;
+    settings.grfx.enableDebug           = false;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
@@ -177,7 +239,7 @@ void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInf
     PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
 }
 
-void ProjApp::Entity::Place(int32_t subGridIx, ppx::Random random, const int2& gridDim, const int2& subGridDim)
+void ProjApp::Entity::Place(int32_t subGridIx, ppx::Random& random, const int2& gridDim, const int2& subGridDim)
 {
     // The original grid has been split in equal-sized sub-grids that preserve the same ratio.  There are
     // as many sub-grids as entities to place.  The entity will be placed at random inside the sub-grid
@@ -247,7 +309,7 @@ void ProjApp::SetupEntities()
             WireMesh        wireMesh        = WireMesh::CreatePlane(WIRE_MESH_PLANE_POSITIVE_Y, float2(kGridWidth, kGridDepth), 100, 100, wireMeshOptions);
             SetupEntity(wireMesh, geometryOptions, &entity);
             entity.location = float3(0, 0, 0);
-            entity.kind     = FLOOR;
+            entity.kind     = Entity::EntityKind::FLOOR;
         }
         else {
             TriMesh  triMesh;
@@ -259,14 +321,14 @@ void ProjApp::SetupEntities()
                 entity.dimension       = float3(2, 2, 2);
                 TriMeshOptions options = TriMeshOptions().Indices().VertexColors();
                 triMesh                = (distribution <= 30) ? TriMesh::CreateCube(entity.dimension, options) : TriMesh::CreateSphere(entity.dimension[0] / 2, 100, 100, options);
-                entity.kind            = TRI_MESH;
+                entity.kind            = Entity::EntityKind::TRI_MESH;
             }
             else {
                 float3         lb      = {0, 0, 0};
                 float3         ub      = {1, 1, 1};
                 TriMeshOptions options = TriMeshOptions().Indices().ObjectColor(random.Float3(lb, ub));
                 triMesh                = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/monkey.obj"), options);
-                entity.kind            = OBJECT;
+                entity.kind            = Entity::EntityKind::OBJECT;
                 entity.dimension       = triMesh.GetBoundingBoxMax();
                 PPX_LOG_INFO("Object dimension: (" << entity.dimension[0] << ", " << entity.dimension[1] << ", " << entity.dimension[2] << ")");
             }
@@ -327,20 +389,20 @@ void ProjApp::SetupPipelines()
 
     for (auto& entity : mEntities) {
         // NOTE: Number of vertex input bindings here must match the number of options added to each entity in ProjApp::SetupEntities.
-        if (entity.kind == FLOOR || entity.kind == TRI_MESH) {
-            gpCreateInfo.topology                      = (entity.kind == FLOOR) ? grfx::PRIMITIVE_TOPOLOGY_LINE_LIST : grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        if (entity.kind == Entity::EntityKind::FLOOR || entity.kind == Entity::EntityKind::TRI_MESH) {
+            gpCreateInfo.topology                      = (entity.kind == Entity::EntityKind::FLOOR) ? grfx::PRIMITIVE_TOPOLOGY_LINE_LIST : grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             gpCreateInfo.vertexInputState.bindingCount = entity.model->GetVertexBufferCount();
             gpCreateInfo.vertexInputState.bindings[0]  = *entity.model->GetVertexBinding(0);
             gpCreateInfo.vertexInputState.bindings[1]  = *entity.model->GetVertexBinding(1);
         }
-        else if (entity.kind == OBJECT) {
+        else if (entity.kind == Entity::EntityKind::OBJECT) {
             gpCreateInfo.topology                      = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             gpCreateInfo.vertexInputState.bindingCount = entity.model->GetVertexBufferCount();
             gpCreateInfo.vertexInputState.bindings[0]  = *entity.model->GetVertexBinding(0);
             gpCreateInfo.vertexInputState.bindings[1]  = *entity.model->GetVertexBinding(1);
         }
         else {
-            PPX_ASSERT_MSG(false, "Unrecognized entity kind: " << entity.kind);
+            PPX_ASSERT_MSG(false, "Unrecognized entity kind: " << static_cast<int>(entity.kind));
         }
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &entity.pipeline));
     }
@@ -369,21 +431,10 @@ void ProjApp::SetupPerFrameData(void)
 
 void ProjApp::SetupCamera()
 {
-    float3 lookAt(0, 0, 1);
-    float3 cameraPosition(0, 1, -10);
+    mPerson.Setup();
     mCurrentCamera = &mPerspCamera;
-    mRateOfMove    = 2.0;
-    UpdateCamera(&mPerspCamera, cameraPosition, lookAt);
-    UpdateCamera(&mArcballCamera, cameraPosition, lookAt);
-}
-
-void ProjApp::UpdateCamera(PerspCamera* camera, float3 cameraPosition, float3 lookAt)
-{
-    camera->LookAt(cameraPosition, lookAt, ppx::PPX_CAMERA_DEFAULT_WORLD_UP);
-    camera->SetPerspective(60.f, GetWindowAspect());
-
-    PPX_LOG_DEBUG("Camera looking at: (" << camera->GetTarget()[0] << ", " << camera->GetTarget()[1] << ", " << camera->GetTarget()[2] << ")");
-    PPX_LOG_DEBUG("Camera position:   (" << camera->GetEyePosition()[0] << ", " << camera->GetEyePosition()[1] << ", " << camera->GetEyePosition()[2] << ")\n");
+    UpdateCamera(&mPerspCamera);
+    UpdateCamera(&mArcballCamera);
 }
 
 void ProjApp::Setup()
@@ -395,13 +446,28 @@ void ProjApp::Setup()
     SetupCamera();
 }
 
+void ProjApp::UpdateCamera(PerspCamera* camera)
+{
+    float3 cameraPosition(0, 0, 0);
+    if (camera == &mPerspCamera) {
+        cameraPosition = mPerson.GetLocation();
+    }
+    else {
+        cameraPosition = mPerson.GetLocation() + float3(0, 1, -5);
+    }
+    camera->LookAt(cameraPosition, mPerson.GetLookAt(), ppx::PPX_CAMERA_DEFAULT_WORLD_UP);
+    camera->SetPerspective(60.f, GetWindowAspect());
+}
+
 void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons)
 {
-    float2 prevPos  = GetNormalizedDeviceCoordinates(x - dx, y - dy);
-    float2 curPos   = GetNormalizedDeviceCoordinates(x, y);
-    float2 deltaPos = prevPos - curPos;
-    float3 lookAt   = mCurrentCamera->GetTarget() + float3(deltaPos[0] * 60.0, -deltaPos[1] * 60.0, 0);
-    UpdateCamera(mCurrentCamera, mCurrentCamera->GetEyePosition(), lookAt);
+    float2 prevPos       = GetNormalizedDeviceCoordinates(x - dx, y - dy);
+    float2 curPos        = GetNormalizedDeviceCoordinates(x, y);
+    float2 deltaPos      = prevPos - curPos;
+    float  deltaAzimuth  = deltaPos[0] * pi<float>() / 4.0f;
+    float  deltaAltitude = deltaPos[1] * pi<float>() / 2.0f;
+    mPerson.Turn(-deltaAzimuth, deltaAltitude);
+    UpdateCamera(mCurrentCamera);
 }
 
 void ProjApp::KeyDown(KeyCode key)
@@ -414,63 +480,172 @@ void ProjApp::KeyUp(KeyCode key)
     mPressedKeys.erase(key);
 }
 
+void ProjApp::Person::Move(MovementDirection dir, float distance)
+{
+    if (dir == MovementDirection::FORWARD) {
+        location += float3(distance * std::cosf(azimuth), 0, distance * std::sinf(azimuth));
+    }
+    else if (dir == MovementDirection::LEFT) {
+        float perpendicularDir = azimuth - pi<float>() / 2.0f;
+        location += float3(distance * std::cosf(perpendicularDir), 0, distance * std::sinf(perpendicularDir));
+    }
+    else if (dir == MovementDirection::RIGHT) {
+        float perpendicularDir = azimuth + pi<float>() / 2.0f;
+        location += float3(distance * std::cosf(perpendicularDir), 0, distance * std::sinf(perpendicularDir));
+    }
+    else if (dir == MovementDirection::BACKWARD) {
+        location += float3(-distance * std::cosf(azimuth), 0, -distance * std::sinf(azimuth));
+    }
+    else {
+        PPX_ASSERT_MSG(false, "unhandled direction code " << static_cast<int>(dir));
+    }
+}
+
+void ProjApp::Person::Turn(float deltaAzimuth, float deltaAltitude)
+{
+    azimuth += deltaAzimuth;
+    altitude += deltaAltitude;
+
+    // Saturate azimuth values by making wrap around.
+    if (azimuth < 0) {
+        azimuth = 2 * pi<float>();
+    }
+    else if (azimuth > 2 * pi<float>()) {
+        azimuth = 0;
+    }
+
+    // Altitude is saturated by making it stop, so the world doesn't turn upside down.
+    if (altitude < 0) {
+        altitude = 0;
+    }
+    else if (altitude > pi<float>()) {
+        altitude = pi<float>();
+    }
+}
+
 void ProjApp::ProcessInput()
 {
     if (mPressedKeys.empty()) {
         return;
     }
 
-    // Process key events every 10ms.
-    float msElapsed = GetElapsedSeconds() * 1000.0f;
-    if (mLastInputCheck + 10.0 > msElapsed) {
-        return;
-    }
-    mLastInputCheck = msElapsed;
-
-    float3 eyePosition(mCurrentCamera->GetEyePosition());
-    float3 lookAt(mCurrentCamera->GetTarget());
-
     if (mPressedKeys.count(ppx::KEY_W) > 0) {
-        mCurrentCamera->MoveAlongViewDirection(mRateOfMove);
-        return;
+        mPerson.Move(Person::MovementDirection::FORWARD, mPerson.GetRateOfMove());
     }
-    else if (mPressedKeys.count(ppx::KEY_A) > 0) {
-        eyePosition += float3(-mRateOfMove, 0, 0);
+
+    if (mPressedKeys.count(ppx::KEY_A) > 0) {
+        mPerson.Move(Person::MovementDirection::LEFT, mPerson.GetRateOfMove());
     }
-    else if (mPressedKeys.count(ppx::KEY_S) > 0) {
-        mCurrentCamera->MoveAlongViewDirection(-mRateOfMove);
-        return;
+
+    if (mPressedKeys.count(ppx::KEY_S) > 0) {
+        mPerson.Move(Person::MovementDirection::BACKWARD, mPerson.GetRateOfMove());
     }
-    else if (mPressedKeys.count(ppx::KEY_D) > 0) {
-        eyePosition += float3(mRateOfMove, 0, 0);
+
+    if (mPressedKeys.count(ppx::KEY_D) > 0) {
+        mPerson.Move(Person::MovementDirection::RIGHT, mPerson.GetRateOfMove());
     }
-    else if (mPressedKeys.count(ppx::KEY_SPACE) > 0) {
+
+    if (mPressedKeys.count(ppx::KEY_SPACE) > 0) {
         SetupCamera();
         return;
     }
-    else if (mPressedKeys.count(ppx::KEY_1) > 0) {
+
+    if (mPressedKeys.count(ppx::KEY_1) > 0) {
         mCurrentCamera = &mPerspCamera;
     }
-    else if (mPressedKeys.count(ppx::KEY_2) > 0) {
+
+    if (mPressedKeys.count(ppx::KEY_2) > 0) {
         mCurrentCamera = &mArcballCamera;
     }
-    else if (mPressedKeys.count(ppx::KEY_LEFT) > 0) {
-        lookAt += float3(mRateOfMove, 0, 0);
-    }
-    else if (mPressedKeys.count(ppx::KEY_RIGHT) > 0) {
-        lookAt += float3(-mRateOfMove, 0, 0);
-    }
-    else if (mPressedKeys.count(ppx::KEY_UP) > 0) {
-        lookAt += float3(0, mRateOfMove, 0);
-    }
-    else if (mPressedKeys.count(ppx::KEY_DOWN) > 0) {
-        lookAt += float3(0, -mRateOfMove, 0);
-    }
-    else {
-        return;
+
+    if (mPressedKeys.count(ppx::KEY_LEFT) > 0) {
+        mPerson.Turn(-mPerson.GetRateOfTurn(), 0);
     }
 
-    UpdateCamera(mCurrentCamera, eyePosition, lookAt);
+    if (mPressedKeys.count(ppx::KEY_RIGHT) > 0) {
+        mPerson.Turn(mPerson.GetRateOfTurn(), 0);
+    }
+
+    if (mPressedKeys.count(ppx::KEY_UP) > 0) {
+        mPerson.Turn(0, -mPerson.GetRateOfTurn());
+    }
+
+    if (mPressedKeys.count(ppx::KEY_DOWN) > 0) {
+        mPerson.Turn(0, mPerson.GetRateOfTurn());
+    }
+
+    UpdateCamera(mCurrentCamera);
+}
+
+void ProjApp::DrawInstructions()
+{
+    if (ImGui::Begin("Instructions")) {
+        ImGui::Columns(2);
+
+        ImGui::Text("Movement keys");
+        ImGui::NextColumn();
+        ImGui::Text("W, A, S, D ");
+        ImGui::NextColumn();
+
+        ImGui::Text("Turn and look");
+        ImGui::NextColumn();
+        ImGui::Text("Arrow keys and mouse");
+        ImGui::NextColumn();
+
+        ImGui::Text("Cameras");
+        ImGui::NextColumn();
+        ImGui::Text("1 (perspective), 2 (arcball)");
+        ImGui::NextColumn();
+
+        ImGui::Text("Reset view");
+        ImGui::NextColumn();
+        ImGui::Text("space");
+        ImGui::NextColumn();
+    }
+    ImGui::End();
+}
+
+void ProjApp::DrawCameraInfo()
+{
+    ImGui::Separator();
+
+    ImGui::Columns(2);
+    ImGui::Text("Camera position");
+    ImGui::NextColumn();
+    ImGui::Text("(%.4f, %.4f, %.4f)", mCurrentCamera->GetEyePosition()[0], mCurrentCamera->GetEyePosition()[1], mCurrentCamera->GetEyePosition()[2]);
+    ImGui::NextColumn();
+
+    ImGui::Columns(2);
+    ImGui::Text("Camera looking at");
+    ImGui::NextColumn();
+    ImGui::Text("(%.4f, %.4f, %.4f)", mCurrentCamera->GetTarget()[0], mCurrentCamera->GetTarget()[1], mCurrentCamera->GetTarget()[2]);
+    ImGui::NextColumn();
+
+    ImGui::Separator();
+
+    ImGui::Columns(2);
+    ImGui::Text("Person location");
+    ImGui::NextColumn();
+    ImGui::Text("(%.4f, %.4f, %.4f)", mPerson.GetLocation()[0], mPerson.GetLocation()[1], mPerson.GetLocation()[2]);
+    ImGui::NextColumn();
+
+    ImGui::Columns(2);
+    ImGui::Text("Person looking at");
+    ImGui::NextColumn();
+    ImGui::Text("(%.4f, %.4f, %.4f)", mPerson.GetLookAt()[0], mPerson.GetLookAt()[1], mPerson.GetLookAt()[2]);
+    ImGui::NextColumn();
+
+    ImGui::Columns(2);
+    ImGui::Text("Azimuth");
+    ImGui::NextColumn();
+    ImGui::Text("%.4f", mPerson.GetAzimuth());
+    ImGui::NextColumn();
+
+    ImGui::Columns(2);
+    ImGui::Text("Altitude");
+    ImGui::NextColumn();
+    ImGui::Text("%.4f", mPerson.GetAltitude());
+    ImGui::NextColumn();
 }
 
 void ProjApp::Render()
@@ -531,7 +706,8 @@ void ProjApp::Render()
             }
 
             // Draw ImGui
-            DrawDebugInfo();
+            DrawDebugInfo([this]() { this->DrawCameraInfo(); });
+            DrawInstructions();
             DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
