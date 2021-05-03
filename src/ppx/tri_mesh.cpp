@@ -1099,8 +1099,9 @@ Result TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& option
 
 TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& options)
 {
-    TriMesh mesh;
-    ppx::Result ppxres = CreateFromOBJ(path, options, &mesh);
+    TriMesh     mesh;
+    ppx::Result ppxres = ppx::SUCCESS;
+    PPX_CHECKED_CALL(ppxres = CreateFromOBJ(path, options, &mesh));
     return mesh;
 }
 
