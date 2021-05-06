@@ -15,7 +15,7 @@ cc_library(
 )
 
 cc_library(
-    name = "ppx_linux",
+    name = "ppx",
     srcs = glob(
         [
             "src/ppx/**/*.h",
@@ -31,10 +31,11 @@ cc_library(
     ),
     copts = [
         "-std=c++14",
+        "-Wno-error=missing-braces",
+        "-Wno-error=unused-variable",
     ],
     defines = [
-        "PPX_LINUX",
-        "PPX_LINUX_XCB",
+        "PPX_GGP",
     ],
     includes = [
         "include",
@@ -51,5 +52,6 @@ cc_library(
         "@stb",
         "@tinyobjloader",
         "@xxHash",
+        "@YetiSDK",
     ],
 )
