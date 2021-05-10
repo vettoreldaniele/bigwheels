@@ -587,7 +587,7 @@ Result Device::ResolveQueryData(
         pDstData,
         static_cast<VkDeviceSize>(sizeof(uint64_t)),
         flags);
-    if (vkres != VK_SUCCESS) {
+    if ((vkres != VK_SUCCESS) && (vkres != VK_NOT_READY)) {
         return ppx::ERROR_API_FAILURE;
     }
     return ppx::SUCCESS;
