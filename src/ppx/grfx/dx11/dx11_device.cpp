@@ -5,6 +5,7 @@
 #include "ppx/grfx/dx11/dx11_gpu.h"
 #include "ppx/grfx/dx11/dx11_image.h"
 #include "ppx/grfx/dx11/dx11_instance.h"
+#include "ppx/grfx/dx11/dx11_query.h"
 #include "ppx/grfx/dx11/dx11_queue.h"
 #include "ppx/grfx/dx11/dx11_pipeline.h"
 #include "ppx/grfx/dx11/dx11_render_pass.h"
@@ -283,7 +284,12 @@ Result Device::AllocateObject(grfx::Queue** ppObject)
 
 Result Device::AllocateObject(grfx::QueryPool** ppObject)
 {
-    return ppx::ERROR_FAILED;
+    dx11::QueryPool* pObject = new dx11::QueryPool();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
 }
 
 Result Device::AllocateObject(grfx::RenderPass** ppObject)
@@ -383,10 +389,24 @@ Result Device::ResolveQueryData(
     uint64_t               dstDataSize,
     void*                  pDstData)
 {
-    return ppx::ERROR_FAILED;
+    uint32_t dstStride = (uint32_t)(dstDataSize / queryCount);
+    for (uint32_t i = 0; i < queryCount; ++i) {
+        uint32_t     queryIdx   = firstQuery + i;
+        ID3D11Query* pQuery     = ToApi(pQueryPool)->GetQuery(queryIdx);
+        uint64_t*    pQueryDest = (uint64_t*)pDstData + queryIdx;
+
+        HRESULT queryResult = S_FALSE;
+        while (queryResult == S_FALSE) {
+            queryResult = GetDxDeviceContext()->GetData(pQuery, pQueryDest, dstStride, 0);
+        }
+
+        if (queryResult != S_OK) {
+            return ppx::ERROR_FAILED;
+        }
+    }
+
+    return ppx::SUCCESS;
 }
-
-
 
 Result Device::GetStructuredBufferSRV(
     const grfx::Buffer*                                  pBuffer,

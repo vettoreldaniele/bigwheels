@@ -1,0 +1,57 @@
+cc_library(
+    name = "imgui_backends",
+    srcs = [
+        "@imgui//:backends/imgui_impl_glfw.cpp",
+        "@imgui//:backends/imgui_impl_vulkan.cpp",
+    ],
+    hdrs = [
+        "@imgui//:backends/imgui_impl_glfw.h",
+        "@imgui//:backends/imgui_impl_vulkan.h",
+    ],
+    deps = [
+        "@glfw",
+        "@imgui",
+    ],
+)
+
+cc_library(
+    name = "ppx",
+    srcs = glob(
+        [
+            "src/ppx/**/*.h",
+            "src/ppx/**/*.cpp",
+        ],
+        exclude = ["src/ppx/grfx/dx/**"],
+    ),
+    hdrs = glob(
+        [
+            "include/ppx/**/*.h",
+        ],
+        exclude = ["include/ppx/grfx/dx/**"],
+    ),
+    copts = [
+        "-std=c++14",
+        "-Wno-error=missing-braces",
+        "-Wno-error=unused-variable",
+    ],
+    defines = [
+        "PPX_GGP",
+    ],
+    includes = [
+        "include",
+        "src",
+    ],
+    deps = [
+        ":imgui_backends",
+        "@VulkanMemoryAllocator",
+        "@cpu_features",
+        "@glfw",
+        "@gli",
+        "@glm",
+        "@pcg32",
+        "@stb",
+        "@tinyobjloader",
+        "@xxHash",
+        "@YetiSDK",
+    ],
+)

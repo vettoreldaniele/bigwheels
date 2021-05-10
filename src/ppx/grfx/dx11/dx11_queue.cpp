@@ -16,6 +16,20 @@ Result Queue::CreateApiObjects(const grfx::internal::QueueCreateInfo* pCreateInf
 
     mDeviceContext = ToApi(GetDevice())->GetDxDeviceContext();
 
+    PPX_ASSERT_MSG(QUERY_FRAME_DELAY >= 1, "invalid frequency query delay");
+    for (uint32_t i = 0; i < MAX_QUERIES_IN_FLIGHT; ++i) {
+        D3D11_QUERY_DESC queryDesc = {};
+        queryDesc.Query            = D3D11_QUERY_TIMESTAMP_DISJOINT;
+        HRESULT hr                 = ToApi(GetDevice())->GetDxDevice()->CreateQuery(&queryDesc, &mFrequencyQuery[i]);
+        if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "ID3D11Device::CreateQuery failed");
+            return ppx::ERROR_API_FAILURE;
+        }
+    }
+
+    mReadFrequencyQuery  = 0;
+    mWriteFrequencyQuery = 0;
+
     return ppx::SUCCESS;
 }
 
@@ -30,18 +44,46 @@ Result Queue::WaitIdle()
 
 Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
 {
+    ID3D11DeviceContext* ctx = mDeviceContext.Get();
+    if (mWriteFrequencyQuery > QUERY_FRAME_DELAY) {
+        mReadFrequencyQuery++;
+    }
+
+    ctx->Begin(mFrequencyQuery[mWriteFrequencyQuery % MAX_QUERIES_IN_FLIGHT]);
+
     for (uint32_t cmdBufIndex = 0; cmdBufIndex < pSubmitInfo->commandBufferCount; ++cmdBufIndex) {
         const dx11::CommandBuffer* pCmdBuf = ToApi(pSubmitInfo->ppCommandBuffers[cmdBufIndex]);
-        const dx11::CommandList& cmdList = pCmdBuf->GetCommandList();
+        const dx11::CommandList&   cmdList = pCmdBuf->GetCommandList();
         cmdList.Execute(mDeviceContext.Get());
     }
+
+    ctx->End(mFrequencyQuery[mWriteFrequencyQuery % MAX_QUERIES_IN_FLIGHT]);
+    mWriteFrequencyQuery++;
 
     return ppx::SUCCESS;
 }
 
 Result Queue::GetTimestampFrequency(uint64_t* pFrequency) const
 {
-    return ppx::ERROR_FAILED;
+    ID3D11DeviceContext* ctx = mDeviceContext.Get();
+    if (mWriteFrequencyQuery <= QUERY_FRAME_DELAY) {
+        *pFrequency = 0;
+        return ppx::SUCCESS;
+    }
+    D3D11_QUERY_DATA_TIMESTAMP_DISJOINT queryData = {};
+
+    HRESULT queryResult = S_FALSE;
+    while (queryResult == S_FALSE) {
+        queryResult = GetDxDeviceContext()->GetData(mFrequencyQuery[mReadFrequencyQuery % MAX_QUERIES_IN_FLIGHT], &queryData, sizeof(queryData), 0);
+
+        if (queryResult != S_OK) {
+            return ppx::ERROR_FAILED;
+        }
+    }
+
+    *pFrequency = queryData.Frequency;
+
+    return ppx::SUCCESS;
 }
 
 } // namespace dx11

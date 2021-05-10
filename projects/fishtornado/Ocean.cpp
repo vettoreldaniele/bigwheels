@@ -272,7 +272,6 @@ void Ocean::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
         pCmd->BindIndexBuffer(mBeamModel);
         pCmd->BindVertexBuffers(mBeamModel);
-       // DX11_TODO:  pCmd->DrawIndexed(mBeamModel->GetIndexCount(), 1);
         pCmd->DrawIndexed(mBeamModel->GetIndexCount(), 1);
     }
 }

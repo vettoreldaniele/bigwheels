@@ -297,7 +297,6 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, m1x1BlackTexture));
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampler(RENDER_SHADOW_SAMPLER_REGISTER, 0, mClampedSampler));
 
-#if ENABLE_QUERIES
         // Timestamp query pool
         grfx::QueryPoolCreateInfo queryPoolCreateInfo = {};
         queryPoolCreateInfo.type                      = grfx::QUERY_TYPE_TIMESTAMP;
@@ -309,7 +308,6 @@ void FishTornadoApp::SetupPerFrame()
         queryPoolCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
         queryPoolCreateInfo.count = 1;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.pipelineStatsQuery));
-#endif //ENABLE_QUERIES
     }
 }
 
@@ -463,7 +461,7 @@ void FishTornadoApp::Render()
     uint32_t           frameIndex     = GetInFlightFrameIndex();
     PerFrame&          frame          = mPerFrame[frameIndex];
     uint32_t           prevFrameIndex = GetPreviousInFlightFrameIndex();
-    PerFrame&          prevFrame      = mPerFrame[frameIndex];
+    PerFrame&          prevFrame      = mPerFrame[prevFrameIndex];
     grfx::SwapchainPtr swapchain      = GetSwapchain();
 
     UpdateTime();
@@ -482,7 +480,6 @@ void FishTornadoApp::Render()
     // Wait for and reset render complete fence
     PPX_CHECKED_CALL(ppxres = prevFrame.renderCompleteFence->WaitAndReset());
 
-#if ENABLE_QUERIES
     // Read query results
     if (GetFrameCount() > 1) {
         uint64_t data[2] = {0};
@@ -493,17 +490,12 @@ void FishTornadoApp::Render()
     }
     // Reset query
     frame.timestampQuery->Reset(0, 2);
-#else
-    mTotalGpuFrameTime = 0;
-#endif //ENABLE_QUERIES
 
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
         // Write start timestamp
-#if ENABLE_QUERIES
         frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.timestampQuery, 0);
-#endif //ENABLE_QUERIES
 
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
         mFlocking.CopyConstantsToGpu(frameIndex, frame.cmd);
@@ -563,13 +555,9 @@ void FishTornadoApp::Render()
 
             mShark.DrawForward(frameIndex, frame.cmd);
 
-#if ENABLE_QUERIES
             frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
-#endif //ENABLE_QUERIES
             mFlocking.DrawForward(frameIndex, frame.cmd);
-#if ENABLE_QUERIES
             frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
-#endif //ENABLE_QUERIES
 
             mOcean.DrawForward(frameIndex, frame.cmd);
 
@@ -589,9 +577,7 @@ void FishTornadoApp::Render()
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
 
         // Write end timestamp
-#if ENABLE_QUERIES
         frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.timestampQuery, 1);
-#endif //ENABLE_QUERIES
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
