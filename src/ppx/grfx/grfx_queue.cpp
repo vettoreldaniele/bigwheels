@@ -10,7 +10,7 @@ Result Queue::CreateCommandBuffer(
     uint32_t              resourceDescriptorCount,
     uint32_t              samplerDescriptorCount)
 {
-    std::lock_guard lock(mCommandSetMutex);
+    std::lock_guard<std::mutex> lock(mCommandSetMutex);
 
     CommandSet set = {};
 
@@ -37,7 +37,7 @@ Result Queue::CreateCommandBuffer(
 
 void Queue::DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)
 {
-    std::lock_guard lock(mCommandSetMutex);
+    std::lock_guard<std::mutex> lock(mCommandSetMutex);
 
     auto it = std::find_if(
         std::begin(mCommandSets),
