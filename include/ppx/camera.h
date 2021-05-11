@@ -24,7 +24,7 @@ public:
 
     virtual ~Camera() {}
 
-    virtual void LookAt(const float3& eye, const float3& center, const float3& up = PPX_CAMERA_DEFAULT_WORLD_UP);
+    virtual void LookAt(const float3& eye, const float3& target, const float3& up = PPX_CAMERA_DEFAULT_WORLD_UP);
 
     const float3& GetEyePosition() const { return mEyePosition; }
 
@@ -42,7 +42,7 @@ protected:
     float            mNearClip             = PPX_CAMERA_DEFAULT_NEAR_CLIP;
     float            mFarClip              = PPX_CAMERA_DEFAULT_FAR_CLIP;
     float3           mEyePosition          = PPX_CAMERA_DEFAULT_EYE_POSITION;
-    float3           mLookAt               = PPX_CAMERA_DEFAULT_LOOK_AT;
+    float3           mTarget               = PPX_CAMERA_DEFAULT_LOOK_AT;
     float3           mViewDirection        = PPX_CAMERA_DEFAULT_VIEW_DIRECTION;
     float3           mWorldUp              = PPX_CAMERA_DEFAULT_WORLD_UP;
     mutable float4x4 mViewMatrix           = float4x4(1);
@@ -68,7 +68,7 @@ public:
 
     PerspCamera(
         const float3& eye,
-        const float3& center,
+        const float3& target,
         const float3& up,
         float         horizFovDegrees,
         float         aspect,
@@ -148,7 +148,7 @@ public:
 
     ArcballCamera(
         const float3& eye,
-        const float3& center,
+        const float3& target,
         const float3& up,
         float         horizFovDegrees,
         float         aspect,
@@ -157,7 +157,7 @@ public:
 
     virtual ~ArcballCamera() {}
 
-    void LookAt(const float3& eye, const float3& center, const float3& up = PPX_CAMERA_DEFAULT_WORLD_UP) override;
+    void LookAt(const float3& eye, const float3& target, const float3& up = PPX_CAMERA_DEFAULT_WORLD_UP) override;
 
     //! @fn void Rotate(const float2& prevPos, const float2& curPos)
     //!
