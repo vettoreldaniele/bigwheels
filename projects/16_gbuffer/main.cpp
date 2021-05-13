@@ -784,7 +784,7 @@ void ProjApp::UpdateConstants()
         mCpuSceneConstants->UnmapMemory();
 
         grfx::BufferToBufferCopyInfo copyInfo = {mCpuSceneConstants->GetSize()};
-        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuSceneConstants, mGpuSceneConstants));
+        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuSceneConstants, mGpuSceneConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER));
     }
 
     // Light constants
@@ -815,7 +815,7 @@ void ProjApp::UpdateConstants()
         mCpuLightConstants->UnmapMemory();
 
         grfx::BufferToBufferCopyInfo copyInfo = {mCpuLightConstants->GetSize()};
-        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuLightConstants, mGpuLightConstants);
+        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuLightConstants, mGpuLightConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
     }
 
     // Model constants

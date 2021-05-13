@@ -62,7 +62,9 @@ public:
     Result CopyBufferToBuffer(
         const grfx::BufferToBufferCopyInfo* pCopyInfo,
         grfx::Buffer*                       pSrcBuffer,
-        grfx::Buffer*                       pDstBuffer);
+        grfx::Buffer*                       pDstBuffer,
+        grfx::ResourceState                 stateBefore,
+        grfx::ResourceState                 stateAfter);
 
     // In pace copy of buffer to image
     Result CopyBufferToImage(

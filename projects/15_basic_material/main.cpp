@@ -1033,7 +1033,7 @@ void ProjApp::Render()
         mCpuSceneConstants->UnmapMemory();
 
         grfx::BufferToBufferCopyInfo copyInfo = {mCpuSceneConstants->GetSize()};
-        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuSceneConstants, mGpuSceneConstants);
+        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuSceneConstants, mGpuSceneConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
     }
 
     // Lights
@@ -1060,7 +1060,7 @@ void ProjApp::Render()
         mCpuLightConstants->UnmapMemory();
 
         grfx::BufferToBufferCopyInfo copyInfo = {mCpuLightConstants->GetSize()};
-        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuLightConstants, mGpuLightConstants);
+        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuLightConstants, mGpuLightConstants, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE);
     }
 
     // MaterialData constatns
@@ -1103,7 +1103,7 @@ void ProjApp::Render()
         mCpuMaterialConstants->UnmapMemory();
 
         grfx::BufferToBufferCopyInfo copyInfo = {mCpuMaterialConstants->GetSize()};
-        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuMaterialConstants, mGpuMaterialConstants);
+        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuMaterialConstants, mGpuMaterialConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
     }
 
     // Update model constants
@@ -1131,7 +1131,7 @@ void ProjApp::Render()
         mCpuModelConstants->UnmapMemory();
 
         grfx::BufferToBufferCopyInfo copyInfo = {mCpuModelConstants->GetSize()};
-        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants);
+        GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
     }
 
     // Update IBL environment constants

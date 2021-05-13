@@ -37,6 +37,7 @@ Result Model::CreateApiObjects(const grfx::ModelCreateInfo* pCreateInfo)
             bufferCreateInfo.usageFlags.bits.indexBuffer = true;
             bufferCreateInfo.usageFlags.bits.transferDst = true;
             bufferCreateInfo.memoryUsage                 = pCreateInfo->indexBufferMemoryUsage;
+            bufferCreateInfo.initialState                = grfx::RESOURCE_STATE_INDEX_BUFFER;
             bufferCreateInfo.ownership                   = grfx::OWNERSHIP_EXCLUSIVE;
 
             Result ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mIndexBuffer);
@@ -62,6 +63,7 @@ Result Model::CreateApiObjects(const grfx::ModelCreateInfo* pCreateInfo)
                 bufferCreateInfo.usageFlags.bits.vertexBuffer = true;
                 bufferCreateInfo.usageFlags.bits.transferDst  = true;
                 bufferCreateInfo.memoryUsage                  = pCreateInfo->vertexBuffers[i].memoryUsage;
+                bufferCreateInfo.initialState                 = grfx::RESOURCE_STATE_VERTEX_BUFFER;
                 bufferCreateInfo.ownership                    = grfx::OWNERSHIP_EXCLUSIVE;
 
                 Result ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mVertexBuffers[i].buffer);
@@ -173,7 +175,7 @@ uint32_t Model::GetVertexCount() const
     if ((bufferIndex != PPX_VALUE_IGNORED) && mVertexBuffers[bufferIndex].buffer) {
         uint32_t elementSize = mVertexBuffers[bufferIndex].binding.GetStride();
         uint64_t bufferSize  = mVertexBuffers[bufferIndex].buffer->GetSize();
-        vertexCount = static_cast<uint32_t>(bufferSize / elementSize);
+        vertexCount          = static_cast<uint32_t>(bufferSize / elementSize);
     }
     return vertexCount;
 }

@@ -181,7 +181,7 @@ void Entity::UpdateConstants(ppx::grfx::Queue* pQueue)
     mCpuModelConstants->UnmapMemory();
 
     grfx::BufferToBufferCopyInfo copyInfo = {mCpuModelConstants->GetSize()};
-    PPX_CHECKED_CALL(ppxres = pQueue->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants));
+    PPX_CHECKED_CALL(ppxres = pQueue->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER));
 }
 
 void Entity::Draw(ppx::grfx::DescriptorSet* pSceneDataSet, ppx::grfx::CommandBuffer* pCmd)

@@ -66,7 +66,9 @@ void Queue::DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)
 Result Queue::CopyBufferToBuffer(
     const grfx::BufferToBufferCopyInfo* pCopyInfo,
     grfx::Buffer*                       pSrcBuffer,
-    grfx::Buffer*                       pDstBuffer)
+    grfx::Buffer*                       pDstBuffer,
+    grfx::ResourceState                 stateBefore,
+    grfx::ResourceState                 stateAfter)
 {
     grfx::ScopeDestroyer SCOPED_DESTROYER(GetDevice());
 
@@ -85,7 +87,9 @@ Result Queue::CopyBufferToBuffer(
             return ppxres;
         }
 
+        cmd->BufferResourceBarrier(pDstBuffer, stateBefore, grfx::RESOURCE_STATE_COPY_DST);
         cmd->CopyBufferToBuffer(pCopyInfo, pSrcBuffer, pDstBuffer);
+        cmd->BufferResourceBarrier(pDstBuffer, grfx::RESOURCE_STATE_COPY_DST, stateAfter);
 
         ppxres = cmd->End();
         if (Failed(ppxres)) {

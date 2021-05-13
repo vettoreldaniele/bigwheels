@@ -188,7 +188,7 @@ Result TextDraw::CreateApiObjects(const grfx::TextDrawCreateInfo* pCreateInfo)
         createInfo.usageFlags.bits.transferDst = true;
         createInfo.usageFlags.bits.indexBuffer = true;
         createInfo.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
-        createInfo.initialState                = grfx::RESOURCE_STATE_COPY_DST;
+        createInfo.initialState                = grfx::RESOURCE_STATE_INDEX_BUFFER;
 
         ppxres = GetDevice()->CreateBuffer(&createInfo, &mGpuIndexBuffer);
         if (Failed(ppxres)) {
@@ -221,7 +221,7 @@ Result TextDraw::CreateApiObjects(const grfx::TextDrawCreateInfo* pCreateInfo)
         createInfo.usageFlags.bits.transferDst  = true;
         createInfo.usageFlags.bits.vertexBuffer = true;
         createInfo.memoryUsage                  = grfx::MEMORY_USAGE_GPU_ONLY;
-        createInfo.initialState                 = grfx::RESOURCE_STATE_COPY_DST;
+        createInfo.initialState                 = grfx::RESOURCE_STATE_VERTEX_BUFFER;
 
         ppxres = GetDevice()->CreateBuffer(&createInfo, &mGpuVertexBuffer);
         if (Failed(ppxres)) {
@@ -360,10 +360,10 @@ Result TextDraw::CreateApiObjects(const grfx::TextDrawCreateInfo* pCreateInfo)
         createInfo.vertexInputState.bindings[0]       = vertexBinding;
         createInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         createInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
-        createInfo.cullMode                           = grfx::CULL_MODE_NONE;
+        createInfo.cullMode                           = grfx::CULL_MODE_BACK;
         createInfo.frontFace                          = grfx::FRONT_FACE_CCW;
-        createInfo.depthReadEnable                    = true;
-        createInfo.depthWriteEnable                   = true;
+        createInfo.depthReadEnable                    = false;
+        createInfo.depthWriteEnable                   = false;
         createInfo.blendModes[0]                      = grfx::BLEND_MODE_PREMULT_ALPHA;
         createInfo.outputState.renderTargetCount      = 1;
         createInfo.outputState.renderTargetFormats[0] = pCreateInfo->renderTargetFormat;
@@ -544,13 +544,13 @@ ppx::Result TextDraw::UploadToGpu(grfx::Queue* pQueue)
     copyInfo.srcBuffer.offset             = 0;
     copyInfo.dstBuffer.offset             = 0;
 
-    ppx::Result ppxres = pQueue->CopyBufferToBuffer(&copyInfo, mCpuIndexBuffer, mGpuIndexBuffer);
+    ppx::Result ppxres = pQueue->CopyBufferToBuffer(&copyInfo, mCpuIndexBuffer, mGpuIndexBuffer, grfx::RESOURCE_STATE_INDEX_BUFFER, grfx::RESOURCE_STATE_INDEX_BUFFER);
     if (Failed(ppxres)) {
         return ppxres;
     }
 
     copyInfo.size = mCpuVertexBuffer->GetSize();
-    ppxres        = pQueue->CopyBufferToBuffer(&copyInfo, mCpuVertexBuffer, mGpuVertexBuffer);
+    ppxres        = pQueue->CopyBufferToBuffer(&copyInfo, mCpuVertexBuffer, mGpuVertexBuffer, grfx::RESOURCE_STATE_VERTEX_BUFFER, grfx::RESOURCE_STATE_VERTEX_BUFFER);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -565,10 +565,14 @@ void TextDraw::UploadToGpu(grfx::CommandBuffer* pCommandBuffer)
     copyInfo.srcBuffer.offset             = 0;
     copyInfo.dstBuffer.offset             = 0;
 
+    pCommandBuffer->BufferResourceBarrier(mGpuIndexBuffer, grfx::RESOURCE_STATE_INDEX_BUFFER, grfx::RESOURCE_STATE_COPY_DST);
     pCommandBuffer->CopyBufferToBuffer(&copyInfo, mCpuIndexBuffer, mGpuIndexBuffer);
+    pCommandBuffer->BufferResourceBarrier(mGpuIndexBuffer, grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_INDEX_BUFFER);
 
     copyInfo.size = mTextLength * kGlyphVerticesSize;
+    pCommandBuffer->BufferResourceBarrier(mGpuVertexBuffer, grfx::RESOURCE_STATE_VERTEX_BUFFER, grfx::RESOURCE_STATE_COPY_DST);
     pCommandBuffer->CopyBufferToBuffer(&copyInfo, mCpuVertexBuffer, mGpuVertexBuffer);
+    pCommandBuffer->BufferResourceBarrier(mGpuVertexBuffer, grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_VERTEX_BUFFER);
 }
 
 void TextDraw::PrepareDraw(const float4x4& MVP, grfx::CommandBuffer* pCommandBuffer)

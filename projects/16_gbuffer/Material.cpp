@@ -142,7 +142,7 @@ ppx::Result Material::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool
 
         grfx::BufferToBufferCopyInfo copyInfo = {tmpCpuMaterialConstants->GetSize()};
 
-        ppxres = pQueue->CopyBufferToBuffer(&copyInfo, tmpCpuMaterialConstants, mMaterialConstants);
+        ppxres = pQueue->CopyBufferToBuffer(&copyInfo, tmpCpuMaterialConstants, mMaterialConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
         if (Failed(ppxres)) {
             return ppxres;
         }

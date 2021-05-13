@@ -896,7 +896,7 @@ Result CreateModelFromGeometry(
             copyInfo.size = geoBufferSize;
 
             // Copy to GPU buffer
-            ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetModel->GetIndexBuffer());
+            ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetModel->GetIndexBuffer(), grfx::RESOURCE_STATE_INDEX_BUFFER, grfx::RESOURCE_STATE_INDEX_BUFFER);
             if (Failed(ppxres)) {
                 return ppxres;
             }
@@ -920,7 +920,7 @@ Result CreateModelFromGeometry(
             grfx::BufferPtr targetBuffer = targetModel->GetVertexBuffer(i);
 
             // Copy to GPU buffer
-            ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetBuffer);
+            ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetBuffer, grfx::RESOURCE_STATE_VERTEX_BUFFER, grfx::RESOURCE_STATE_VERTEX_BUFFER);
             if (Failed(ppxres)) {
                 return ppxres;
             }
