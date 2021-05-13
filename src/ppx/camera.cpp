@@ -20,15 +20,6 @@ Camera::Camera(float nearClip, float farClip, bool pixelAligned)
 
 void Camera::LookAt(const float3& eye, const float3& target, const float3& up)
 {
-    //const float3 yAxis    = mPixelAligned ? float3(1, -1, 1) : float3(1, 1, 1);
-    //mEyePosition          = eye;
-    //mLookAt               = center;
-    //mWorldUp              = up;
-    //mViewDirection        = glm::normalize(mEyePosition - mLookAt);
-    //mViewMatrix           = glm::scale(yAxis) * glm::lookAt(mEyePosition, mLookAt, mWorldUp);
-    //mInverseViewMatrix    = glm::inverse(mViewMatrix);
-    //mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
-
     const float3 yAxis    = mPixelAligned ? float3(1, -1, 1) : float3(1, 1, 1);
     mEyePosition          = eye;
     mTarget               = target;
