@@ -1,6 +1,7 @@
 #include "ppx/string_util.h"
 
 #include <algorithm>
+#include <cctype>
 
 namespace ppx {
 namespace string_util {

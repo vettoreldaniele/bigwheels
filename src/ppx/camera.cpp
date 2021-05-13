@@ -18,7 +18,7 @@ Camera::Camera(float nearClip, float farClip, bool pixelAligned)
 {
 }
 
-void Camera::LookAt(const float3& eye, const float3& center, const float3& up)
+void Camera::LookAt(const float3& eye, const float3& target, const float3& up)
 {
     //const float3 yAxis    = mPixelAligned ? float3(1, -1, 1) : float3(1, 1, 1);
     //mEyePosition          = eye;
@@ -31,10 +31,10 @@ void Camera::LookAt(const float3& eye, const float3& center, const float3& up)
 
     const float3 yAxis    = mPixelAligned ? float3(1, -1, 1) : float3(1, 1, 1);
     mEyePosition          = eye;
-    mLookAt               = center;
+    mTarget               = target;
     mWorldUp              = up;
-    mViewDirection        = glm::normalize(mEyePosition - mLookAt);
-    mViewMatrix           = glm::scale(yAxis) * glm::lookAt(mEyePosition, mLookAt, mWorldUp);
+    mViewDirection        = glm::normalize(mEyePosition - mTarget);
+    mViewMatrix           = glm::scale(yAxis) * glm::lookAt(mEyePosition, mTarget, mWorldUp);
     mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
     mInverseViewMatrix    = glm::inverse(mViewMatrix);
 }
@@ -54,7 +54,7 @@ float3 Camera::WorldToViewVector(const float3& worldVector) const
 void Camera::MoveAlongViewDirection(float distance)
 {
     float3 eyePosition = mEyePosition + (distance * -mViewDirection);
-    LookAt(eyePosition, mLookAt, mWorldUp);
+    LookAt(eyePosition, mTarget, mWorldUp);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ PerspCamera::PerspCamera(
 
 PerspCamera::PerspCamera(
     const float3& eye,
-    const float3& center,
+    const float3& target,
     const float3& up,
     float         horizFovDegrees,
     float         aspect,
@@ -88,7 +88,7 @@ PerspCamera::PerspCamera(
     float         farClip)
     : Camera(nearClip, farClip)
 {
-    LookAt(eye, center, up);
+    LookAt(eye, target, up);
 
     SetPerspective(
         horizFovDegrees,
@@ -167,9 +167,9 @@ void PerspCamera::FitToBoundingBox(const float3& bboxMinWorldSpace, const float3
 {
     float3   min             = bboxMinWorldSpace;
     float3   max             = bbxoMaxWorldSpace;
-    float3   center          = (min + max) / 2.0f;
+    float3   target          = (min + max) / 2.0f;
     float3   up              = glm::normalize(mInverseViewMatrix * float4(0, 1, 0, 0));
-    float4x4 viewSpaceMatrix = glm::lookAt(mEyePosition, center, up);
+    float4x4 viewSpaceMatrix = glm::lookAt(mEyePosition, target, up);
 
     // World space oriented bounding box
     float3 obb[8] = {
@@ -205,11 +205,11 @@ void PerspCamera::FitToBoundingBox(const float3& bboxMinWorldSpace, const float3
     float dist = rad / tan(glm::radians(fov / 2.0f));
 
     // Calculate eye position
-    float3 dir = glm::normalize(mEyePosition - center);
-    float3 eye = center + (dist + mNearClip) * dir;
+    float3 dir = glm::normalize(mEyePosition - target);
+    float3 eye = target + (dist + mNearClip) * dir;
 
     // Adjust camera look at
-    LookAt(eye, center, up);
+    LookAt(eye, target, up);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -282,13 +282,13 @@ ArcballCamera::ArcballCamera(
 
 ArcballCamera::ArcballCamera(
     const float3& eye,
-    const float3& center,
+    const float3& target,
     const float3& up,
     float         horizFovDegrees,
     float         aspect,
     float         nearClip,
     float         farClip)
-    : PerspCamera(eye, center, up, horizFovDegrees, aspect, nearClip, farClip)
+    : PerspCamera(eye, target, up, horizFovDegrees, aspect, nearClip, farClip)
 {
 }
 
@@ -301,17 +301,17 @@ void ArcballCamera::UpdateCamera()
     mEyePosition = mInverseViewMatrix * float4(0, 0, 0, 1);
 }
 
-void ArcballCamera::LookAt(const float3& eye, const float3& center, const float3& up)
+void ArcballCamera::LookAt(const float3& eye, const float3& target, const float3& up)
 {
-    Camera::LookAt(eye, center, up);
+    Camera::LookAt(eye, target, up);
 
-    float3 viewDir = center - eye;
+    float3 viewDir = target - eye;
     float3 zAxis   = glm::normalize(viewDir);
     float3 xAxis   = glm::normalize(glm::cross(zAxis, glm::normalize(up)));
     float3 yAxis   = glm::normalize(glm::cross(xAxis, zAxis));
     xAxis          = glm::normalize(glm::cross(zAxis, yAxis));
 
-    mCenterTranslationMatrix = glm::inverse(glm::translate(center));
+    mCenterTranslationMatrix = glm::inverse(glm::translate(target));
     mTranslationMatrix       = glm::translate(float3(0.0f, 0.0f, -glm::length(viewDir)));
     mRotationQuat            = glm::normalize(glm::quat_cast(glm::transpose(glm::mat3(xAxis, yAxis, -zAxis))));
 
