@@ -39,12 +39,13 @@ Bitmap& Bitmap::operator=(const Bitmap& rhs)
 
 void Bitmap::InternalCtor()
 {
-    mWidth       = 0;
-    mHeight      = 0;
-    mFormat      = Bitmap::FORMAT_UNDEFINED;
-    mPixelStride = 0;
-    mRowStride   = 0;
-    mData        = nullptr;
+    mWidth        = 0;
+    mHeight       = 0;
+    mFormat       = Bitmap::FORMAT_UNDEFINED;
+    mChannelCount = 0;
+    mPixelStride  = 0;
+    mRowStride    = 0;
+    mData         = nullptr;
     mInternalStorage.clear();
 }
 
@@ -54,12 +55,13 @@ Result Bitmap::InternalInitialize(uint32_t width, uint32_t height, Bitmap::Forma
         return ppx::ERROR_IMAGE_INVALID_FORMAT;
     }
 
-    mWidth       = width;
-    mHeight      = height;
-    mFormat      = format;
-    mPixelStride = Bitmap::FormatSize(format);
-    mRowStride   = width * Bitmap::FormatSize(format);
-    mData        = pExternalStorage;
+    mWidth        = width;
+    mHeight       = height;
+    mFormat       = format;
+    mChannelCount = Bitmap::ChannelCount(format);
+    mPixelStride  = Bitmap::FormatSize(format);
+    mRowStride    = width * Bitmap::FormatSize(format);
+    mData         = pExternalStorage;
 
     if (IsNull(mData)) {
         size_t n = Bitmap::StorageFootprint(width, height, format);
@@ -79,11 +81,12 @@ Result Bitmap::InternalInitialize(uint32_t width, uint32_t height, Bitmap::Forma
 Result Bitmap::InternalCopy(const Bitmap& obj)
 {
     // Copy properties
-    mWidth       = obj.mWidth;
-    mHeight      = obj.mHeight;
-    mFormat      = obj.mFormat;
-    mPixelStride = obj.mPixelStride;
-    mRowStride   = obj.mRowStride;
+    mWidth        = obj.mWidth;
+    mHeight       = obj.mHeight;
+    mFormat       = obj.mFormat;
+    mChannelCount = obj.mChannelCount;
+    mPixelStride  = obj.mPixelStride;
+    mRowStride    = obj.mRowStride;
 
     // Allocate storage
     size_t footprint = Bitmap::StorageFootprint(mWidth, mHeight, mFormat);
@@ -637,7 +640,7 @@ Result Bitmap::LoadFile(const fs::path& path, Bitmap* pBitmap)
 
 Result Bitmap::SaveFilePNG(const fs::path& path, const Bitmap* pBitmap)
 {
-    int res = stbi_write_png(path.c_str(), pBitmap->GetWidth(), pBitmap->GetHeight(), 4, pBitmap->GetData(), pBitmap->GetRowStride());
+    int res = stbi_write_png(path.c_str(), pBitmap->GetWidth(), pBitmap->GetHeight(), pBitmap->GetChannelCount(), pBitmap->GetData(), pBitmap->GetRowStride());
     if (res == 0) {
         return ppx::ERROR_IMAGE_FILE_SAVE_FAILED;
     }

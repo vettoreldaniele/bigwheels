@@ -18,9 +18,9 @@ namespace ppx {
 class Camera
 {
 public:
-    Camera();
+    Camera(bool pixelAligned = false);
 
-    Camera(float nearClip, float farClip);
+    Camera(float nearClip, float farClip, bool pixelAligned = false);
 
     virtual ~Camera() {}
 
@@ -38,6 +38,7 @@ public:
     void MoveAlongViewDirection(float distance);
 
 protected:
+    bool             mPixelAligned         = false;
     float            mAspect               = 0;
     float            mNearClip             = PPX_CAMERA_DEFAULT_NEAR_CLIP;
     float            mFarClip              = PPX_CAMERA_DEFAULT_FAR_CLIP;
@@ -60,13 +61,13 @@ class PerspCamera
 public:
     PerspCamera();
 
-    PerspCamera(
+    explicit PerspCamera(
         float horizFovDegrees,
         float aspect,
         float nearClip = PPX_CAMERA_DEFAULT_NEAR_CLIP,
         float farClip  = PPX_CAMERA_DEFAULT_FAR_CLIP);
 
-    PerspCamera(
+    explicit PerspCamera(
         const float3& eye,
         const float3& center,
         const float3& up,
@@ -74,6 +75,19 @@ public:
         float         aspect,
         float         nearClip = PPX_CAMERA_DEFAULT_NEAR_CLIP,
         float         farClip  = PPX_CAMERA_DEFAULT_FAR_CLIP);
+
+    explicit PerspCamera(
+        uint32_t pixelWidth,
+        uint32_t pixelHeight,
+        float    horizFovDegrees = 60.0f);
+
+    // Pixel aligned camera
+    explicit PerspCamera(
+        uint32_t pixelWidth,
+        uint32_t pixelHeight,
+        float    horizFovDegrees,
+        float    nearClip,
+        float    farClip);
 
     virtual ~PerspCamera();
 
@@ -86,7 +100,6 @@ public:
     void FitToBoundingBox(const float3& bboxMinWorldSpace, const float3& bbxoMaxWorldSpace);
 
 private:
-    bool  mPixelAligned    = false;
     float mHorizFovDegrees = 60.0f;
     float mVertFovDegrees  = 36.98f;
     float mAspect          = 1.0f;

@@ -39,7 +39,9 @@ class ShaderModule;
 class ShaderProgram;
 class Surface;
 class Swapchain;
+class TextDraw;
 class Texture;
+class TextureFont;
 
 class DepthStencilView;
 class RenderTargetView;
@@ -83,7 +85,9 @@ using ShaderModulePtr        = ObjPtr<ShaderModule>;
 using ShaderProgramPtr       = ObjPtr<ShaderProgram>;
 using SurfacePtr             = ObjPtr<Surface>;
 using SwapchainPtr           = ObjPtr<Swapchain>;
+using TextDrawPtr            = ObjPtr<TextDraw>;
 using TexturePtr             = ObjPtr<Texture>;
+using TextureFontPtr         = ObjPtr<TextureFont>;
 
 using DepthStencilViewPtr = ObjPtr<DepthStencilView>;
 using RenderTargetViewPtr = ObjPtr<RenderTargetView>;

@@ -16,6 +16,7 @@
 #include "ppx/grfx/grfx_shader.h"
 #include "ppx/grfx/grfx_swapchain.h"
 #include "ppx/grfx/grfx_sync.h"
+#include "ppx/grfx/grfx_text_draw.h"
 #include "ppx/grfx/grfx_texture.h"
 
 namespace ppx {
@@ -125,8 +126,14 @@ public:
     Result CreateSwapchain(const grfx::SwapchainCreateInfo* pCreateInfo, grfx::Swapchain** ppSwapchain);
     void   DestroySwapchain(const grfx::Swapchain* pSwapchain);
 
+    Result CreateTextDraw(const grfx::TextDrawCreateInfo* pCreateInfo, grfx::TextDraw** ppTextDraw);
+    void   DestroyTextDraw(const grfx::TextDraw* pTextDraw);
+
     Result CreateTexture(const grfx::TextureCreateInfo* pCreateInfo, grfx::Texture** ppTexture);
     void   DestroyTexture(const grfx::Texture* pTexture);
+
+    Result CreateTextureFont(const grfx::TextureFontCreateInfo* pCreateInfo, grfx::TextureFont** ppTextureFont);
+    void   DestroyTextureFont(const grfx::TextureFont* pTextureFont);
 
     // See comment section for grfx::internal::CommandBufferCreateInfo for
     // details about 'resourceDescriptorCount' and 'samplerDescriptorCount'.
@@ -196,7 +203,9 @@ protected:
     virtual Result AllocateObject(grfx::DrawPass** ppObject);
     virtual Result AllocateObject(grfx::FullscreenQuad** ppObject);
     virtual Result AllocateObject(grfx::Model** ppObject);
+    virtual Result AllocateObject(grfx::TextDraw** ppObject);
     virtual Result AllocateObject(grfx::Texture** ppObject);
+    virtual Result AllocateObject(grfx::TextureFont** ppObject);
 
     template <
         typename ObjectT,
@@ -243,7 +252,9 @@ protected:
     std::vector<grfx::ShaderProgramPtr>       mShaderPrograms;
     std::vector<grfx::StorageImageViewPtr>    mStorageImageViews;
     std::vector<grfx::SwapchainPtr>           mSwapchains;
+    std::vector<grfx::TextDrawPtr>            mTextDraws;
     std::vector<grfx::TexturePtr>             mTextures;
+    std::vector<grfx::TextureFontPtr>         mTextureFonts;
     std::vector<grfx::QueuePtr>               mGraphicsQueues;
     std::vector<grfx::QueuePtr>               mComputeQueues;
     std::vector<grfx::QueuePtr>               mTransferQueues;

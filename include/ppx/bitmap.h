@@ -62,6 +62,7 @@ public:
     uint32_t       GetWidth() const { return mWidth; }
     uint32_t       GetHeight() const { return mHeight; }
     Bitmap::Format GetFormat() const { return mFormat; };
+    uint32_t       GetChannelCount() const { return mChannelCount; }
     uint32_t       GetPixelStride() const { return mPixelStride; }
     uint32_t       GetRowStride() const { return mRowStride; }
     char*          GetData() const { return mData; }
@@ -172,6 +173,7 @@ private:
     uint32_t          mWidth           = 0;
     uint32_t          mHeight          = 0;
     Bitmap::Format    mFormat          = Bitmap::FORMAT_UNDEFINED;
+    uint32_t          mChannelCount    = 0;
     uint32_t          mPixelStride     = 0;
     uint32_t          mRowStride       = 0;
     char*             mData            = nullptr;

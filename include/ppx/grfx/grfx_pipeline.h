@@ -123,6 +123,7 @@ struct BlendAttachmentState
     static grfx::BlendAttachmentState BlendModeAlpha();
     static grfx::BlendAttachmentState BlendModeOver();
     static grfx::BlendAttachmentState BlendModeUnder();
+    static grfx::BlendAttachmentState BlendModePremultAlpha();
 };
 
 struct ColorBlendState

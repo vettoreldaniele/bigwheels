@@ -136,6 +136,7 @@ list(
     ${INC_DIR}/ppx/bitmap.h
     ${INC_DIR}/ppx/bounding_volume.h
     ${INC_DIR}/ppx/camera.h
+    ${INC_DIR}/ppx/font.h
     ${INC_DIR}/ppx/fs.h
     ${INC_DIR}/ppx/geometry.h
     ${INC_DIR}/ppx/graphics_util.h
@@ -163,6 +164,7 @@ list(
     ${SRC_DIR}/ppx/bitmap.cpp
     ${SRC_DIR}/ppx/bounding_volume.cpp
     ${SRC_DIR}/ppx/camera.cpp
+    ${SRC_DIR}/ppx/font.cpp
     ${SRC_DIR}/ppx/geometry.cpp
     ${SRC_DIR}/ppx/graphics_util.cpp
     ${SRC_DIR}/ppx/headless_application.cpp
@@ -206,6 +208,7 @@ list(
     ${INC_DIR}/ppx/grfx/grfx_shader.h
     ${INC_DIR}/ppx/grfx/grfx_swapchain.h
     ${INC_DIR}/ppx/grfx/grfx_sync.h
+    ${INC_DIR}/ppx/grfx/grfx_text_draw.h
     ${INC_DIR}/ppx/grfx/grfx_texture.h
     ${INC_DIR}/ppx/grfx/grfx_util.h
 )
@@ -232,6 +235,7 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_shader.cpp
     ${SRC_DIR}/ppx/grfx/grfx_swapchain.cpp
     ${SRC_DIR}/ppx/grfx/grfx_sync.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_text_draw.cpp
     ${SRC_DIR}/ppx/grfx/grfx_texture.cpp
     ${SRC_DIR}/ppx/grfx/grfx_util.cpp
 )
@@ -476,6 +480,7 @@ target_include_directories(
             ${PPX_THIRD_PARTY_DIR}/tinyobjloader
             ${PPX_THIRD_PARTY_DIR}/pcg32
             ${PPX_THIRD_PARTY_DIR}/xxHash
+            ${PPX_THIRD_PARTY_DIR}/utfcpp/source
 )
 
 # Include D3D12 directories if D3D12 is enabled

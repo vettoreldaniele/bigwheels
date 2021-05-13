@@ -27,7 +27,9 @@ void Device::Destroy()
     DestroyAllObjects(mDrawPasses);
     DestroyAllObjects(mFullscreenQuads);
     DestroyAllObjects(mModels);
+    DestroyAllObjects(mTextDraws);
     DestroyAllObjects(mTextures);
+    DestroyAllObjects(mTextureFonts);
 
     // Destroy render passes before images and views
     DestroyAllObjects(mRenderPasses);
@@ -180,9 +182,29 @@ Result Device::AllocateObject(grfx::Model** ppObject)
     return ppx::SUCCESS;
 }
 
+Result Device::AllocateObject(grfx::TextDraw** ppObject)
+{
+    grfx::TextDraw* pObject = new grfx::TextDraw();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
 Result Device::AllocateObject(grfx::Texture** ppObject)
 {
     grfx::Texture* pObject = new grfx::Texture();
+    if (IsNull(pObject)) {
+        return ppx::ERROR_ALLOCATION_FAILED;
+    }
+    *ppObject = pObject;
+    return ppx::SUCCESS;
+}
+
+Result Device::AllocateObject(grfx::TextureFont** ppObject)
+{
+    grfx::TextureFont* pObject = new grfx::TextureFont();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -641,6 +663,23 @@ void Device::DestroySwapchain(const grfx::Swapchain* pSwapchain)
     DestroyObject(mSwapchains, pSwapchain);
 }
 
+Result Device::CreateTextDraw(const grfx::TextDrawCreateInfo* pCreateInfo, grfx::TextDraw** ppTextDraw)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppTextDraw);
+    Result gxres = CreateObject(pCreateInfo, mTextDraws, ppTextDraw);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyTextDraw(const grfx::TextDraw* pTextDraw)
+{
+    PPX_ASSERT_NULL_ARG(pTextDraw);
+    DestroyObject(mTextDraws, pTextDraw);
+}
+
 Result Device::CreateTexture(const grfx::TextureCreateInfo* pCreateInfo, grfx::Texture** ppTexture)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
@@ -656,6 +695,23 @@ void Device::DestroyTexture(const grfx::Texture* pTexture)
 {
     PPX_ASSERT_NULL_ARG(pTexture);
     DestroyObject(mTextures, pTexture);
+}
+
+Result Device::CreateTextureFont(const grfx::TextureFontCreateInfo* pCreateInfo, grfx::TextureFont** ppTextureFont)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppTextureFont);
+    Result gxres = CreateObject(pCreateInfo, mTextureFonts, ppTextureFont);
+    if (Failed(gxres)) {
+        return gxres;
+    }
+    return ppx::SUCCESS;
+}
+
+void Device::DestroyTextureFont(const grfx::TextureFont* pTextureFont)
+{
+    PPX_ASSERT_NULL_ARG(pTextureFont);
+    DestroyObject(mTextureFonts, pTextureFont);
 }
 
 Result Device::AllocateCommandBuffer(

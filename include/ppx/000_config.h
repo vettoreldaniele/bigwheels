@@ -94,6 +94,7 @@ enum Result
     ERROR_WAIT_TIMED_OUT               = -15,
     ERROR_NO_GPUS_FOUND                = -16,
     ERROR_REQUIRED_FEATURE_UNAVAILABLE = -17,
+    EEROR_BAD_DATA_SOURCE              = -18,
 
     ERROR_GLFW_INIT_FAILED          = -200,
     ERROR_GLFW_CREATE_WINDOW_FAILED = -201,
@@ -136,6 +137,9 @@ enum Result
 
     ERROR_WINDOW_EVENTS_ALREADY_REGISTERED = -3000,
     ERROR_IMGUI_INITIALIZATION_FAILED      = -3001,
+
+    ERROR_FONT_PARSE_FAILED   = -4000,
+    ERROR_INVALID_UTF8_STRING = -4001,
 };
 
 inline bool Success(ppx::Result value)

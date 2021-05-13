@@ -227,7 +227,7 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
     // clang-format off
     switch (pCreateInfo->inputAssemblyState.topology) {
         default: {
-            PPX_ASSERT_MSG(false, "unknown primitive teopolgy type");
+            PPX_ASSERT_MSG(false, "unknown primitive topolgy type");
             return ppx::ERROR_INVALID_CREATE_ARGUMENT;
         }
         break;

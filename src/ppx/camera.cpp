@@ -5,24 +5,36 @@ namespace ppx {
 // -------------------------------------------------------------------------------------------------
 // Camera
 // -------------------------------------------------------------------------------------------------
-Camera::Camera()
+Camera::Camera(bool pixelAligned)
+    : mPixelAligned(pixelAligned)
 {
     LookAt(PPX_CAMERA_DEFAULT_EYE_POSITION, PPX_CAMERA_DEFAULT_LOOK_AT, PPX_CAMERA_DEFAULT_WORLD_UP);    
 }
 
-Camera::Camera(float nearClip, float farClip)
-    : mNearClip(nearClip),
+Camera::Camera(float nearClip, float farClip, bool pixelAligned)
+    : mPixelAligned(pixelAligned),
+      mNearClip(nearClip),
       mFarClip(farClip)
 {
 }
 
 void Camera::LookAt(const float3& eye, const float3& center, const float3& up)
 {
+    //const float3 yAxis    = mPixelAligned ? float3(1, -1, 1) : float3(1, 1, 1);
+    //mEyePosition          = eye;
+    //mLookAt               = center;
+    //mWorldUp              = up;
+    //mViewDirection        = glm::normalize(mEyePosition - mLookAt);
+    //mViewMatrix           = glm::scale(yAxis) * glm::lookAt(mEyePosition, mLookAt, mWorldUp);
+    //mInverseViewMatrix    = glm::inverse(mViewMatrix);
+    //mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
+
+    const float3 yAxis    = mPixelAligned ? float3(1, -1, 1) : float3(1, 1, 1);
     mEyePosition          = eye;
     mLookAt               = center;
     mWorldUp              = up;
     mViewDirection        = glm::normalize(mEyePosition - mLookAt);
-    mViewMatrix           = glm::lookAt(mEyePosition, mLookAt, mWorldUp);
+    mViewMatrix           = glm::scale(yAxis) * glm::lookAt(mEyePosition, mLookAt, mWorldUp);
     mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
     mInverseViewMatrix    = glm::inverse(mViewMatrix);
 }
@@ -83,6 +95,44 @@ PerspCamera::PerspCamera(
         aspect,
         nearClip,
         farClip);
+}
+
+PerspCamera::PerspCamera(
+    uint32_t pixelWidth,
+    uint32_t pixelHeight,
+    float    horizFovDegrees)
+    : Camera(true)
+{
+    float aspect   = static_cast<float>(pixelWidth) / static_cast<float>(pixelHeight);
+    float eyeX     = pixelWidth / 2.0f;
+    float eyeY     = pixelHeight / 2.0f;
+    float halfFov  = atan(tan(glm::radians(horizFovDegrees) / 2.0f) / aspect); // horiz fov -> vert fov
+    float theTan   = tanf(halfFov);
+    float dist     = eyeY / theTan;
+    float nearClip = dist / 10.0f;
+    float farClip  = dist * 10.0f;
+
+    SetPerspective(horizFovDegrees, aspect, nearClip, farClip);
+    LookAt(float3(eyeX, eyeY, dist), float3(eyeX, eyeY, 0.0f));
+}
+
+PerspCamera::PerspCamera(
+    uint32_t pixelWidth,
+    uint32_t pixelHeight,
+    float    horizFovDegrees,
+    float    nearClip,
+    float    farClip)
+    : Camera(nearClip, farClip, true)
+{
+    float aspect  = static_cast<float>(pixelWidth) / static_cast<float>(pixelHeight);
+    float eyeX    = pixelWidth / 2.0f;
+    float eyeY    = pixelHeight / 2.0f;
+    float halfFov = atan(tan(glm::radians(horizFovDegrees) / 2.0f) / aspect); // horiz fov -> vert fov
+    float theTan  = tanf(halfFov);
+    float dist    = eyeY / theTan;
+
+    SetPerspective(horizFovDegrees, aspect, nearClip, farClip);
+    LookAt(float3(eyeX, eyeY, dist), float3(eyeX, eyeY, 0.0f));
 }
 
 PerspCamera::~PerspCamera()

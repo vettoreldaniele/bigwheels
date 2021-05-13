@@ -242,13 +242,13 @@ public:
     virtual void Config(ppx::ApplicationSettings& settings) {}
     virtual void Setup() {}
     virtual void Shutdown() {}
-    virtual void Move(int32_t x, int32_t y) {}                                                // Window move event
-    virtual void Resize(uint32_t width, uint32_t height) {}                                   // Window resize event
-    virtual void KeyDown(KeyCode key) {}                                                      // Key down event
-    virtual void KeyUp(KeyCode key) {}                                                        // Key up event
+    virtual void Move(int32_t x, int32_t y) {}                                                  // Window move event
+    virtual void Resize(uint32_t width, uint32_t height) {}                                     // Window resize event
+    virtual void KeyDown(KeyCode key) {}                                                        // Key down event
+    virtual void KeyUp(KeyCode key) {}                                                          // Key up event
     virtual void MouseMove(int32_t x, int32_t y, int32_t dx12, int32_t dy, uint32_t buttons) {} // Mouse move event
-    virtual void MouseDown(int32_t x, int32_t y, uint32_t buttons) {}                         // Mouse down event
-    virtual void MouseUp(int32_t x, int32_t y, uint32_t buttons) {}                           // Mouse up event
+    virtual void MouseDown(int32_t x, int32_t y, uint32_t buttons) {}                           // Mouse down event
+    virtual void MouseUp(int32_t x, int32_t y, uint32_t buttons) {}                             // Mouse up event
     virtual void Scroll(float dx12, float dy) {}                                                // Mouse wheel or touchpad scroll event
     virtual void Render() {}
 
@@ -311,6 +311,7 @@ public:
 
     float    GetElapsedSeconds() const;
     uint64_t GetFrameCount() const { return mFrameCount; }
+    float    GetAverageFPS() const { return mAverageFPS; }
     uint32_t GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
     uint32_t GetInFlightFrameIndex() const { return static_cast<uint32_t>(mFrameCount % mSettings.grfx.numFramesInFlight); }
     uint32_t GetPreviousInFlightFrameIndex() const { return static_cast<uint32_t>((mFrameCount - 1) % mSettings.grfx.numFramesInFlight); }

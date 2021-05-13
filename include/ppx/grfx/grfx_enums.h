@@ -56,11 +56,12 @@ enum BlendFactor
 //!
 enum BlendMode
 {
-    BLEND_MODE_NONE     = 0,
-    BLEND_MODE_ADDITIVE = 1,
-    BLEND_MODE_ALPHA    = 2,
-    BLEND_MODE_OVER     = 3,
-    BLEND_MODE_UNDER    = 4,
+    BLEND_MODE_NONE          = 0,
+    BLEND_MODE_ADDITIVE      = 1,
+    BLEND_MODE_ALPHA         = 2,
+    BLEND_MODE_OVER          = 3,
+    BLEND_MODE_UNDER         = 4,
+    BLEND_MODE_PREMULT_ALPHA = 5,
 };
 
 enum BlendOp
@@ -199,10 +200,10 @@ enum CullMode
 enum D3DDescriptorType
 {
     D3D_DESCRIPTOR_TYPE_UNDEFINED = 0,
-    D3D_DESCRIPTOR_TYPE_CBV      = 1,
-    D3D_DESCRIPTOR_TYPE_SRV      = 2,
-    D3D_DESCRIPTOR_TYPE_UAV      = 3,
-    D3D_DESCRIPTOR_TYPE_SAMPLER  = 4,
+    D3D_DESCRIPTOR_TYPE_CBV       = 1,
+    D3D_DESCRIPTOR_TYPE_SRV       = 2,
+    D3D_DESCRIPTOR_TYPE_UAV       = 3,
+    D3D_DESCRIPTOR_TYPE_SAMPLER   = 4,
 };
 
 enum DescriptorType
