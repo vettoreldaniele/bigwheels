@@ -40,6 +40,8 @@ public:
     TextureFont() {}
     virtual ~TextureFont() {}
 
+    static std::string GetDefaultCharacters();
+
     const ppx::Font& GetFont() const { return mCreateInfo.font; }
     float            GetSize() const { return mCreateInfo.size; }
     std::string      GetCharacters() const { return mCreateInfo.characters; }

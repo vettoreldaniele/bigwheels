@@ -1,4 +1,4 @@
-#include "ppx/ppx.h"
+﻿#include "ppx/ppx.h"
 #include "ppx/camera.h"
 using namespace ppx;
 
@@ -84,6 +84,7 @@ void ProjApp::Setup()
         grfx::TextureFontCreateInfo createInfo = {};
         createInfo.font                        = font;
         createInfo.size                        = 48.0f;
+        createInfo.characters                  = grfx::TextureFont::GetDefaultCharacters() ;
 
         PPX_CHECKED_CALL(GetDevice()->CreateTextureFont(&createInfo, &mRoboto));
     }
@@ -118,6 +119,10 @@ void ProjApp::Setup()
     }
 
     mStaticText->AddString(float2(50, 100), "Diego brazenly plots pixels for\nmaking, very quirky, images with just code!", float3(0.7f, 0.7f, 0.8f));
+    mStaticText->AddString(float2(50, 200), "RED: 0xFF0000", float3(1, 0, 0));
+    mStaticText->AddString(float2(50, 240), "GREEN: 0x00FF00", float3(0, 1, 0));
+    mStaticText->AddString(float2(50, 280), "BLUE: 0x0000FF", float3(0, 0, 1));
+    mStaticText->AddString(float2(50, 330), "This string has\tsome\ttabs!");
 
     PPX_CHECKED_CALL(mStaticText->UploadToGpu(GetGraphicsQueue()));
 }
@@ -148,7 +153,7 @@ void ProjApp::Render()
             ss << "FPS: " << std::setw(6) << std::setprecision(6) << GetAverageFPS();
 
             mDynamicText->Clear();
-            mDynamicText->AddString(float2(50, 300), ss.str());
+            mDynamicText->AddString(float2(50, 400), ss.str());
 
             mDynamicText->UploadToGpu(frame.cmd);
         }

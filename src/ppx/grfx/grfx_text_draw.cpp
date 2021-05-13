@@ -14,13 +14,20 @@ namespace grfx {
 // -------------------------------------------------------------------------------------------------
 // TextureFont
 // -------------------------------------------------------------------------------------------------
+std::string TextureFont::GetDefaultCharacters()
+{
+    std::string characters;
+    for (char c = 32; c < 127; ++c) {
+        characters.push_back(c);
+    }
+    return characters;
+}
+
 Result TextureFont::CreateApiObjects(const grfx::TextureFontCreateInfo* pCreateInfo)
 {
     std::string characters = pCreateInfo->characters;
     if (characters.empty()) {
-        for (char c = 32; c < 127; ++c) {
-            characters.push_back(c);
-        }
+        characters = GetDefaultCharacters();
         mCreateInfo.characters = characters;
     }
 
@@ -487,6 +494,11 @@ void TextDraw::AddString(
         if (codepoint == '\n') {
             baseline.x = position.x;
             baseline.y += (ascent - descent + lineGap);
+            continue;
+        }
+        else if (codepoint == '\t') {
+            const grfx::TextureFontGlyphMetrics* pMetrics = mCreateInfo.pFont->GetGlyphMetrics(32);
+            baseline.x += 3.0f * pMetrics->glyphMetrics.advance;
             continue;
         }
 
