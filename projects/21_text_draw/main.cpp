@@ -84,7 +84,7 @@ void ProjApp::Setup()
         grfx::TextureFontCreateInfo createInfo = {};
         createInfo.font                        = font;
         createInfo.size                        = 48.0f;
-        createInfo.characters                  = grfx::TextureFont::GetDefaultCharacters() ;
+        createInfo.characters                  = grfx::TextureFont::GetDefaultCharacters();
 
         PPX_CHECKED_CALL(GetDevice()->CreateTextureFont(&createInfo, &mRoboto));
     }
@@ -122,7 +122,8 @@ void ProjApp::Setup()
     mStaticText->AddString(float2(50, 200), "RED: 0xFF0000", float3(1, 0, 0));
     mStaticText->AddString(float2(50, 240), "GREEN: 0x00FF00", float3(0, 1, 0));
     mStaticText->AddString(float2(50, 280), "BLUE: 0x0000FF", float3(0, 0, 1));
-    mStaticText->AddString(float2(50, 330), "This string has\tsome\ttabs!");
+    mStaticText->AddString(float2(50, 330), "This string has\tsome\ttabs that are 400% the size of a space!", 4.0f, 1.0f, float3(1), 1);
+    mStaticText->AddString(float2(50, 370), "This string has 70%\nline\nspacing!", 3.0f, 0.7f, float3(1), 1);
 
     PPX_CHECKED_CALL(mStaticText->UploadToGpu(GetGraphicsQueue()));
 }
@@ -153,7 +154,7 @@ void ProjApp::Render()
             ss << "FPS: " << std::setw(6) << std::setprecision(6) << GetAverageFPS();
 
             mDynamicText->Clear();
-            mDynamicText->AddString(float2(50, 400), ss.str());
+            mDynamicText->AddString(float2(50, 500), ss.str());
 
             mDynamicText->UploadToGpu(frame.cmd);
         }

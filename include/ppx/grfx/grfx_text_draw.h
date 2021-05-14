@@ -70,6 +70,7 @@ struct TextDrawCreateInfo
     uint32_t              maxTextLength      = 4096;
     grfx::ShaderStageInfo VS                 = {}; // Use basic/shaders/TextDraw.hlsl (vsmain) for now
     grfx::ShaderStageInfo PS                 = {}; // Use basic/shaders/TextDraw.hlsl (psmain) for now
+    grfx::BlendMode       blendMode          = grfx::BLEND_MODE_PREMULT_ALPHA;
     grfx::Format          renderTargetFormat = grfx::FORMAT_UNDEFINED;
     grfx::Format          depthStencilFormat = grfx::FORMAT_UNDEFINED;
 };
@@ -82,6 +83,14 @@ public:
     virtual ~TextDraw() {}
 
     void Clear();
+
+    void AddString(
+        const float2&      position,
+        const std::string& string,
+        float              tabSpacing,  // Tab size, 0.5f = 0.5x space, 1.0 = 1x space, 2.0 = 2x space, etc
+        float              lineSpacing, // Line spacing (ascent - descent + line gap), 0.5f = 0.5x line space, 1.0 = 1x line space, 2.0 = 2x line space, etc
+        const float3&      color,
+        float              opacity);
 
     void AddString(
         const float2&      position,

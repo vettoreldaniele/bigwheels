@@ -27,7 +27,7 @@ Result TextureFont::CreateApiObjects(const grfx::TextureFontCreateInfo* pCreateI
 {
     std::string characters = pCreateInfo->characters;
     if (characters.empty()) {
-        characters = GetDefaultCharacters();
+        characters             = GetDefaultCharacters();
         mCreateInfo.characters = characters;
     }
 
@@ -371,7 +371,7 @@ Result TextDraw::CreateApiObjects(const grfx::TextDrawCreateInfo* pCreateInfo)
         createInfo.frontFace                          = grfx::FRONT_FACE_CCW;
         createInfo.depthReadEnable                    = false;
         createInfo.depthWriteEnable                   = false;
-        createInfo.blendModes[0]                      = grfx::BLEND_MODE_PREMULT_ALPHA;
+        createInfo.blendModes[0]                      = pCreateInfo->blendMode;
         createInfo.outputState.renderTargetCount      = 1;
         createInfo.outputState.renderTargetFormats[0] = pCreateInfo->renderTargetFormat;
         createInfo.outputState.depthStencilFormat     = pCreateInfo->depthStencilFormat;
@@ -453,6 +453,8 @@ void TextDraw::Clear()
 void TextDraw::AddString(
     const float2&      position,
     const std::string& string,
+    float              tabSpacing,
+    float              lineSpacing,
     const float3&      color,
     float              opacity)
 {
@@ -488,17 +490,18 @@ void TextDraw::AddString(
     float          ascent   = mCreateInfo.pFont->GetAscent();
     float          descent  = mCreateInfo.pFont->GetDescent();
     float          lineGap  = mCreateInfo.pFont->GetLineGap();
+    lineSpacing             = lineSpacing * (ascent - descent + lineGap);
 
     while (it != it_end) {
         uint32_t codepoint = utf8::next(it, it_end);
         if (codepoint == '\n') {
             baseline.x = position.x;
-            baseline.y += (ascent - descent + lineGap);
+            baseline.y += lineSpacing;
             continue;
         }
         else if (codepoint == '\t') {
             const grfx::TextureFontGlyphMetrics* pMetrics = mCreateInfo.pFont->GetGlyphMetrics(32);
-            baseline.x += 3.0f * pMetrics->glyphMetrics.advance;
+            baseline.x += tabSpacing * pMetrics->glyphMetrics.advance;
             continue;
         }
 
@@ -547,6 +550,15 @@ void TextDraw::AddString(
 
     mCpuIndexBuffer->UnmapMemory();
     mCpuVertexBuffer->UnmapMemory();
+}
+
+void TextDraw::AddString(
+    const float2&      position,
+    const std::string& string,
+    const float3&      color,
+    float              opacity)
+{
+    AddString(position, string, 3.0f, 1.0f, color, opacity);
 }
 
 ppx::Result TextDraw::UploadToGpu(grfx::Queue* pQueue)
