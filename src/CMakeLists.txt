@@ -149,6 +149,7 @@ list(
     ${INC_DIR}/ppx/platform.h
     ${INC_DIR}/ppx/ppx.h
     ${INC_DIR}/ppx/profiler.h
+    ${INC_DIR}/ppx/random.h
     ${INC_DIR}/ppx/string_util.h
     ${INC_DIR}/ppx/timer.h
     ${INC_DIR}/ppx/transform.h
