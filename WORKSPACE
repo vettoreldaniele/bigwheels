@@ -72,6 +72,12 @@ new_local_repository(
 )
 
 new_local_repository(
+    name = "utfcpp",
+    build_file = "third_party/utfcpp.BUILD.bazel",
+    path = "third_party/utfcpp",
+)
+
+new_local_repository(
     name = "VulkanMemoryAllocator",
     build_file = "third_party/VulkanMemoryAllocator.BUILD.bazel",
     path = "third_party/VulkanMemoryAllocator",
@@ -86,5 +92,5 @@ new_local_repository(
 # TODO(chouinard): Try replacing this with a `gsutil_archive`
 # instead of relying on local SDK.
 yeti_repository(
-    name = "YetiSDK"
+    name = "YetiSDK",
 )

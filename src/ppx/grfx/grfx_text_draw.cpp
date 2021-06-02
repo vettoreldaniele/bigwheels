@@ -43,8 +43,8 @@ Result TextureFont::CreateApiObjects(const grfx::TextureFontCreateInfo* pCreateI
     float subpixelShiftY = 0.5f;
 
     // Get glyph metrics and max bounds
-    utf8::iterator it       = utf8::iterator(characters.begin(), characters.begin(), characters.end());
-    utf8::iterator it_end   = utf8::iterator(characters.end(), characters.begin(), characters.end());
+    utf8::iterator<std::string::iterator> it(characters.begin(), characters.begin(), characters.end());
+    utf8::iterator<std::string::iterator> it_end(characters.end(), characters.begin(), characters.end());
     bool           hasSpace = false;
     while (it != it_end) {
         const uint32_t codepoint = utf8::next(it, it_end);
@@ -484,8 +484,8 @@ void TextDraw::AddString(
     uint32_t a    = std::min<uint32_t>(static_cast<uint32_t>(opacity * 255.0f), 255);
     uint32_t rgba = (a << 24) | (b << 16) | (g << 8) | (r << 0);
 
-    utf8::iterator it       = utf8::iterator(string.begin(), string.begin(), string.end());
-    utf8::iterator it_end   = utf8::iterator(string.end(), string.begin(), string.end());
+    utf8::iterator<std::string::const_iterator> it(string.begin(), string.begin(), string.end());
+    utf8::iterator<std::string::const_iterator> it_end(string.end(), string.begin(), string.end());
     float2         baseline = position;
     float          ascent   = mCreateInfo.pFont->GetAscent();
     float          descent  = mCreateInfo.pFont->GetDescent();

@@ -21,13 +21,13 @@ cc_library(
             "src/ppx/**/*.h",
             "src/ppx/**/*.cpp",
         ],
-        exclude = ["src/ppx/grfx/dx/**"],
+        exclude = ["src/ppx/grfx/dx*/**"],
     ),
     hdrs = glob(
         [
             "include/ppx/**/*.h",
         ],
-        exclude = ["include/ppx/grfx/dx/**"],
+        exclude = ["include/ppx/grfx/dx*/**"],
     ),
     copts = [
         "-std=c++14",
@@ -44,6 +44,7 @@ cc_library(
     deps = [
         ":imgui_backends",
         "@VulkanMemoryAllocator",
+        "@YetiSDK",
         "@cpu_features",
         "@glfw",
         "@gli",
@@ -51,7 +52,7 @@ cc_library(
         "@pcg32",
         "@stb",
         "@tinyobjloader",
+        "@utfcpp",
         "@xxHash",
-        "@YetiSDK",
     ],
 )
