@@ -2,9 +2,9 @@ load("//build_defs:gsutil.bzl", "gsutil_toolchain")
 load("//:third_party/YetiSDK/yeti_repository.bzl", "yeti_repository")
 
 gsutil_toolchain(
-    name = "glinux_crosstool",
-    build_tpl_path = "//tools/toolchains/glinux:BUILD.tpl",
-    crosstool_tpl_path = "//tools/toolchains/glinux:crosstool.bzl.tpl",
+    name = "yeti_crosstool_debian",
+    build_tpl_path = "//tools/toolchains/debian:BUILD.tpl",
+    crosstool_tpl_path = "//tools/toolchains/debian:crosstool.bzl.tpl",
     strip_components = ["YetiSDK"],
     url = "gs://yeti_base_sdk/releases/2021.3debian/YetiSDKBaseInternal-linux.tar.gz",
 )

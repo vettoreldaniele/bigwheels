@@ -3,10 +3,10 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "YetiSDK",
     hdrs = glob([
-        "YetiSDK/sysroot/usr/include/**/*.h",
+        "YetiSDK/sysroot/usr/include/ggp_c/*.h",
+        "YetiSDK/sysroot/usr/include/vulkan/*.h",
     ]),
     includes = [
         "YetiSDK/sysroot/usr/include",
-        "YetiSDK/sysroot/usr/include/x86_64-linux-gnu",
     ],
 )
