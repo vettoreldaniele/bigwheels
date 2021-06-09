@@ -1,11 +1,56 @@
 package(default_visibility = ["//visibility:public"])
 
+GLFW_SRCS = [
+    "src/context.c",
+    "src/init.c",
+    "src/input.c",
+    "src/internal.h",
+    "src/mappings.h",
+    "src/monitor.c",
+    "src/vulkan.c",
+    "src/window.c",
+]
+
+GLFW_GGP_SRCS = [
+    "src/egl_context.h",
+    "src/ggp_init.c",
+    "src/ggp_joystick.c",
+    "src/ggp_joystick.h",
+    "src/ggp_monitor.c",
+    "src/ggp_platform.h",
+    "src/ggp_window.c",
+    "src/osmesa_context.h",
+    "src/posix_thread.c",
+    "src/posix_thread.h",
+    "src/posix_time.c",
+    "src/posix_time.h",
+    "src/wgl_context.h",
+]
+
 cc_library(
     name = "glfw",
     hdrs = glob([
         "include/GLFW/*.h",
     ]),
+    srcs = GLFW_SRCS + GLFW_GGP_SRCS,
     includes = [
         "include",
+    ],
+    deps = [
+        "@YetiSDK",
+    ],
+    defines = [
+        "_GLFW_GGP",
+    ],
+    copts = [
+        "-DGLFW_BUILD_DOCS=FALSE",
+        "-DGLFW_BUILD_EXAMPLES=FALSE",
+        "-DGLFW_BUILD_TESTS=FALSE",
+        "-DGLFW_VULKAN_STATIC=FALSE",
+        "-Wno-error=implicit-function-declaration",
+    ],
+    linkopts = [
+        "-ldl",
+        "-lpthread",
     ],
 )
