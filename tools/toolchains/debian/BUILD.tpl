@@ -50,15 +50,26 @@ filegroup(
 
 filegroup(
     name = "static-runtime-libs-k8",
-    srcs = glob(["sysroot/lib/*.a"]),
+    srcs = glob(["{%install_path}sysroot/lib/*.a"]),
 )
 
 filegroup(
     name = "dynamic-runtime-libs-k8",
-    srcs = glob(["sysroot/lib/*.so*"]),
+    srcs = glob(["{%install_path}sysroot/lib/*.so*"]),
 )
 
 filegroup(
     name = "empty",
     srcs = [],
 )
+
+# Any rule that depends upon clang-format must also depend on this rule, which
+# pulls in the necessary shared objects for clang-format to run.
+filegroup(
+    name = "clang_format_deps",
+    srcs = [
+        "{%install_path}toolchain/lib/libc++.so.1",
+        "{%install_path}toolchain/lib/libc++abi.so.1",
+    ],
+)
+

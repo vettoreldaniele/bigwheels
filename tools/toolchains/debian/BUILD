@@ -2,7 +2,8 @@
 # CROSSTOOL.tpl files.
 package(default_visibility = ["//visibility:public"])
 
+# To make bazel query happy.
 exports_files([
-    "BUILD.tpl",
     "CROSSTOOL.tpl",
+    "BUILD.tpl",
 ])

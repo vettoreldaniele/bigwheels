@@ -1,4 +1,9 @@
-cc_library(
+load(
+    "//tools:yeti.bzl",
+    "yeti_cc_library",
+)
+
+yeti_cc_library(
     name = "imgui_backends",
     srcs = [
         "@imgui//:backends/imgui_impl_glfw.cpp",
@@ -11,10 +16,11 @@ cc_library(
     deps = [
         "@glfw",
         "@imgui",
+        "@YetiSDK",
     ],
 )
 
-cc_library(
+yeti_cc_library(
     name = "ppx",
     srcs = glob(
         [

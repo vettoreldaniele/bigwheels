@@ -1,4 +1,5 @@
-load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
+load(
+    "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
     "action_config",
     "artifact_name_pattern",
     "env_entry",
@@ -34,7 +35,7 @@ def _impl(ctx):
 
     cc_target_os = None
 
-    builtin_sysroot = None
+    builtin_sysroot = "{%toolchain_path}/sysroot"
 
     all_compile_actions = [
         ACTION_NAMES.c_compile,
@@ -86,50 +87,6 @@ def _impl(ctx):
 
     action_configs = []
 
-    # Set this feature on a cc_* rule to omit the "-lc++" linker flag.
-    no_link_libcxx = feature(
-        name = "no_link_libcxx")
-
-    default_link_flags_feature = feature(
-        name = "default_link_flags",
-        enabled = True,
-        flag_sets = [
-            flag_set(
-                actions = all_link_actions,
-                flag_groups = [
-                    flag_group(
-                        flags = [
-                            "-fuse-ld=lld",
-                            "-lm",
-                            # This is a temporary fix for b/180282597.
-                            # TODO(b/180302900): Remove half a year after
-                            # 1.60 release.
-                            "-z separate-code",
-                            "-no-canonical-prefixes",
-                            "-Wl,-L{%toolchain_path}/toolchain/lib",
-                            "-Wl,-rpath,{%toolchain_path}/sysroot/lib",
-                            "-Wl,--build-id=fast",
-                            "-Wl,--hash-style=gnu",
-                        ],
-                    ),
-                ],
-            ),
-            flag_set(
-                actions = all_link_actions,
-                with_features = [
-                    with_feature_set(not_features = ["no_link_libcxx"]),
-                ],
-                flag_groups = [
-                    flag_group(
-                        flags = [
-                            "-lc++",
-                        ],
-                    ),
-                ],
-            ),
-        ],
-    )
-
     per_object_debug_info_feature = feature(
         name = "per_object_debug_info",
         enabled = True,
@@ -159,6 +116,37 @@ def _impl(ctx):
 
     opt_feature = feature(name = "opt")
 
+    sysroot_feature = feature(
+        name = "sysroot",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = [
+                    ACTION_NAMES.preprocess_assemble,
+                    ACTION_NAMES.linkstamp_compile,
+                    ACTION_NAMES.c_compile,
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cpp_header_parsing,
+                    ACTION_NAMES.cpp_module_compile,
+                    ACTION_NAMES.cpp_module_codegen,
+                    ACTION_NAMES.lto_backend,
+                    ACTION_NAMES.clif_match,
+                    ACTION_NAMES.cpp_link_executable,
+                    ACTION_NAMES.cpp_link_dynamic_library,
+                    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = ["--sysroot=%{sysroot}"],
+                        expand_if_available = "sysroot",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    # TODO(b/134486633): Update this to target haswell+, since all stadia
+    # machines are either skylake or rome
     default_compile_flags_feature = feature(
         name = "default_compile_flags",
         enabled = True,
@@ -179,11 +167,7 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = [
-                            "-nostdinc++",
-                            "-isystem",
-                            "{%toolchain_path}/toolchain/include/c++/v1",
-                            "-isystem",
-                            "{%toolchain_path}/toolchain/lib/clang/10.0.1/include",
+                            "--target=x86_64-unknown-linux-gnu",
                             "-fcolor-diagnostics",
                             "-Wall",
                             "-Werror",
@@ -265,6 +249,7 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             "-std=c++17",
+                            "-stdlib=libc++",
                             "-D_LIBCPP_ENABLE_THREAD_SAFETY_ANNOTATIONS",
                             "-Wthread-safety",
                             "-Wno-error=thread-safety",
@@ -277,6 +262,84 @@ def _impl(ctx):
     )
 
     supports_pic_feature = feature(name = "supports_pic", enabled = True)
+
+    unfiltered_compile_flags_feature = feature(
+        name = "unfiltered_compile_flags",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = [
+                    ACTION_NAMES.assemble,
+                    ACTION_NAMES.preprocess_assemble,
+                    ACTION_NAMES.linkstamp_compile,
+                    ACTION_NAMES.c_compile,
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cpp_header_parsing,
+                    ACTION_NAMES.cpp_module_compile,
+                    ACTION_NAMES.cpp_module_codegen,
+                    ACTION_NAMES.lto_backend,
+                    ACTION_NAMES.clif_match,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = [
+                            "-D__yeti__",
+                            "-no-canonical-prefixes",
+                            "-Wno-builtin-macro-redefined",
+                            "-D__DATE__=\"\"",
+                            "-D__TIMESTAMP__=\"\"",
+                            "-D__TIME__=\"\"",
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    # Set this feature on a cc_* rule to omit the "-lc++" linker flag.
+    no_link_libcxx = feature(
+        name = "no_link_libcxx")
+
+    default_link_flags_feature = feature(
+        name = "default_link_flags",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = all_link_actions,
+                flag_groups = [
+                    flag_group(
+                        flags = [
+                            "--target=x86_64-unknown-linux-gnu",
+                            "-fuse-ld=lld",
+                            "-lm",
+                            # This is a temporary fix for b/180282597.
+                            # TODO(b/180302900): Remove half a year after
+                            # 1.60 release.
+                            "-z separate-code",
+                            "-no-canonical-prefixes",
+                            "-Wl,-L{%toolchain_path}/toolchain/lib",
+                            "-Wl,-rpath,{%toolchain_path}/sysroot/lib",
+                            "-Wl,--build-id=fast",
+                            "-Wl,--hash-style=gnu",
+                        ],
+                    ),
+                ],
+            ),
+            flag_set(
+                actions = all_link_actions,
+                with_features = [
+                    with_feature_set(not_features = ["no_link_libcxx"]),
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = [
+                            "-lc++",
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
 
     user_compile_flags_feature = feature(
         name = "user_compile_flags",
@@ -306,86 +369,25 @@ def _impl(ctx):
         ],
     )
 
-    sysroot_feature = feature(
-        name = "sysroot",
-        enabled = True,
-        flag_sets = [
-            flag_set(
-                actions = [
-                    ACTION_NAMES.preprocess_assemble,
-                    ACTION_NAMES.linkstamp_compile,
-                    ACTION_NAMES.c_compile,
-                    ACTION_NAMES.cpp_compile,
-                    ACTION_NAMES.cpp_header_parsing,
-                    ACTION_NAMES.cpp_module_compile,
-                    ACTION_NAMES.cpp_module_codegen,
-                    ACTION_NAMES.lto_backend,
-                    ACTION_NAMES.clif_match,
-                    ACTION_NAMES.cpp_link_executable,
-                    ACTION_NAMES.cpp_link_dynamic_library,
-                    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
-                ],
-                flag_groups = [
-                    flag_group(
-                        flags = ["--sysroot=%{sysroot}"],
-                        expand_if_available = "sysroot",
-                    ),
-                ],
-            ),
-        ],
-    )
-
-    unfiltered_compile_flags_feature = feature(
-        name = "unfiltered_compile_flags",
-        enabled = True,
-        flag_sets = [
-            flag_set(
-                actions = [
-                    ACTION_NAMES.assemble,
-                    ACTION_NAMES.preprocess_assemble,
-                    ACTION_NAMES.linkstamp_compile,
-                    ACTION_NAMES.c_compile,
-                    ACTION_NAMES.cpp_compile,
-                    ACTION_NAMES.cpp_header_parsing,
-                    ACTION_NAMES.cpp_module_compile,
-                    ACTION_NAMES.cpp_module_codegen,
-                    ACTION_NAMES.lto_backend,
-                    ACTION_NAMES.clif_match,
-                ],
-                flag_groups = [
-                    flag_group(
-                        flags = [
-                            "-no-canonical-prefixes",
-                            "-Wno-builtin-macro-redefined",
-                            "-D__DATE__=\"\"",
-                            "-D__TIMESTAMP__=\"\"",
-                            "-D__TIME__=\"\"",
-                        ],
-                    ),
-                ],
-            ),
-        ],
-    )
-
     features = [
-            default_compile_flags_feature,
-            default_link_flags_feature,
-            no_link_libcxx,
-            supports_pic_feature,
-            per_object_debug_info_feature,
-            fastbuild_feature,
-            dbg_feature,
-            opt_feature,
-            user_compile_flags_feature,
-            sysroot_feature,
-            unfiltered_compile_flags_feature,
-        ]
+        default_compile_flags_feature,
+        default_link_flags_feature,
+        no_link_libcxx,
+        supports_pic_feature,
+        per_object_debug_info_feature,
+        fastbuild_feature,
+        dbg_feature,
+        opt_feature,
+        user_compile_flags_feature,
+        sysroot_feature,
+        unfiltered_compile_flags_feature,
+    ]
 
     cxx_builtin_include_directories = [
-            "{%toolchain_path}/toolchain/include/c++/v1/",
-            "{%toolchain_path}/toolchain/lib/clang/10.0.1/include",
-            "/usr/include",
-        ]
+        "{%toolchain_path}/sysroot/usr/include",
+        "{%toolchain_path}/toolchain/include/c++/v1/",
+        "{%toolchain_path}/toolchain/lib/clang/10.0.1/include",
+    ]
 
     artifact_name_patterns = []
 
@@ -434,7 +436,6 @@ def _impl(ctx):
         ),
     ]
 
-
     out = ctx.actions.declare_file(ctx.label.name)
     ctx.actions.write(out, "Fake executable")
     return [
@@ -455,16 +456,17 @@ def _impl(ctx):
             tool_paths = tool_paths,
             make_variables = make_variables,
             builtin_sysroot = builtin_sysroot,
-            cc_target_os = cc_target_os
+            cc_target_os = cc_target_os,
         ),
         DefaultInfo(
             executable = out,
         ),
     ]
-cc_toolchain_config =  rule(
+
+cc_toolchain_config = rule(
     implementation = _impl,
     attrs = {
-        "cpu": attr.string(mandatory=True, values=["k8"]),
+        "cpu": attr.string(mandatory = True, values = ["k8"]),
     },
     provides = [CcToolchainConfigInfo],
     executable = True,
