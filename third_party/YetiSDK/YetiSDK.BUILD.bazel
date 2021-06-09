@@ -9,4 +9,18 @@ cc_library(
     includes = [
         "YetiSDK/sysroot/usr/include",
     ],
+    deps = [
+        ":libvulkan",
+        ":libggp",
+    ],
+)
+
+cc_import(
+    name = "libvulkan",
+    shared_library = "YetiSDK/sysroot/lib/libvulkan.so",
+)
+
+cc_import(
+    name = "libggp",
+    shared_library = "YetiSDK/sysroot/lib/libggp.so",
 )
