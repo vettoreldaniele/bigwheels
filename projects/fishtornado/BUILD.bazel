@@ -1,0 +1,14 @@
+load("//tools:yeti.bzl", "yeti_cc_binary")
+load("//build_defs:config.bzl", "COPTS")
+
+yeti_cc_binary(
+    name = "fishtornado",
+    srcs = glob([
+        "*.cpp",
+        "*.h",
+    ]),
+    copts = COPTS,
+    deps = [
+        "//:ppx",
+    ],
+)

@@ -1,7 +1,7 @@
-load(
-    "//tools:yeti.bzl",
-    "yeti_cc_library",
-)
+load("//tools:yeti.bzl", "yeti_cc_library")
+load("//build_defs:config.bzl", "COPTS")
+
+package(default_visibility = ["//visibility:public"])
 
 yeti_cc_library(
     name = "imgui_backends",
@@ -14,9 +14,9 @@ yeti_cc_library(
         "@imgui//:backends/imgui_impl_vulkan.h",
     ],
     deps = [
+        "@YetiSDK",
         "@glfw",
         "@imgui",
-        "@YetiSDK",
     ],
 )
 
@@ -35,13 +35,13 @@ yeti_cc_library(
         ],
         exclude = ["include/ppx/grfx/dx*/**"],
     ),
-    copts = [
-        "-std=c++14",
-        "-Wno-error=missing-braces",
-        "-Wno-error=unused-variable",
-    ],
+    copts = COPTS,
     defines = [
+        "GGP",
         "PPX_GGP",
+        "PPX_VULKAN",
+        "UNIX",
+        "USE_VK",
     ],
     includes = [
         "include",
