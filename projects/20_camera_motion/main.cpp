@@ -27,6 +27,136 @@ const grfx::Api kApi = grfx::API_VK_1_1;
 #define kGridDepth 100
 #define kGridWidth 100
 
+namespace {
+
+class Entity
+{
+public:
+    enum class EntityKind
+    {
+        INVALID  = -1,
+        FLOOR    = 0,
+        TRI_MESH = 1,
+        OBJECT   = 2
+    };
+
+    Entity()
+        : model(nullptr),
+          descriptorSet(nullptr),
+          uniformBuffer(nullptr),
+          pipeline(nullptr),
+          location(0, 0, 0),
+          dimension(0, 0, 0),
+          kind(EntityKind::INVALID) {}
+
+    Entity(float3 location, float3 dimension, EntityKind kind)
+        : model(nullptr),
+          descriptorSet(nullptr),
+          uniformBuffer(nullptr),
+          pipeline(nullptr),
+          location(location),
+          dimension(dimension),
+          kind(kind) {}
+
+    // Place this entity in a random location within the given sub-grid index.
+    // @param subGridIx - Index identifying the sub-grid where the object should be randomly positioned.
+    // @param subGridWidth - Width of the sub-grid.
+    // @param subGridDepth - Depth of the sub-grid.
+    void Place(int32_t subGridIx, ppx::Random& random, const int2& gridDim, const int2& subGridDim);
+
+    EntityKind Kind() const { return kind; }
+    bool       IsMesh() const { return Kind() == EntityKind::TRI_MESH; }
+    bool       IsFloor() const { return Kind() == EntityKind::FLOOR; }
+    bool       IsObject() const { return Kind() == EntityKind::OBJECT; }
+
+    grfx::DescriptorSet** DescriptorSetPtr() { return &descriptorSet; }
+    const grfx::DescriptorSetPtr DescriptorSet() const { return descriptorSet; }
+
+    const grfx::GraphicsPipelinePtr Pipeline() const { return pipeline; }
+    grfx::GraphicsPipeline**        PipelinePtr() { return &pipeline; }
+
+    const grfx::ModelPtr&  Model() const { return model; }
+    grfx::Model**          ModelPtr() { return &model; }
+
+    const grfx::BufferPtr& UniformBuffer() const { return uniformBuffer; }
+    grfx::Buffer**         UniformBufferPtr() { return &uniformBuffer; }
+
+    const float3& Location() const { return location; }
+
+private:
+    grfx::ModelPtr            model;
+    grfx::DescriptorSetPtr    descriptorSet;
+    grfx::BufferPtr           uniformBuffer;
+    grfx::GraphicsPipelinePtr pipeline;
+    float3                    location;
+    float3                    dimension;
+    EntityKind                kind;
+};
+
+class Person
+{
+public:
+    enum class MovementDirection
+    {
+        FORWARD,
+        LEFT,
+        RIGHT,
+        BACKWARD
+    };
+
+    Person()
+    {
+        Setup();
+    }
+
+    // Initialize the location of this person.
+    void Setup()
+    {
+        location   = float3(0, 1, 0);
+        azimuth    = pi<float>() / 2.0f;
+        altitude   = pi<float>() / 2.0f;
+        rateOfMove = 0.2f;
+        rateOfTurn = 0.02f;
+    }
+
+    // Move the location of this person in @param dir direction for @param distance units.
+    // All the symbolic directions are computed using the current direction where the person
+    // is looking at (azimuth).
+    void Move(MovementDirection dir, float distance);
+
+    // Change the location where the person is looking at by turning @param deltaAzimuth
+    // radians and looking up @param deltaAltitude radians. @param deltaAzimuth is an angle in
+    // the range [0, 2pi].  @param deltaAltitude is an angle in the range [0, pi].
+    void Turn(float deltaAzimuth, float deltaAltitude);
+
+    // Return the coordinates in world space that the person is looking at.
+    const float3 GetLookAt() const { return location + SphericalToCartesian(azimuth, altitude); }
+
+    // Return the location of the person in world space.
+    const float3& GetLocation() const { return location; }
+
+    float GetAzimuth() const { return azimuth; }
+    float GetAltitude() const { return altitude; }
+    float GetRateOfMove() const { return rateOfMove; }
+    float GetRateOfTurn() const { return rateOfTurn; }
+
+private:
+    // Coordinate in world space where the person is standing.
+    float3 location;
+
+    // Spherical coordinates in world space where the person is looking at.
+    // azimuth is an angle in the range [0, 2pi].
+    // altitude is an angle in the range [0, pi].
+    float azimuth;
+    float altitude;
+
+    // Rate of motion (grid units) and turning (radians).
+    float rateOfMove;
+    float rateOfTurn;
+};
+
+} // namespace
+
 class ProjApp
     : public ppx::Application
 {
@@ -59,99 +189,6 @@ private:
         grfx::FencePtr         imageAcquiredFence;
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
-    };
-
-    class Entity
-    {
-    public:
-        enum class EntityKind
-        {
-            FLOOR    = 0,
-            TRI_MESH = 1,
-            OBJECT   = 2
-        };
-
-        Entity()
-            : model(nullptr),
-              descriptorSet(nullptr),
-              uniformBuffer(nullptr),
-              pipeline(nullptr),
-              location(0, 0, 0),
-              dimension(0, 0, 0),
-              kind(EntityKind::FLOOR) {}
-
-        // Place this entity in a random location within the given sub-grid index.
-        // @param subGridIx - Index identifying the sub-grid where the object should be randomly positioned.
-        // @param subGridWidth - Width of the sub-grid.
-        // @param subGridDepth - Depth of the sub-grid.
-        void Place(int32_t subGridIx, ppx::Random& random, const int2& gridDim, const int2& subGridDim);
-
-        grfx::ModelPtr            model;
-        grfx::DescriptorSetPtr    descriptorSet;
-        grfx::BufferPtr           uniformBuffer;
-        grfx::GraphicsPipelinePtr pipeline;
-        float3                    location;
-        float3                    dimension;
-        EntityKind                kind;
-    };
-
-    class Person
-    {
-    public:
-        enum class MovementDirection
-        {
-            FORWARD,
-            LEFT,
-            RIGHT,
-            BACKWARD
-        };
-
-        Person() { Setup(); }
-
-        // Initialize the location of this person.
-        void Setup()
-        {
-            location   = float3(0, 1, 0);
-            azimuth    = pi<float>() / 2.0f;
-            altitude   = pi<float>() / 2.0f;
-            rateOfMove = 0.2f;
-            rateOfTurn = 0.02f;
-        }
-
-        // Move the location of this person in @param dir direction for @param distance units.
-        // All the symbolic directions are computed using the current direction where the person
-        // is looking at (azimuth).
-        void Move(MovementDirection dir, float distance);
-
-        // Change the location where the person is looking at by turning @param deltaAzimuth
-        // radians and looking up @param deltaAltitude radians. @param deltaAzimuth is an angle in
-        // the range [0, 2pi].  @param deltaAltitude is an angle in the range [0, pi].
-        void Turn(float deltaAzimuth, float deltaAltitude);
-
-        // Return the coordinates in world space that the person is looking at.
-        const float3 GetLookAt() const { return location + SphericalToCartesian(azimuth, altitude); }
-
-        // Return the location of the person in world space.
-        const float3& GetLocation() const { return location; }
-
-        float GetAzimuth() const { return azimuth; }
-        float GetAltitude() const { return altitude; }
-        float GetRateOfMove() const { return rateOfMove; }
-        float GetRateOfTurn() const { return rateOfTurn; }
-
-    private:
-        // Coordinate in world space where the person is standing.
-        float3 location;
-
-        // Spherical coordinates in world space where the person is looking at.
-        // azimuth is an angle in the range [0, 2pi].
-        // altitude is an angle in the range [0, pi].
-        float azimuth;
-        float altitude;
-
-        // Rate of motion (grid units) and turning (radians).
-        float rateOfMove;
-        float rateOfTurn;
     };
 
     std::vector<PerFrame>        mPerFrame;
@@ -197,49 +234,49 @@ void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo
 {
     Result ppxres = ppx::SUCCESS;
 
-    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromTriMesh(GetGraphicsQueue(), &mesh, &pEntity->model));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromTriMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = RoundUp(512, PPX_CONSTANT_BUFFER_ALIGNMENT);
     bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
     bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &pEntity->uniformBuffer));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, pEntity->UniformBufferPtr()));
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &pEntity->descriptorSet));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, pEntity->DescriptorSetPtr()));
 
     grfx::WriteDescriptor write = {};
     write.binding               = 0;
     write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     write.bufferOffset          = 0;
     write.bufferRange           = PPX_WHOLE_SIZE;
-    write.pBuffer               = pEntity->uniformBuffer;
-    PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
+    write.pBuffer               = pEntity->UniformBuffer();
+    PPX_CHECKED_CALL(ppxres = pEntity->DescriptorSet()->UpdateDescriptors(1, &write));
 }
 
 void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
     Result ppxres = ppx::SUCCESS;
 
-    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromWireMesh(GetGraphicsQueue(), &mesh, &pEntity->model));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromWireMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
     bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
     bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &pEntity->uniformBuffer));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, pEntity->UniformBufferPtr()));
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &pEntity->descriptorSet));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, pEntity->DescriptorSetPtr()));
 
     grfx::WriteDescriptor write = {};
     write.binding               = 0;
     write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     write.bufferOffset          = 0;
     write.bufferRange           = PPX_WHOLE_SIZE;
-    write.pBuffer               = pEntity->uniformBuffer;
-    PPX_CHECKED_CALL(ppxres = pEntity->descriptorSet->UpdateDescriptors(1, &write));
+    write.pBuffer               = pEntity->UniformBuffer();
+    PPX_CHECKED_CALL(ppxres = pEntity->DescriptorSet()->UpdateDescriptors(1, &write));
 }
 
-void ProjApp::Entity::Place(int32_t subGridIx, ppx::Random& random, const int2& gridDim, const int2& subGridDim)
+void Entity::Place(int32_t subGridIx, ppx::Random& random, const int2& gridDim, const int2& subGridDim)
 {
     // The original grid has been split in equal-sized sub-grids that preserve the same ratio.  There are
     // as many sub-grids as entities to place.  The entity will be placed at random inside the sub-grid
@@ -300,44 +337,45 @@ void ProjApp::SetupEntities()
 
     ppx::Random random;
     for (int32_t i = 0; i < kNumEntities; ++i) {
-        auto& entity = mEntities.emplace_back();
+        float3 location, dimension;
 
         if (i == 0) {
             // The first object is the mesh plane where all the other entities are placed.
-            entity.dimension                = float3(kGridWidth, 0, kGridDepth);
             WireMeshOptions wireMeshOptions = WireMeshOptions().Indices().VertexColors();
             WireMesh        wireMesh        = WireMesh::CreatePlane(WIRE_MESH_PLANE_POSITIVE_Y, float2(kGridWidth, kGridDepth), 100, 100, wireMeshOptions);
+            dimension                       = float3(kGridWidth, 0, kGridDepth);
+            location                        = float3(0, 0, 0);
+            auto &entity = mEntities.emplace_back(location, dimension, Entity::EntityKind::FLOOR);
             SetupEntity(wireMesh, geometryOptions, &entity);
-            entity.location = float3(0, 0, 0);
-            entity.kind     = Entity::EntityKind::FLOOR;
         }
         else {
-            TriMesh  triMesh;
-            uint32_t distribution = random.UInt32() % 100;
+            TriMesh            triMesh;
+            uint32_t           distribution = random.UInt32() % 100;
+            Entity::EntityKind kind         = Entity::EntityKind::INVALID;
 
             // NOTE: TriMeshOptions added here must match the number of bindings when creating this entity's pipeline.
             // See the handling of different entities in ProjApp::SetupPipelines.
             if (distribution <= 60) {
-                entity.dimension       = float3(2, 2, 2);
+                dimension              = float3(2, 2, 2);
                 TriMeshOptions options = TriMeshOptions().Indices().VertexColors();
-                triMesh                = (distribution <= 30) ? TriMesh::CreateCube(entity.dimension, options) : TriMesh::CreateSphere(entity.dimension[0] / 2, 100, 100, options);
-                entity.kind            = Entity::EntityKind::TRI_MESH;
+                triMesh                = (distribution <= 30) ? TriMesh::CreateCube(dimension, options) : TriMesh::CreateSphere(dimension[0] / 2, 100, 100, options);
+                kind                   = Entity::EntityKind::TRI_MESH;
             }
             else {
                 float3         lb      = {0, 0, 0};
                 float3         ub      = {1, 1, 1};
                 TriMeshOptions options = TriMeshOptions().Indices().ObjectColor(random.Float3(lb, ub));
                 triMesh                = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/monkey.obj"), options);
-                entity.kind            = Entity::EntityKind::OBJECT;
-                entity.dimension       = triMesh.GetBoundingBoxMax();
-                PPX_LOG_INFO("Object dimension: (" << entity.dimension[0] << ", " << entity.dimension[1] << ", " << entity.dimension[2] << ")");
+                kind                   = Entity::EntityKind::OBJECT;
+                dimension              = triMesh.GetBoundingBoxMax();
+                PPX_LOG_INFO("Object dimension: (" << dimension[0] << ", " << dimension[1] << ", " << dimension[2] << ")");
             }
 
-            SetupEntity(triMesh, geometryOptions, &entity);
-
-            // Compute a random location for this object.  The location is computed within the boundaries of
-            // the object's home grid.
+            // Create the entity and compute a random location for it.  The location is computed within the
+            // boundaries of the object's home grid.
+            auto& entity = mEntities.emplace_back(float3(0, 0, 0), dimension, kind);
             entity.Place(i - 1, random, int2(kGridWidth, kGridDepth), int2(subGridWidth, subGridDepth));
+            SetupEntity(triMesh, geometryOptions, &entity);
         }
     }
 }
@@ -389,22 +427,22 @@ void ProjApp::SetupPipelines()
 
     for (auto& entity : mEntities) {
         // NOTE: Number of vertex input bindings here must match the number of options added to each entity in ProjApp::SetupEntities.
-        if (entity.kind == Entity::EntityKind::FLOOR || entity.kind == Entity::EntityKind::TRI_MESH) {
-            gpCreateInfo.topology                      = (entity.kind == Entity::EntityKind::FLOOR) ? grfx::PRIMITIVE_TOPOLOGY_LINE_LIST : grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-            gpCreateInfo.vertexInputState.bindingCount = entity.model->GetVertexBufferCount();
-            gpCreateInfo.vertexInputState.bindings[0]  = *entity.model->GetVertexBinding(0);
-            gpCreateInfo.vertexInputState.bindings[1]  = *entity.model->GetVertexBinding(1);
+        if (entity.IsFloor() || entity.IsMesh()) {
+            gpCreateInfo.topology                      = (entity.IsFloor()) ? grfx::PRIMITIVE_TOPOLOGY_LINE_LIST : grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            gpCreateInfo.vertexInputState.bindingCount = entity.Model()->GetVertexBufferCount();
+            gpCreateInfo.vertexInputState.bindings[0]  = *entity.Model()->GetVertexBinding(0);
+            gpCreateInfo.vertexInputState.bindings[1]  = *entity.Model()->GetVertexBinding(1);
         }
-        else if (entity.kind == Entity::EntityKind::OBJECT) {
+        else if (entity.IsObject()) {
             gpCreateInfo.topology                      = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-            gpCreateInfo.vertexInputState.bindingCount = entity.model->GetVertexBufferCount();
-            gpCreateInfo.vertexInputState.bindings[0]  = *entity.model->GetVertexBinding(0);
-            gpCreateInfo.vertexInputState.bindings[1]  = *entity.model->GetVertexBinding(1);
+            gpCreateInfo.vertexInputState.bindingCount = entity.Model()->GetVertexBufferCount();
+            gpCreateInfo.vertexInputState.bindings[0]  = *entity.Model()->GetVertexBinding(0);
+            gpCreateInfo.vertexInputState.bindings[1]  = *entity.Model()->GetVertexBinding(1);
         }
         else {
-            PPX_ASSERT_MSG(false, "Unrecognized entity kind: " << static_cast<int>(entity.kind));
+            PPX_ASSERT_MSG(false, "Unrecognized entity kind: " << static_cast<int>(entity.Kind()));
         }
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &entity.pipeline));
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, entity.PipelinePtr()));
     }
 }
 
@@ -480,7 +518,7 @@ void ProjApp::KeyUp(KeyCode key)
     mPressedKeys.erase(key);
 }
 
-void ProjApp::Person::Move(MovementDirection dir, float distance)
+void Person::Move(MovementDirection dir, float distance)
 {
     if (dir == MovementDirection::FORWARD) {
         location += float3(distance * std::cosf(azimuth), 0, distance * std::sinf(azimuth));
@@ -501,7 +539,7 @@ void ProjApp::Person::Move(MovementDirection dir, float distance)
     }
 }
 
-void ProjApp::Person::Turn(float deltaAzimuth, float deltaAltitude)
+void Person::Turn(float deltaAzimuth, float deltaAltitude)
 {
     azimuth += deltaAzimuth;
     altitude += deltaAltitude;
@@ -672,9 +710,9 @@ void ProjApp::Render()
         const float4x4& V = mCurrentCamera->GetViewMatrix();
 
         for (auto& entity : mEntities) {
-            float4x4 T   = glm::translate(entity.location);
+            float4x4 T   = glm::translate(entity.Location());
             float4x4 mat = P * V * T;
-            entity.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+            entity.UniformBuffer()->CopyFromSource(sizeof(mat), &mat);
         }
     }
 
@@ -698,11 +736,11 @@ void ProjApp::Render()
             frame.cmd->SetViewports(GetViewport());
 
             for (auto& entity : mEntities) {
-                frame.cmd->BindGraphicsPipeline(entity.pipeline);
-                frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &entity.descriptorSet);
-                frame.cmd->BindIndexBuffer(entity.model);
-                frame.cmd->BindVertexBuffers(entity.model);
-                frame.cmd->DrawIndexed(entity.model->GetIndexCount());
+                frame.cmd->BindGraphicsPipeline(entity.Pipeline());
+                frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, entity.DescriptorSetPtr());
+                frame.cmd->BindIndexBuffer(entity.Model());
+                frame.cmd->BindVertexBuffers(entity.Model());
+                frame.cmd->DrawIndexed(entity.Model()->GetIndexCount());
             }
 
             // Draw ImGui
