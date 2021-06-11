@@ -67,6 +67,7 @@ function(CompileToDXBC50_VS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
       
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -83,6 +84,7 @@ function(CompileToDXBC51_VS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -99,6 +101,7 @@ function(CompileToDXIL_VS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -115,6 +118,7 @@ function(CompileToSPV_VS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -131,6 +135,7 @@ function(CompileToDXBC50_PS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -147,6 +152,7 @@ function(CompileToDXBC51_PS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -163,6 +169,7 @@ function(CompileToDXIL_PS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -179,6 +186,7 @@ function(CompileToSPV_PS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -195,6 +203,7 @@ function(CompileToDXBC50_CS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -211,6 +220,7 @@ function(CompileToDXBC51_CS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -227,6 +237,7 @@ function(CompileToDXIL_CS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
@@ -243,6 +254,7 @@ function(CompileToSPV_CS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
     set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
    
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
