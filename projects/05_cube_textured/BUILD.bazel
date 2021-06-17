@@ -3,11 +3,11 @@ load("//build_defs:config.bzl", "COPTS")
 
 yeti_cc_binary(
     name = "05_cube_textured",
-    srcs = [
-        "main.cpp",
-    ],
+    srcs = ["main.cpp"],
     copts = COPTS,
-    deps = [
-        "//:ppx",
+    data = [
+        "//assets:basic/shaders/Texture.ps.spv",
+        "//assets:basic/shaders/Texture.vs.spv",
     ],
+    deps = ["//:ppx"],
 )

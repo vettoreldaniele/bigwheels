@@ -3,11 +3,11 @@ load("//build_defs:config.bzl", "COPTS")
 
 yeti_cc_binary(
     name = "09_obj_geometry",
-    srcs = [
-        "main.cpp",
-    ],
+    srcs = ["main.cpp"],
     copts = COPTS,
-    deps = [
-        "//:ppx",
+    data = [
+        "//assets:basic/shaders/VertexColors.ps.spv",
+        "//assets:basic/shaders/VertexColors.vs.spv",
     ],
+    deps = ["//:ppx"],
 )

@@ -3,11 +3,12 @@ load("//build_defs:config.bzl", "COPTS")
 
 yeti_cc_binary(
     name = "10_cube_map",
-    srcs = [
-        "main.cpp",
-    ],
+    srcs = ["main.cpp"],
     copts = COPTS,
-    deps = [
-        "//:ppx",
+    data = [
+        "//assets:basic/shaders/CubeMap.vs.spv",
+        "//assets:basic/shaders/SkyBox.ps.spv",
+        "//assets:basic/shaders/SkyBox.vs.spv",
     ],
+    deps = ["//:ppx"],
 )

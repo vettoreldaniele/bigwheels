@@ -3,11 +3,13 @@ load("//build_defs:config.bzl", "COPTS")
 
 yeti_cc_binary(
     name = "13_normal_map",
-    srcs = [
-        "main.cpp",
-    ],
+    srcs = ["main.cpp"],
     copts = COPTS,
-    deps = [
-        "//:ppx",
+    data = [
+        "//assets:basic/shaders/NormalMap.ps.spv",
+        "//assets:basic/shaders/NormalMap.vs.spv",
+        "//assets:basic/shaders/VertexColors.ps.spv",
+        "//assets:basic/shaders/VertexColors.vs.spv",
     ],
+    deps = ["//:ppx"],
 )
