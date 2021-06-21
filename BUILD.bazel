@@ -62,6 +62,3 @@ yeti_cc_library(
         "@xxHash",
     ],
 )
-
-# Export the assets directory so every target has it available at runtime.
-exports_files(glob(["assets/**"]))
