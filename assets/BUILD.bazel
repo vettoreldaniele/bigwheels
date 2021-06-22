@@ -5,7 +5,7 @@ load("//build_defs:hlsl_rules.bzl", "spv_binary")
 
 package(default_visibility = ["//visibility:public"])
 
-DEFAULT_DXC_FLAGS = ["-DPPX_VULKAN=1"]
+DEFAULT_DXC_FLAGS = []
 
 # Use list comprehension to generate HLSL compile rules for every
 # shader under this directory.
