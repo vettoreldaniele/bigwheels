@@ -3,11 +3,17 @@ load("//build_defs:config.bzl", "COPTS")
 
 yeti_cc_binary(
     name = "shadertoy",
-    srcs = [
-        "main.cpp",
-    ],
+    srcs = ["main.cpp"],
     copts = COPTS,
-    deps = [
-        "//:ppx",
+    data = [
+        "//assets:basic/shaders/FullScreenTriangle.ps.spv",
+        "//assets:basic/shaders/FullScreenTriangle.vs.spv",
+        "//assets:shadertoy/shaders/Fractal_Land.cs.spv",
+        "//assets:shadertoy/shaders/Geodesic_Tiling.cs.spv",
+        "//assets:shadertoy/shaders/Happy_Jumping.cs.spv",
+        "//assets:shadertoy/shaders/Protean_Clouds.cs.spv",
+        "//assets:shadertoy/shaders/Seascape.cs.spv",
+        "//assets:shadertoy/shaders/Xyptonjtroz.cs.spv",
     ],
+    deps = ["//:ppx"],
 )

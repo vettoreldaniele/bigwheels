@@ -1,0 +1,37 @@
+# Build and deployment rules for HLSL code and other graphic assets used
+# by all BigWheels projects.
+
+load("//build_defs:hlsl_rules.bzl", "spv_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+DEFAULT_DXC_FLAGS = []
+
+# Use list comprehension to generate HLSL compile rules for every
+# shader under this directory.
+[[
+    spv_binary(
+        name = fname.replace(".hlsl", "VS"),
+        src = fname,
+        out = fname.replace(".hlsl", "") + ".vs.spv",
+        hdrs = glob(["**/*.hlsli"]),
+        dxc_flags = DEFAULT_DXC_FLAGS,
+        shader_type = "vs",
+    ),
+    spv_binary(
+        name = fname.replace(".hlsl", "PS"),
+        src = fname,
+        out = fname.replace(".hlsl", "") + ".ps.spv",
+        hdrs = glob(["**/*.hlsli"]),
+        dxc_flags = DEFAULT_DXC_FLAGS,
+        shader_type = "ps",
+    ),
+    spv_binary(
+        name = fname.replace(".hlsl", "CS"),
+        src = fname,
+        out = fname.replace(".hlsl", "") + ".cs.spv",
+        hdrs = glob(["**/*.hlsli"]),
+        dxc_flags = DEFAULT_DXC_FLAGS,
+        shader_type = "cs",
+    ),
+] for fname in glob(["**/*.hlsl"])]

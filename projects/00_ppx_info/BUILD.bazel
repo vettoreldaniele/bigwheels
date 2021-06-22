@@ -3,11 +3,7 @@ load("//build_defs:config.bzl", "COPTS")
 
 yeti_cc_binary(
     name = "00_ppx_info",
-    srcs = [
-        "main.cpp",
-    ],
+    srcs = ["main.cpp"],
     copts = COPTS,
-    deps = [
-        "//:ppx",
-    ],
+    deps = ["//:ppx"],
 )

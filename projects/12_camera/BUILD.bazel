@@ -3,11 +3,14 @@ load("//build_defs:config.bzl", "COPTS")
 
 yeti_cc_binary(
     name = "12_camera",
-    srcs = [
-        "main.cpp",
-    ],
+    srcs = ["main.cpp"],
     copts = COPTS,
-    deps = [
-        "//:ppx",
+    data = [
+        "//assets:basic/shaders/Depth.vs.spv",
+        "//assets:basic/shaders/DiffuseShadow.ps.spv",
+        "//assets:basic/shaders/DiffuseShadow.vs.spv",
+        "//assets:basic/shaders/VertexColors.ps.spv",
+        "//assets:basic/shaders/VertexColors.vs.spv",
     ],
+    deps = ["//:ppx"],
 )

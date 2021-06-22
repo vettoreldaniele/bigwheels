@@ -3,11 +3,11 @@ load("//build_defs:config.bzl", "COPTS")
 
 yeti_cc_binary(
     name = "21_text_draw",
-    srcs = [
-        "main.cpp",
-    ],
+    srcs = ["main.cpp"],
     copts = COPTS,
-    deps = [
-        "//:ppx",
+    data = [
+        "//assets:basic/shaders/TextDraw.ps.spv",
+        "//assets:basic/shaders/TextDraw.vs.spv",
     ],
+    deps = ["//:ppx"],
 )
