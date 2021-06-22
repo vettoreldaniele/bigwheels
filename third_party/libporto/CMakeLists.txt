@@ -72,6 +72,7 @@ set(LIBPORTO_SRC_DIR "${LIBPORTO_DIR}/src")
 set(DXVK_DIR         "${LIBPORTO_DIR}/third_party/dxvk")
 set(DXVK_INC_DIR     "${DXVK_DIR}/include")
 set(DXVK_SRC_DIR     "${DXVK_DIR}/src")
+set(SPVREFLECT_DIR   "${LIBPORTO_DIR}/third_party/SPIRV-Reflect")
 
 message("LIBPORTO_DIR: ${LIBPORTO_DIR}")
 message("DXVK_DIR    : ${DXVK_DIR}")
@@ -184,6 +185,7 @@ list(
     ${DXVK_SRC_DIR}/spirv/spirv_include.h
     ${DXVK_SRC_DIR}/spirv/spirv_instruction.h
     ${DXVK_SRC_DIR}/spirv/spirv_module.h
+    ${DXVK_SRC_DIR}/spirv/spirv_reader.h
     ${DXVK_SRC_DIR}/util/com/com_guid.h
     ${DXVK_SRC_DIR}/util/com/com_include.h
     ${DXVK_SRC_DIR}/util/com/com_object.h
@@ -306,6 +308,7 @@ list(
     ${DXVK_SRC_DIR}/spirv/spirv_code_buffer.cpp
     ${DXVK_SRC_DIR}/spirv/spirv_compression.cpp
     ${DXVK_SRC_DIR}/spirv/spirv_module.cpp
+    ${DXVK_SRC_DIR}/spirv/spirv_reader.cpp
     ${DXVK_SRC_DIR}/util/com/com_guid.cpp
     ${DXVK_SRC_DIR}/util/com/com_private_data.cpp
     ${DXVK_SRC_DIR}/util/config/config.cpp
@@ -325,13 +328,24 @@ list(
     ${DXVK_SRC_DIR}/vulkan/vulkan_presenter.cpp    
 )
 
+list(
+    APPEND SPVREFLECT_FILES
+    ${SPVREFLECT_DIR}/spirv_reflect.c
+    ${SPVREFLECT_DIR}/spirv_reflect.h
+)
+
 add_library(
     dxvk_core STATIC
     ${DXVK_CORE_HDR_FILES}
     ${DXVK_CORE_SRC_FILES}
+    ${SPVREFLECT_FILES}
 )
 
-set_source_files_properties(${DXVK_SRC_DIR}/util/sha1/sha1.c PROPERTIES LANGUAGE CXX)
+set_source_files_properties(
+    ${DXVK_SRC_DIR}/util/sha1/sha1.c
+    ${SPVREFLECT_DIR}/spirv_reflect.c
+    PROPERTIES LANGUAGE CXX
+)
 
 set_target_properties(
     dxvk_core
@@ -346,6 +360,7 @@ target_include_directories(
             ${DXVK_DIR}/porto_generated_headers
             ${LIBPORTO_SRC_DIR}
             ${VULKAN_INCLUDE_DIR}
+            ${SPVREFLECT_DIR}
 )
 target_include_directories(
     dxvk_core
@@ -507,6 +522,7 @@ target_include_directories(
             ${DXVK_DIR}/porto_generated_headers
             ${VULKAN_INCLUDE_DIR}
             ${LIBPORTO_SRC_DIR}
+            ${SPVREFLECT_DIR}
 )
 
 target_compile_definitions(dxvk_d3d11 PUBLIC PORTO_DEVELOPMENT=1)
@@ -664,29 +680,25 @@ list(
     ${LIBPORTO_SRC_DIR}/porto/string_conversion.h
     ${LIBPORTO_SRC_DIR}/porto/string_copy.h
     ${LIBPORTO_SRC_DIR}/porto/u16string_util.h
-    ${LIBPORTO_SRC_DIR}/porto_core/logger.h
-    ${LIBPORTO_SRC_DIR}/porto_core/logger_global.h
-    ${LIBPORTO_SRC_DIR}/porto_core/logging.h
-    ${LIBPORTO_SRC_DIR}/porto_core/logging_parameter_packer.h
-    ${LIBPORTO_SRC_DIR}/porto_core/macros.h
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_core.h
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_core_global.h
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_c/logging.h
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_c/log_format.h
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_c/porto_core.h
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_c/porto_types.h
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_hwnd.h
+    ${LIBPORTO_SRC_DIR}/porto/logger.h
+    ${LIBPORTO_SRC_DIR}/porto/logger_global.h
+    ${LIBPORTO_SRC_DIR}/porto/logging.h
+    ${LIBPORTO_SRC_DIR}/porto/logging_parameter_packer.h
+    ${LIBPORTO_SRC_DIR}/porto/macros.h
+    ${LIBPORTO_SRC_DIR}/porto/porto_core.h
+    ${LIBPORTO_SRC_DIR}/porto/porto_core_global.h
+    ${LIBPORTO_SRC_DIR}/porto/porto_hwnd.h
 )
 
 list(
     APPEND LIBPORTO_SRC_FILES
-    ${LIBPORTO_SRC_DIR}/forwards/porto_forwards.cpp
+    ${LIBPORTO_SRC_DIR}/porto/forwards/porto_forwards.cpp
     ${LIBPORTO_SRC_DIR}/porto/porto_global.cpp
     ${LIBPORTO_SRC_DIR}/porto/porto_impl.cpp
     ${LIBPORTO_SRC_DIR}/porto/string_conversion.cpp
-    ${LIBPORTO_SRC_DIR}/porto_core/logging.cpp
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_core.cpp
-    ${LIBPORTO_SRC_DIR}/porto_core/porto_hwnd.cpp
+    ${LIBPORTO_SRC_DIR}/porto/logging.cpp
+    ${LIBPORTO_SRC_DIR}/porto/porto_core.cpp
+    ${LIBPORTO_SRC_DIR}/porto/porto_hwnd.cpp
 )
 
 if (GGP)
