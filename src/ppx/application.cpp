@@ -606,8 +606,8 @@ Result Application::InitializePlatform()
     }
 
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    PortoConfig config = CreatePortoConfig();
-    InitPorto(config);
+    PortoConfig config = PortoCreateConfig();
+    PortoInit(&config);
 #endif // defined(PPX_GGP) && defined(PPX_DXVK)
 
     return ppx::SUCCESS;
@@ -681,7 +681,7 @@ Result Application::InitializeGrfxSurface()
         ci.pGpu                    = mDevice->GetGpu();
 #if defined(PPX_GGP)
   #if defined(PPX_DXVK)
-        ci.hwnd      = CreateHWNDFromStreamDescriptor(kGgpPrimaryStreamDescriptor);
+        ci.hwnd = PortoCreateHWNDFromStreamDescriptor(kGgpPrimaryStreamDescriptor);
   #endif
 #elif defined(PPX_LINUX_XCB)
         ci.connection = XGetXCBConnection(glfwGetX11Display());
