@@ -89,21 +89,6 @@ new_local_repository(
     path = "third_party/xxHash",
 )
 
-local_repository(
-    name = "dxc",
-    path = "third_party/dxc",
-)
-
-local_repository(
-    name = "spirv_tools",
-    path = "third_party/spirv-tools",
-)
-
-local_repository(
-    name = "spirv_headers",
-    path = "third_party/spirv-headers",
-)
-
 # TODO(chouinard): Try replacing this with a `gsutil_archive`
 # instead of relying on local SDK.
 yeti_repository(
