@@ -38,6 +38,9 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
+#if defined(USE_DXVK_SPV)
+    settings.grfx.enableDXVKSPV = true;
+#endif
 }
 
 static void YayOrNay(uint32_t first, uint32_t last, const char* status)
