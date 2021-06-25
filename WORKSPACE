@@ -17,6 +17,15 @@ gsutil_toolchain(
     url = "gs://yeti_base_sdk/releases/2021.3debian/YetiSDKBaseInternal-linux.tar.gz",
 )
 
+gsutil_toolchain(
+    name = "yeti_dxc",
+    build_tpl_path = "//tools/toolchains/dxc:BUILD.tpl",
+    crosstool_tpl_path = "//tools/toolchains/dxc:dxc_toolchain.bzl.tpl",
+    url = "gs://hlsl_shaders/dxc_release/ubuntu/stadia-v1.64.tar.gz",
+)
+
+register_toolchains("@yeti_dxc//:yeti_dxc_toolchain")
+
 new_local_repository(
     name = "contrib",
     build_file = "third_party/contrib.BUILD.bazel",

@@ -5,6 +5,8 @@ To use these rules, load them in your BUILD file using
 load("//build_defs:hlsl_rules.bzl", "spv_binary")
 """
 
+load("@yeti_dxc//:dxc_toolchain.bzl", "dxc_toolchain")
+
 VALID_SHADER_TYPES = ["cs", "vs", "ps"]
 DEFAULT_SHADER_MODEL = "6_0"
 
@@ -23,9 +25,12 @@ def _spv_binary_impl(ctx):
     args.add("-I", ctx.file.src.dirname)
     args.add_all(ctx.attr.dxc_flags)
     args.add_all(ctx.files.src)
+    info = ctx.toolchains["@yeti_dxc//:dxc_toolchain_type"].DxcInfo
     ctx.actions.run(
         mnemonic = "DxcCompile",
-        executable = ctx.executable.compiler,
+        progress_message = "Compiling HLSL shader",
+        executable = info.dxc_path,
+        env = {"LD_LIBRARY_PATH": info.dxc_lib},
         arguments = [args],
         inputs = ctx.files.src + ctx.files.hdrs,
         outputs = [output],
@@ -57,11 +62,6 @@ spv_binary = rule(
             doc = ("A list of DXC arguments to pass when compiling the given " +
                    "shader type."),
         ),
-        "compiler": attr.label(
-            default = Label("@dxc//:dxc"),
-            allow_single_file = True,
-            executable = True,
-            cfg = "exec",
-        ),
     },
+    toolchains = ["@yeti_dxc//:dxc_toolchain_type"],
 )
