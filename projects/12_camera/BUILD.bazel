@@ -6,11 +6,11 @@ yeti_cc_binary(
     srcs = ["main.cpp"],
     copts = COPTS,
     data = [
-        "//assets:basic/shaders/Depth.vs.spv",
-        "//assets:basic/shaders/DiffuseShadow.ps.spv",
-        "//assets:basic/shaders/DiffuseShadow.vs.spv",
-        "//assets:basic/shaders/VertexColors.ps.spv",
-        "//assets:basic/shaders/VertexColors.vs.spv",
+        "//assets:basic/shaders/spv/Depth.vs.spv",
+        "//assets:basic/shaders/spv/DiffuseShadow.ps.spv",
+        "//assets:basic/shaders/spv/DiffuseShadow.vs.spv",
+        "//assets:basic/shaders/spv/VertexColors.ps.spv",
+        "//assets:basic/shaders/spv/VertexColors.vs.spv",
     ],
     deps = ["//:ppx"],
 )

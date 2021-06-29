@@ -6,9 +6,9 @@ yeti_cc_binary(
     srcs = ["main.cpp"],
     copts = COPTS,
     data = [
-        "//assets:basic/shaders/CubeMap.vs.spv",
-        "//assets:basic/shaders/SkyBox.ps.spv",
-        "//assets:basic/shaders/SkyBox.vs.spv",
+        "//assets:basic/shaders/spv/CubeMap.vs.spv",
+        "//assets:basic/shaders/spv/SkyBox.ps.spv",
+        "//assets:basic/shaders/spv/SkyBox.vs.spv",
     ],
     deps = ["//:ppx"],
 )

@@ -6,10 +6,10 @@ yeti_cc_binary(
     srcs = ["main.cpp"],
     copts = COPTS,
     data = [
-        "//assets:basic/shaders/NormalMap.ps.spv",
-        "//assets:basic/shaders/NormalMap.vs.spv",
-        "//assets:basic/shaders/VertexColors.ps.spv",
-        "//assets:basic/shaders/VertexColors.vs.spv",
+        "//assets:basic/shaders/spv/NormalMap.ps.spv",
+        "//assets:basic/shaders/spv/NormalMap.vs.spv",
+        "//assets:basic/shaders/spv/VertexColors.ps.spv",
+        "//assets:basic/shaders/spv/VertexColors.vs.spv",
     ],
     deps = ["//:ppx"],
 )

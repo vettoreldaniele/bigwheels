@@ -6,8 +6,8 @@ yeti_cc_binary(
     srcs = ["main.cpp"],
     copts = COPTS,
     data = [
-        "//assets:basic/shaders/TextDraw.ps.spv",
-        "//assets:basic/shaders/TextDraw.vs.spv",
+        "//assets:basic/shaders/spv/TextDraw.ps.spv",
+        "//assets:basic/shaders/spv/TextDraw.vs.spv",
     ],
     deps = ["//:ppx"],
 )

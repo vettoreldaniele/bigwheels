@@ -12,11 +12,7 @@ DEFAULT_SHADER_MODEL = "6_0"
 
 def _spv_binary_impl(ctx):
     in_fname = ctx.attr.src.label.name
-    out_fname = in_fname.replace(
-        ".hlsl",
-        "." + ctx.attr.shader_type + ".spv",
-    )
-    output = ctx.actions.declare_file(out_fname)
+    output = ctx.actions.declare_file(ctx.attr.out.name)
     args = ctx.actions.args()
     args.add("-spirv")
     args.add("-T", "%s_%s" % (ctx.attr.shader_type, DEFAULT_SHADER_MODEL))
@@ -65,3 +61,26 @@ spv_binary = rule(
     },
     toolchains = ["@yeti_dxc//:dxc_toolchain_type"],
 )
+
+def get_shader_name(fname, shader_type, shader_target):
+    """Computes the name of an output file for a given shader.
+
+    Args:
+      fname: The path name of the source shader file.
+      shader_type: The type of output shader ('ps', 'vs' or 'cs').
+      shader_target: Target format to be generated ('spv', 'dxil').
+
+    Returns:
+      A path name to be used as the output target for the shader binary
+      compilation rule.
+    """
+
+    # NOTE: No access to os.path manipulation functions, so we must do this
+    #       using string operations.
+    path_elements = fname.split("/")
+    out_dirname = "/".join(path_elements[:-1])
+    out_basename = (path_elements[-1].replace(
+        ".hlsl",
+        ".%s.%s" % (shader_type, shader_target),
+    ))
+    return "%s/%s/%s" % (out_dirname, shader_target, out_basename)

@@ -6,8 +6,8 @@ yeti_cc_binary(
     srcs = ["main.cpp"],
     copts = COPTS,
     data = [
-        "//assets:basic/shaders/StaticVertexColors.ps.spv",
-        "//assets:basic/shaders/StaticVertexColors.vs.spv",
+        "//assets:basic/shaders/spv/StaticVertexColors.ps.spv",
+        "//assets:basic/shaders/spv/StaticVertexColors.vs.spv",
     ],
     deps = ["//:ppx"],
 )
