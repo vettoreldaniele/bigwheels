@@ -17,6 +17,7 @@ Result Texture::Create(const grfx::TextureCreateInfo* pCreateInfo)
     mCreateInfo = *pCreateInfo;
 
     if (!IsNull(pCreateInfo->pImage)) {
+        mImage                      = pCreateInfo->pImage;
         mCreateInfo.imageType       = mImage->GetType();
         mCreateInfo.width           = mImage->GetWidth();
         mCreateInfo.height          = mImage->GetHeight();
@@ -45,10 +46,7 @@ Result Texture::Create(const grfx::TextureCreateInfo* pCreateInfo)
 Result Texture::CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo)
 {
     // Image
-    if (!IsNull(pCreateInfo->pImage)) {
-        mImage = pCreateInfo->pImage;
-    }
-    else {
+    if (IsNull(pCreateInfo->pImage)) {
         if (pCreateInfo->usageFlags.bits.colorAttachment && pCreateInfo->usageFlags.bits.depthStencilAttachment) {
             PPX_ASSERT_MSG(false, "texture cannot be both color attachment and depth stencil attachment");
             return ppx::ERROR_INVALID_CREATE_ARGUMENT;
