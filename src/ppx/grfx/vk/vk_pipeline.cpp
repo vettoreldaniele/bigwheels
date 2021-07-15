@@ -515,12 +515,11 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
         nullptr,
         &mPhongPipeline);
     // Destroy transient render pass
-    if (renderPass != VK_NULL_HANDLE) {
+    if (!renderPass) {
         vkDestroyRenderPass(
             ToApi(GetDevice())->GetVkDevice(),
             renderPass,
-            nullptr);
-        renderPass = VK_NULL_HANDLE;
+            nullptr);        
     }
     // Process result
     if (vkres != VK_SUCCESS) {

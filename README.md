@@ -59,19 +59,22 @@ Built binaries are written to `BigWheels\bin`.
 **NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
 
 ## GGP using DXVK (libporto) (on Windows)
+NOTE: There are two repos for the steps in this section.
 ```
 git clone --recursive git@github.com:googlestadia/BigWheels.git
-cd BigWheels
+cd BigWheels\third_party
+git clone <URL to libporto repo>
+cd ..
 mkdir build-ggp
 cd build-ggp
-cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK=1 -DLIBPORTO_DIR=<path to libporto>
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK=1
 ```
 Open `BigWheels.sln` and build
 
 Built binaries are written to `BigWheels\bin`.
 
 **NOTE:**
-* libport must be manually cloned and its path must be passed in using `-DLIBPORTO_DIR=<your libporto dir>`.
+* **libporto** must be manually cloned into BigWheels\third_party.
 * GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
 
 

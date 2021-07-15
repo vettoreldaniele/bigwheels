@@ -501,6 +501,15 @@ if (PPX_VULKAN)
     )
 endif()
 
+if (PPX_DXVK)
+    if (PPX_GGP)
+       target_include_directories(
+           ${PROJECT_NAME}
+           PUBLIC ${PPX_THIRD_PARTY_DIR}/libporto/include
+       )
+    endif()
+endif()
+
 set_target_properties(
     ${PROJECT_NAME}
     PROPERTIES FOLDER "ppx"
@@ -530,6 +539,22 @@ elseif (PPX_MSW)
         PUBLIC  PPX_MSW
                 _CRT_SECURE_NO_WARNINGS
     )
+endif()
+
+# ------------------------------------------------------------------------------
+# Compile options
+# ------------------------------------------------------------------------------
+if (PPX_DXVK)
+    if (PPX_GGP)
+        target_compile_options(
+        ${PROJECT_NAME}
+        PUBLIC "-fshort-wchar"
+               "-Wno-ignored-attributes"
+               "-Wno-unused-private-field"
+               "-Wno-missing-braces"
+               "-Wno-unused-const-variable"
+        )
+    endif()
 endif()
 
 # ------------------------------------------------------------------------------
@@ -662,12 +687,9 @@ if (PPX_VULKAN)
 endif()
 
 if (PPX_DXVK)
-    target_link_libraries(${PROJECT_NAME} 
-        PUBLIC dxvk_core dxvk_d3d11 dxvk_dxgi
-    )
     if (PPX_GGP)
         target_link_libraries(${PROJECT_NAME} 
-            PUBLIC libporto
+            PUBLIC dxvk porto
         )
     endif()
 endif()
