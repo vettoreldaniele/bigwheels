@@ -68,9 +68,9 @@ if (PPX_D3D12)
 endif()
 # DXVK
 if (PPX_DXVK)
-    if(NOT GGP)
-        message(FATAL_ERROR "PPX_DXVK requires PPX_DXVK")
-    endif()
+    #if(NOT GGP)
+    #    message(FATAL_ERROR "PPX_DXVK requires PPX_DXVK")
+    #endif()
     set(PPX_DXVK_MSG TRUE)
 endif()
 # Vulkan

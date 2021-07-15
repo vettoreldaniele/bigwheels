@@ -691,6 +691,10 @@ if (PPX_DXVK)
         target_link_libraries(${PROJECT_NAME} 
             PUBLIC dxvk porto
         )
+    elseif(PPX_MSW)
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC d3d11 shcore.lib
+        )
     endif()
 endif()
 
