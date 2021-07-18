@@ -137,7 +137,16 @@ enum Format
     FORMAT_BC7_SRGB,
 };
 
+enum FormatAspectBit
+{
+    FORMAT_ASPECT_UNDEFINED     = 0x0,
+    FORMAT_ASPECT_RENDER_TARGET = 0x1,
+    FORMAT_ASPECT_DEPTH         = 0x2,
+    FORMAT_ASPECT_STENCIL       = 0x4,
+};
+
 uint32_t FormatSize(grfx::Format format);
+uint32_t FormatAspect(grfx::Format format);
 
 } // namespace grfx
 } // namespace ppx

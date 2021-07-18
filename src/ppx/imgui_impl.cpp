@@ -252,9 +252,9 @@ void ImGuiImplDx12::Shutdown(ppx::Application* pApp)
 
 void ImGuiImplDx12::NewFrameApi()
 {
-    ImGui_ImplDX12_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+    //ImGui_ImplDX12_NewFrame();
+    //ImGui_ImplGlfw_NewFrame();
+    //ImGui::NewFrame();
 }
 
 void ImGuiImplDx12::Render(grfx::CommandBuffer* pCommandBuffer)

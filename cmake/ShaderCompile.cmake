@@ -127,7 +127,7 @@ function(CompileToSPV_VS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling VS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -T vs_6_0 -E vsmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -fspv-reflect -T vs_6_0 -E vsmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
     )    
 endfunction()
 
@@ -195,7 +195,7 @@ function(CompileToSPV_PS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -T ps_6_0 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -fspv-reflect -T ps_6_0 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
     )    
 endfunction()
 
@@ -263,7 +263,7 @@ function(CompileToSPV_CS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling CS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -T cs_6_0 -E csmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -fspv-reflect -T cs_6_0 -E csmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
     )    
 endfunction()
 

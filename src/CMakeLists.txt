@@ -113,7 +113,7 @@ if (PPX_D3D11)
     )
 endif()
 
-if (PPX_D3D12)
+if (PPX_D3D12 OR PPX_DXVK)
     list(APPEND IMGUI_SOURCE_FILES
         ${IMGUI_DIR}/backends/imgui_impl_dx12.h
         ${IMGUI_DIR}/backends/imgui_impl_dx12.cpp
@@ -313,7 +313,7 @@ if (PPX_D3D11 OR PPX_DXVK)
     )
 endif()
 
-if (PPX_D3D12)
+if (PPX_D3D12 OR PPX_DXVK)
     list(
         APPEND PPX_GRFX_DX12_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx12/000_dx12_config.h
@@ -485,7 +485,7 @@ target_include_directories(
 )
 
 # Include D3D12 directories if D3D12 is enabled
-if (PPX_D3D12)
+if (PPX_D3D12 OR PPX_DXVK)
     target_include_directories(
         ${PROJECT_NAME}
         PRIVATE ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src
@@ -619,7 +619,7 @@ endif()
 if (PPX_DXVK)
     target_compile_definitions(
         ${PROJECT_NAME}
-        PUBLIC  PPX_DXVK PPX_D3D11
+        PUBLIC  PPX_DXVK PPX_D3D11 PPX_D3D12
     )
 endif()
 
@@ -693,7 +693,7 @@ if (PPX_DXVK)
         )
     elseif(PPX_MSW)
         target_link_libraries(${PROJECT_NAME} 
-            PUBLIC d3d11 shcore.lib
+            PUBLIC d3d11 d3d12 shcore.lib
         )
     endif()
 endif()

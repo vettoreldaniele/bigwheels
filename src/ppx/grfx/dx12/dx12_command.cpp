@@ -33,8 +33,14 @@ Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreate
     }
     PPX_LOG_OBJECT_CREATION(D3D12GraphicsCommandList, mCommandList.Get());
 
-    // Store command allocator for reset
-    mCommandAllocator = ToApi(pCreateInfo->pPool)->GetDxCommandAllocator();
+    //// Store command allocator for reset
+    //mCommandAllocator = ToApi(pCreateInfo->pPool)->GetDxCommandAllocator();
+    hr = ToApi(GetDevice())->GetDxDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&mCommandAllocator));
+    if (FAILED(hr)) {
+        PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandAllocator failed");
+        return ppx::ERROR_API_FAILURE;
+    }
+    PPX_LOG_OBJECT_CREATION(D3D12CommandAllocator, mCommandAllocator.Get());
 
     // Heap sizes
     mHeapSizeCBVSRVUAV = static_cast<UINT>(pCreateInfo->resourceDescriptorCount);
@@ -94,14 +100,18 @@ void CommandBuffer::DestroyApiObjects()
 
 Result CommandBuffer::Begin()
 {
+    HRESULT hr;
+
     // Command allocators can only be reset when the GPU is
     // done with associated with command lists.
     //
-    HRESULT hr = mCommandAllocator->Reset();
+#if ! defined(PPX_DXVK)
+    hr = mCommandAllocator->Reset();
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12CommandAllocator::Reset failed");
         return ppx::ERROR_API_FAILURE;
     }
+#endif // ! defined(PPX_DXVK)
 
     // Normally a command list can be reset immediately after submission
     // if it gets associated with a different command allocoator.
@@ -189,16 +199,26 @@ void CommandBuffer::BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginI
     }
 
     // Clear depth/stencil if load op is clear
-    if (hasDepthStencil && (pRenderPass->GetDepthStencilView()->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR)) {
-        D3D12_CLEAR_FLAGS                   flags      = D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL;
-        const grfx::DepthStencilClearValue& clearValue = pBeginInfo->DSVClearValue;
-        mCommandList->ClearDepthStencilView(
-            depthStencilDesciptor,
-            flags,
-            static_cast<FLOAT>(clearValue.depth),
-            static_cast<UINT8>(clearValue.stencil),
-            0,
-            nullptr);
+    //if (hasDepthStencil && (pRenderPass->GetDepthStencilView()->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR)) {
+    if (hasDepthStencil) {
+        D3D12_CLEAR_FLAGS flags = static_cast<D3D12_CLEAR_FLAGS>(0);
+        if (pRenderPass->GetDepthStencilView()->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
+            flags |= D3D12_CLEAR_FLAG_DEPTH;
+        }
+        if (pRenderPass->GetDepthStencilView()->GetStencilLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
+            flags |= D3D12_CLEAR_FLAG_STENCIL;
+        }
+
+        if (flags != static_cast<D3D12_CLEAR_FLAGS>(0)) {
+            const grfx::DepthStencilClearValue& clearValue = pBeginInfo->DSVClearValue;
+            mCommandList->ClearDepthStencilView(
+                depthStencilDesciptor,
+                flags,
+                static_cast<FLOAT>(clearValue.depth),
+                static_cast<UINT8>(clearValue.stencil),
+                0,
+                nullptr);
+        }
     }
 }
 
@@ -698,21 +718,21 @@ Result CommandPool::CreateApiObjects(const grfx::CommandPoolCreateInfo* pCreateI
         return ppx::ERROR_INVALID_CREATE_ARGUMENT;
     }
 
-    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateCommandAllocator(mCommandType, IID_PPV_ARGS(&mCommandAllocator));
-    if (FAILED(hr)) {
-        PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandAllocator failed");
-        return ppx::ERROR_API_FAILURE;
-    }
-    PPX_LOG_OBJECT_CREATION(D3D12CommandAllocator, mCommandAllocator.Get());
+    //HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateCommandAllocator(mCommandType, IID_PPV_ARGS(&mCommandAllocator));
+    //if (FAILED(hr)) {
+    //    PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandAllocator failed");
+    //    return ppx::ERROR_API_FAILURE;
+    //}
+    //PPX_LOG_OBJECT_CREATION(D3D12CommandAllocator, mCommandAllocator.Get());
 
     return ppx::SUCCESS;
 }
 
 void CommandPool::DestroyApiObjects()
 {
-    if (mCommandAllocator) {
-        mCommandAllocator.Reset();
-    }
+    //if (mCommandAllocator) {
+    //    mCommandAllocator.Reset();
+    //}
 }
 
 } // namespace dx12

@@ -1255,7 +1255,11 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
                 filePath = (filePath / "dxil" / baseName).append_extension(".dxil");
             }
             else {
+#if (PPX_DXVK)
+                filePath = (filePath / "spv" / baseName).append_extension(".spv");
+#else
                 filePath = (filePath / "dxbc51" / baseName).append_extension(".dxbc51");
+#endif
             }
         } break;
 

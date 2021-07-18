@@ -267,6 +267,22 @@ typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(ObjPtr<GrfxTypeT>& pGrfxObje
     return pApiObject;
 }
 
+#if defined(PPX_DXVK)
+typedef DWORD(WINAPI* PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO)(
+    HANDLE hHandle,
+    DWORD  dwMilliseconds,
+    BOOL   bAlertable);
+
+typedef HANDLE(WINAPI* PFN_CREATE_EVENT_PORTO)(
+    LPSECURITY_ATTRIBUTES lpEventAttributes,
+    BOOL                  bManualReset,
+    BOOL                  bInitialState,
+    LPCSTR                lpName);
+
+extern PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO;
+extern PFN_CREATE_EVENT_PORTO              CreateEventPORTO;
+#endif // defined(PPX_DXVK)
+
 } // namespace dx12
 } // namespace grfx
 } // namespace ppx

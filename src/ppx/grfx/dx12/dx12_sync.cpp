@@ -19,7 +19,11 @@ Result Fence::CreateApiObjects(const grfx::FenceCreateInfo* pCreateInfo)
     }
     PPX_LOG_OBJECT_CREATION(D3D12Fence(Fence), mFence.Get());
 
+#if defined(PPX_DXVK)
+    mFenceEventHandle = CreateEventPORTO(nullptr, FALSE, FALSE, nullptr);
+#else
     mFenceEventHandle = CreateEventEx(NULL, false, false, EVENT_ALL_ACCESS);
+#endif
     if (mFenceEventHandle == INVALID_HANDLE_VALUE) {
         return ppx::ERROR_API_FAILURE;
     }
@@ -49,8 +53,17 @@ UINT64 Fence::GetWaitForValue() const
 
 Result Fence::Wait(uint64_t timeout)
 {
-    mFence->SetEventOnCompletion(mValue, mFenceEventHandle);
-    WaitForSingleObjectEx(mFenceEventHandle, INFINITE, false);
+    UINT64 completedValue = mFence->GetCompletedValue();
+    if (completedValue < GetWaitForValue()) {
+        mFence->SetEventOnCompletion(mValue, mFenceEventHandle);
+
+        DWORD dwMillis = (timeout == UINT64_MAX) ? INFINITE : static_cast<DWORD>(timeout / 1000000ULL);
+#if defined(PPX_DXVK)
+        WaitForSingleObjectExPORTO(mFenceEventHandle, dwMillis, false);
+#else
+        WaitForSingleObjectEx(mFenceEventHandle, dwMillis, false);
+#endif
+    }
     return ppx::SUCCESS;
 }
 

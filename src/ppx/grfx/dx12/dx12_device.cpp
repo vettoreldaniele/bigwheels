@@ -19,12 +19,17 @@ namespace ppx {
 namespace grfx {
 namespace dx12 {
 
+#if defined(PPX_DXVK)
+PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO = nullptr;
+PFN_CREATE_EVENT_PORTO              CreateEventPORTO           = nullptr;
+#endif // defined(PPX_DXVK)
+
 void Device::LoadRootSignatureFunctions()
 {
+    HMODULE module = ::GetModuleHandle(TEXT("d3d12.dll"));
+
     // Load root signature version 1.1 functions
     {
-        HMODULE module = ::GetModuleHandle(TEXT("d3d12.dll"));
-
         mFnD3D12CreateRootSignatureDeserializer = (PFN_D3D12_CREATE_ROOT_SIGNATURE_DESERIALIZER)GetProcAddress(
             module,
             "D3D12SerializeVersionedRootSignature");
@@ -37,6 +42,11 @@ void Device::LoadRootSignatureFunctions()
             module,
             "D3D12CreateVersionedRootSignatureDeserializer");
     }
+
+#if defined(PPX_DXVK)
+    CreateEventPORTO           = (PFN_CREATE_EVENT_PORTO)GetProcAddress(module, "CreateEventPORTO");
+    WaitForSingleObjectExPORTO = (PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO)GetProcAddress(module, "WaitForSingleObjectExPORTO");
+#endif // defined(PPX_DXVK)
 }
 
 Result Device::CreateQueues(const grfx::DeviceCreateInfo* pCreateInfo)
@@ -130,6 +140,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     // Cast to XIDXGIAdapter
     typename DXGIAdapterPtr::InterfaceType* pAdapter = ToApi(pCreateInfo->pGpu)->GetDxAdapter();
 
+#if !defined(PPX_DXVK)
     //
     // Enable SM 6.0 for DXIL support
     //
@@ -181,6 +192,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
         PPX_LOG_INFO("D3D12 SM 6.0+ support enabled (DXIL)")
     }
+#endif // ! defined(PPX_DXVK)
 
     // Create real D3D12 device
     HRESULT hr = D3D12CreateDevice(pAdapter, featureLevel, IID_PPV_ARGS(&mDevice));
@@ -202,7 +214,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
             &featureData,
             sizeof(featureData));
 
-        if (FAILED(hr)) {
+        if (FAILED(hr) || (featureData.HighestVersion < D3D_ROOT_SIGNATURE_VERSION_1_1)) {
             return ppx::ERROR_REQUIRED_FEATURE_UNAVAILABLE;
         }
     }

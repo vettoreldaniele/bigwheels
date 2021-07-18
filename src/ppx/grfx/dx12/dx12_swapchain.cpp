@@ -108,6 +108,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     dxDesc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
     dxDesc.Flags                 = flags;
 
+    D3D12CommandQueuePtr::InterfaceType* pCmdQueue = ToApi(pCreateInfo->pQueue)->GetDxQueue();
     ComPtr<IDXGISwapChain1> dxgiSwapChain;
     HRESULT                 hr = factory->CreateSwapChainForHwnd(
         ToApi(pCreateInfo->pQueue)->GetDxQueue(),        // pDevice
@@ -212,7 +213,11 @@ Result Swapchain::AcquireNextImage(
     // Wait on swapchain
     {
         DWORD millis = UINT32_MAX;
+#if defined(PPX_DXVK)
+        //DWORD result = WaitForSingleObjectExPORTO(mFrameLatencyWaitableObject, millis, TRUE);
+#else
         DWORD result = WaitForSingleObjectEx(mFrameLatencyWaitableObject, millis, TRUE);
+
         // Confirmed timeout
         if (result == WAIT_TIMEOUT) {
             return ppx::ERROR_WAIT_TIMED_OUT;
@@ -225,6 +230,7 @@ Result Swapchain::AcquireNextImage(
         if (result != WAIT_OBJECT_0) {
             return ppx::ERROR_WAIT_FAILED;
         }
+#endif
     }
 
     // Get next buffer index

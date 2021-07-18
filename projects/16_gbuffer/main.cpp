@@ -939,7 +939,7 @@ void ProjApp::Render()
             grfx::RESOURCE_STATE_RENDER_TARGET,
             grfx::RESOURCE_STATE_SHADER_RESOURCE,
             grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE);
-        frame.cmd->BeginRenderPass(mGBufferRenderPass, grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_ALL);
+        frame.cmd->BeginRenderPass(mGBufferRenderPass, grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_RENDER_TARGETS | grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_DEPTH);
         {
             for (size_t i = 0; i < mEntities.size(); ++i) {
                 mEntities[i].Draw(mSceneDataSet, frame.cmd);
@@ -1012,9 +1012,9 @@ void ProjApp::Render()
             // Draw gbuffer light output to swapchain
             frame.cmd->Draw(mDrawToSwapchain, 1, &mDrawToSwapchainSet);
 
-            // Draw ImGui
-            DrawDebugInfo([this]() { this->DrawGui(); });
-            DrawImGui(frame.cmd);
+            //// Draw ImGui
+            //DrawDebugInfo([this]() { this->DrawGui(); });
+            //DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

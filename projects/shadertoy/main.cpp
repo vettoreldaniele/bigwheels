@@ -14,7 +14,7 @@ const grfx::Api kApi = grfx::API_VK_1_1;
 #define kWindowHeight         720
 #define kNumThreadsX          8
 #define kNumThreadsY          8
-#define kDefaultShaderToy     4
+#define kDefaultShaderToy     5
 #define kShaderToyRenderScale 1.0f
 
 class ProjApp
@@ -352,8 +352,8 @@ void ProjApp::Render()
             frame.cmd->Draw(3, 1, 0, 0);
 
             // Draw ImGui
-            DrawDebugInfo([this]() { this->DrawGui(); });
-            DrawImGui(frame.cmd);
+            //DrawDebugInfo([this]() { this->DrawGui(); });
+            //DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

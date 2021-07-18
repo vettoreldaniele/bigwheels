@@ -257,10 +257,14 @@ Result DrawPass::CreateApiObjects(const grfx::internal::DrawPassCreateInfo* pCre
             renderTargetLoadOp = grfx::ATTACHMENT_LOAD_OP_CLEAR;
         }
         if ((clearMask & DRAW_PASS_CLEAR_FLAG_CLEAR_DEPTH) != 0) {
-            depthLoadOp = grfx::ATTACHMENT_LOAD_OP_CLEAR;
+            if (FormatAspect(mDepthStencilTexture->GeImageFormat()) & FORMAT_ASPECT_DEPTH) {
+                depthLoadOp = grfx::ATTACHMENT_LOAD_OP_CLEAR;
+            }
         }
         if ((clearMask & DRAW_PASS_CLEAR_FLAG_CLEAR_STENCIL) != 0) {
-            stencilLoadOp = grfx::ATTACHMENT_LOAD_OP_CLEAR;
+           if (FormatAspect(mDepthStencilTexture->GeImageFormat()) & FORMAT_ASPECT_STENCIL) {
+               stencilLoadOp = grfx::ATTACHMENT_LOAD_OP_CLEAR;
+           }
         }
 
         // If the the depth/stencil state has READ for either depth or stecil

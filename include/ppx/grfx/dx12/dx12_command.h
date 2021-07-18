@@ -158,7 +158,7 @@ public:
     CommandPool() {}
     virtual ~CommandPool() {}
 
-    typename D3D12CommandAllocatorPtr::InterfaceType* GetDxCommandAllocator() const { return mCommandAllocator.Get(); }
+    //typename D3D12CommandAllocatorPtr::InterfaceType* GetDxCommandAllocator() const { return mCommandAllocator.Get(); }
     D3D12_COMMAND_LIST_TYPE                           GetDxCommandType() const { return mCommandType; }
 
 protected:
@@ -166,7 +166,7 @@ protected:
     virtual void   DestroyApiObjects() override;
 
 private:
-    D3D12CommandAllocatorPtr mCommandAllocator;
+    //D3D12CommandAllocatorPtr mCommandAllocator;
     D3D12_COMMAND_LIST_TYPE  mCommandType = ppx::InvalidValue<D3D12_COMMAND_LIST_TYPE>();
 };
 
