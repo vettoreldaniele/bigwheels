@@ -43,6 +43,13 @@ private:
         grfx::Queue*        pQueue,
         const fs::path&     path,
         grfx::Image**       ppImage,
+        const ImageOptions& options,
+        bool                useGpu);
+
+    friend Result CreateImageFromBitmapGpu(
+        grfx::Queue*        pQueue,
+        const Bitmap*       pBitmap,
+        grfx::Image**       ppImage,
         const ImageOptions& options);
 };
 
@@ -73,6 +80,16 @@ Result CreateImageFromBitmap(
 Result CreateImageFromFile(
     grfx::Queue*        pQueue,
     const fs::path&     path,
+    grfx::Image**       ppImage,
+    const ImageOptions& options = ImageOptions(),
+    bool                useGpu  = false);
+
+//! @fn CreateMipMapsForImage
+//!
+//!
+Result CreateImageFromBitmapGpu(
+    grfx::Queue*        pQueue,
+    const Bitmap*       pBitmap,
     grfx::Image**       ppImage,
     const ImageOptions& options = ImageOptions());
 
