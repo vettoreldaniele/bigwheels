@@ -8,23 +8,33 @@ namespace ppx {
 namespace grfx {
 namespace vk {
 
-class QueryPool
-    : public grfx::QueryPool
+class Query
+    : public grfx::Query
 {
 public:
-    QueryPool() {}
-    virtual ~QueryPool() {}
+    Query();
+    virtual ~Query() {}
 
     VkQueryPoolPtr GetVkQueryPool() const { return mQueryPool; }
 
-    virtual void Reset(uint32_t firstQuery, uint32_t queryCount) override;
+    virtual void   Reset(uint32_t firstQuery, uint32_t queryCount) override;
+    virtual void   Begin(grfx::CommandBuffer* pCommandBuffer, uint32_t index) override;
+    virtual void   End(grfx::CommandBuffer* pCommandBuffer, uint32_t index) override;
+    virtual void   WriteTimestamp(grfx::CommandBuffer* pCommandBuffer, grfx::PipelineStage pipelineStage, uint32_t index) override;
+    virtual void   ResolveData(grfx::CommandBuffer* pCommandBuffer, uint32_t startIndex, uint32_t numQueries) override;
+    virtual Result GetData(void* pDstData, uint64_t dstDataSize) override;
 
 protected:
-    virtual Result CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo) override;
+    virtual Result CreateApiObjects(const grfx::QueryCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
+    uint32_t       GetQueryTypeSize(VkQueryType type, uint32_t multiplier);
+    VkQueryType    GetQueryType() const { return mType; }
 
 private:
-    VkQueryPoolPtr mQueryPool;
+    VkQueryPoolPtr      mQueryPool;
+    VkQueryType         mType;
+    grfx::BufferPtr     mBuffer;
+    uint32_t            mMultiplier;
 };
 
 } // namespace vk

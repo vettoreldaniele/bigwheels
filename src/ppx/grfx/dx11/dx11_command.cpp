@@ -490,46 +490,6 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
-void CommandBuffer::BeginQuery(
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
-{
-    PPX_ASSERT_NULL_ARG(pQueryPool);
-
-    dx11::args::BeginQuery beginQueryArgs = {};
-
-    beginQueryArgs.pQuery = ToApi(pQueryPool)->GetQuery(queryIndex);
-
-    mCommandList.BeginQuery(&beginQueryArgs);
-}
-
-void CommandBuffer::EndQuery(
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
-{
-    PPX_ASSERT_NULL_ARG(pQueryPool);
-
-    dx11::args::EndQuery endQueryArgs = {};
-
-    endQueryArgs.pQuery = ToApi(pQueryPool)->GetQuery(queryIndex);
-
-    mCommandList.EndQuery(&endQueryArgs);
-}
-
-void CommandBuffer::WriteTimestamp(
-    grfx::PipelineStage    pipelineStage,
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
-{
-    PPX_ASSERT_NULL_ARG(pQueryPool);
-
-    dx11::args::WriteTimestamp writeTimestampArgs = {};
-
-    writeTimestampArgs.pQuery = ToApi(pQueryPool)->GetQuery(queryIndex);
-
-    mCommandList.WriteTimestamp(&writeTimestampArgs);
-}
-
 void CommandBuffer::ImGuiRender(void (*pFn)(void))
 {
     mCommandList.ImGuiRender(pFn);

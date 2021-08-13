@@ -262,19 +262,6 @@ public:
         grfx::Image*                       pSrcImage,
         grfx::Buffer*                      pDstBuffer) = 0;
 
-    virtual void BeginQuery(
-        const grfx::QueryPool* pQueryPool,
-        uint32_t               queryIndex) = 0;
-
-    virtual void EndQuery(
-        const grfx::QueryPool* pQueryPool,
-        uint32_t               queryIndex) = 0;
-
-    virtual void WriteTimestamp(
-        grfx::PipelineStage    pipelineStage,
-        const grfx::QueryPool* pQueryPool,
-        uint32_t               queryIndex) = 0;
-
     // ---------------------------------------------------------------------------------------------
     // Convenience functions
     // ---------------------------------------------------------------------------------------------

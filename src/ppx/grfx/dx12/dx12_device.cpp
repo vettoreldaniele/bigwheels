@@ -488,9 +488,9 @@ Result Device::AllocateObject(grfx::Queue** ppObject)
     return ppx::SUCCESS;
 }
 
-Result Device::AllocateObject(grfx::QueryPool** ppObject)
+Result Device::AllocateObject(grfx::Query** ppObject)
 {
-    dx12::QueryPool* pObject = new dx12::QueryPool();
+    dx12::Query* pObject = new dx12::Query();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -605,105 +605,6 @@ Result Device::WaitIdle()
             return ppxres;
         }
     }
-
-    return ppx::SUCCESS;
-}
-
-thread_local uint32_t sQueryResolveThreadIndex = UINT32_MAX;
-
-Result Device::ResolveQueryData(
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               firstQuery,
-    uint32_t               queryCount,
-    uint64_t               dstDataSize,
-    void*                  pDstData)
-{
-    if (sQueryResolveThreadIndex == UINT32_MAX) {
-        std::lock_guard lock(mQueryResolveMutex);
-
-        sQueryResolveThreadIndex = mQueryResolveThreadCount;
-        mQueryResolveThreadCount += 1;
-
-        if (mQueryResolveThreadCount > static_cast<uint32_t>(mQueryResolveBuffers.size())) {
-            grfx::BufferCreateInfo createInfo = {};
-            createInfo.size                   = 65536;
-            createInfo.usageFlags             = grfx::BUFFER_USAGE_TRANSFER_DST;
-            createInfo.memoryUsage            = grfx::MEMORY_USAGE_GPU_TO_CPU;
-            createInfo.initialState           = grfx::RESOURCE_STATE_COPY_DST;
-            createInfo.ownership              = grfx::OWNERSHIP_REFERENCE;
-
-            grfx::BufferPtr buffer;
-            // Create buffer
-            Result ppxres = this->CreateBuffer(&createInfo, &buffer);
-            if (Failed(ppxres)) {
-                return ppxres;
-            }
-            mQueryResolveBuffers.push_back(buffer);
-        }
-    }
-    grfx::BufferPtr dstBuffer = mQueryResolveBuffers[sQueryResolveThreadIndex];
-
-    // Try compute queue first...
-    grfx::QueuePtr queue = GetComputeQueue();
-    // ...then graphics queue...
-    if (!queue) {
-        queue = GetGraphicsQueue();
-    }
-    // ...bail if queue couldn't be acquired
-    if (!queue) {
-        return ppx::ERROR_GRFX_NO_QUEUES_AVAILABLE;
-    }
-
-    grfx::ScopeDestroyer SCOPED_DESTROYER(queue->GetDevice());
-
-    grfx::CommandBufferPtr cmdBuf;
-    // Create command buffer
-    Result ppxres = queue->CreateCommandBuffer(&cmdBuf, 0, 0);
-    if (Failed(ppxres)) {
-        return ppxres;
-    }
-    SCOPED_DESTROYER.AddObject(queue, cmdBuf);
-
-    // Build command buffer
-    cmdBuf->Begin();
-    {
-        const dx12::QueryPool* pDxQueryPool = ToApi(pQueryPool);
-
-        ID3D12GraphicsCommandList* pCmdList = ToApi(cmdBuf)->GetDxCommandList();
-        pCmdList->ResolveQueryData(
-            pDxQueryPool->GetDxQueryHeap(),
-            pDxQueryPool->GetQueryType(),
-            static_cast<UINT>(firstQuery),
-            static_cast<UINT>(queryCount),
-            ToApi(dstBuffer)->GetDxResource(),
-            0);
-    }
-    cmdBuf->End();
-
-    grfx::SubmitInfo submitInfo   = {};
-    submitInfo.commandBufferCount = 1;
-    submitInfo.ppCommandBuffers   = &cmdBuf;
-
-    ppxres = queue->Submit(&submitInfo);
-    if (Failed(ppxres)) {
-        return ppxres;
-    }
-
-    ppxres = queue->WaitIdle();
-    if (Failed(ppxres)) {
-        return ppxres;
-    }
-
-    void* pMappedAddress = 0;
-    ppxres               = dstBuffer->MapMemory(0, &pMappedAddress);
-    if (Failed(ppxres)) {
-        return ppxres;
-    }
-
-    size_t copySize = std::min<size_t>(dstDataSize, dstBuffer->GetSize());
-    memcpy(pDstData, pMappedAddress, copySize);
-
-    dstBuffer->UnmapMemory();
 
     return ppx::SUCCESS;
 }

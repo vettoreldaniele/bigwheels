@@ -297,17 +297,17 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, m1x1BlackTexture));
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampler(RENDER_SHADOW_SAMPLER_REGISTER, 0, mClampedSampler));
 
-        // Timestamp query pool
-        grfx::QueryPoolCreateInfo queryPoolCreateInfo = {};
-        queryPoolCreateInfo.type                      = grfx::QUERY_TYPE_TIMESTAMP;
-        queryPoolCreateInfo.count                     = 2;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.timestampQuery));
+        // Timestamp query
+        grfx::QueryCreateInfo queryCreateInfo = {};
+        queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
+        queryCreateInfo.count                 = 2;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
 
         // Pipeline statistics query pool
-        queryPoolCreateInfo       = {};
-        queryPoolCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
-        queryPoolCreateInfo.count = 1;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.pipelineStatsQuery));
+        queryCreateInfo       = {};
+        queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
+        queryCreateInfo.count = 1;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
     }
 }
 
@@ -483,19 +483,19 @@ void FishTornadoApp::Render()
     // Read query results
     if (GetFrameCount() > 1) {
         uint64_t data[2] = {0};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->ResolveQueryData(prevFrame.timestampQuery, 0, 2, 2 * sizeof(uint64_t), data));
+        PPX_CHECKED_CALL(ppxres = prevFrame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mTotalGpuFrameTime = (data[1] - data[0]);
-
-        PPX_CHECKED_CALL(ppxres = GetDevice()->ResolveQueryData(prevFrame.pipelineStatsQuery, 0, 1, sizeof(grfx::PipelineStatistics), &mPipelineStatistics));
+        PPX_CHECKED_CALL(ppxres = prevFrame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
     }
-    // Reset query
-    frame.timestampQuery->Reset(0, 2);
 
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
+        frame.timestampQuery->Reset(0, 2);
+        frame.pipelineStatsQuery->Reset(0, 1);
+
         // Write start timestamp
-        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.timestampQuery, 0);
+        frame.timestampQuery->WriteTimestamp(frame.cmd, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
 
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
         mFlocking.CopyConstantsToGpu(frameIndex, frame.cmd);
@@ -555,9 +555,9 @@ void FishTornadoApp::Render()
 
             mShark.DrawForward(frameIndex, frame.cmd);
 
-            frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
+            frame.pipelineStatsQuery->Begin(frame.cmd, 0);
             mFlocking.DrawForward(frameIndex, frame.cmd);
-            frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
+            frame.pipelineStatsQuery->End(frame.cmd, 0);
 
             mOcean.DrawForward(frameIndex, frame.cmd);
 
@@ -577,8 +577,13 @@ void FishTornadoApp::Render()
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
 
         // Write end timestamp
-        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.timestampQuery, 1);
+        frame.timestampQuery->WriteTimestamp(frame.cmd, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
     }
+    
+    // Resolve queries
+    frame.timestampQuery->ResolveData(frame.cmd, 0, 2);
+    frame.pipelineStatsQuery->ResolveData(frame.cmd, 0, 1);
+
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
     grfx::SubmitInfo submitInfo     = {};

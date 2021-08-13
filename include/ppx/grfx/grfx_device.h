@@ -97,8 +97,8 @@ public:
     Result CreatePipelineInterface(const grfx::PipelineInterfaceCreateInfo* pCreateInfo, grfx::PipelineInterface** ppPipelineInterface);
     void   DestroyPipelineInterface(const grfx::PipelineInterface* pPipelineInterface);
 
-    Result CreateQueryPool(const grfx::QueryPoolCreateInfo* pCreateInfo, grfx::QueryPool** ppQueryPool);
-    void   DestroyQueryPool(const grfx::QueryPool* pQueryPool);
+    Result CreateQuery(const grfx::QueryCreateInfo* pCreateInfo, grfx::Query** ppQuery);
+    void   DestroyQuery(const grfx::Query* pQuery);
 
     Result CreateRenderPass(const grfx::RenderPassCreateInfo* pCreateInfo, grfx::RenderPass** ppRenderPass);
     Result CreateRenderPass(const grfx::RenderPassCreateInfo2* pCreateInfo, grfx::RenderPass** ppRenderPass);
@@ -164,13 +164,6 @@ public:
 
     virtual Result WaitIdle() = 0;
 
-    virtual Result ResolveQueryData(
-        const grfx::QueryPool* pQueryPool,
-        uint32_t               firstQuery,
-        uint32_t               queryCount,
-        uint64_t               dstDataSize,
-        void*                  pDstData) = 0;
-
 protected:
     virtual Result Create(const grfx::DeviceCreateInfo* pCreateInfo) override;
     virtual void   Destroy() override;
@@ -189,7 +182,7 @@ protected:
     virtual Result AllocateObject(grfx::Image** ppObject)               = 0;
     virtual Result AllocateObject(grfx::PipelineInterface** ppObject)   = 0;
     virtual Result AllocateObject(grfx::Queue** ppObject)               = 0;
-    virtual Result AllocateObject(grfx::QueryPool** ppObject)           = 0;
+    virtual Result AllocateObject(grfx::Query** ppObject)               = 0;
     virtual Result AllocateObject(grfx::RenderPass** ppObject)          = 0;
     virtual Result AllocateObject(grfx::RenderTargetView** ppObject)    = 0;
     virtual Result AllocateObject(grfx::SampledImageView** ppObject)    = 0;
@@ -242,7 +235,7 @@ protected:
     std::vector<grfx::ImagePtr>               mImages;
     std::vector<grfx::ModelPtr>               mModels;
     std::vector<grfx::PipelineInterfacePtr>   mPipelineInterfaces;
-    std::vector<grfx::QueryPoolPtr>           mQueryPools;
+    std::vector<grfx::QueryPtr>               mQuerys;
     std::vector<grfx::RenderPassPtr>          mRenderPasses;
     std::vector<grfx::RenderTargetViewPtr>    mRenderTargetViews;
     std::vector<grfx::SampledImageViewPtr>    mSampledImageViews;

@@ -635,51 +635,6 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
-void CommandBuffer::BeginQuery(
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
-{
-    PPX_ASSERT_NULL_ARG(pQueryPool);
-
-    mCommandList->BeginQuery(
-        ToApi(pQueryPool)->GetDxQueryHeap(),
-        ToD3D12QueryType(pQueryPool->GetType()),
-        static_cast<UINT>(queryIndex));
-}
-
-void CommandBuffer::EndQuery(
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
-{
-    PPX_ASSERT_NULL_ARG(pQueryPool);
-
-    mCommandList->EndQuery(
-        ToApi(pQueryPool)->GetDxQueryHeap(),
-        ToD3D12QueryType(pQueryPool->GetType()),
-        static_cast<UINT>(queryIndex));
-}
-
-void CommandBuffer::WriteTimestamp(
-    grfx::PipelineStage    pipelineStage,
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
-{
-    PPX_ASSERT_NULL_ARG(pQueryPool);
-
-    // NOTE: D3D12 timestamp queries only uses EndQuery, using BeginQuery
-    //       will result in an error:
-    //          D3D12 ERROR: ID3D12GraphicsCommandList::{Begin,End}Query: BeginQuery is not
-    //          supported with D3D12_QUERY_TYPE specified.  Examples include
-    //          D3D12_QUERY_TYPE_TIMESTAMP and D3D12_QUERY_TYPE_VIDEO_DECODE_STATISTICS.
-    //          [ EXECUTION ERROR #731: BEGIN_END_QUERY_INVALID_PARAMETERS]
-    //
-
-    mCommandList->EndQuery(
-        ToApi(pQueryPool)->GetDxQueryHeap(),
-        D3D12_QUERY_TYPE_TIMESTAMP,
-        static_cast<UINT>(queryIndex));
-}
-
 // -------------------------------------------------------------------------------------------------
 // CommandPool
 // -------------------------------------------------------------------------------------------------

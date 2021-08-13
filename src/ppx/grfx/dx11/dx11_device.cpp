@@ -282,9 +282,9 @@ Result Device::AllocateObject(grfx::Queue** ppObject)
     return ppx::SUCCESS;
 }
 
-Result Device::AllocateObject(grfx::QueryPool** ppObject)
+Result Device::AllocateObject(grfx::Query** ppObject)
 {
-    dx11::QueryPool* pObject = new dx11::QueryPool();
+    dx11::Query* pObject = new dx11::Query();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -380,32 +380,6 @@ Result Device::AllocateObject(grfx::Swapchain** ppObject)
 Result Device::WaitIdle()
 {
     return ppx::ERROR_FAILED;
-}
-
-Result Device::ResolveQueryData(
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               firstQuery,
-    uint32_t               queryCount,
-    uint64_t               dstDataSize,
-    void*                  pDstData)
-{
-    uint32_t dstStride = (uint32_t)(dstDataSize / queryCount);
-    for (uint32_t i = 0; i < queryCount; ++i) {
-        uint32_t     queryIdx   = firstQuery + i;
-        ID3D11Query* pQuery     = ToApi(pQueryPool)->GetQuery(queryIdx);
-        uint64_t*    pQueryDest = (uint64_t*)pDstData + queryIdx;
-
-        HRESULT queryResult = S_FALSE;
-        while (queryResult == S_FALSE) {
-            queryResult = GetDxDeviceContext()->GetData(pQuery, pQueryDest, dstStride, 0);
-        }
-
-        if (queryResult != S_OK) {
-            return ppx::ERROR_FAILED;
-        }
-    }
-
-    return ppx::SUCCESS;
 }
 
 Result Device::GetStructuredBufferSRV(

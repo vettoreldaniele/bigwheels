@@ -10,25 +10,30 @@ namespace dx11 {
 
 using D3D11QueryHeap = std::vector<ID3D11Query*>;
 
-class QueryPool
-    : public grfx::QueryPool
+class Query
+    : public grfx::Query
 {
 public:
-    QueryPool() {}
-    virtual ~QueryPool() {}
+    Query();
+    virtual ~Query() {}
 
-    ID3D11Query* GetQuery(uint32_t queryIndex) const;
-    D3D11_QUERY GetQueryType() const { return mQueryType; }
-
-    virtual void Reset(uint32_t firstQuery, uint32_t queryCount) override;
+    virtual void   Reset(uint32_t firstQuery, uint32_t queryCount) override;
+    virtual void   Begin(grfx::CommandBuffer* pCommandBuffer, uint32_t index) override;
+    virtual void   End(grfx::CommandBuffer* pCommandBuffer, uint32_t index) override;
+    virtual void   WriteTimestamp(grfx::CommandBuffer* pCommandBuffer, grfx::PipelineStage pipelineStage, uint32_t index) override;
+    virtual void   ResolveData(grfx::CommandBuffer* pCommandBuffer, uint32_t startIndex, uint32_t numQueries) override;
+    virtual Result GetData(void* pDstData, uint64_t dstDataSize) override;
 
 protected:
-    virtual Result CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo) override;
-    virtual void   DestroyApiObjects() override;
+    virtual Result   CreateApiObjects(const grfx::QueryCreateInfo* pCreateInfo) override;
+    virtual void     DestroyApiObjects() override;
+    D3D11_QUERY      GetQueryType() const { return mQueryType; }
 
 private:
-    D3D11_QUERY    mQueryType = InvalidValue<D3D11_QUERY>();
-    D3D11QueryHeap mQueryPool;
+    D3D11QueryHeap    mHeap;
+    D3D11_QUERY       mQueryType;
+    uint32_t          mResolveDataStartIndex;
+    uint32_t          mResolveDataNumQueries;
 };
 
 } // namespace dx11

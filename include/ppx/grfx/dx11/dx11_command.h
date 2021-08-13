@@ -17,6 +17,7 @@ public:
     virtual ~CommandBuffer() {}
 
     const dx11::CommandList& GetCommandList() const { return mCommandList; }
+    dx11::CommandList& GetCommandList() { return mCommandList; }
 
     virtual Result Begin() override;
     virtual Result End() override;
@@ -104,19 +105,6 @@ public:
         const grfx::ImageToBufferCopyInfo* pCopyInfo,
         grfx::Image*                       pSrcImage,
         grfx::Buffer*                      pDstBuffer) override;
-
-    virtual void BeginQuery(
-        const grfx::QueryPool* pQueryPool,
-        uint32_t               queryIndex) override;
-
-    virtual void EndQuery(
-        const grfx::QueryPool* pQueryPool,
-        uint32_t               queryIndex) override;
-
-    virtual void WriteTimestamp(
-        grfx::PipelineStage    pipelineStage,
-        const grfx::QueryPool* pQueryPool,
-        uint32_t               queryIndex) override;
 
     void ImGuiRender(void (*pFn)(void));
 

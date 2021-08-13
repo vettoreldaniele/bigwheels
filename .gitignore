@@ -3,6 +3,7 @@
 .vscode/
 build-vs2017/
 build-vs2019/
+build-ggp/
 .vs/
 bin/
 lib/
