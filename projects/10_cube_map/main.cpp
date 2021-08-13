@@ -343,7 +343,7 @@ void ProjApp::Render()
     {
 #if !defined(PPX_D3D11)
     // Write start timestamp
-    frame.timestampQuery->WriteTimestamp(frame.cmd, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
 #endif // ! defined(PPX_D3D11)
 
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
@@ -385,10 +385,10 @@ void ProjApp::Render()
 
 #if !defined(PPX_D3D11)
         // Write end timestamp
-        frame.timestampQuery->WriteTimestamp(frame.cmd, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
 
         // Resolve queries
-        frame.timestampQuery->ResolveData(frame.cmd, 0, 2);
+        frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
 #endif // ! defined(PPX_D3D11)
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());

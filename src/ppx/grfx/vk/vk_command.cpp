@@ -524,6 +524,61 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
+void CommandBuffer::BeginQuery(
+    const grfx::Query* pQuery,
+    uint32_t               queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQuery);
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
+
+    VkQueryControlFlags flags = 0;
+    if (pQuery->GetType() == grfx::QUERY_TYPE_OCCLUSION) {
+        flags = VK_QUERY_CONTROL_PRECISE_BIT;
+    }
+
+    vkCmdBeginQuery(
+        mCommandBuffer,
+        ToApi(pQuery)->GetVkQueryPool(),
+        queryIndex,
+        flags);
+}
+
+void CommandBuffer::EndQuery(
+    const grfx::Query* pQuery,
+    uint32_t               queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQuery);
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
+
+    vkCmdEndQuery(
+        mCommandBuffer,
+        ToApi(pQuery)->GetVkQueryPool(),
+        queryIndex);
+}
+
+void CommandBuffer::WriteTimestamp(
+    const grfx::Query*  pQuery,
+    grfx::PipelineStage pipelineStage,
+    uint32_t            queryIndex)
+{
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
+    vkCmdWriteTimestamp(
+        mCommandBuffer,
+        ToVkPipelineStage(pipelineStage),
+        ToApi(pQuery)->GetVkQueryPool(),
+        queryIndex);
+}
+
+void CommandBuffer::ResolveQueryData(
+    grfx::Query*    pQuery,
+    uint32_t        startIndex,
+    uint32_t        numQueries)
+{
+    PPX_ASSERT_MSG((startIndex + numQueries) <= pQuery->GetCount(), "invalid query index/number");
+    const VkQueryResultFlags flags            = VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_64_BIT;
+    vkCmdCopyQueryPoolResults(mCommandBuffer, ToApi(pQuery)->GetVkQueryPool(), startIndex, numQueries, ToApi(pQuery)->GetReadBackBuffer(), 0, ToApi(pQuery)->GetQueryTypeSize(), flags);
+}
+
 // -------------------------------------------------------------------------------------------------
 // CommandPool
 // -------------------------------------------------------------------------------------------------

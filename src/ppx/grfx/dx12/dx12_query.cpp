@@ -12,7 +12,7 @@ Query::Query()
 {
 }
 
-uint32_t Query::GetQueryTypeSize(D3D12_QUERY_HEAP_TYPE type)
+uint32_t Query::GetQueryTypeSize(D3D12_QUERY_HEAP_TYPE type) const
 {
     uint32_t result = 0;
     switch (type) {
@@ -87,41 +87,6 @@ void Query::Reset(uint32_t firstQuery, uint32_t queryCount)
     (void)queryCount;
 }
 
-void Query::Begin(grfx::CommandBuffer* pCommandBuffer, uint32_t index)
-{
-    PPX_ASSERT_MSG(index <= GetCount(), "invalid query index");
-    D3D12GraphicsCommandListPtr pDxCommandBuffer = ToApi(pCommandBuffer)->GetDxCommandList();
-    pDxCommandBuffer->BeginQuery(mHeap.Get(), GetQueryType(), index);
-}
-
-void Query::End(grfx::CommandBuffer* pCommandBuffer, uint32_t index)
-{
-    PPX_ASSERT_MSG(index <= GetCount(), "invalid query index");
-    D3D12GraphicsCommandListPtr pDxCommandBuffer = ToApi(pCommandBuffer)->GetDxCommandList();
-    pDxCommandBuffer->EndQuery(mHeap.Get(), GetQueryType(), index);
-}
-
-void Query::WriteTimestamp(grfx::CommandBuffer* pCommandBuffer, grfx::PipelineStage pipelineStage, uint32_t index)
-{
-    // NOTE: D3D12 timestamp queries only uses EndQuery, using BeginQuery
-    //       will result in an error:
-    //          D3D12 ERROR: ID3D12GraphicsCommandList::{Begin,End}Query: BeginQuery is not
-    //          supported with D3D12_QUERY_TYPE specified.  Examples include
-    //          D3D12_QUERY_TYPE_TIMESTAMP and D3D12_QUERY_TYPE_VIDEO_DECODE_STATISTICS.
-    //          [ EXECUTION ERROR #731: BEGIN_END_QUERY_INVALID_PARAMETERS]
-    //
-    PPX_ASSERT_MSG(index <= GetCount(), "invalid query index");
-    PPX_ASSERT_MSG(GetQueryType() == D3D12_QUERY_TYPE_TIMESTAMP, "invalid query type");
-    End(pCommandBuffer, index);
-}
-
-void Query::ResolveData(grfx::CommandBuffer* pCommandBuffer, uint32_t startIndex, uint32_t numQueries)
-{
-    PPX_ASSERT_MSG((startIndex + numQueries) <= GetCount(), "invalid query index/number");
-    D3D12GraphicsCommandListPtr pDxCommandBuffer = ToApi(pCommandBuffer)->GetDxCommandList();
-    pDxCommandBuffer->ResolveQueryData(mHeap.Get(), GetQueryType(), startIndex, numQueries, ToApi(mBuffer)->GetDxResource(), 0);
-}
-
 Result Query::GetData(void* pDstData, uint64_t dstDataSize)
 {
     void*  pMappedAddress = 0;
@@ -137,6 +102,12 @@ Result Query::GetData(void* pDstData, uint64_t dstDataSize)
 
     return ppx::SUCCESS;
 }
+
+typename D3D12ResourcePtr::InterfaceType* Query::GetReadBackBuffer() const
+{
+    return ToApi(mBuffer.Get())->GetDxResource();
+}
+
 
 } // namespace dx12
 } // namespace grfx

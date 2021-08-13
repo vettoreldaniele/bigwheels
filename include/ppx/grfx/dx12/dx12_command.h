@@ -104,6 +104,24 @@ public:
         grfx::Image*                       pSrcImage,
         grfx::Buffer*                      pDstBuffer) override;
 
+    virtual void BeginQuery(
+        const grfx::Query* pQuery,
+        uint32_t           queryIndex) override;
+
+    virtual void EndQuery(
+        const grfx::Query* pQuery,
+        uint32_t           queryIndex) override;
+
+    virtual void WriteTimestamp(
+        const grfx::Query*  pQuery,
+        grfx::PipelineStage pipelineStage,
+        uint32_t            queryIndex) override;
+
+    virtual void ResolveQueryData(
+        grfx::Query* pQuery,
+        uint32_t     startIndex,
+        uint32_t     numQueries) override;
+
 protected:
     virtual Result CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;

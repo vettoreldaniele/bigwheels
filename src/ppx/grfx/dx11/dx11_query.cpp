@@ -38,44 +38,16 @@ void Query::DestroyApiObjects()
 {
 }
 
+ID3D11Query* Query::GetQuery(uint32_t queryIndex) const
+{
+    PPX_ASSERT_MSG(queryIndex < mHeap.size(), "invalid query index");
+    return mHeap[queryIndex];
+}
+
 void Query::Reset(uint32_t firstQuery, uint32_t queryCount)
 {
     (void)firstQuery;
     (void)queryCount;
-}
-
-void Query::Begin(grfx::CommandBuffer* pCommandBuffer, uint32_t index)
-{
-    PPX_ASSERT_MSG(index < mHeap.size(), "invalid query index");
-    CommandList& commandlist = ToApi(pCommandBuffer)->GetCommandList();
-    dx11::args::BeginQuery beginQueryArgs = {};
-    beginQueryArgs.pQuery = mHeap[index];
-    commandlist.BeginQuery(&beginQueryArgs);
-}
-
-void Query::End(grfx::CommandBuffer* pCommandBuffer, uint32_t index)
-{
-    PPX_ASSERT_MSG(index < mHeap.size(), "invalid query index");
-    CommandList& commandlist  = ToApi(pCommandBuffer)->GetCommandList();
-    dx11::args::EndQuery endQueryArgs = {};
-    endQueryArgs.pQuery = mHeap[index];
-    commandlist.EndQuery(&endQueryArgs);
-}
-
-void Query::WriteTimestamp(grfx::CommandBuffer* pCommandBuffer, grfx::PipelineStage pipelineStage, uint32_t index)
-{
-    PPX_ASSERT_MSG(index < mHeap.size(), "invalid query index");
-    CommandList& commandlist = ToApi(pCommandBuffer)->GetCommandList();
-    dx11::args::WriteTimestamp writeTimestampArgs = {};
-    writeTimestampArgs.pQuery = mHeap[index];
-    commandlist.WriteTimestamp(&writeTimestampArgs);
-}
-
-void Query::ResolveData(grfx::CommandBuffer* pCommandBuffer, uint32_t startIndex, uint32_t numQueries)
-{
-	PPX_ASSERT_MSG((startIndex + numQueries) <= GetCount(), "invalid query index/number");
-    mResolveDataStartIndex = startIndex;
-    mResolveDataNumQueries = numQueries;
 }
 
 Result Query::GetData(void* pDstData, uint64_t dstDataSize)

@@ -17,11 +17,11 @@ public:
     Query();
     virtual ~Query() {}
 
+    ID3D11Query* GetQuery(uint32_t queryIndex) const;
+    void         SetResolveDataStartIndex(uint32_t index) { mResolveDataStartIndex = index; }
+    void         SetResolveDataNumQueries(uint32_t numQueries) { mResolveDataNumQueries = numQueries; }
+
     virtual void   Reset(uint32_t firstQuery, uint32_t queryCount) override;
-    virtual void   Begin(grfx::CommandBuffer* pCommandBuffer, uint32_t index) override;
-    virtual void   End(grfx::CommandBuffer* pCommandBuffer, uint32_t index) override;
-    virtual void   WriteTimestamp(grfx::CommandBuffer* pCommandBuffer, grfx::PipelineStage pipelineStage, uint32_t index) override;
-    virtual void   ResolveData(grfx::CommandBuffer* pCommandBuffer, uint32_t startIndex, uint32_t numQueries) override;
     virtual Result GetData(void* pDstData, uint64_t dstDataSize) override;
 
 protected:

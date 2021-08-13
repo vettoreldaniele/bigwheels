@@ -490,6 +490,59 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
+void CommandBuffer::BeginQuery(
+    const grfx::Query* pQuery,
+    uint32_t               queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQuery);
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
+
+    dx11::args::BeginQuery beginQueryArgs = {};
+
+    beginQueryArgs.pQuery = ToApi(pQuery)->GetQuery(queryIndex);
+
+    mCommandList.BeginQuery(&beginQueryArgs);
+}
+
+void CommandBuffer::EndQuery(
+    const grfx::Query* pQuery,
+    uint32_t               queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQuery);
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
+
+    dx11::args::EndQuery endQueryArgs = {};
+
+    endQueryArgs.pQuery = ToApi(pQuery)->GetQuery(queryIndex);
+
+    mCommandList.EndQuery(&endQueryArgs);
+}
+
+void CommandBuffer::WriteTimestamp(
+    const grfx::Query*  pQuery,
+    grfx::PipelineStage pipelineStage,
+    uint32_t            queryIndex)
+{
+    PPX_ASSERT_NULL_ARG(pQuery);
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
+
+    dx11::args::WriteTimestamp writeTimestampArgs = {};
+
+    writeTimestampArgs.pQuery = ToApi(pQuery)->GetQuery(queryIndex);
+
+    mCommandList.WriteTimestamp(&writeTimestampArgs);
+}
+
+void CommandBuffer::ResolveQueryData(
+    grfx::Query*    pQuery,
+    uint32_t        startIndex,
+    uint32_t        numQueries)
+{
+    PPX_ASSERT_MSG((startIndex + numQueries) <= pQuery->GetCount(), "invalid query index/number");
+    ToApi(pQuery)->SetResolveDataStartIndex(startIndex);
+    ToApi(pQuery)->SetResolveDataNumQueries(numQueries);
+}
+
 void CommandBuffer::ImGuiRender(void (*pFn)(void))
 {
     mCommandList.ImGuiRender(pFn);

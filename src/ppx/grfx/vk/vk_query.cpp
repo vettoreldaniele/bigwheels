@@ -14,7 +14,7 @@ Query::Query()
 {
 }
 
-uint32_t Query::GetQueryTypeSize(VkQueryType type, uint32_t multiplier)
+uint32_t Query::GetQueryTypeSize(VkQueryType type, uint32_t multiplier) const
 {
     uint32_t result = 0;
     switch (type) {
@@ -108,42 +108,6 @@ void Query::Reset(uint32_t firstQuery, uint32_t queryCount)
 #endif
 }
 
-void Query::Begin(grfx::CommandBuffer* pCommandBuffer, uint32_t index)
-{
-    PPX_ASSERT_MSG(index <= GetCount(), "invalid query index");
-    VkCommandBufferPtr pVkCommandBuffer = ToApi(pCommandBuffer)->GetVkCommandBuffer();
-
-    VkQueryControlFlags flags = 0;
-    if (GetType() == grfx::QUERY_TYPE_OCCLUSION) 
-    {
-        flags = VK_QUERY_CONTROL_PRECISE_BIT;
-    }
-
-    vkCmdBeginQuery(pVkCommandBuffer, mQueryPool, index, flags);
-}
-
-void Query::End(grfx::CommandBuffer* pCommandBuffer, uint32_t index)
-{
-    PPX_ASSERT_MSG(index <= GetCount(), "invalid query index");
-    VkCommandBufferPtr pVkCommandBuffer = ToApi(pCommandBuffer)->GetVkCommandBuffer();
-    vkCmdEndQuery(pVkCommandBuffer, mQueryPool, index);
-}
-
-void Query::WriteTimestamp(grfx::CommandBuffer* pCommandBuffer, grfx::PipelineStage pipelineStage, uint32_t index)
-{
-    PPX_ASSERT_MSG(index <= GetCount(), "invalid query index");
-    VkCommandBufferPtr pVkCommandBuffer = ToApi(pCommandBuffer)->GetVkCommandBuffer();
-    vkCmdWriteTimestamp(pVkCommandBuffer, ToVkPipelineStage(pipelineStage), mQueryPool, index);
-}
-
-void Query::ResolveData(grfx::CommandBuffer* pCommandBuffer, uint32_t startIndex, uint32_t numQueries)
-{
-    PPX_ASSERT_MSG((startIndex + numQueries) <= GetCount(), "invalid query index/number");
-    VkCommandBufferPtr       pVkCommandBuffer = ToApi(pCommandBuffer)->GetVkCommandBuffer();
-    const VkQueryResultFlags flags            = VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_64_BIT;
-    vkCmdCopyQueryPoolResults(pVkCommandBuffer, mQueryPool, startIndex, numQueries, ToApi(mBuffer)->GetVkBuffer(), 0, GetQueryTypeSize(mType, mMultiplier), flags);
-}
-
 Result Query::GetData(void* pDstData, uint64_t dstDataSize)
 {
     void*  pMappedAddress = 0;
@@ -158,6 +122,11 @@ Result Query::GetData(void* pDstData, uint64_t dstDataSize)
     mBuffer->UnmapMemory();
 
     return ppx::SUCCESS;
+}
+
+VkBufferPtr Query::GetReadBackBuffer() const
+{
+    return ToApi(mBuffer)->GetVkBuffer();
 }
 
 } // namespace vk

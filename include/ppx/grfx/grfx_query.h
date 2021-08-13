@@ -50,10 +50,6 @@ public:
     uint32_t GetCount() const { return mCreateInfo.count; }
 
     virtual void   Reset(uint32_t firstQuery, uint32_t queryCount)                                                          = 0;
-    virtual void   Begin(grfx::CommandBuffer* pCommandBuffer, uint32_t index)                                               = 0;
-    virtual void   End(grfx::CommandBuffer* pCommandBuffer, uint32_t index)                                                 = 0;
-    virtual void   WriteTimestamp(grfx::CommandBuffer* pCommandBuffer, grfx::PipelineStage pipelineStage, uint32_t index)   = 0;
-    virtual void   ResolveData(grfx::CommandBuffer* pCommandBuffer, uint32_t startIndex, uint32_t numQueries)               = 0;
     virtual Result GetData(void* pDstData, uint64_t dstDataSize)                                                            = 0;
 
 protected:

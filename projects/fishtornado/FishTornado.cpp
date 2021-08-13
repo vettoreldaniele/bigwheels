@@ -495,7 +495,7 @@ void FishTornadoApp::Render()
         frame.pipelineStatsQuery->Reset(0, 1);
 
         // Write start timestamp
-        frame.timestampQuery->WriteTimestamp(frame.cmd, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
 
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
         mFlocking.CopyConstantsToGpu(frameIndex, frame.cmd);
@@ -555,9 +555,9 @@ void FishTornadoApp::Render()
 
             mShark.DrawForward(frameIndex, frame.cmd);
 
-            frame.pipelineStatsQuery->Begin(frame.cmd, 0);
+            frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
             mFlocking.DrawForward(frameIndex, frame.cmd);
-            frame.pipelineStatsQuery->End(frame.cmd, 0);
+            frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
 
             mOcean.DrawForward(frameIndex, frame.cmd);
 
@@ -577,12 +577,12 @@ void FishTornadoApp::Render()
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
 
         // Write end timestamp
-        frame.timestampQuery->WriteTimestamp(frame.cmd, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
     }
     
     // Resolve queries
-    frame.timestampQuery->ResolveData(frame.cmd, 0, 2);
-    frame.pipelineStatsQuery->ResolveData(frame.cmd, 0, 1);
+    frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
+    frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
 
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
