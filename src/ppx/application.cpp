@@ -1279,6 +1279,9 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
     }
 
     std::vector<char> bytecode = fs::load_file(filePath);
+
+    PPX_LOG_INFO("Loaded shader from " << filePath);
+
     return bytecode;
 }
 
