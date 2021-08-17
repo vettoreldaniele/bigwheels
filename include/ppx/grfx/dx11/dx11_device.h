@@ -20,13 +20,6 @@ public:
 
     virtual Result WaitIdle() override;
 
-    virtual Result ResolveQueryData(
-        const grfx::QueryPool* pQueryPool,
-        uint32_t               firstQuery,
-        uint32_t               queryCount,
-        uint64_t               dstDataSize,
-        void*                  pDstData) override;
-
     Result GetStructuredBufferSRV(
         const grfx::Buffer*                                  pBuffer,
         UINT                                                 numElements,
@@ -46,7 +39,7 @@ protected:
     virtual Result AllocateObject(grfx::Image** ppObject) override;
     virtual Result AllocateObject(grfx::PipelineInterface** ppObject) override;
     virtual Result AllocateObject(grfx::Queue** ppObject) override;
-    virtual Result AllocateObject(grfx::QueryPool** ppObject) override;
+    virtual Result AllocateObject(grfx::Query** ppObject) override;
     virtual Result AllocateObject(grfx::RenderPass** ppObject) override;
     virtual Result AllocateObject(grfx::RenderTargetView** ppObject) override;
     virtual Result AllocateObject(grfx::SampledImageView** ppObject) override;

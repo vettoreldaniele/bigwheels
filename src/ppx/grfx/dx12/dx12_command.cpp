@@ -636,35 +636,38 @@ void CommandBuffer::CopyImageToBuffer(
 }
 
 void CommandBuffer::BeginQuery(
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
+    const grfx::Query* pQuery,
+    uint32_t           queryIndex)
 {
-    PPX_ASSERT_NULL_ARG(pQueryPool);
+    PPX_ASSERT_NULL_ARG(pQuery);
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
 
     mCommandList->BeginQuery(
-        ToApi(pQueryPool)->GetDxQueryHeap(),
-        ToD3D12QueryType(pQueryPool->GetType()),
+        ToApi(pQuery)->GetDxQueryHeap(),
+        ToD3D12QueryType(pQuery->GetType()),
         static_cast<UINT>(queryIndex));
 }
 
 void CommandBuffer::EndQuery(
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
+    const grfx::Query* pQuery,
+    uint32_t           queryIndex)
 {
-    PPX_ASSERT_NULL_ARG(pQueryPool);
+    PPX_ASSERT_NULL_ARG(pQuery);
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
 
     mCommandList->EndQuery(
-        ToApi(pQueryPool)->GetDxQueryHeap(),
-        ToD3D12QueryType(pQueryPool->GetType()),
+        ToApi(pQuery)->GetDxQueryHeap(),
+        ToD3D12QueryType(pQuery->GetType()),
         static_cast<UINT>(queryIndex));
 }
 
 void CommandBuffer::WriteTimestamp(
-    grfx::PipelineStage    pipelineStage,
-    const grfx::QueryPool* pQueryPool,
-    uint32_t               queryIndex)
+    const grfx::Query*  pQuery,
+    grfx::PipelineStage pipelineStage,
+    uint32_t            queryIndex)
 {
-    PPX_ASSERT_NULL_ARG(pQueryPool);
+    PPX_ASSERT_NULL_ARG(pQuery);
+    PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
 
     // NOTE: D3D12 timestamp queries only uses EndQuery, using BeginQuery
     //       will result in an error:
@@ -673,11 +676,20 @@ void CommandBuffer::WriteTimestamp(
     //          D3D12_QUERY_TYPE_TIMESTAMP and D3D12_QUERY_TYPE_VIDEO_DECODE_STATISTICS.
     //          [ EXECUTION ERROR #731: BEGIN_END_QUERY_INVALID_PARAMETERS]
     //
-
+    PPX_ASSERT_MSG(ToApi(pQuery)->GetQueryType() == D3D12_QUERY_TYPE_TIMESTAMP, "invalid query type");
     mCommandList->EndQuery(
-        ToApi(pQueryPool)->GetDxQueryHeap(),
+        ToApi(pQuery)->GetDxQueryHeap(),
         D3D12_QUERY_TYPE_TIMESTAMP,
         static_cast<UINT>(queryIndex));
+}
+
+void CommandBuffer::ResolveQueryData(
+    grfx::Query*    pQuery,
+    uint32_t        startIndex,
+    uint32_t        numQueries)
+{
+    PPX_ASSERT_MSG((startIndex + numQueries) <= pQuery->GetCount(), "invalid query index/number");
+    mCommandList->ResolveQueryData(ToApi(pQuery)->GetDxQueryHeap(), ToApi(pQuery)->GetQueryType(), startIndex, numQueries, ToApi(pQuery)->GetReadBackBuffer(), 0);
 }
 
 // -------------------------------------------------------------------------------------------------

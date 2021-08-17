@@ -33,7 +33,7 @@ private:
         grfx::FencePtr         imageAcquiredFence;
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
-        grfx::QueryPoolPtr     queryPool;
+        grfx::QueryPtr         timestampQuery;
     };
 
     struct Entity
@@ -256,10 +256,11 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
 #if !defined(PPX_D3D11)
-        grfx::QueryPoolCreateInfo queryPoolCreateInfo = {};
-        queryPoolCreateInfo.type                      = grfx::QUERY_TYPE_TIMESTAMP;
-        queryPoolCreateInfo.count                     = 2;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQueryPool(&queryPoolCreateInfo, &frame.queryPool));
+        // Timestamp query
+        grfx::QueryCreateInfo queryCreateInfo = {};
+        queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
+        queryCreateInfo.count                 = 2;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
 #endif // ! defined(PPX_D3D11)
 
         mPerFrame.push_back(frame);
@@ -286,11 +287,11 @@ void ProjApp::Render()
     // Read query results
     if (GetFrameCount() > 1) {
         uint64_t data[2] = {0};
-        GetDevice()->ResolveQueryData(frame.queryPool, 0, 2, 2 * sizeof(uint64_t), data);
+        PPX_CHECKED_CALL(ppxres = frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mGpuWorkDuration = data[1] - data[0];
     }
     // Reset query
-    frame.queryPool->Reset(0, 2);
+    frame.timestampQuery->Reset(0, 2);
 #endif // ! defined(PPX_D3D11)
 
     // Update uniform buffer
@@ -341,8 +342,8 @@ void ProjApp::Render()
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
 #if !defined(PPX_D3D11)
-        // Write start timestamp
-        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 0);
+    // Write start timestamp
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
 #endif // ! defined(PPX_D3D11)
 
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
@@ -384,7 +385,10 @@ void ProjApp::Render()
 
 #if !defined(PPX_D3D11)
         // Write end timestamp
-        frame.cmd->WriteTimestamp(grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, frame.queryPool, 1);
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
+
+        // Resolve queries
+        frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
 #endif // ! defined(PPX_D3D11)
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
