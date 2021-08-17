@@ -5,9 +5,9 @@
 #include <map>
 #include <unordered_map>
 
-#if defined(PPX_GGP) && defined(PPX_DXVK)
-#include "porto.h"
-#endif // defined(PPX_GGP) && defined(PPX_DXVK)
+#if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
+#include "porto/porto.h"
+#endif // defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
 
 #if defined(PPX_LINUX_XCB)
 #include <X11/Xlib-xcb.h>
@@ -605,10 +605,10 @@ Result Application::InitializePlatform()
         return ppx::ERROR_GLFW_INIT_FAILED;
     }
 
-#if defined(PPX_GGP) && defined(PPX_DXVK)
+#if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
     PortoConfig config = PortoCreateConfig();
     PortoInit(&config);
-#endif // defined(PPX_GGP) && defined(PPX_DXVK)
+#endif // defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
 
     return ppx::SUCCESS;
 }
@@ -908,6 +908,10 @@ void Application::DispatchConfig()
 
 #if defined(PPX_DXVK)
     ss << " (DXVK)";
+#endif
+
+#if defined(PPX_DXVK_SPV)
+    ss << " (DXVK_SPV)";
 #endif
 
     mDecoratedApiName = ss.str();
@@ -1246,7 +1250,12 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
 
         case grfx::API_DX_11_0:
         case grfx::API_DX_11_1: {
-            filePath = (filePath / "dxbc50" / baseName).append_extension(".dxbc50");
+            if (mSettings.grfx.enableDXVKSPV) {
+                filePath = (filePath / "dxvk_spv" / baseName).append_extension(".spv");
+            }
+            else {
+                filePath = (filePath / "dxbc50" / baseName).append_extension(".dxbc50");
+            }
         } break;
 
         case grfx::API_DX_12_0:
