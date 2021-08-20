@@ -484,7 +484,7 @@ void FishTornadoApp::Render()
     PPX_CHECKED_CALL(ppxres = prevFrame.renderCompleteFence->WaitAndReset());
 
     // Read query results
-    if (GetFrameCount() > 1) {
+    if (GetFrameCount() > 0) {
         uint64_t data[2] = {0};
         PPX_CHECKED_CALL(ppxres = prevFrame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mTotalGpuFrameTime = (data[1] - data[0]);
