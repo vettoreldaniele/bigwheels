@@ -288,7 +288,7 @@ void ProjApp::Render()
 
 #if !defined(PPX_D3D11)
     // Read query results
-    if (GetFrameCount() > 1) {
+    if (GetFrameCount() > 0) {
         uint64_t data[2] = {0};
         PPX_CHECKED_CALL(ppxres = frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mGpuWorkDuration = data[1] - data[0];
