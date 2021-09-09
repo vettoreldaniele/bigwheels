@@ -8,6 +8,8 @@
    * Shaders are compiled with DXC/DXIL
  * **dxvk** - D3D11 using DXVK with SM 5.0
    * Shaders are compiled with FXC
+ * **dxvk_spv** - D3D11 using DXVK with SM 5.0
+   * Shaders are compiled with DXC/SPIR-V
  * **vk** - Vulkan
    * Shaders are compiled with DXC/SPIR-V
 
@@ -54,7 +56,7 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP 
 ```
 Open `BigWheels.sln` and build
 
-Built binaries are written to `BigWheels\bin`.
+Built binaries are written to `BigWheels\bin\vk_*`.
 
 **NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
 
@@ -65,18 +67,36 @@ git clone --recursive git@github.com:googlestadia/BigWheels.git
 cd BigWheels\third_party
 git clone <URL to libporto repo>
 cd ..
-mkdir build-ggp
-cd build-ggp
+mkdir build-dxvk
+cd build-dxvk
 cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK=1
 ```
 Open `BigWheels.sln` and build
 
-Built binaries are written to `BigWheels\bin`.
+Built binaries are written to `BigWheels\bin\dxvk_*`.
 
 **NOTE:**
 * **libporto** must be manually cloned into BigWheels\third_party.
 * GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
 
+## GGP using DXVK SPIR-V (libporto) (on Windows)
+NOTE: There are two repos for the steps in this section.
+```
+git clone --recursive git@github.com:googlestadia/BigWheels.git
+cd BigWheels\third_party
+git clone <URL to libporto repo>
+cd ..
+mkdir build-dxvk-spv
+cd build-dxvk-spv
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK_SPV=1
+```
+Open `BigWheels.sln` and build
+
+Built binaries are written to `BigWheels\bin\dxvk_spv_*`.
+
+**NOTE:**
+* **libporto** must be manually cloned into BigWheels\third_party.
+* GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.
 
 ## GGP (on Linux)
 ```
@@ -88,7 +108,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake -DDXC_PATH=$PATH_T
 make -j <# CPUs to use>
 ```
 
-Built binaries are written to `BigWheels/bin`.
+Built binaries are written to `BigWheels/bin/vk_*`.
 
 
 ### Running on GGP
