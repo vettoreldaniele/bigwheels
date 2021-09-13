@@ -1,6 +1,10 @@
+#include <iostream>
+#include <unordered_map>
+
 #include "ppx/ppx.h"
 #include "ppx/camera.h"
 #include "ppx/graphics_util.h"
+#include "d3dcompiler.h"
 using namespace ppx;
 
 #if defined(USE_DX11)
@@ -48,6 +52,98 @@ const float3 F0_DiletricGlass   = float3(0.045f);
 const float3 F0_DiletricCrystal = float3(0.050f);
 const float3 F0_DiletricGem     = float3(0.080f);
 const float3 F0_DiletricDiamond = float3(0.150f);
+
+class ShaderIncludeHandler : public ID3DInclude
+{
+public:
+    ShaderIncludeHandler(const fs::path& baseDir)
+        : baseDirPath(baseDir) {}
+
+    HRESULT Open(
+        D3D_INCLUDE_TYPE IncludeType,
+        LPCSTR           pFileName,
+        LPCVOID          pParentData,
+        LPCVOID*         ppData,
+        UINT*            pBytes) override
+    {
+        auto itr = fileNameToContents.find(pFileName);
+        if (itr != fileNameToContents.end()) {
+            *ppData = itr->second.data();
+            *pBytes = itr->second.size();
+            return S_OK;
+        }
+
+        fs::path filePath             = baseDirPath;
+        filePath                      = filePath / pFileName;
+        auto includeFile              = fs::load_file(filePath);
+        fileNameToContents[pFileName] = includeFile;
+        *ppData                       = includeFile.data();
+        *pBytes                       = includeFile.size();
+        return S_OK;
+    }
+
+    HRESULT Close(
+        LPCVOID pData) override
+    {
+        // TODO: If Close() is called frequently and the memory efficiency is too
+        //       bad, we need std::unordered_map<LPCVOID, LPCSTR> dataPtrToFileName
+        //       that helps us clean the file contents.
+        return S_OK;
+    }
+
+private:
+    fs::path                                      baseDirPath;
+    std::unordered_map<LPCSTR, std::vector<char>> fileNameToContents;
+};
+
+std::string LoadHlslFile(const fs::path& baseDir, const std::string& baseName)
+{
+    fs::path filePath = baseDir;
+    filePath          = (filePath / baseName).append_extension(".hlsl");
+    if (!fs::exists(filePath)) {
+        PPX_ASSERT_MSG(false, "HLSL file not found: " << filePath);
+    }
+    std::vector<char> hlslCode = fs::load_file(filePath);
+    return std::string(hlslCode.data(), hlslCode.size());
+}
+
+const char* EntryPoint(const char* shaderModel)
+{
+    switch (shaderModel[0]) {
+        case 'v':
+            return "vsmain";
+        case 'p':
+            return "psmain";
+        case 'c':
+            return "csmain";
+    }
+    return nullptr;
+}
+
+std::vector<char> CompileShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, ShaderIncludeHandler* includeHandler)
+{
+    D3D_SHADER_MACRO defines[2] = {
+        {"PPX_D3D11", "1"},
+        {nullptr, nullptr}};
+    ID3DBlob* spirv        = nullptr;
+    ID3DBlob* errorMessage = nullptr;
+
+    auto hlslCode = LoadHlslFile(baseDir, baseName);
+
+    HRESULT hr = D3DCompile(reinterpret_cast<LPCVOID>(hlslCode.data()), hlslCode.size(), baseName.data(), defines, includeHandler, EntryPoint(shaderModel), shaderModel, D3DCOMPILE_OPTIMIZATION_LEVEL3, 0, &spirv, &errorMessage);
+    if (errorMessage) {
+        std::cerr << static_cast<char*>(errorMessage->GetBufferPointer())
+                  << std::endl;
+        PPX_ASSERT_MSG(false, "D3DCompile failed");
+    }
+
+    PPX_ASSERT_MSG(hr == S_OK, "D3DCompile failed");
+
+    std::vector<char> spirvCode;
+    spirvCode.resize(spirv->GetBufferSize());
+    memcpy(spirvCode.data(), spirv->GetBufferPointer(), spirvCode.size());
+    return spirvCode;
+}
 
 class ProjApp
     : public ppx::Application
@@ -396,14 +492,18 @@ void ProjApp::SetupIBLResources()
 
     // Pipeline
     {
+        ShaderIncludeHandler basicShaderIncludeHandler(
+            GetAssetPath("basic/shaders"));
+
         grfx::ShaderModulePtr VS;
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char>     bytecode = CompileShader(
+                GetAssetPath("basic/shaders"), "Texture", "vs_5_0", &basicShaderIncludeHandler);
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode = CompileShader(GetAssetPath("basic/shaders"), "Texture", "ps_5_0", &basicShaderIncludeHandler);
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -827,8 +927,12 @@ void ProjApp::Setup()
         gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
         gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
 
+        ShaderIncludeHandler materialShaderIncludeHandler(
+            GetAssetPath("materials/shaders"));
+
         grfx::ShaderModulePtr VS;
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("materials/shaders"), "VertexShader.vs");
+        std::vector<char>     bytecode = CompileShader(
+                GetAssetPath("materials/shaders"), "VertexShader", "vs_5_0", &materialShaderIncludeHandler);
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
@@ -836,7 +940,7 @@ void ProjApp::Setup()
         // Gouraud
         {
             grfx::ShaderModulePtr PS;
-            bytecode = LoadShader(GetAssetPath("materials/shaders"), "Gouraud.ps");
+            bytecode = CompileShader(GetAssetPath("materials/shaders"), "Gouraud", "ps_5_0", &materialShaderIncludeHandler);
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -853,7 +957,7 @@ void ProjApp::Setup()
         // Phong
         {
             grfx::ShaderModulePtr PS;
-            bytecode = LoadShader(GetAssetPath("materials/shaders"), "Phong.ps");
+            bytecode = CompileShader(GetAssetPath("materials/shaders"), "Phong", "ps_5_0", &materialShaderIncludeHandler);
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -870,7 +974,7 @@ void ProjApp::Setup()
         // BlinnPhong
         {
             grfx::ShaderModulePtr PS;
-            bytecode = LoadShader(GetAssetPath("materials/shaders"), "BlinnPhong.ps");
+            bytecode = CompileShader(GetAssetPath("materials/shaders"), "BlinnPhong", "ps_5_0", &materialShaderIncludeHandler);
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -887,7 +991,7 @@ void ProjApp::Setup()
         // PBR
         {
             grfx::ShaderModulePtr PS;
-            bytecode = LoadShader(GetAssetPath("materials/shaders"), "PBR.ps");
+            bytecode = CompileShader(GetAssetPath("materials/shaders"), "PBR", "ps_5_0", &materialShaderIncludeHandler);
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

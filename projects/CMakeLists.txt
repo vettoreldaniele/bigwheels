@@ -260,6 +260,13 @@ function(add_dxvk_sample name is_gui)
             ${target_name}
             PUBLIC ppx
         )
+
+        if (${ENABLE_PORTO_D3DCOMPILER})
+            target_link_libraries(
+                ${target_name}
+                PUBLIC porto_d3dcompiler
+            )
+        endif (${ENABLE_PORTO_D3DCOMPILER})
     
         if (${is_gui})
             target_link_libraries(
@@ -311,6 +318,13 @@ function(add_dxvk_spv_sample name is_gui)
             PUBLIC ppx
         )
 
+        if (${ENABLE_PORTO_D3DCOMPILER})
+            target_link_libraries(
+                ${target_name}
+                PUBLIC porto_d3dcompiler
+            )
+        endif (${ENABLE_PORTO_D3DCOMPILER})
+
         if (${is_gui})
             target_link_libraries(
                 ${target_name}
@@ -342,6 +356,7 @@ add_subdirectory(18_arcball_camera)
 add_subdirectory(19_camera_fit_scene)
 add_subdirectory(20_camera_motion)
 add_subdirectory(21_text_draw)
+add_subdirectory(22_basic_material_with_d3dcompile)
 add_subdirectory(alloc)
 add_subdirectory(fishtornado)
 add_subdirectory(shadertoy)
