@@ -291,7 +291,7 @@ function(add_dxvk_spv_sample name is_gui)
             ${additional_files}
         )
 
-        add_shader_dependencies(${target_name} "dxvk_spv")
+        add_shader_dependencies(${target_name} "dxvk-spv")
 
         set_target_properties(
             ${target_name}
