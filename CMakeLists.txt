@@ -150,6 +150,10 @@ add_subdirectory(${PPX_THIRD_PARTY_DIR}/cpu_features)
 
 if (PPX_DXVK OR PPX_DXVK_SPV)
     add_subdirectory(${PPX_THIRD_PARTY_DIR}/libporto)
+    target_compile_definitions(
+        porto
+        PUBLIC  LIBPORTO_EXPERIMENTAL_ENABLE_SPIRV_SHADERS
+    )
 endif()
 
 add_subdirectory(src)
