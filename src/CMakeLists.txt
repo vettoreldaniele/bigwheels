@@ -553,6 +553,7 @@ if (PPX_DXVK)
                "-Wno-unused-private-field"
                "-Wno-missing-braces"
                "-Wno-unused-const-variable"
+               "-Werror=return-type"
         )
     endif()
 endif()
@@ -601,6 +602,7 @@ if (PPX_VULKAN)
         target_compile_options(
             ${PROJECT_NAME}
             PUBLIC -Wno-missing-braces        
+                   -Werror=return-type
 		)
     elseif (PPX_LINUX)
 
