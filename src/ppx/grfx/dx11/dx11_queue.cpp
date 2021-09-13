@@ -61,6 +61,7 @@ Result Queue::UpdateTimestampFrequency()
     }
 
     mFrequency = queryData.Frequency;
+    return ppx::SUCCESS;
 }
 
 Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
