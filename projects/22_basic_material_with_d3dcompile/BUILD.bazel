@@ -1,0 +1,18 @@
+load("//tools:yeti.bzl", "yeti_cc_binary")
+load("//build_defs:config.bzl", "COPTS")
+
+yeti_cc_binary(
+    name = "15_basic_material",
+    srcs = ["main.cpp"],
+    copts = COPTS,
+    data = [
+        "//assets:basic/shaders/spv/Texture.ps.spv",
+        "//assets:basic/shaders/spv/Texture.vs.spv",
+        "//assets:materials/shaders/spv/BlinnPhong.ps.spv",
+        "//assets:materials/shaders/spv/Gouraud.ps.spv",
+        "//assets:materials/shaders/spv/PBR.ps.spv",
+        "//assets:materials/shaders/spv/Phong.ps.spv",
+        "//assets:materials/shaders/spv/VertexShader.vs.spv",
+    ],
+    deps = ["//:ppx"],
+)
