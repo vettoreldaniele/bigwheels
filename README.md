@@ -98,6 +98,20 @@ Built binaries are written to `BigWheels\bin\dxvk_spv_*`.
 * **libporto** must be manually cloned into BigWheels\third_party.
 * GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.
 
+### Enable `D3DCompile()`
+
+In order to enable `D3DCompile()` supported by **libporto**, use
+`-DPPX_D3DCOMPILE=true` flag.
+```
+git clone --recursive git@github.com:googlestadia/BigWheels.git
+cd BigWheels\third_party
+git clone <URL to libporto repo>
+cd ..
+mkdir build-dxvk-spv
+cd build-dxvk-spv
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK_SPV=1 -DPPX_D3DCOMPILE=true
+```
+
 ## GGP (on Linux)
 ```
 git clone --recursive git@github.com:googlestadia/BigWheels.git

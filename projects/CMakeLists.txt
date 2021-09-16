@@ -235,10 +235,15 @@ function(add_dxvk_sample name is_gui)
         endforeach()
         source_group("Shader Files" FILES ${shader_files})
 
+        if (${ENABLE_PORTO_D3DCOMPILE})
+            set (d3dcompile_helper
+                 ${CMAKE_CURRENT_SOURCE_DIR}/d3dcompile_helper.cpp)
+        endif (${ENABLE_PORTO_D3DCOMPILE})
         add_executable(
             ${target_name}
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
             ${additional_files}
+            ${d3dcompile_helper}
         )
             
         add_shader_dependencies(${target_name} "dxbc50")
@@ -261,12 +266,13 @@ function(add_dxvk_sample name is_gui)
             PUBLIC ppx
         )
 
-        if (${ENABLE_PORTO_D3DCOMPILER})
+        if (${ENABLE_PORTO_D3DCOMPILE})
+            target_compile_definitions(${target_name} PRIVATE PORTO_D3DCOMPILE)
             target_link_libraries(
                 ${target_name}
                 PUBLIC porto_d3dcompiler
             )
-        endif (${ENABLE_PORTO_D3DCOMPILER})
+        endif (${ENABLE_PORTO_D3DCOMPILE})
     
         if (${is_gui})
             target_link_libraries(
@@ -292,10 +298,15 @@ function(add_dxvk_spv_sample name is_gui)
         endforeach()
         source_group("Shader Files" FILES ${shader_files})
 
+        if (${ENABLE_PORTO_D3DCOMPILE})
+            set (d3dcompile_helper
+                 ${CMAKE_CURRENT_SOURCE_DIR}/d3dcompile_helper.cpp)
+        endif (${ENABLE_PORTO_D3DCOMPILE})
         add_executable(
             ${target_name}
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
             ${additional_files}
+            ${d3dcompile_helper}
         )
 
         add_shader_dependencies(${target_name} "dxvk-spv")
@@ -318,12 +329,13 @@ function(add_dxvk_spv_sample name is_gui)
             PUBLIC ppx
         )
 
-        if (${ENABLE_PORTO_D3DCOMPILER})
+        if (${ENABLE_PORTO_D3DCOMPILE})
+            target_compile_definitions(${target_name} PRIVATE PORTO_D3DCOMPILE)
             target_link_libraries(
                 ${target_name}
                 PUBLIC porto_d3dcompiler
             )
-        endif (${ENABLE_PORTO_D3DCOMPILER})
+        endif (${ENABLE_PORTO_D3DCOMPILE})
 
         if (${is_gui})
             target_link_libraries(
@@ -356,7 +368,6 @@ add_subdirectory(18_arcball_camera)
 add_subdirectory(19_camera_fit_scene)
 add_subdirectory(20_camera_motion)
 add_subdirectory(21_text_draw)
-add_subdirectory(22_basic_material_with_d3dcompile)
 add_subdirectory(alloc)
 add_subdirectory(fishtornado)
 add_subdirectory(shadertoy)
