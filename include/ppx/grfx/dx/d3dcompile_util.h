@@ -1,5 +1,5 @@
-#ifndef D3DCOMPILER_HELPER_H_
-#define D3DCOMPILER_HELPER_H_
+#ifndef ppx_grfx_dx_d3dcompile_util_h
+#define ppx_grfx_dx_d3dcompile_util_h
 
 #include <unordered_map>
 #include <vector>
@@ -7,7 +7,9 @@
 #include "d3dcompiler.h"
 #include "ppx/ppx.h"
 
-using namespace ppx;
+namespace ppx {
+namespace grfx {
+namespace dx {
 
 class ShaderIncludeHandler : public ID3DInclude
 {
@@ -41,9 +43,6 @@ public:
     HRESULT Close(
         LPCVOID pData) override
     {
-        // TODO: If Close() is called frequently and the memory efficiency is too
-        //       bad, we need std::unordered_map<LPCVOID, LPCSTR> dataPtrToFileName
-        //       that helps us clean the file contents.
         return S_OK;
     }
 
@@ -54,4 +53,8 @@ private:
 
 std::vector<char> CompileShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, ShaderIncludeHandler* includeHandler);
 
-#endif  // D3DCOMPILER_HELPER_H_
+} // namespace dx
+} // namespace grfx
+} // namespace ppx
+
+#endif // ppx_grfx_dx_d3dcompile_util_h

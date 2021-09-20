@@ -1,10 +1,13 @@
 #include <iostream>
 #include <string>
 
-#include "d3dcompile_helper.h"
+#include "ppx/grfx/dx/d3dcompile_util.h"
 
-using namespace ppx;
+namespace ppx {
+namespace grfx {
+namespace dx {
 
+namespace {
 static std::string LoadHlslFile(const fs::path& baseDir, const std::string& baseName)
 {
     fs::path filePath = baseDir;
@@ -28,6 +31,8 @@ static const char* EntryPoint(const char* shaderModel)
     }
     return nullptr;
 }
+
+} // namespace
 
 std::vector<char> CompileShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, ShaderIncludeHandler* includeHandler)
 {
@@ -54,3 +59,6 @@ std::vector<char> CompileShader(const fs::path& baseDir, const std::string& base
     return spirvCode;
 }
 
+} // namespace dx
+} // namespace grfx
+} // namespace ppx

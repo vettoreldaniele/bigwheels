@@ -235,15 +235,10 @@ function(add_dxvk_sample name is_gui)
         endforeach()
         source_group("Shader Files" FILES ${shader_files})
 
-        if (${ENABLE_PORTO_D3DCOMPILE})
-            set (d3dcompile_helper
-                 ${CMAKE_CURRENT_SOURCE_DIR}/d3dcompile_helper.cpp)
-        endif (${ENABLE_PORTO_D3DCOMPILE})
         add_executable(
             ${target_name}
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
             ${additional_files}
-            ${d3dcompile_helper}
         )
             
         add_shader_dependencies(${target_name} "dxbc50")
@@ -265,14 +260,6 @@ function(add_dxvk_sample name is_gui)
             ${target_name}
             PUBLIC ppx
         )
-
-        if (${ENABLE_PORTO_D3DCOMPILE})
-            target_compile_definitions(${target_name} PRIVATE PORTO_D3DCOMPILE)
-            target_link_libraries(
-                ${target_name}
-                PUBLIC porto_d3dcompiler
-            )
-        endif (${ENABLE_PORTO_D3DCOMPILE})
     
         if (${is_gui})
             target_link_libraries(
@@ -298,15 +285,10 @@ function(add_dxvk_spv_sample name is_gui)
         endforeach()
         source_group("Shader Files" FILES ${shader_files})
 
-        if (${ENABLE_PORTO_D3DCOMPILE})
-            set (d3dcompile_helper
-                 ${CMAKE_CURRENT_SOURCE_DIR}/d3dcompile_helper.cpp)
-        endif (${ENABLE_PORTO_D3DCOMPILE})
         add_executable(
             ${target_name}
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
             ${additional_files}
-            ${d3dcompile_helper}
         )
 
         add_shader_dependencies(${target_name} "dxvk-spv")
@@ -329,13 +311,57 @@ function(add_dxvk_spv_sample name is_gui)
             PUBLIC ppx
         )
 
-        if (${ENABLE_PORTO_D3DCOMPILE})
-            target_compile_definitions(${target_name} PRIVATE PORTO_D3DCOMPILE)
+        if (${is_gui})
             target_link_libraries(
                 ${target_name}
-                PUBLIC porto_d3dcompiler
+                PUBLIC glfw
             )
-        endif (${ENABLE_PORTO_D3DCOMPILE})
+        endif()
+    endif()
+endfunction()
+
+function(add_dxvk_spv_d3dcompile_sample name is_gui)
+    if (PPX_DXVK_SPV AND PPX_D3DCOMPILE)
+        set (api_tag "dxvk_spv_d3dcompile")
+        set (target_name "${api_tag}_${PROJECT_NAME}")
+        set (additional_files "${ARGV2}")
+
+        foreach(filepath ${additional_files})
+            get_filename_component(ext ${filepath} EXT)
+            if (("${ext}" STREQUAL ".hlsl") OR ("${ext}" STREQUAL ".hlsli"))
+                list(APPEND shader_files ${filepath})
+                set_source_files_properties(${filepath} PROPERTIES VS_TOOL_OVERRIDE "None")
+            endif()
+        endforeach()
+        source_group("Shader Files" FILES ${shader_files})
+
+        add_executable(
+            ${target_name}
+            ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+            ${additional_files}
+        )
+
+        add_shader_dependencies(${target_name} "dxvk-spv")
+
+        set_target_properties(
+            ${target_name}
+            PROPERTIES FOLDER "ppx/projects/${api_tag}"
+        )
+
+        target_include_directories(
+            ${target_name}
+            PUBLIC ${PPX_DIR}/include
+                   ${PPX_DIR}/projects/common
+        )
+
+        target_compile_definitions(${target_name} PRIVATE USE_DX11 USE_DXVK_SPV)
+
+        target_link_libraries(
+            ${target_name}
+            PUBLIC ppx
+        )
+
+        target_compile_definitions(${target_name} PRIVATE PORTO_D3DCOMPILE)
 
         if (${is_gui})
             target_link_libraries(

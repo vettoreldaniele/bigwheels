@@ -44,13 +44,10 @@ list(APPEND ADDITIONAL_FILES
     ${SHADER_DIR}/Config.hlsli
 )
 
-if (PPX_D3DCOMPILE)
-    set(ENABLE_PORTO_D3DCOMPILE TRUE)
-endif()
-
 add_vk_sample(${PROJECT_NAME}   TRUE "${ADDITIONAL_FILES}")
 add_dx11_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dx12_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dxil_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dxvk_sample(${PROJECT_NAME} TRUE "${HLSL_FILES}")
 add_dxvk_spv_sample(${PROJECT_NAME} TRUE "${HLSL_FILES}")
+add_dxvk_spv_d3dcompile_sample(${PROJECT_NAME} TRUE "${HLSL_FILES}")

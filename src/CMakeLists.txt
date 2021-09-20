@@ -268,6 +268,18 @@ if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK OR PPX_DXVK_SPV)
     )
 endif()
 
+if (PPX_D3DCOMPILE)
+    list(
+        APPEND PPX_GRFX_DX_HEADER_FILES
+        ${INC_DIR}/ppx/grfx/dx/d3dcompile_util.h
+    )
+
+    list(
+        APPEND PPX_GRFX_DX_SOURCE_FILES
+        ${SRC_DIR}/ppx/grfx/dx/d3dcompile_util.cpp
+    )
+endif()
+
 if (PPX_D3D11 OR PPX_DXVK OR PPX_DXVK_SPV)
     list(
         APPEND PPX_GRFX_DX11_HEADER_FILES
@@ -565,6 +577,13 @@ endif()
 target_link_libraries(${PROJECT_NAME} 
     PUBLIC cpu_features
 )
+
+if (PPX_D3DCOMPILE)
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PUBLIC porto_d3dcompiler
+    )
+endif()
 
 # ------------------------------------------------------------------------------
 # Graphics API compile definitions
