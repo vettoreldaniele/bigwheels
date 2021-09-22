@@ -231,6 +231,14 @@ void CommandBuffer::TransitionImageLayout(
     bool allArrayLayers  = (arrayLayer == 0) && (arrayLayerCount == PPX_ALL_ARRAY_LAYERS);
     bool allSubresources = allMipLevels && allArrayLayers;
 
+    if (mipLevelCount == PPX_ALL_MIP_LEVELS) {
+        mipLevelCount = pImage->GetMipLevelCount();
+    }
+
+    if (arrayLayerCount == PPX_ALL_ARRAY_LAYERS) {
+        arrayLayerCount = pImage->GetArrayLayerCount();
+    }
+
     std::vector<D3D12_RESOURCE_BARRIER> barriers;
     if (allSubresources) {
         D3D12_RESOURCE_BARRIER barrier = {};
