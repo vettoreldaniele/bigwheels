@@ -241,7 +241,7 @@ void ProjApp::SetupIBLResources()
     }
 
     // Texture create options
-    grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+    grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
 
     // GoldenHour
     {

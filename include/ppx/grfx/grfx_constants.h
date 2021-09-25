@@ -10,9 +10,9 @@
 
 #define PPX_MAX_RENDER_TARGETS                  8
 
-#define PPX_ALL_MIP_LEVELS                      UINT32_MAX
-#define PPX_ALL_ARRAY_LAYERS                    UINT32_MAX
-#define PPX_ALL_SUBRESOURCES                    0, PPX_ALL_MIP_LEVELS, 0, PPX_ALL_ARRAY_LAYERS
+#define PPX_REMAINING_MIP_LEVELS                UINT32_MAX
+#define PPX_REMAINING_ARRAY_LAYERS              UINT32_MAX
+#define PPX_ALL_SUBRESOURCES                    0, PPX_REMAINING_MIP_LEVELS, 0, PPX_REMAINING_ARRAY_LAYERS
 
 #define PPX_MAX_VERTEX_BINDINGS                 16
 #define PPX_APPEND_OFFSET_ALIGNED               UINT32_MAX

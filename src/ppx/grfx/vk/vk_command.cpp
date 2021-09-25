@@ -129,11 +129,11 @@ void CommandBuffer::TransitionImageLayout(
         return;
     }
 
-    if (mipLevelCount == PPX_ALL_MIP_LEVELS) {
+    if (mipLevelCount == PPX_REMAINING_MIP_LEVELS) {
         mipLevelCount = pImage->GetMipLevelCount();
     }
 
-    if (arrayLayerCount == PPX_ALL_ARRAY_LAYERS) {
+    if (arrayLayerCount == PPX_REMAINING_ARRAY_LAYERS) {
         arrayLayerCount = pImage->GetArrayLayerCount();
     }
 

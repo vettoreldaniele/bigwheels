@@ -25,7 +25,7 @@ public:
 
 private:
     grfx::ImageUsageFlags mAdditionalUsage = grfx::ImageUsageFlags();
-    uint32_t              mMipLevelCount   = PPX_ALL_MIP_LEVELS;
+    uint32_t              mMipLevelCount   = PPX_REMAINING_MIP_LEVELS;
 
     friend Result CreateImageFromBitmap(
         grfx::Queue*        pQueue,
