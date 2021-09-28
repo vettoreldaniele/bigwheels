@@ -39,8 +39,15 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     Result ppxres = ppx::ERROR_FAILED;
 
     grfx::ShaderModulePtr VS, PS;
+#if defined(PORTO_D3DCOMPILE)
+    auto vsExtensionOffset = vsBaseName.rfind(".vs");
+    PPX_CHECKED_CALL(ppxres = CompileHlslShader(baseDir, vsBaseName.substr(0, vsExtensionOffset), "vs_5_0", &VS));
+    auto psExtensionOffset = psBaseName.rfind(".ps");
+    PPX_CHECKED_CALL(ppxres = CompileHlslShader(baseDir, psBaseName.substr(0, psExtensionOffset), "ps_5_0", &PS));
+#else
     PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, vsBaseName, &VS));
     PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, psBaseName, &PS));
+#endif
 
     const grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX;
     grfx::VertexDescription     vertexDescription;
@@ -90,7 +97,12 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
     Result ppxres = ppx::ERROR_FAILED;
 
     grfx::ShaderModulePtr VS;
+#if defined(PORTO_D3DCOMPILE)
+    auto vsExtensionOffset = vsBaseName.rfind(".vs");
+    PPX_CHECKED_CALL(ppxres = CompileHlslShader(baseDir, vsBaseName.substr(0, vsExtensionOffset), "vs_5_0", &VS));
+#else
     PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, vsBaseName, &VS));
+#endif
 
     grfx::GraphicsPipelineCreateInfo2 gpCreateInfo = {};
     gpCreateInfo.VS                                = {VS.Get(), "vsmain"};

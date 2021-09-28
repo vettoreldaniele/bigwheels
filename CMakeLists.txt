@@ -40,7 +40,9 @@ endif()
 # Configure graphics API
 # ------------------------------------------------------------------------------
 
-if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK) AND (NOT DEFINED PPX_DXVK_SPV) AND (NOT DEFINED PPX_VULKAN))
+if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK)
+    AND (NOT DEFINED PPX_DXVK_SPV) AND (NOT DEFINED PPX_DXVK_SPV_D3DCOMPILE)
+    AND (NOT DEFINED PPX_VULKAN))
     message("No PPX graphics API(s) specified - configuring based on current host")
     if (GGP)
         set(PPX_VULKAN TRUE)
@@ -75,7 +77,7 @@ if (PPX_DXVK)
     set(PPX_DXVK_MSG TRUE)
 endif()
 # DXVK_SPV
-if (PPX_DXVK_SPV)
+if (PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     if(NOT GGP)
         message(FATAL_ERROR "PPX_DXVK_SPV requires GGP")
     endif()
@@ -148,7 +150,7 @@ add_subdirectory(${PPX_THIRD_PARTY_DIR}/cpu_features)
 # Add PPX library
 # ------------------------------------------------------------------------------
 
-if (PPX_DXVK OR PPX_DXVK_SPV)
+if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     add_subdirectory(${PPX_THIRD_PARTY_DIR}/libporto)
     target_compile_definitions(
         porto

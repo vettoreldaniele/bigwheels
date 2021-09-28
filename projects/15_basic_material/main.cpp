@@ -407,7 +407,7 @@ void ProjApp::SetupIBLResources()
             GetAssetPath("basic/shaders"));
         std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Texture", "vs_5_0", &basicShaderIncludeHandler);
 #else
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char> bytecode     = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};

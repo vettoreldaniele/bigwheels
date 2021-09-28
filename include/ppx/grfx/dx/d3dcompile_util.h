@@ -25,18 +25,13 @@ public:
         UINT*            pBytes) override
     {
         auto itr = fileNameToContents.find(pFileName);
-        if (itr != fileNameToContents.end()) {
-            *ppData = itr->second.data();
-            *pBytes = itr->second.size();
-            return S_OK;
+        if (itr == fileNameToContents.end()) {
+            fs::path filePath = baseDirPath;
+            filePath          = filePath / pFileName;
+            itr               = fileNameToContents.insert({pFileName, fs::load_file(filePath)}).first;
         }
-
-        fs::path filePath             = baseDirPath;
-        filePath                      = filePath / pFileName;
-        auto includeFile              = fs::load_file(filePath);
-        fileNameToContents[pFileName] = includeFile;
-        *ppData                       = includeFile.data();
-        *pBytes                       = includeFile.size();
+        *ppData = itr->second.data();
+        *pBytes = itr->second.size();
         return S_OK;
     }
 

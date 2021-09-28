@@ -107,7 +107,7 @@ git clone <URL to libporto repo>
 cd ..
 mkdir build-dxvk-spv
 cd build-dxvk-spv
-cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK_SPV=1 -DPPX_D3DCOMPILE=true
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK_SPV_D3DCOMPILE=true
 ```
 
 Open `BigWheels.sln` and build

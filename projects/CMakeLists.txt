@@ -321,7 +321,7 @@ function(add_dxvk_spv_sample name is_gui)
 endfunction()
 
 function(add_dxvk_spv_d3dcompile_sample name is_gui)
-    if (PPX_DXVK_SPV AND PPX_D3DCOMPILE)
+    if (PPX_DXVK_SPV_D3DCOMPILE)
         set (api_tag "dxvk_spv_d3dcompile")
         set (target_name "${api_tag}_${PROJECT_NAME}")
         set (additional_files "${ARGV2}")
@@ -340,8 +340,6 @@ function(add_dxvk_spv_d3dcompile_sample name is_gui)
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
             ${additional_files}
         )
-
-        add_shader_dependencies(${target_name} "dxvk-spv")
 
         set_target_properties(
             ${target_name}

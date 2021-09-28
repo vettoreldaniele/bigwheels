@@ -2,6 +2,10 @@
 #include "ppx/graphics_util.h"
 using namespace ppx;
 
+#if defined(PORTO_D3DCOMPILE)
+#include "ppx/grfx/dx/d3dcompile_util.h"
+#endif
+
 #if defined(USE_DX11)
 const grfx::Api kApi = grfx::API_DX_11_1;
 #elif defined(USE_DX12)
@@ -97,14 +101,24 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mFullScreenPipelineInterface));
 
         // Load VS bytecode
+#if defined(PORTO_D3DCOMPILE)
+        grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
+            GetAssetPath("basic/shaders"));
+        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "FullScreenTriangle", "vs_5_0", &basicShaderIncludeHandler);
+#else
         std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
+#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         // Create VS
         grfx::ShaderModulePtr        VS;
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
         // Load PS bytecode
+#if defined(PORTO_D3DCOMPILE)
+        bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "FullScreenTriangle", "ps_5_0", &basicShaderIncludeHandler);
+#else
         bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
+#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         // Create PS
         grfx::ShaderModulePtr PS;
@@ -157,12 +171,22 @@ void ProjApp::Setup()
             "Xyptonjtroz.cs",
         };
 
+#if defined(PORTO_D3DCOMPILE)
+        grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
+            GetAssetPath("shadertoy/shaders"));
+#endif
+
         // Create toy
         for (auto& name : mShaderToyNames) {
             ShaderToy toy = {};
 
             // Loader CS bytecode
+#if defined(PORTO_D3DCOMPILE)
+            std::string       nameInString(name);
+            std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("shadertoy/shaders"), nameInString.substr(0, nameInString.rfind(".cs")), "cs_5_0", &basicShaderIncludeHandler);
+#else
             std::vector<char> bytecode = LoadShader(GetAssetPath("shadertoy/shaders"), name);
+#endif
             PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed: " << name);
             grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
 
