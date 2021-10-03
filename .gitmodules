@@ -6,7 +6,7 @@
 	url = https://github.com:GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
 [submodule "third_party/D3D12MemoryAllocator"]
 	path = third_party/D3D12MemoryAllocator
-	url = https://github.com:GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git
+	url = https://github.com/chaoticbob/D3D12MemoryAllocator.git
 [submodule "third_party/glm"]
 	path = third_party/glm
 	url = https://github.com:g-truc/glm.git
