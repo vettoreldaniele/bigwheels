@@ -138,6 +138,8 @@ list(
     ${INC_DIR}/ppx/camera.h
     ${INC_DIR}/ppx/font.h
     ${INC_DIR}/ppx/fs.h
+    ${INC_DIR}/ppx/generate_mip_shader_DX.h
+    ${INC_DIR}/ppx/generate_mip_shader_VK.h
     ${INC_DIR}/ppx/geometry.h
     ${INC_DIR}/ppx/graphics_util.h
     ${INC_DIR}/ppx/headless_application.h
