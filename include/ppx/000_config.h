@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "ppx/ccomptr.h"
 #include "ppx/obj_ptr.h"
 #include "ppx/log.h"
 #include "ppx/util.h"
