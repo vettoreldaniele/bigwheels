@@ -191,7 +191,8 @@ struct KeyState
 //!
 struct ApplicationSettings
 {
-    std::string appName = "";
+    std::string appName     = "";
+    bool        enableImGui = false;
 
     struct
     {
@@ -276,11 +277,12 @@ public:
 
     std::vector<const char*> GetCommandLineArgs() const;
 
-    uint32_t       GetWindowWidth() const { return mSettings.window.width; }
-    uint32_t       GetWindowHeight() const { return mSettings.window.height; }
-    float          GetWindowAspect() const { return static_cast<float>(mSettings.window.width) / static_cast<float>(mSettings.window.height); }
-    grfx::Rect     GetScissor() const;
-    grfx::Viewport GetViewport(float minDepth = 0.0f, float maxDepth = 1.0f) const;
+    const ApplicationSettings* GetSettings() const { return &mSettings; }
+    uint32_t                   GetWindowWidth() const { return mSettings.window.width; }
+    uint32_t                   GetWindowHeight() const { return mSettings.window.height; }
+    float                      GetWindowAspect() const { return static_cast<float>(mSettings.window.width) / static_cast<float>(mSettings.window.height); }
+    grfx::Rect                 GetScissor() const;
+    grfx::Viewport             GetViewport(float minDepth = 0.0f, float maxDepth = 1.0f) const;
 
     // Loads a DXBC, DXIL, or SPV shader from baseDir
     //

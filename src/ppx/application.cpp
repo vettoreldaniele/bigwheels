@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-#include "porto.h"
+#include "porto/porto.h"
 #endif // defined(PPX_GGP) && defined(PPX_DXVK)
 
 #if defined(PPX_LINUX_XCB)
@@ -351,8 +351,8 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
-
         Application* p_application = it->second;
+
         p_application->MoveCallback(
             static_cast<int32_t>(event_x),
             static_cast<int32_t>(event_y));
@@ -364,8 +364,8 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
-
         Application* p_application = it->second;
+
         p_application->ResizeCallback(
             static_cast<uint32_t>(event_width),
             static_cast<uint32_t>(event_height));
@@ -377,6 +377,7 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
+        Application* p_application = it->second;
 
         uint32_t buttons = 0;
         if (event_button == GLFW_MOUSE_BUTTON_LEFT) {
@@ -393,7 +394,6 @@ struct WindowEvents
         double event_y;
         glfwGetCursorPos(window, &event_x, &event_y);
 
-        Application* p_application = it->second;
         if (event_action == GLFW_PRESS) {
             p_application->MouseDownCallback(
                 static_cast<int32_t>(event_x),
@@ -406,7 +406,10 @@ struct WindowEvents
                 static_cast<int32_t>(event_y),
                 buttons);
         }
-        ImGui_ImplGlfw_MouseButtonCallback(window, event_button, event_action, event_mods);
+
+        if (p_application->GetSettings()->enableImGui) {
+            ImGui_ImplGlfw_MouseButtonCallback(window, event_button, event_action, event_mods);
+        }
     }
 
     static void MouseMoveCallback(GLFWwindow* window, double event_x, double event_y)
@@ -415,6 +418,7 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
+        Application* p_application = it->second;
 
         uint32_t buttons = 0;
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -426,8 +430,6 @@ struct WindowEvents
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) {
             buttons |= MOUSE_BUTTON_MIDDLE;
         }
-
-        Application* p_application = it->second;
         p_application->MouseMoveCallback(
             static_cast<int32_t>(event_x),
             static_cast<int32_t>(event_y),
@@ -440,13 +442,15 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
-
         Application* p_application = it->second;
+
         p_application->ScrollCallback(
             static_cast<float>(xoffset),
             static_cast<float>(yoffset));
 
-        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+        if (p_application->GetSettings()->enableImGui) {
+            ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+        }
     }
 
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -455,6 +459,7 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
+        Application* p_application = it->second;
 
         bool hasKey = (sKeyCodeMap.find(key) != sKeyCodeMap.end());
         if (!hasKey) {
@@ -464,7 +469,6 @@ struct WindowEvents
         if (hasKey) {
             KeyCode appKey = static_cast<KeyCode>(sKeyCodeMap[key]);
 
-            Application* p_application = it->second;
             if (action == GLFW_PRESS) {
                 p_application->KeyDownCallback(appKey);
             }
@@ -473,7 +477,9 @@ struct WindowEvents
             }
         }
 
-        ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+        if (p_application->GetSettings()->enableImGui) {
+            ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+        }
     }
 
     static void CharCallback(GLFWwindow* window, unsigned int c)
@@ -482,8 +488,11 @@ struct WindowEvents
         if (it == sWindows.end()) {
             return;
         }
+        Application* p_application = it->second;
 
-        ImGui_ImplGlfw_CharCallback(window, c);
+        if (p_application->GetSettings()->enableImGui) {
+            ImGui_ImplGlfw_CharCallback(window, c);
+        }
     }
 
     static Result RegisterWindowEvents(GLFWwindow* window, Application* application)
@@ -680,9 +689,9 @@ Result Application::InitializeGrfxSurface()
         grfx::SurfaceCreateInfo ci = {};
         ci.pGpu                    = mDevice->GetGpu();
 #if defined(PPX_GGP)
-  #if defined(PPX_DXVK)
+#if defined(PPX_DXVK)
         ci.hwnd = PortoCreateHWNDFromStreamDescriptor(kGgpPrimaryStreamDescriptor);
-  #endif
+#endif
 #elif defined(PPX_LINUX_XCB)
         ci.connection = XGetXCBConnection(glfwGetX11Display());
         ci.window     = glfwGetX11Window(static_cast<GLFWwindow*>(mWindow));
@@ -901,7 +910,11 @@ void Application::DispatchConfig()
                 ss << " (DXIL)";
             }
             else {
+#if defined(PPX_DXVK)
+                ss << " (SPIR-V)";
+#else
                 ss << " (DXBC)";
+#endif
             }
         } break;
     }
@@ -986,8 +999,8 @@ void Application::ResizeCallback(uint32_t width, uint32_t height)
 }
 
 void Application::KeyDownCallback(KeyCode key)
-{
-    if (ImGui::GetIO().WantCaptureKeyboard) {
+{    
+    if (mSettings.enableImGui && ImGui::GetIO().WantCaptureKeyboard) {
         return;
     }
 
@@ -998,7 +1011,7 @@ void Application::KeyDownCallback(KeyCode key)
 
 void Application::KeyUpCallback(KeyCode key)
 {
-    if (ImGui::GetIO().WantCaptureKeyboard) {
+    if (mSettings.enableImGui && ImGui::GetIO().WantCaptureKeyboard) {
         return;
     }
 
@@ -1009,7 +1022,7 @@ void Application::KeyUpCallback(KeyCode key)
 
 void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
 {
-    if (ImGui::GetIO().WantCaptureMouse) {
+    if (mSettings.enableImGui && ImGui::GetIO().WantCaptureMouse) {
         return;
     }
 
@@ -1022,7 +1035,7 @@ void Application::MouseMoveCallback(int32_t x, int32_t y, uint32_t buttons)
 
 void Application::MouseDownCallback(int32_t x, int32_t y, uint32_t buttons)
 {
-    if (ImGui::GetIO().WantCaptureMouse) {
+    if (mSettings.enableImGui && ImGui::GetIO().WantCaptureMouse) {
         return;
     }
 
@@ -1031,7 +1044,7 @@ void Application::MouseDownCallback(int32_t x, int32_t y, uint32_t buttons)
 
 void Application::MouseUpCallback(int32_t x, int32_t y, uint32_t buttons)
 {
-    if (ImGui::GetIO().WantCaptureMouse) {
+    if (mSettings.enableImGui && ImGui::GetIO().WantCaptureMouse) {
         return;
     }
 
@@ -1040,7 +1053,7 @@ void Application::MouseUpCallback(int32_t x, int32_t y, uint32_t buttons)
 
 void Application::ScrollCallback(float dx12, float dy)
 {
-    if (ImGui::GetIO().WantCaptureMouse) {
+    if (mSettings.enableImGui && ImGui::GetIO().WantCaptureMouse) {
         return;
     }
 
@@ -1118,9 +1131,11 @@ int Application::Run(int argc, char** argv)
     }
 
     // Setup ImGui
-    ppxres = InitializeImGui();
-    if (Failed(ppxres)) {
-        return EXIT_FAILURE;
+    if (mSettings.enableImGui) {
+        ppxres = InitializeImGui();
+        if (Failed(ppxres)) {
+            return EXIT_FAILURE;
+        }
     }
 
     // Call setup
