@@ -115,8 +115,8 @@ endif()
 
 if (PPX_D3D12 OR PPX_DXVK)
     list(APPEND IMGUI_SOURCE_FILES
-        ${IMGUI_DIR}/backends/imgui_impl_dx12.h
-        ${IMGUI_DIR}/backends/imgui_impl_dx12.cpp
+        ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx12.h
+        ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx12.cpp
     )
 endif()
 
@@ -136,6 +136,7 @@ list(
     ${INC_DIR}/ppx/bitmap.h
     ${INC_DIR}/ppx/bounding_volume.h
     ${INC_DIR}/ppx/camera.h
+    ${INC_DIR}/ppx/ccomptr.h
     ${INC_DIR}/ppx/font.h
     ${INC_DIR}/ppx/fs.h
     ${INC_DIR}/ppx/geometry.h
@@ -477,6 +478,7 @@ target_include_directories(
             ${PPX_THIRD_PARTY_DIR}/glm
             ${PPX_THIRD_PARTY_DIR}/gli
             ${PPX_THIRD_PARTY_DIR}/stb
+            ${PPX_THIRD_PARTY_DIR}/imgui_extra
             ${PPX_THIRD_PARTY_DIR}/imgui
             ${PPX_THIRD_PARTY_DIR}/tinyobjloader
             ${PPX_THIRD_PARTY_DIR}/pcg32
@@ -565,6 +567,12 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC cpu_features
 )
 
+if (PPX_MSW)
+    target_link_libraries(${PROJECT_NAME} 
+        PUBLIC shcore.lib
+    )
+endif()
+
 # ------------------------------------------------------------------------------
 # Graphics API compile definitions
 # ------------------------------------------------------------------------------
@@ -629,7 +637,7 @@ endif()
 
 if (PPX_D3D11 OR PPX_D3D12)
     target_link_libraries(${PROJECT_NAME} 
-        PUBLIC dxgi.lib dxguid.lib shcore.lib
+        PUBLIC dxgi.lib dxguid.lib
     )
 endif()
 
