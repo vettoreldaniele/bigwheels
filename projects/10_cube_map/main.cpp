@@ -67,6 +67,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "10_cube_map";
+    settings.enableImGui                = true;
     settings.window.width               = kWindowWidth;
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
@@ -376,8 +377,10 @@ void ProjApp::Render()
             frame.cmd->DrawIndexed(mSkyBox.model->GetIndexCount());
 
             // Draw ImGui
-            //DrawDebugInfo([this]() { this->DrawGui(); });
-            //DrawImGui(frame.cmd);
+            if (GetSettings()->enableImGui) {
+                DrawDebugInfo([this]() { this->DrawGui(); });
+                DrawImGui(frame.cmd);
+            }
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

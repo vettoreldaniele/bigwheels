@@ -49,6 +49,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "04_cube";
+    settings.enableImGui                = true;
     settings.window.width               = kWindowWidth;
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
@@ -276,8 +277,8 @@ void ProjApp::Render()
             frame.cmd->Draw(36, 1, 0, 0);
 
             // Draw ImGui
-            //DrawDebugInfo();
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo();
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

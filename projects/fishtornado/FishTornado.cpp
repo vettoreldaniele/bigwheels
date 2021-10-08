@@ -121,6 +121,7 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
     settings.window.width               = kWindowWidth;
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
+    settings.enableImGui                = true;
     settings.grfx.numFramesInFlight     = 2;
     settings.grfx.enableDebug           = false;
     settings.grfx.swapchain.imageCount  = 3;
@@ -366,11 +367,12 @@ void FishTornadoApp::UploadCaustics()
 void FishTornadoApp::SetupDebug()
 {
     Result ppxres = ppx::ERROR_FAILED;
-
+#if ! (defined(PPX_DXVK) && defined(PPX_D3D12))
     // Debug draw
     {
         mDebugDrawPipeline = CreateForwardPipeline(GetAssetPath("fishtornado/shaders"), "DebugDraw.vs", "DebugDraw.ps");
     }
+#endif
 }
 
 void FishTornadoApp::SetupScene()
@@ -570,11 +572,11 @@ void FishTornadoApp::Render()
             //frame.cmd->Draw(3, 1, 0, 0);
 
             // Draw ImGui
-            //DrawDebugInfo([this]() { this->DrawGui(); });
+            DrawDebugInfo([this]() { this->DrawGui(); });
 #if defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
             DrawProfilerGrfxApiFunctions();
 #endif // defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
-            //DrawImGui(frame.cmd);
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

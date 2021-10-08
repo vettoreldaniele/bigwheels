@@ -10,11 +10,16 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth          1280
-#define kWindowHeight         720
+#if defined(PPX_GGP)
+#define kWindowWidth  1920
+#define kWindowHeight 1080
+#else
+#define kWindowWidth  1280
+#define kWindowHeight 720
+#endif
 #define kNumThreadsX          8
 #define kNumThreadsY          8
-#define kDefaultShaderToy     5
+#define kDefaultShaderToy     4
 #define kShaderToyRenderScale 1.0f
 
 class ProjApp
@@ -65,10 +70,11 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "shadertoy";
+    settings.enableImGui      = true;
     settings.window.width     = kWindowWidth;
     settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = true;
+    settings.grfx.enableDebug = false;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
@@ -304,7 +310,7 @@ void ProjApp::Render()
 
     // Update uniform buffer
     {
-        float    t   = GetElapsedSeconds();
+        float t = GetElapsedSeconds();
 
         char* pData = nullptr;
         PPX_CHECKED_CALL(ppxres = mShaderToyUniformBuffer->MapMemory(0, reinterpret_cast<void**>(&pData)));
@@ -352,8 +358,8 @@ void ProjApp::Render()
             frame.cmd->Draw(3, 1, 0, 0);
 
             // Draw ImGui
-            //DrawDebugInfo([this]() { this->DrawGui(); });
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo([this]() { this->DrawGui(); });
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

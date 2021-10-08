@@ -44,6 +44,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "01_triangle";
+    settings.enableImGui      = true;
     settings.window.width     = kWindowWidth;
     settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
@@ -182,11 +183,11 @@ void ProjApp::Render()
             frame.cmd->Draw(3, 1, 0, 0);
 
             // Draw ImGui
-            //DrawDebugInfo();
+            DrawDebugInfo();
 #if defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
             DrawProfilerGrfxApiFunctions();
 #endif // defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
-            //DrawImGui(frame.cmd);
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

@@ -84,6 +84,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "normal_map";
+    settings.enableImGui                = true;
     settings.window.width               = kWindowWidth;
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
@@ -253,7 +254,7 @@ void ProjApp::Setup()
 
         // Model
         TriMeshOptions options = TriMeshOptions().Indices().ObjectColor(float3(1, 1, 1));
-        TriMesh          mesh    = TriMesh::CreateCube(float3(0.25f, 0.25f, 0.25f), options);
+        TriMesh        mesh    = TriMesh::CreateCube(float3(0.25f, 0.25f, 0.25f), options);
 
         Geometry geo;
         PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
@@ -371,7 +372,7 @@ void ProjApp::Render()
         Entity* pEntity = mEntities[mEntityIndex];
 
         pEntity->translate = float3(0, 0, -10 * (1 + sin(t / 2)));
-        pEntity->rotate = float3(t, t, 2*t);
+        pEntity->rotate    = float3(t, t, 2 * t);
 
         float4x4 T = glm::translate(pEntity->translate);
         float4x4 R = glm::rotate(pEntity->rotate.z, float3(0, 0, 1)) *
@@ -439,8 +440,8 @@ void ProjApp::Render()
             frame.cmd->DrawIndexed(mLight.model->GetIndexCount());
 
             // Draw ImGui
-            //DrawDebugInfo([this]() { this->DrawGui(); });
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo([this]() { this->DrawGui(); });
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

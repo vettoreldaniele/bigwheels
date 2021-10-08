@@ -10,8 +10,13 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
+#if defined(PPX_GGP)
+#define kWindowWidth  1920
+#define kWindowHeight 1080
+#else
 #define kWindowWidth  1280
 #define kWindowHeight 720
+#endif
 
 class ProjApp
     : public ppx::Application
@@ -267,8 +272,8 @@ void ProjApp::Render()
             frame.cmd->Draw(6, 1, 0, 0);
 
             // Draw ImGui
-            //DrawDebugInfo();
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo();
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

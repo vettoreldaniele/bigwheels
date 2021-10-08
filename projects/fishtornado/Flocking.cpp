@@ -280,7 +280,11 @@ void Flocking::Setup(uint32_t numFramesInFlight)
     PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/trevallie/trevallie.obj"), &mModel, options));
 
     // Create textures
+#if defined(PPX_GGP) && (PPX_D3D12)
+    grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(1);
+#else
     grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+#endif
     PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieDiffuse.png"), &mAlbedoTexture, textureOptions));
     PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieRoughness.png"), &mRoughnessTexture, textureOptions));
     PPX_CHECKED_CALL(ppxres = CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/trevallie/trevallieNormal.png"), &mNormalMapTexture, textureOptions));

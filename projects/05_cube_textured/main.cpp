@@ -53,6 +53,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "05_cube_textured";
+    settings.enableImGui                = true;
     settings.window.width               = kWindowWidth;
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
@@ -109,27 +110,27 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
 
         for (uint32_t i = 0; i < 3; ++i) {
-          PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet[i]));
+            PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet[i]));
 
-          grfx::WriteDescriptor write = {};
-          write.binding               = 0;
-          write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-          write.bufferOffset          = 0;
-          write.bufferRange           = PPX_WHOLE_SIZE;
-          write.pBuffer               = mUniformBuffer[i];
-          PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
+            grfx::WriteDescriptor write = {};
+            write.binding               = 0;
+            write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            write.bufferOffset          = 0;
+            write.bufferRange           = PPX_WHOLE_SIZE;
+            write.pBuffer               = mUniformBuffer[i];
+            PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
 
-          write            = {};
-          write.binding    = 1;
-          write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-          write.pImageView = mSampledImageView;
-          PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
+            write            = {};
+            write.binding    = 1;
+            write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+            write.pImageView = mSampledImageView;
+            PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
 
-          write          = {};
-          write.binding  = 2;
-          write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-          write.pSampler = mSampler;
-          PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
+            write          = {};
+            write.binding  = 2;
+            write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
+            write.pSampler = mSampler;
+            PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
         }
     }
 
@@ -344,7 +345,7 @@ void ProjApp::Render()
             frame.cmd->SetViewports(1, &mViewport);
             frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
-            
+
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet[0]);
             frame.cmd->Draw(36, 1, 0, 0);
 
@@ -355,8 +356,8 @@ void ProjApp::Render()
             frame.cmd->Draw(36, 1, 0, 0);
 
             // Draw ImGui
-            //DrawDebugInfo();
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo();
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
