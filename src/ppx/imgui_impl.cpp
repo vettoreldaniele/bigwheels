@@ -1,6 +1,7 @@
 #include "ppx/imgui_impl.h"
 #include "ppx/imgui/font_inconsolata.h"
 #include "ppx/application.h"
+#include "ppx/grfx/grfx_device.h"
 #include "backends/imgui_impl_glfw.h"
 
 #if defined(PPX_D3D11)
@@ -210,7 +211,11 @@ Result ImGuiImplDx12::InitApiObjects(ppx::Application* pApp)
     {
         D3D12_DESCRIPTOR_HEAP_DESC desc = {};
         desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+#if defined (PPX_DXVK)
+        desc.NumDescriptors             = 1 + pApp->GetNumFramesInFlight(); // Texture + CBVs * #IFF
+#else
         desc.NumDescriptors             = 1;
+#endif
         desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         desc.NodeMask                   = 0;
 
@@ -227,7 +232,7 @@ Result ImGuiImplDx12::InitApiObjects(ppx::Application* pApp)
     bool result = ImGui_ImplDX12_Init(
         grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice(),
         static_cast<int>(pApp->GetNumFramesInFlight()),
-        grfx::dx::ToDxgiFormat(pApp->GetSwapchain()->GetColorFormat()),
+        static_cast<int>(grfx::dx::ToDxgiFormat(pApp->GetSwapchain()->GetColorFormat())),
         mHeapCBVSRVUAV,
         mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart(),
         mHeapCBVSRVUAV->GetGPUDescriptorHandleForHeapStart());
@@ -252,9 +257,9 @@ void ImGuiImplDx12::Shutdown(ppx::Application* pApp)
 
 void ImGuiImplDx12::NewFrameApi()
 {
-    //ImGui_ImplDX12_NewFrame();
-    //ImGui_ImplGlfw_NewFrame();
-    //ImGui::NewFrame();
+    ImGui_ImplDX12_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 }
 
 void ImGuiImplDx12::Render(grfx::CommandBuffer* pCommandBuffer)

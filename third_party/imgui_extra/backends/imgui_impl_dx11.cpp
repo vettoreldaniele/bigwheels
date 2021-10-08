@@ -89,7 +89,7 @@ PS_INPUT main(VS_INPUT input)
   return output;
 }
 */
-const BYTE __hlsl_shader_vs_dxbc[] =
+static const BYTE __hlsl_shader_vs_dxbc[] =
 {
      68,  88,  66,  67, 182, 204, 
      91,  41, 222, 251,  77, 145, 
@@ -277,7 +277,7 @@ float4 main(PS_INPUT input) : SV_Target
   return out_col; 
 }
 */
-const BYTE __hlsl_shader_ps_dxbc[] =
+static const BYTE __hlsl_shader_ps_dxbc[] =
 {
      68,  88,  66,  67, 125, 103, 
      79,  95, 222, 121, 148,  19, 
