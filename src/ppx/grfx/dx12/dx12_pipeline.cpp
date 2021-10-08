@@ -372,8 +372,8 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
     desc.Desc_1_1.pStaticSamplers            = nullptr;
     desc.Desc_1_1.Flags                      = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-    ComPtr<ID3DBlob> sigBlob   = nullptr;
-    ComPtr<ID3DBlob> errorMsgs = nullptr;
+    CComPtr<ID3DBlob> sigBlob   = nullptr;
+    CComPtr<ID3DBlob> errorMsgs = nullptr;
     HRESULT          hr        = pDevice->SerializeVersionedRootSignature(
         &desc,
         &sigBlob,

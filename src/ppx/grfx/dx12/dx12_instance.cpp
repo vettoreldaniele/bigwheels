@@ -10,9 +10,9 @@ namespace dx12 {
 Result Instance::EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel)
 {
     // Enumerate GPUs
-    std::vector<ComPtr<IDXGIAdapter>> adapters;
+    std::vector<CComPtr<IDXGIAdapter1>> adapters;
     for (UINT index = 0;; ++index) {
-        ComPtr<IDXGIAdapter1> adapter;
+        CComPtr<IDXGIAdapter1> adapter;
         // We're done if anything other than S_OK is returned
         HRESULT hr = mFactory->EnumAdapters1(index, &adapter);
         if (hr == DXGI_ERROR_NOT_FOUND) {
@@ -25,7 +25,7 @@ Result Instance::EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel)
             continue;
         }
         // Store adapters that support the minimum feature level
-        hr = D3D12CreateDevice(adapter.Get(), featureLevel, _uuidof(ID3D12Device), nullptr);
+        hr = D3D12CreateDevice(adapter.Get(), featureLevel, __uuidof(ID3D12Device), nullptr);
         if (SUCCEEDED(hr)) {
             adapters.push_back(adapter);
         }
@@ -112,7 +112,16 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 #endif // ! defined (PPX_DXVK)
         dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
     }
-    ComPtr<IDXGIFactory4> dxgiFactory;
+#if defined(PPX_DXVK)
+    IDXGIFactory7* pFactory = nullptr;
+    HRESULT hr = CreateDXGIFactory2(dxgiFactoryFlags, __uuidof(IDXGIFactory7), reinterpret_cast<void**>(&pFactory));
+    if (FAILED(hr)) {
+        return ppx::ERROR_API_FAILURE;
+    }
+    mFactory = pFactory;
+    PPX_LOG_OBJECT_CREATION(DXGIFactory, pFactory);
+#else
+    CComPtr<IDXGIFactory4> dxgiFactory;
     // Create factory using IDXGIFactory4
     HRESULT hr = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&dxgiFactory));
     if (FAILED(hr)) {
@@ -121,10 +130,11 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     PPX_LOG_OBJECT_CREATION(DXGIFactory, dxgiFactory.Get());
 
     // Cast to our version of IDXGIFactory
-    hr = dxgiFactory.As(&mFactory);
+    hr = dxgiFactory.QueryInterface(&mFactory);
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }
+#endif // defined(PPX_DXVK)
 
     Result ppxres = EnumerateAndCreateGpus(featureLevel);
     if (Failed(ppxres)) {
@@ -146,6 +156,7 @@ void Instance::DestroyApiObjects()
         mFactory.Reset();
     }
 
+#if ! defined (PPX_DXVK)
     if (mD3D12Debug) {
         mD3D12Debug.Reset();
     }
@@ -157,6 +168,7 @@ void Instance::DestroyApiObjects()
     if (mDXGIDebug) {
         mDXGIDebug.Reset();
     }
+#endif // ! defined (PPX_DXVK)
 }
 
 Result Instance::AllocateObject(grfx::Device** ppDevice)

@@ -109,7 +109,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     dxDesc.Flags                 = flags;
 
     D3D12CommandQueuePtr::InterfaceType* pCmdQueue = ToApi(pCreateInfo->pQueue)->GetDxQueue();
-    ComPtr<IDXGISwapChain1> dxgiSwapChain;
+    CComPtr<IDXGISwapChain1> dxgiSwapChain;
     HRESULT                 hr = factory->CreateSwapChainForHwnd(
         ToApi(pCreateInfo->pQueue)->GetDxQueue(),        // pDevice
         ToApi(pCreateInfo->pSurface)->GetWindowHandle(), // hWnd
@@ -123,7 +123,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     }
     PPX_LOG_OBJECT_CREATION(DXGISwapChain, dxgiSwapChain.Get());
 
-    hr = dxgiSwapChain.As(&mSwapchain);
+    hr = dxgiSwapChain.QueryInterface(&mSwapchain);
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "failed casting to IDXGISwapChain");
         return ppx::ERROR_API_FAILURE;
@@ -195,7 +195,7 @@ void Swapchain::DestroyApiObjects()
     mFrameLatencyWaitableObject = nullptr;
 
     if (mSwapchain) {
-        mSwapchain->Release();
+        //mSwapchain->Release();
         mSwapchain.Reset();
     }
 

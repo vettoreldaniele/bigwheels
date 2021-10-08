@@ -15,24 +15,29 @@
 
 #include "ppx/grfx/grfx_scope.h"
 
+#if defined(PPX_DXVK) && !defined(PPX_GGP)
+PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO = nullptr;
+PFN_CREATE_EVENT_PORTO              CreateEventPORTO           = nullptr;
+#endif // defined(PPX_DXVK)
 namespace ppx {
 namespace grfx {
 namespace dx12 {
 
-#if defined(PPX_DXVK)
-PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO = nullptr;
-PFN_CREATE_EVENT_PORTO              CreateEventPORTO           = nullptr;
-#endif // defined(PPX_DXVK)
-
 void Device::LoadRootSignatureFunctions()
 {
+
+#if defined(PPX_GGP)
+        mFnD3D12CreateRootSignatureDeserializer = D3D12CreateRootSignatureDeserializer;
+        mFnD3D12SerializeVersionedRootSignature = D3D12SerializeVersionedRootSignature;
+        mFnD3D12CreateVersionedRootSignatureDeserializer = D3D12CreateVersionedRootSignatureDeserializer;
+#else
     HMODULE module = ::GetModuleHandle(TEXT("d3d12.dll"));
 
     // Load root signature version 1.1 functions
     {
         mFnD3D12CreateRootSignatureDeserializer = (PFN_D3D12_CREATE_ROOT_SIGNATURE_DESERIALIZER)GetProcAddress(
             module,
-            "D3D12SerializeVersionedRootSignature");
+            "D3D12CreateRootSignatureDeserializer");
 
         mFnD3D12SerializeVersionedRootSignature = (PFN_D3D12_SERIALIZE_VERSIONED_ROOT_SIGNATURE)GetProcAddress(
             module,
@@ -42,8 +47,9 @@ void Device::LoadRootSignatureFunctions()
             module,
             "D3D12CreateVersionedRootSignatureDeserializer");
     }
+#endif
 
-#if defined(PPX_DXVK)
+#if defined(PPX_DXVK) && !defined(PPX_GGP)
     CreateEventPORTO           = (PFN_CREATE_EVENT_PORTO)GetProcAddress(module, "CreateEventPORTO");
     WaitForSingleObjectExPORTO = (PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO)GetProcAddress(module, "WaitForSingleObjectExPORTO");
 #endif // defined(PPX_DXVK)

@@ -14,9 +14,9 @@ Result Queue::CreateApiObjects(const grfx::internal::QueueCreateInfo* pCreateInf
         return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
     }
 
-    ComPtr<ID3D12CommandQueue> queue = static_cast<ID3D12CommandQueue*>(pCreateInfo->pApiObject);
+    CComPtr<ID3D12CommandQueue> queue = static_cast<ID3D12CommandQueue*>(pCreateInfo->pApiObject);
 
-    HRESULT hr = queue.As(&mCommandQueue);
+    HRESULT hr = queue.QueryInterface(&mCommandQueue);
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "failed casting to ID3DCommandQueue");
         return ppx::ERROR_API_FAILURE;

@@ -83,8 +83,8 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         PPX_LOG_OBJECT_CREATION(D3D12Resource(Image), mResource.Get());
     }
     else {
-        ComPtr<ID3D12Resource> resource = static_cast<ID3D12Resource*>(pCreateInfo->pApiObject);
-        HRESULT                hr       = resource.As(&mResource);
+        CComPtr<ID3D12Resource> resource = static_cast<ID3D12Resource*>(pCreateInfo->pApiObject);
+        HRESULT                hr       = resource.QueryInterface(&mResource);
         if (FAILED(hr)) {
             PPX_ASSERT_MSG(false, "failed casting to ID3D12Resource");
             return ppx::ERROR_API_FAILURE;
@@ -141,9 +141,9 @@ Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
     mDesc.MaxAnisotropy  = 1;
     mDesc.ComparisonFunc = ToD3D12ComparisonFunc(pCreateInfo->compareOp);
     mDesc.BorderColor[0] = 0;
+    mDesc.BorderColor[1] = 0;
     mDesc.BorderColor[2] = 0;
     mDesc.BorderColor[3] = 0;
-    mDesc.BorderColor[4] = 0;
     mDesc.MinLOD         = static_cast<FLOAT>(pCreateInfo->minLod);
     mDesc.MaxLOD         = static_cast<FLOAT>(pCreateInfo->maxLod);
 
@@ -161,9 +161,9 @@ Result Sampler::CreateApiObjects(const grfx::SamplerCreateInfo* pCreateInfo)
 
     if ((pCreateInfo->borderColor == grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE) || (pCreateInfo->borderColor == grfx::BORDER_COLOR_INT_OPAQUE_WHITE)) {
         mDesc.BorderColor[0] = 1;
+        mDesc.BorderColor[1] = 1;
         mDesc.BorderColor[2] = 1;
         mDesc.BorderColor[3] = 1;
-        mDesc.BorderColor[4] = 1;
     }
 
     return ppx::SUCCESS;

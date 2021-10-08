@@ -6,10 +6,18 @@
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
-#include <dxgidebug.h>
 
-#include <wrl/client.h>
-using Microsoft::WRL::ComPtr;
+#if ! defined(PPX_DXVK)
+#include <dxgidebug.h>
+#endif // ! defined(PPX_DXVK)
+
+//#if defined(PPX_MSW)
+//#include <wrl/client.h>
+//using Microsoft::WRL::ComPtr;
+//#else
+//template <typename T>
+//using ComPtr = ObjPtr<T>;
+//#endif
 
 #include "D3D12MemAlloc.h"
 
@@ -24,22 +32,26 @@ namespace ppx {
 namespace grfx {
 namespace dx12 {
 
-using DXGIAdapterPtr              = ComPtr<IDXGIAdapter4>;
-using DXGIFactoryPtr              = ComPtr<IDXGIFactory7>;
-using DXGIDebugPtr                = ComPtr<IDXGIDebug1>;
-using DXGIInfoQueuePtr            = ComPtr<IDXGIInfoQueue>;
-using DXGISwapChainPtr            = ComPtr<IDXGISwapChain4>;
-using D3D12CommandAllocatorPtr    = ComPtr<ID3D12CommandAllocator>;
-using D3D12CommandQueuePtr        = ComPtr<ID3D12CommandQueue>;
-using D3D12DebugPtr               = ComPtr<ID3D12Debug>;
-using D3D12DescriptorHeapPtr      = ComPtr<ID3D12DescriptorHeap>;
-using D3D12DevicePtr              = ComPtr<ID3D12Device5>;
-using D3D12FencePtr               = ComPtr<ID3D12Fence1>;
-using D3D12GraphicsCommandListPtr = ComPtr<ID3D12GraphicsCommandList4>;
-using D3D12PipelineStatePtr       = ComPtr<ID3D12PipelineState>;
-using D3D12QueryHeapPtr           = ComPtr<ID3D12QueryHeap>;
-using D3D12ResourcePtr            = ComPtr<ID3D12Resource1>;
-using D3D12RootSignaturePtr       = ComPtr<ID3D12RootSignature>;
+using DXGIAdapterPtr              = CComPtr<IDXGIAdapter4>;
+using DXGIFactoryPtr              = CComPtr<IDXGIFactory7>;
+#if ! defined(PPX_DXVK)
+using DXGIDebugPtr                = CComPtr<IDXGIDebug1>;
+using DXGIInfoQueuePtr            = CComPtr<IDXGIInfoQueue>;
+#endif
+using DXGISwapChainPtr            = CComPtr<IDXGISwapChain4>;
+using D3D12CommandAllocatorPtr    = CComPtr<ID3D12CommandAllocator>;
+using D3D12CommandQueuePtr        = CComPtr<ID3D12CommandQueue>;
+#if ! defined(PPX_DXVK)
+using D3D12DebugPtr               = CComPtr<ID3D12Debug>;
+#endif
+using D3D12DescriptorHeapPtr      = CComPtr<ID3D12DescriptorHeap>;
+using D3D12DevicePtr              = CComPtr<ID3D12Device5>;
+using D3D12FencePtr               = CComPtr<ID3D12Fence1>;
+using D3D12GraphicsCommandListPtr = CComPtr<ID3D12GraphicsCommandList4>;
+using D3D12PipelineStatePtr       = CComPtr<ID3D12PipelineState>;
+using D3D12QueryHeapPtr           = CComPtr<ID3D12QueryHeap>;
+using D3D12ResourcePtr            = CComPtr<ID3D12Resource1>;
+using D3D12RootSignaturePtr       = CComPtr<ID3D12RootSignature>;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -267,7 +279,19 @@ typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(ObjPtr<GrfxTypeT>& pGrfxObje
     return pApiObject;
 }
 
-#if defined(PPX_DXVK)
+template <typename GrfxTypeT>
+const typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(const ObjPtr<GrfxTypeT>& pGrfxObject)
+{
+    using ApiType       = typename ApiObjectLookUp<GrfxTypeT>::ApiType;
+    ApiType* pApiObject = static_cast<ApiType*>(pGrfxObject.Get());
+    return pApiObject;
+}
+
+} // namespace dx12
+} // namespace grfx
+} // namespace ppx
+
+#if defined(PPX_DXVK) && !defined(PPX_GGP)
 typedef DWORD(WINAPI* PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO)(
     HANDLE hHandle,
     DWORD  dwMilliseconds,
@@ -282,9 +306,5 @@ typedef HANDLE(WINAPI* PFN_CREATE_EVENT_PORTO)(
 extern PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO;
 extern PFN_CREATE_EVENT_PORTO              CreateEventPORTO;
 #endif // defined(PPX_DXVK)
-
-} // namespace dx12
-} // namespace grfx
-} // namespace ppx
 
 #endif // ppx_grfx_dx12_config_h
