@@ -636,9 +636,15 @@ endif()
 # ------------------------------------------------------------------------------
 
 if (PPX_D3D11 OR PPX_D3D12)
-    target_link_libraries(${PROJECT_NAME} 
-        PUBLIC dxgi.lib dxguid.lib
-    )
+    if (PPX_GGP)
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC dxvk
+        )
+    else()
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC dxgi.lib dxguid.lib
+        )
+    endif()
 endif()
 
 if (PPX_D3D11)
@@ -650,9 +656,13 @@ endif()
 
 if (PPX_D3D12)
     # Link in d3d12.lib
-    target_link_libraries(${PROJECT_NAME} 
-        PUBLIC d3d12.lib
-    )
+    if (PPX_GGP)
+        # Nothing for now
+    else()
+        target_link_libraries(${PROJECT_NAME} 
+            PUBLIC d3d12.lib
+        )
+    endif()
 endif()
 
 if (PPX_VULKAN)
