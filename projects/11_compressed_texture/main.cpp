@@ -108,7 +108,7 @@ void ProjApp::Setup()
 
         // Texture image, view, and sampler
         {
-            grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+            grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
             PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath(texture.texturePath), &shape.image));
 
             grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(shape.image);

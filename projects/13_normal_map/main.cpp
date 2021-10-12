@@ -171,7 +171,8 @@ void ProjApp::Setup()
 
     // Textures, views, and samplers
     {
-        grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+
+        grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/albedo.jpg"), &mAlbedoTexture, options, false));
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/normal_map/normal.jpg"), &mNormalMap, options, false));
 

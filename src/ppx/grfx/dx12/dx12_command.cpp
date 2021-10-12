@@ -227,9 +227,17 @@ void CommandBuffer::TransitionImageLayout(
         return;
     }
 
-    bool allMipLevels    = (mipLevel == 0) && (mipLevelCount == PPX_ALL_MIP_LEVELS);
-    bool allArrayLayers  = (arrayLayer == 0) && (arrayLayerCount == PPX_ALL_ARRAY_LAYERS);
+    bool allMipLevels    = (mipLevel == 0) && (mipLevelCount == PPX_REMAINING_MIP_LEVELS);
+    bool allArrayLayers  = (arrayLayer == 0) && (arrayLayerCount == PPX_REMAINING_ARRAY_LAYERS);
     bool allSubresources = allMipLevels && allArrayLayers;
+
+    if (mipLevelCount == PPX_REMAINING_MIP_LEVELS) {
+        mipLevelCount = pImage->GetMipLevelCount();
+    }
+
+    if (arrayLayerCount == PPX_REMAINING_ARRAY_LAYERS) {
+        arrayLayerCount = pImage->GetArrayLayerCount();
+    }
 
     std::vector<D3D12_RESOURCE_BARRIER> barriers;
     if (allSubresources) {
