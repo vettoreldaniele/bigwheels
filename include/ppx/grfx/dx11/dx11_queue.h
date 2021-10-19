@@ -30,9 +30,11 @@ protected:
 
 private:
     D3D11DeviceContextPtr mDeviceContext;
+    Result                UpdateTimestampFrequency();
 
     static const int QUERY_FRAME_DELAY = 3, MAX_QUERIES_IN_FLIGHT = QUERY_FRAME_DELAY + 1;
     ID3D11Query*     mFrequencyQuery[MAX_QUERIES_IN_FLIGHT];
+    uint64_t         mFrequency = 0;
     uint32_t         mReadFrequencyQuery, mWriteFrequencyQuery;
 };
 

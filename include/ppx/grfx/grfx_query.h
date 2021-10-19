@@ -27,31 +27,33 @@ union PipelineStatistics
     uint64_t Statistics[PPX_GRFX_PIPELINE_STATISTIC_NUM_ENTRIES] = {0};
 };
 
-//! @struct QueryPoolCreateInfo
+//! @struct QueryCreateInfo
 //!
 //!
-struct QueryPoolCreateInfo
+struct QueryCreateInfo
 {
     grfx::QueryType type  = QUERY_TYPE_UNDEFINED;
     uint32_t        count = 0;
 };
 
-//! @class QueryPool
+//! @class Query
 //!
 //!
-class QueryPool
-    : public grfx::DeviceObject<grfx::QueryPoolCreateInfo>
+class Query
+    : public grfx::DeviceObject<grfx::QueryCreateInfo>
 {
 public:
-    QueryPool() {}
-    virtual ~QueryPool() {}
+    Query() {}
+    virtual ~Query() {}
 
     grfx::QueryType GetType() const { return mCreateInfo.type; }
+    uint32_t GetCount() const { return mCreateInfo.count; }
 
-    virtual void Reset(uint32_t firstQuery, uint32_t queryCount) = 0;
+    virtual void   Reset(uint32_t firstQuery, uint32_t queryCount)                                                          = 0;
+    virtual Result GetData(void* pDstData, uint64_t dstDataSize)                                                            = 0;
 
 protected:
-    virtual Result Create(const grfx::QueryPoolCreateInfo* pCreateInfo) override;
+    virtual Result Create(const grfx::QueryCreateInfo* pCreateInfo) override;
     friend class grfx::Device;
 };
 

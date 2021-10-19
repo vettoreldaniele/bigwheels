@@ -1,3 +1,5 @@
+#include "ppx/generate_mip_shader_VK.h"
+#include "ppx/generate_mip_shader_DX.h"
 #include "ppx/graphics_util.h"
 #include "ppx/bitmap.h"
 #include "ppx/mipmap.h"
@@ -239,6 +241,313 @@ Result CreateImageFromBitmap(
     return ppx::SUCCESS;
 }
 
+Result CreateImageFromBitmapGpu(
+    grfx::Queue*        pQueue,
+    const Bitmap*       pBitmap,
+    grfx::Image**       ppImage,
+    const ImageOptions& options)
+{
+    PPX_ASSERT_NULL_ARG(pQueue);
+    PPX_ASSERT_NULL_ARG(pBitmap);
+    PPX_ASSERT_NULL_ARG(ppImage);
+
+    // Scoped destroy
+    grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
+
+    Result ppxres = ppx::ERROR_FAILED;
+
+    // Cap mip level count
+    uint32_t maxMipLevelCount = Mipmap::CalculateLevelCount(pBitmap->GetWidth(), pBitmap->GetHeight());
+    uint32_t mipLevelCount    = std::min<uint32_t>(options.mMipLevelCount, maxMipLevelCount);
+
+    // Create target image
+    grfx::ImagePtr targetImage;
+    {
+        grfx::ImageCreateInfo ci       = {};
+        ci.type                        = grfx::IMAGE_TYPE_2D;
+        ci.width                       = pBitmap->GetWidth();
+        ci.height                      = pBitmap->GetHeight();
+        ci.depth                       = 1;
+        ci.format                      = ToGrfxFormat(pBitmap->GetFormat());
+        ci.sampleCount                 = grfx::SAMPLE_COUNT_1;
+        ci.mipLevelCount               = mipLevelCount;
+        ci.arrayLayerCount             = 1;
+        ci.usageFlags.bits.transferDst = true;
+        ci.usageFlags.bits.transferSrc = true; // For CS
+        ci.usageFlags.bits.sampled     = true;
+        ci.usageFlags.bits.storage     = true; // For CS
+        ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
+        ci.initialState                = grfx::RESOURCE_STATE_SHADER_RESOURCE;
+
+        ci.usageFlags.flags |= options.mAdditionalUsage;
+
+        ppxres = pQueue->GetDevice()->CreateImage(&ci, &targetImage);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+        SCOPED_DESTROYER.AddObject(targetImage);
+    }
+
+    // Copy first level mip into image
+    ppxres = CopyBitmapToImage(
+        pQueue,
+        pBitmap,
+        targetImage,
+        0,
+        0,
+        grfx::RESOURCE_STATE_SHADER_RESOURCE,
+        grfx::RESOURCE_STATE_SHADER_RESOURCE);
+
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Transition image mips from 1 to rest to general layout
+    {
+        // Create a command buffer
+        grfx::CommandBufferPtr cmdBuffer;
+        PPX_CHECKED_CALL(ppxres = pQueue->CreateCommandBuffer(&cmdBuffer));
+        // Record command buffer
+        PPX_CHECKED_CALL(ppxres = cmdBuffer->Begin());
+        cmdBuffer->TransitionImageLayout(targetImage, 1, mipLevelCount - 1, 0, 1, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_GENERAL);
+        PPX_CHECKED_CALL(ppxres = cmdBuffer->End());
+        // Submitt to queue
+        grfx::SubmitInfo submitInfo     = {};
+        submitInfo.commandBufferCount   = 1;
+        submitInfo.ppCommandBuffers     = &cmdBuffer;
+        submitInfo.waitSemaphoreCount   = 0;
+        submitInfo.ppWaitSemaphores     = nullptr;
+        submitInfo.signalSemaphoreCount = 0;
+        submitInfo.ppSignalSemaphores   = nullptr;
+        submitInfo.pFence               = nullptr;
+        PPX_CHECKED_CALL(ppxres = pQueue->Submit(&submitInfo));
+    }
+
+    // Requiered to setup compute shader
+    grfx::ShaderModulePtr        computeShader;
+    grfx::PipelineInterfacePtr   computePipelineInterface;
+    grfx::ComputePipelinePtr     computePipeline;
+    grfx::DescriptorSetLayoutPtr computeDescriptorSetLayout;
+    grfx::DescriptorPoolPtr      descriptorPool;
+    grfx::DescriptorSetPtr       computeDescriptorSet;
+    grfx::BufferPtr              uniformBuffer;
+    grfx::SamplerPtr             sampler;
+
+    { // Uniform buffer
+        grfx::BufferCreateInfo bufferCreateInfo        = {};
+        bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
+        bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
+        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
+        PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreateBuffer(&bufferCreateInfo, &uniformBuffer));
+    }
+
+    { // Sampler
+        grfx::SamplerCreateInfo samplerCreateInfo = {};
+        PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreateSampler(&samplerCreateInfo, &sampler));
+    }
+
+    { // Descriptors
+        grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
+        poolCreateInfo.storageImage                   = 1;
+        poolCreateInfo.uniformBuffer                  = 1;
+        poolCreateInfo.sampledImage                   = 1;
+        poolCreateInfo.sampler                        = 1;
+
+        PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreateDescriptorPool(&poolCreateInfo, &descriptorPool));
+
+        { // Shader inputs
+            grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
+            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE));
+            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
+            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(3, grfx::DESCRIPTOR_TYPE_SAMPLER));
+
+            PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &computeDescriptorSetLayout));
+
+            PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->AllocateDescriptorSet(descriptorPool, computeDescriptorSetLayout, &computeDescriptorSet));
+
+            grfx::WriteDescriptor write = {};
+            write.binding               = 1;
+            write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            write.bufferOffset          = 0;
+            write.bufferRange           = PPX_WHOLE_SIZE;
+            write.pBuffer               = uniformBuffer;
+            PPX_CHECKED_CALL(ppxres = computeDescriptorSet->UpdateDescriptors(1, &write));
+
+            write          = {};
+            write.binding  = 3;
+            write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
+            write.pSampler = sampler;
+            PPX_CHECKED_CALL(ppxres = computeDescriptorSet->UpdateDescriptors(1, &write));
+        }
+    }
+
+    // Compute pipeline
+    {
+        grfx::Api         api = pQueue->GetDevice()->GetApi();
+        std::vector<char> bytecode;
+        switch (api) {
+            case grfx::API_VK_1_1:
+            case grfx::API_VK_1_2:
+                bytecode = {std::begin(GenerateMipShaderVK), std::end(GenerateMipShaderVK)};
+                break;
+            case grfx::API_DX_11_0:
+            case grfx::API_DX_11_1:
+            case grfx::API_DX_12_0:
+            case grfx::API_DX_12_1:
+                bytecode = {std::begin(GenerateMipShaderDX), std::end(GenerateMipShaderDX)};
+                break;
+            default:
+                PPX_ASSERT_MSG(false, "CS shader for this API is not present");
+        }
+
+        PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
+        grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
+        PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreateShaderModule(&shaderCreateInfo, &computeShader));
+
+        grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
+        piCreateInfo.setCount                          = 1;
+        piCreateInfo.sets[0].set                       = 0;
+        piCreateInfo.sets[0].pLayout                   = computeDescriptorSetLayout;
+        PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreatePipelineInterface(&piCreateInfo, &computePipelineInterface));
+
+        grfx::ComputePipelineCreateInfo cpCreateInfo = {};
+        cpCreateInfo.CS                              = {computeShader.Get(), "CSMain"};
+        cpCreateInfo.pPipelineInterface              = computePipelineInterface;
+        PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreateComputePipeline(&cpCreateInfo, &computePipeline));
+    }
+
+    // Prepare data for CS
+    int srcCurrentWidth  = pBitmap->GetWidth();
+    int srcCurrentHeight = pBitmap->GetHeight();
+
+    // For the uniform (constant) data
+    struct alignas(16) ShaderConstantData
+    {
+        float texel_size[2]; // 1.0 / srcTex.Dimensions
+        int   src_mip_level;
+        // Case to filter according the parity of the dimensions in the src texture.
+        // Must be one of 0, 1, 2 or 3
+        // See CSMain function bellow
+        int dimension_case;
+        // Ignored for now, if we want to use a different filter strategy. Current one is bi-linear filter
+        int filter_option;
+    };
+
+    // Generate the rest of the mips
+    for (uint32_t i = 1; i < mipLevelCount; ++i) {
+        grfx::StorageImageViewPtr storageImageView;
+        grfx::SampledImageViewPtr sampledImageView;
+
+        { // Pass uniform data into shader
+            ShaderConstantData constants;
+            // Calculate current texel size
+            constants.texel_size[0] = 1.0f / float(srcCurrentWidth);
+            constants.texel_size[1] = 1.0f / float(srcCurrentHeight);
+            // Calculate current dimension case
+            // If width is even
+            if ((srcCurrentWidth % 2) == 0) {
+                // Test the height
+                constants.dimension_case = (srcCurrentHeight % 2) == 0 ? 0 : 1;
+            }
+            else { // width is odd
+                // Test the height
+                constants.dimension_case = (srcCurrentHeight % 2) == 0 ? 2 : 3;
+            }
+            constants.src_mip_level = i - 1; // We calculate mip level i with level i - 1
+            constants.filter_option = 1;     // Ignored for now, defaults to bilinear
+            void* pData             = nullptr;
+            PPX_CHECKED_CALL(ppxres = uniformBuffer->MapMemory(0, &pData));
+            memcpy(pData, &constants, sizeof(constants));
+            uniformBuffer->UnmapMemory();
+        }
+
+        { // Storage Image view
+            grfx::StorageImageViewCreateInfo storageViewCreateInfo = grfx::StorageImageViewCreateInfo::GuessFromImage(targetImage);
+            storageViewCreateInfo.mipLevel                         = i;
+            storageViewCreateInfo.mipLevelCount                    = 1;
+
+            PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreateStorageImageView(&storageViewCreateInfo, &storageImageView));
+
+            grfx::WriteDescriptor write = {};
+            write.binding               = 0;
+            write.type                  = grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            write.pImageView            = storageImageView;
+            PPX_CHECKED_CALL(ppxres = computeDescriptorSet->UpdateDescriptors(1, &write));
+        }
+
+        { // Sampler Image View
+            grfx::SampledImageViewCreateInfo sampledViewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(targetImage);
+            sampledViewCreateInfo.mipLevel                         = i - 1;
+            sampledViewCreateInfo.mipLevelCount                    = 1;
+
+            PPX_CHECKED_CALL(ppxres = pQueue->GetDevice()->CreateSampledImageView(&sampledViewCreateInfo, &sampledImageView));
+
+            grfx::WriteDescriptor write = {};
+            write.binding               = 2;
+            write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+            write.pImageView            = sampledImageView;
+            PPX_CHECKED_CALL(ppxres = computeDescriptorSet->UpdateDescriptors(1, &write));
+        }
+
+        { // Create a command buffer
+            grfx::CommandBufferPtr cmdBuffer;
+            PPX_CHECKED_CALL(ppxres = pQueue->CreateCommandBuffer(&cmdBuffer));
+            // Record command buffer
+            PPX_CHECKED_CALL(ppxres = cmdBuffer->Begin());
+            cmdBuffer->BindComputeDescriptorSets(computePipelineInterface, 1, &computeDescriptorSet);
+            cmdBuffer->BindComputePipeline(computePipeline);
+            // Update width and height for the next iteration
+            srcCurrentWidth  = srcCurrentWidth > 1 ? srcCurrentWidth / 2 : 1;
+            srcCurrentHeight = srcCurrentHeight > 1 ? srcCurrentHeight / 2 : 1;
+            // Launch the CS once per dst size (which is half of src size)
+            cmdBuffer->Dispatch(srcCurrentWidth, srcCurrentHeight, 1);
+            PPX_CHECKED_CALL(ppxres = cmdBuffer->End());
+            // Submitt to queue
+            grfx::SubmitInfo submitInfo     = {};
+            submitInfo.commandBufferCount   = 1;
+            submitInfo.ppCommandBuffers     = &cmdBuffer;
+            submitInfo.waitSemaphoreCount   = 0;
+            submitInfo.ppWaitSemaphores     = nullptr;
+            submitInfo.signalSemaphoreCount = 0;
+            submitInfo.ppSignalSemaphores   = nullptr;
+            submitInfo.pFence               = nullptr;
+
+            PPX_CHECKED_CALL(ppxres = pQueue->Submit(&submitInfo));
+            PPX_CHECKED_CALL(ppxres = pQueue->WaitIdle());
+        }
+
+        { // Transition i-th mip back to shader resource
+            // Create a command buffer
+            grfx::CommandBufferPtr cmdBuffer;
+            PPX_CHECKED_CALL(ppxres = pQueue->CreateCommandBuffer(&cmdBuffer));
+            // Record into command buffer
+            PPX_CHECKED_CALL(ppxres = cmdBuffer->Begin());
+            cmdBuffer->TransitionImageLayout(targetImage, i, 1, 0, 1, grfx::RESOURCE_STATE_GENERAL, grfx::RESOURCE_STATE_SHADER_RESOURCE);
+            PPX_CHECKED_CALL(ppxres = cmdBuffer->End());
+            // Submitt to queue
+            grfx::SubmitInfo submitInfo     = {};
+            submitInfo.commandBufferCount   = 1;
+            submitInfo.ppCommandBuffers     = &cmdBuffer;
+            submitInfo.waitSemaphoreCount   = 0;
+            submitInfo.ppWaitSemaphores     = nullptr;
+            submitInfo.signalSemaphoreCount = 0;
+            submitInfo.ppSignalSemaphores   = nullptr;
+            submitInfo.pFence               = nullptr;
+            PPX_CHECKED_CALL(ppxres = pQueue->Submit(&submitInfo));
+            PPX_CHECKED_CALL(ppxres = pQueue->WaitIdle());
+        }
+    }
+
+    // Change ownership to reference so object doesn't get destroyed
+    targetImage->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+
+    // Assign output
+    *ppImage = targetImage;
+
+    return ppx::SUCCESS;
+}
+
 bool IsDDSFile(const fs::path& path)
 {
     return (std::strstr(path.c_str(), ".dds") != nullptr || std::strstr(path.c_str(), ".ktx") != nullptr);
@@ -394,7 +703,8 @@ Result CreateImageFromFile(
     grfx::Queue*        pQueue,
     const fs::path&     path,
     grfx::Image**       ppImage,
-    const ImageOptions& options)
+    const ImageOptions& options,
+    bool                useGpu)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppImage);
@@ -412,7 +722,13 @@ Result CreateImageFromFile(
             return ppxres;
         }
 
-        ppxres = CreateImageFromBitmap(pQueue, &bitmap, ppImage, options);
+        if (useGpu) {
+            ppxres = CreateImageFromBitmapGpu(pQueue, &bitmap, ppImage, options);
+        }
+        else {
+            ppxres = CreateImageFromBitmap(pQueue, &bitmap, ppImage, options);
+        }
+
         if (Failed(ppxres)) {
             return ppxres;
         }

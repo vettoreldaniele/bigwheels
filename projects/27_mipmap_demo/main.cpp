@@ -12,6 +12,7 @@ const grfx::Api kApi = grfx::API_VK_1_1;
 
 #define kWindowWidth  1280
 #define kWindowHeight 720
+#define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
 
 class ProjApp
     : public ppx::Application
@@ -22,46 +23,53 @@ public:
     virtual void Render() override;
 
 private:
+    void DrawGui();
     struct PerFrame
     {
-        grfx::CommandBufferPtr cmd;
-        grfx::SemaphorePtr     imageAcquiredSemaphore;
-        grfx::FencePtr         imageAcquiredFence;
-        grfx::SemaphorePtr     renderCompleteSemaphore;
-        grfx::FencePtr         renderCompleteFence;
+        ppx::grfx::CommandBufferPtr cmd;
+        ppx::grfx::SemaphorePtr     imageAcquiredSemaphore;
+        ppx::grfx::FencePtr         imageAcquiredFence;
+        ppx::grfx::SemaphorePtr     renderCompleteSemaphore;
+        ppx::grfx::FencePtr         renderCompleteFence;
     };
 
-    std::vector<PerFrame>        mPerFrame;
-    grfx::ShaderModulePtr        mCS;
-    grfx::ShaderModulePtr        mVS;
-    grfx::ShaderModulePtr        mPS;
-    grfx::PipelineInterfacePtr   mComputePipelineInterface;
-    grfx::ComputePipelinePtr     mComputePipeline;
-    grfx::PipelineInterfacePtr   mGraphicsPipelineInterface;
-    grfx::GraphicsPipelinePtr    mGraphicsPipeline;
-    grfx::BufferPtr              mVertexBuffer;
-    grfx::DescriptorPoolPtr      mDescriptorPool;
-    grfx::DescriptorSetLayoutPtr mComputeDescriptorSetLayout;
-    grfx::DescriptorSetPtr       mComputeDescriptorSet;
-    grfx::DescriptorSetLayoutPtr mGraphicsDescriptorSetLayout;
-    grfx::DescriptorSetPtr       mGraphicsDescriptorSet;
-    grfx::BufferPtr              mUniformBuffer;
-    grfx::ImagePtr               mImage;
-    grfx::SamplerPtr             mSampler;
-    grfx::SampledImageViewPtr    mSampledImageView;
-    grfx::StorageImageViewPtr    mStorageImageView;
-    grfx::Viewport               mViewport;
-    grfx::Rect                   mScissorRect;
-    grfx::VertexBinding          mVertexBinding;
+    std::vector<PerFrame>             mPerFrame;
+    ppx::grfx::ShaderModulePtr        mVS;
+    ppx::grfx::ShaderModulePtr        mPS;
+    ppx::grfx::PipelineInterfacePtr   mPipelineInterface;
+    ppx::grfx::GraphicsPipelinePtr    mPipeline;
+    ppx::grfx::BufferPtr              mVertexBuffer;
+    ppx::grfx::DescriptorPoolPtr      mDescriptorPool;
+    ppx::grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
+    ppx::grfx::DescriptorSetPtr       mDescriptorSet[2];
+    ppx::grfx::BufferPtr              mUniformBuffer[2];
+    ppx::grfx::ImagePtr               mImage[2];
+    ppx::grfx::SamplerPtr             mSampler;
+    ppx::grfx::SampledImageViewPtr    mSampledImageView[2];
+    grfx::Viewport                    mViewport;
+    grfx::Rect                        mScissorRect;
+    grfx::VertexBinding               mVertexBinding;
+    int                               mLevelRight;
+    int                               mLevelLeft;
+    int                               mMaxLevelRight;
+    int                               mMaxLevelLeft;
+    bool                              mLeftInGpu;
+    bool                              mRightInGpu;
+    int                               mFilterOption;
+    std::vector<const char*>          mFilterNames = {
+        "Bilinear",
+        "Other",
+    };
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    settings.appName          = "06_compute_fill";
-    settings.window.width     = kWindowWidth;
-    settings.window.height    = kWindowHeight;
-    settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = true;
+    settings.appName                    = "27_mipmap_demo";
+    settings.window.width               = kWindowWidth;
+    settings.window.height              = kWindowHeight;
+    settings.grfx.api                   = kApi;
+    settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
+    settings.grfx.enableDebug           = true;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
@@ -75,113 +83,91 @@ void ProjApp::Setup()
     Result ppxres = ppx::SUCCESS;
 
     // Uniform buffer
-    {
+    for (uint32_t i = 0; i < 2; ++i) {
         grfx::BufferCreateInfo bufferCreateInfo        = {};
         bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer));
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer[i]));
     }
 
     // Texture image, view, and sampler
     {
-        grfx_util::ImageOptions imageOptions = grfx_util::ImageOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/box_panel.jpg"), &mImage, imageOptions, false));
+        //std::vector<std::string> textureFiles = {"box_panel.jpg", "statue.jpg"};
+        for (uint32_t i = 0; i < 2; ++i) {
+            grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
+            PPX_CHECKED_CALL(ppxres = grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/statue.jpg"), 
+                &mImage[i], options, i == 1));
 
-        grfx::SampledImageViewCreateInfo sampledViewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage);
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&sampledViewCreateInfo, &mSampledImageView));
+            grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage[i]);
+            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&viewCreateInfo, &mSampledImageView[i]));
+        }
 
-        grfx::StorageImageViewCreateInfo storageViewCreateInfo = grfx::StorageImageViewCreateInfo::GuessFromImage(mImage);
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateStorageImageView(&storageViewCreateInfo, &mStorageImageView));
-
+        // Query available mip levels from the images
+        mMaxLevelLeft  = mSampledImageView[0]->GetMipLevelCount() - 1; // Since first level is zero
+        mMaxLevelRight = mSampledImageView[1]->GetMipLevelCount() - 1;
+        mLevelLeft     = 0;
+        mLevelRight    = 0;
+        mLeftInGpu     = false;
+        mRightInGpu    = true;
+        // To better perceive the MipMap we disable the interpolation between them
         grfx::SamplerCreateInfo samplerCreateInfo = {};
+        samplerCreateInfo.magFilter               = grfx::FILTER_NEAREST;
+        samplerCreateInfo.minFilter               = grfx::FILTER_NEAREST;
+        samplerCreateInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_NEAREST;
+        samplerCreateInfo.minLod                  = 0;
+        samplerCreateInfo.maxLod                  = FLT_MAX;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
     }
 
-    // Descriptors
+    // Descriptor
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.uniformBuffer                  = 1;
-        poolCreateInfo.sampledImage                   = 1;
-        poolCreateInfo.sampler                        = 1;
-        poolCreateInfo.storageImage                   = 1;
+        poolCreateInfo.uniformBuffer                  = 2;
+        poolCreateInfo.sampledImage                   = 2;
+        poolCreateInfo.sampler                        = 2;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
-        // Compute
-        {
-            grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE));
-            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mComputeDescriptorSetLayout));
+        grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
 
-            PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mComputeDescriptorSetLayout, &mComputeDescriptorSet));
-
-            grfx::WriteDescriptor write = {};
-            write.binding               = 0;
-            write.type                  = grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            write.pImageView            = mStorageImageView;
-            PPX_CHECKED_CALL(ppxres = mComputeDescriptorSet->UpdateDescriptors(1, &write));
-        }
-
-        // Graphics
-        {
-            grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
-            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mGraphicsDescriptorSetLayout));
-
-            PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mGraphicsDescriptorSetLayout, &mGraphicsDescriptorSet));
+        for (uint32_t i = 0; i < 2; ++i) {
+            PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &mDescriptorSet[i]));
 
             grfx::WriteDescriptor write = {};
             write.binding               = 0;
             write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             write.bufferOffset          = 0;
             write.bufferRange           = PPX_WHOLE_SIZE;
-            write.pBuffer               = mUniformBuffer;
-            PPX_CHECKED_CALL(ppxres = mGraphicsDescriptorSet->UpdateDescriptors(1, &write));
+            write.pBuffer               = mUniformBuffer[i];
+            PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
 
             write            = {};
             write.binding    = 1;
             write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            write.pImageView = mSampledImageView;
-            PPX_CHECKED_CALL(ppxres = mGraphicsDescriptorSet->UpdateDescriptors(1, &write));
+            write.pImageView = mSampledImageView[i];
+            PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
 
             write          = {};
             write.binding  = 2;
             write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
             write.pSampler = mSampler;
-            PPX_CHECKED_CALL(ppxres = mGraphicsDescriptorSet->UpdateDescriptors(1, &write));
+            PPX_CHECKED_CALL(ppxres = mDescriptorSet[i]->UpdateDescriptors(1, &write));
         }
     }
 
-    // Compute pipeline
+    // Pipeline
     {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "ComputeFill.cs");
-        PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
-        grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mCS));
-
-        grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
-        piCreateInfo.setCount                          = 1;
-        piCreateInfo.sets[0].set                       = 0;
-        piCreateInfo.sets[0].pLayout                   = mComputeDescriptorSetLayout;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mComputePipelineInterface));
-
-        grfx::ComputePipelineCreateInfo cpCreateInfo = {};
-        cpCreateInfo.CS                              = {mCS.Get(), "csmain"};
-        cpCreateInfo.pPipelineInterface              = mComputePipelineInterface;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateComputePipeline(&cpCreateInfo, &mComputePipeline));
-    }
-
-    // Graphics pipeline
-    {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "TextureMip.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "TextureMip.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
@@ -189,8 +175,8 @@ void ProjApp::Setup()
         grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
         piCreateInfo.setCount                          = 1;
         piCreateInfo.sets[0].set                       = 0;
-        piCreateInfo.sets[0].pLayout                   = mGraphicsDescriptorSetLayout;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mGraphicsPipelineInterface));
+        piCreateInfo.sets[0].pLayout                   = mDescriptorSetLayout;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
 
         mVertexBinding.AppendAttribute({"POSITION", 0, grfx::FORMAT_R32G32B32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
         mVertexBinding.AppendAttribute({"TEXCOORD", 1, grfx::FORMAT_R32G32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
@@ -209,8 +195,9 @@ void ProjApp::Setup()
         gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
         gpCreateInfo.outputState.renderTargetCount      = 1;
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
-        gpCreateInfo.pPipelineInterface                 = mGraphicsPipelineInterface;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mGraphicsPipeline));
+        gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
+        gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPipeline));
     }
 
     // Per frame data
@@ -237,14 +224,14 @@ void ProjApp::Setup()
     {
         // clang-format off
         std::vector<float> vertexData = {
-            // position           // tex coords
-            -0.5f,  0.5f, 0.0f,   0.0f, 0.0f,
-            -0.5f, -0.5f, 0.0f,   0.0f, 1.0f,
-             0.5f, -0.5f, 0.0f,   1.0f, 1.0f,
 
-            -0.5f,  0.5f, 0.0f,   0.0f, 0.0f,
-             0.5f, -0.5f, 0.0f,   1.0f, 1.0f,
-             0.5f,  0.5f, 0.0f,   1.0f, 0.0f,
+            -1.0f, 1.0f, 1.0f,   0.0f, 0.0f,  // +Z side
+            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
+             1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+            -1.0f,-1.0f, 1.0f,   0.0f, 1.0f,
+             1.0f,-1.0f, 1.0f,   1.0f, 1.0f,
+             1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+
         };
         // clang-format on
         uint32_t dataSize = ppx::SizeInBytesU32(vertexData);
@@ -284,14 +271,36 @@ void ProjApp::Render()
     PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
 
     // Update uniform buffer
+    float4x4 P = glm::perspective(glm::radians(60.0f), kWindowAspect, 1.0f, 4.0f);
+    float4x4 V = glm::lookAt(float3(0, 0, 3.1), float3(0, 0, 0), float3(0, 1, 0));
+    struct alignas(16) InputData
     {
-        float    t   = GetElapsedSeconds();
-        float4x4 mat = glm::rotate(t, float3(0, 0, 1));
+        float4x4 M;
+        int      mipLevel;
+    };
+    {
+        InputData uniBuffer;
+        float4x4 M   = glm::translate(float3(-1.05, 0, 0));
+        uniBuffer.M  = P * V * M;
+        uniBuffer.mipLevel = mLevelLeft;
 
         void* pData = nullptr;
-        PPX_CHECKED_CALL(ppxres = mUniformBuffer->MapMemory(0, &pData));
-        memcpy(pData, &mat, sizeof(mat));
-        mUniformBuffer->UnmapMemory();
+        PPX_CHECKED_CALL(ppxres = mUniformBuffer[0]->MapMemory(0, &pData));
+        memcpy(pData, &uniBuffer, sizeof(InputData));
+        mUniformBuffer[0]->UnmapMemory();
+    }
+
+    // Update uniform buffer
+    {
+        InputData uniBuffer;
+        float4x4 M  = glm::translate(float3(1.05, 0, 0));
+        uniBuffer.M = P * V * M;
+        uniBuffer.mipLevel = mLevelRight;
+
+        void* pData = nullptr;
+        PPX_CHECKED_CALL(ppxres = mUniformBuffer[1]->MapMemory(0, &pData));
+        memcpy(pData, &uniBuffer, sizeof(InputData));
+        mUniformBuffer[1]->UnmapMemory();
     }
 
     // Build command buffer
@@ -305,28 +314,25 @@ void ProjApp::Render()
         beginInfo.renderArea                = renderPass->GetRenderArea();
         beginInfo.RTVClearCount             = 1;
         beginInfo.RTVClearValues[0]         = {{0, 0, 0, 0}};
-
-        // Fill image with red
-        frame.cmd->TransitionImageLayout(mImage, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_UNORDERED_ACCESS);
-        frame.cmd->BindComputeDescriptorSets(mComputePipelineInterface, 1, &mComputeDescriptorSet);
-        frame.cmd->BindComputePipeline(mComputePipeline);
-        frame.cmd->Dispatch(mImage->GetWidth(), mImage->GetHeight(), 1);
-        frame.cmd->TransitionImageLayout(mImage, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_UNORDERED_ACCESS, grfx::RESOURCE_STATE_SHADER_RESOURCE);
+        beginInfo.DSVClearValue             = {1.0f, 0xFF};
 
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);
         {
-            // Draw texture
             frame.cmd->SetScissors(1, &mScissorRect);
             frame.cmd->SetViewports(1, &mViewport);
-            frame.cmd->BindGraphicsDescriptorSets(mGraphicsPipelineInterface, 1, &mGraphicsDescriptorSet);
-            frame.cmd->BindGraphicsPipeline(mGraphicsPipeline);
+            frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
+
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet[0]);
+            frame.cmd->Draw(6, 1, 0, 0);
+
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mDescriptorSet[1]);
             frame.cmd->Draw(6, 1, 0, 0);
 
             // Draw ImGui
-            //DrawDebugInfo();
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo([this]() { this->DrawGui(); });
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
@@ -345,6 +351,38 @@ void ProjApp::Render()
     PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
 
     PPX_CHECKED_CALL(ppxres = swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
+}
+
+void ProjApp::DrawGui()
+{
+    ImGui::Separator();
+    ImGui::Text("Left generated in:");
+    ImGui::SameLine();
+    const auto lightBlue = ImVec4(0.0f, 0.8f, 1.0f, 1.0f);
+    ImGui::TextColored(lightBlue, mLeftInGpu ? "GPU" : "CPU");
+    ImGui::Text("Right generated in:");
+    ImGui::SameLine();
+    ImGui::TextColored(lightBlue, mRightInGpu ? "GPU" : "CPU");
+  
+    ImGui::Text("Mip Map Level");
+    ImGui::SliderInt("Left", &mLevelLeft, 0, mMaxLevelLeft);
+    ImGui::SliderInt("Right", &mLevelRight, 0, mMaxLevelRight);
+    
+    static const char* currentFilter = mFilterNames[0];
+
+    if (ImGui::BeginCombo("Filter", currentFilter)) {
+        for (size_t i = 0; i < mFilterNames.size(); ++i) {
+            bool isSelected = (currentFilter == mFilterNames[i]);
+            if (ImGui::Selectable(mFilterNames[i], isSelected)) {
+                currentFilter = mFilterNames[i];
+                mFilterOption = static_cast<int>(i);
+            }
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
 }
 
 int main(int argc, char** argv)

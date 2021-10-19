@@ -130,6 +130,9 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
+#if defined(USE_DXVK_SPV)
+    settings.grfx.enableDXVKSPV = true;
+#endif
 }
 
 void ProjApp::SetupPerFrame()
@@ -238,7 +241,7 @@ void ProjApp::SetupIBLResources()
     }
 
     // Texture create options
-    grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_ALL_MIP_LEVELS);
+    grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
 
     // GoldenHour
     {

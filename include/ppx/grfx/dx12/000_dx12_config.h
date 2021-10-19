@@ -72,7 +72,7 @@ class Instance;
 class Pipeline;
 class PipelineInterface;
 class Queue;
-class QueryPool;
+class Query;
 class RenderPass;
 class RenderTargetView;
 class Sampler;
@@ -194,10 +194,10 @@ struct ApiObjectLookUp<grfx::Queue>
 };
 
 template <>
-struct ApiObjectLookUp<grfx::QueryPool>
+struct ApiObjectLookUp<grfx::Query>
 {
-    using GrfxType = grfx::QueryPool;
-    using ApiType  = dx12::QueryPool;
+    using GrfxType = grfx::Query;
+    using ApiType  = dx12::Query;
 };
 
 template <>

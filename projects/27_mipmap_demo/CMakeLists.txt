@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(19_camera_fit_scene)
+project(27_mipmap_demo)
 
 list(APPEND HLSL_FILES
-    "${PPX_DIR}/assets/basic/shaders/VertexColors.hlsl"
+    "${PPX_DIR}/assets/basic/shaders/TextureMip.hlsl"
 )
 
 CompileShadersVSPS("${HLSL_FILES}" "${PPX_DIR}/assets/basic/shaders" "${PPX_DIR}")

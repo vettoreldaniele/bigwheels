@@ -42,6 +42,28 @@ Result Queue::WaitIdle()
     return ppx::SUCCESS;
 }
 
+Result Queue::UpdateTimestampFrequency()
+{
+    ID3D11DeviceContext* ctx = mDeviceContext.Get();
+    if (mWriteFrequencyQuery <= QUERY_FRAME_DELAY) {
+        mFrequency = 0;
+        return ppx::SUCCESS;
+    }
+    D3D11_QUERY_DATA_TIMESTAMP_DISJOINT queryData = {};
+
+    HRESULT queryResult = S_FALSE;
+    while (queryResult == S_FALSE) {
+        queryResult = GetDxDeviceContext()->GetData(mFrequencyQuery[mReadFrequencyQuery % MAX_QUERIES_IN_FLIGHT], &queryData, sizeof(queryData), 0);
+
+        if (queryResult != S_OK) {
+            return ppx::ERROR_FAILED;
+        }
+    }
+
+    mFrequency = queryData.Frequency;
+    return ppx::SUCCESS;
+}
+
 Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
 {
     ID3D11DeviceContext* ctx = mDeviceContext.Get();
@@ -60,29 +82,14 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
     ctx->End(mFrequencyQuery[mWriteFrequencyQuery % MAX_QUERIES_IN_FLIGHT]);
     mWriteFrequencyQuery++;
 
+    UpdateTimestampFrequency();
+
     return ppx::SUCCESS;
 }
 
 Result Queue::GetTimestampFrequency(uint64_t* pFrequency) const
 {
-    ID3D11DeviceContext* ctx = mDeviceContext.Get();
-    if (mWriteFrequencyQuery <= QUERY_FRAME_DELAY) {
-        *pFrequency = 0;
-        return ppx::SUCCESS;
-    }
-    D3D11_QUERY_DATA_TIMESTAMP_DISJOINT queryData = {};
-
-    HRESULT queryResult = S_FALSE;
-    while (queryResult == S_FALSE) {
-        queryResult = GetDxDeviceContext()->GetData(mFrequencyQuery[mReadFrequencyQuery % MAX_QUERIES_IN_FLIGHT], &queryData, sizeof(queryData), 0);
-
-        if (queryResult != S_OK) {
-            return ppx::ERROR_FAILED;
-        }
-    }
-
-    *pFrequency = queryData.Frequency;
-
+    *pFrequency = mFrequency;
     return ppx::SUCCESS;
 }
 

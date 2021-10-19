@@ -34,9 +34,18 @@ if (NOT DXC_PATH)
     message(FATAL_ERROR "Could not locate DXC executable - DXC is required")
 endif()
 
-# Hacky
-if (PPX_DXVK)
-    set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0.18362.0")
+# To use DXVK we need to compute the FXC_PATH, in order to do that
+# we need CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION. However,
+# when a custom TOOLCHAIN is used, that variable is not set.
+# This logic tries to infer CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION in that case.
+if (PPX_DXVK AND (NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION))
+    set(TARGET_DIR "C:\\Program Files (x86)\\Windows Kits\\10\\bin")
+    file(GLOB children RELATIVE ${TARGET_DIR} ${TARGET_DIR}/*)
+    foreach(child ${children})
+        if (IS_DIRECTORY ${TARGET_DIR}\\${child} AND (${child} MATCHES 10.*))
+            set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION ${child})
+        endif()
+    endforeach()
 endif()
 
 if ((PPX_MSW OR PPX_DXVK) AND NOT FXC_PATH)
@@ -131,6 +140,23 @@ function(CompileToSPV_VS)
     )    
 endfunction()
 
+function(CompileToDxvkSPV_VS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
+
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling VS Shader [DXC-DXVK-SPV] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to SPIR-V
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXVK-SPV] Compiling VS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -spirv -T vs_6_0 -E vsmain -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 160 0 -fvk-s-shift 176 0 -fvk-t-shift 192 0 -fvk-u-shift 960 0 -fspv-reflect -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+    )
+endfunction()
+
 function(CompileToDXBC50_PS)
     set(HLSL_PATH   ${ARGV0})
     set(OUTPUT_FILE ${ARGV1})
@@ -197,6 +223,23 @@ function(CompileToSPV_PS)
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
         COMMAND ${DXC_PATH} -spirv -fspv-reflect -T ps_6_0 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
     )    
+endfunction()
+
+function(CompileToDxvkSPV_PS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
+
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling PS Shader [DXC-DXVK-SPV] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to SPIR-V
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXVK-SPV] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -spirv -T ps_6_0 -E psmain -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 0 0 -fvk-s-shift 16 0 -fvk-t-shift 32 0 -fvk-u-shift 960 0 -fspv-reflect -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+    )
 endfunction()
 
 function(CompileToDXBC50_CS)
@@ -267,6 +310,23 @@ function(CompileToSPV_CS)
     )    
 endfunction()
 
+function(CompileToDxvkSPV_CS)
+    set(HLSL_PATH   ${ARGV0})
+    set(OUTPUT_FILE ${ARGV1})
+    set(WORKING_DIR ${ARGV2})
+    CompileShaderMakeOutputDir(${OUTPUT_FILE})
+
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        WORKING_DIRECTORY ${WORKING_DIR}
+        COMMENT "------ Compiling CS Shader [DXC-DXVK-SPV] ------"
+        MAIN_DEPENDENCY ${HLSL_PATH}
+        # Compile to SPIR-V
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXVK-SPV] Compiling CS ${HLSL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${DXC_PATH} -spirv -T cs_6_0 -E csmain -spirv -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 800 0 -fvk-s-shift 816 0 -fvk-t-shift 832 0 -fvk-u-shift 1088 0 -fspv-reflect -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+    )
+endfunction()
+
 # @fn compile_vs_ps - Compiles a list of HLSL files with VS and PS to DXBC, DXIL, and SPV
 #   
 # @param ARGV0 HLSL_PATH
@@ -278,10 +338,11 @@ function(CompileShadersVSPS)
     set(OUTPUT_DIR  ${ARGV1})
     set(WORKING_DIR ${ARGV2})
           
-    set(BUILD_DXBC50 FALSE)
-    set(BUILD_DXBC51 FALSE)
-    set(BUILD_DXIL   FALSE)
-    set(BUILD_SPIRV  FALSE)
+    set(BUILD_DXBC50     FALSE)
+    set(BUILD_DXBC51     FALSE)
+    set(BUILD_DXIL       FALSE)
+    set(BUILD_SPIRV      FALSE)
+    set(BUILD_DXVK_SPIRV FALSE)
     
     if (PPX_D3D11 OR PPX_DXVK)
         set(BUILD_DXBC50 TRUE)
@@ -293,11 +354,15 @@ function(CompileShadersVSPS)
     if (PPX_VULKAN)
         set(BUILD_SPIRV TRUE)
     endif()
+    if (PPX_DXVK_SPV)
+        set(BUILD_DXVK_SPIRV TRUE)
+    endif()
 
     list(APPEND outputs_dxbc50)
     list(APPEND outputs_dxbc51)
     list(APPEND outputs_dxil)
     list(APPEND outputs_spv)
+    list(APPEND outputs_dxvk_spv)
     foreach(HLSL_PATH ${HLSL_FILES})   
         # SPV targets
         string(REPLACE "hlsl" "vs.spv" vs_file ${HLSL_PATH})
@@ -306,7 +371,11 @@ function(CompileShadersVSPS)
         get_filename_component(ps_file ${ps_file} NAME)
         set(spv_vs_file ${OUTPUT_DIR}/spv/${vs_file})
         set(spv_ps_file ${OUTPUT_DIR}/spv/${ps_file})
-        
+
+        # DXVK SPV targets
+        set(dxvk_spv_vs_file ${OUTPUT_DIR}/dxvk_spv/${vs_file})
+        set(dxvk_spv_ps_file ${OUTPUT_DIR}/dxvk_spv/${ps_file})
+
         # DXIL targets
         string(REPLACE "hlsl" "vs.dxil" vs_file ${HLSL_PATH})
         string(REPLACE "hlsl" "ps.dxil" ps_file ${HLSL_PATH})
@@ -354,6 +423,12 @@ function(CompileShadersVSPS)
             CompileToSPV_PS(${HLSL_PATH} "${spv_ps_file}" ${WORKING_DIR})
             list(APPEND outputs_spv ${spv_vs_file} ${spv_ps_file})          
         endif()
+
+        if (BUILD_DXVK_SPIRV)
+            CompileToDxvkSPV_VS(${HLSL_PATH} "${dxvk_spv_vs_file}" ${WORKING_DIR})
+            CompileToDxvkSPV_PS(${HLSL_PATH} "${dxvk_spv_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxvk_spv ${dxvk_spv_vs_file} ${dxvk_spv_ps_file})
+        endif()
     endforeach()   
     
     if (BUILD_DXBC50)
@@ -379,6 +454,12 @@ function(CompileShadersVSPS)
         add_custom_target(${target_name} DEPENDS ${outputs_spv})
         set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/spv")
     endif()
+
+    if (BUILD_DXVK_SPIRV)
+        set(target_name ${PROJECT_NAME}-dxvk-spv-vsps)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxvk_spv})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxvk_spv")
+    endif()
 endfunction()
 
 function(CompileShadersVS)
@@ -386,10 +467,11 @@ function(CompileShadersVS)
     set(OUTPUT_DIR  ${ARGV1})
     set(WORKING_DIR ${ARGV2})
           
-    set(BUILD_DXBC50 FALSE)
-    set(BUILD_DXBC51 FALSE)
-    set(BUILD_DXIL   FALSE)
-    set(BUILD_SPIRV  FALSE)
+    set(BUILD_DXBC50     FALSE)
+    set(BUILD_DXBC51     FALSE)
+    set(BUILD_DXIL       FALSE)
+    set(BUILD_SPIRV      FALSE)
+    set(BUILD_DXVK_SPIRV FALSE)
     
     if (PPX_D3D11 OR PPX_DXVK)
         set(BUILD_DXBC50 TRUE)
@@ -401,17 +483,24 @@ function(CompileShadersVS)
     if (PPX_VULKAN)
         set(BUILD_SPIRV TRUE)
     endif()
+    if (PPX_DXVK_SPV)
+        set(BUILD_DXVK_SPIRV TRUE)
+    endif()
 
     list(APPEND outputs_dxbc50)
     list(APPEND outputs_dxbc51)
     list(APPEND outputs_dxil)
     list(APPEND outputs_spv)
+    list(APPEND outputs_dxvk_spv)
     foreach(HLSL_PATH ${HLSL_FILES})   
         # SPV targets
         string(REPLACE "hlsl" "vs.spv" vs_file ${HLSL_PATH})
         get_filename_component(vs_file ${vs_file} NAME)
         set(spv_vs_file ${OUTPUT_DIR}/spv/${vs_file})
-        
+
+        # DXVK SPV targets
+        set(dxvk_spv_vs_file ${OUTPUT_DIR}/dxvk_spv/${vs_file})
+
         # DXIL targets
         string(REPLACE "hlsl" "vs.dxil" vs_file ${HLSL_PATH})
         get_filename_component(vs_file ${vs_file} NAME)
@@ -446,6 +535,11 @@ function(CompileShadersVS)
             CompileToSPV_VS(${HLSL_PATH} "${spv_vs_file}" ${WORKING_DIR})
             list(APPEND outputs_spv ${spv_vs_file} ${spv_ps_file})          
         endif()
+
+        if (BUILD_DXVK_SPIRV)
+            CompileToDxvkSPV_VS(${HLSL_PATH} "${dxvk_spv_vs_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxvk_spv ${dxvk_spv_vs_file} ${dxvk_spv_ps_file})
+        endif()
     endforeach()   
     
     if (BUILD_DXBC50)
@@ -471,6 +565,12 @@ function(CompileShadersVS)
         add_custom_target(${target_name} DEPENDS ${outputs_spv})
         set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/spv")
     endif()
+
+    if (BUILD_DXVK_SPIRV)
+        set(target_name ${PROJECT_NAME}-dxvk-spv-vs)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxvk_spv})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxvk_spv")
+    endif()
 endfunction()
 
 function(CompileShadersPS)
@@ -478,10 +578,11 @@ function(CompileShadersPS)
     set(OUTPUT_DIR  ${ARGV1})
     set(WORKING_DIR ${ARGV2})
           
-    set(BUILD_DXBC50 FALSE)
-    set(BUILD_DXBC51 FALSE)
-    set(BUILD_DXIL   FALSE)
-    set(BUILD_SPIRV  FALSE)
+    set(BUILD_DXBC50     FALSE)
+    set(BUILD_DXBC51     FALSE)
+    set(BUILD_DXIL       FALSE)
+    set(BUILD_SPIRV      FALSE)
+    set(BUILD_DXVK_SPIRV FALSE)
     
     if (PPX_D3D11 OR PPX_DXVK)
         set(BUILD_DXBC50 TRUE)
@@ -493,17 +594,24 @@ function(CompileShadersPS)
     if (PPX_VULKAN)
         set(BUILD_SPIRV TRUE)
     endif()
+    if (PPX_DXVK_SPV)
+        set(BUILD_DXVK_SPIRV TRUE)
+    endif()
 
     list(APPEND outputs_dxbc50)
     list(APPEND outputs_dxbc51)
     list(APPEND outputs_dxil)
     list(APPEND outputs_spv)
+    list(APPEND outputs_dxvk_spv)
     foreach(HLSL_PATH ${HLSL_FILES})   
         # SPV targets
         string(REPLACE "hlsl" "ps.spv" ps_file ${HLSL_PATH})
         get_filename_component(ps_file ${ps_file} NAME)
         set(spv_ps_file ${OUTPUT_DIR}/spv/${ps_file})
-        
+
+        # DXVK SPV targets
+        set(dxvk_spv_ps_file ${OUTPUT_DIR}/dxvk_spv/${ps_file})
+
         # DXIL targets
         string(REPLACE "hlsl" "ps.dxil" ps_file ${HLSL_PATH})
         get_filename_component(ps_file ${ps_file} NAME)
@@ -538,6 +646,11 @@ function(CompileShadersPS)
             CompileToSPV_PS(${HLSL_PATH} "${spv_ps_file}" ${WORKING_DIR})
             list(APPEND outputs_spv ${spv_ps_file} ${spv_ps_file})          
         endif()
+
+        if (BUILD_DXVK_SPIRV)
+            CompileToDxvkSPV_PS(${HLSL_PATH} "${dxvk_spv_ps_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxvk_spv ${dxvk_spv_ps_file} ${dxvk_spv_ps_file})
+        endif()
     endforeach()   
     
     if (BUILD_DXBC50)
@@ -563,6 +676,12 @@ function(CompileShadersPS)
         add_custom_target(${target_name} DEPENDS ${outputs_spv})
         set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/spv")
     endif()
+
+    if (BUILD_DXVK_SPIRV)
+        set(target_name ${PROJECT_NAME}-dxvk-spv-ps)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxvk_spv})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxvk_spv")
+    endif()
 endfunction()
 
 function(CompileShadersCS)
@@ -570,10 +689,11 @@ function(CompileShadersCS)
     set(OUTPUT_DIR  ${ARGV1})
     set(WORKING_DIR ${ARGV2})
           
-    set(BUILD_DXBC50 FALSE)
-    set(BUILD_DXBC51 FALSE)
-    set(BUILD_DXIL   FALSE)
-    set(BUILD_SPIRV  FALSE)
+    set(BUILD_DXBC50     FALSE)
+    set(BUILD_DXBC51     FALSE)
+    set(BUILD_DXIL       FALSE)
+    set(BUILD_SPIRV      FALSE)
+    set(BUILD_DXVK_SPIRV FALSE)
     
     if (PPX_D3D11 OR PPX_DXVK)
         set(BUILD_DXBC50 TRUE)
@@ -585,6 +705,9 @@ function(CompileShadersCS)
     if (PPX_VULKAN)
         set(BUILD_SPIRV TRUE)
     endif()
+    if (PPX_DXVK_SPV)
+        set(BUILD_DXVK_SPIRV TRUE)
+    endif()
 
     list(APPEND outputs_dxbc50)
     list(APPEND outputs_dxbc51)
@@ -595,7 +718,10 @@ function(CompileShadersCS)
         string(REPLACE "hlsl" "cs.spv" cs_file ${HLSL_PATH})
         get_filename_component(cs_file ${cs_file} NAME)
         set(spv_cs_file ${OUTPUT_DIR}/spv/${cs_file})
-        
+
+        # DXVK SPV targets
+        set(dxvk_spv_cs_file ${OUTPUT_DIR}/dxvk_spv/${cs_file})
+
         # DXIL targets
         string(REPLACE "hlsl" "cs.dxil" cs_file ${HLSL_PATH})
         get_filename_component(cs_file ${cs_file} NAME)
@@ -630,6 +756,11 @@ function(CompileShadersCS)
             CompileToSPV_CS(${HLSL_PATH} "${spv_cs_file}" ${WORKING_DIR})
             list(APPEND outputs_spv ${spv_cs_file} ${spv_ps_file})          
         endif()
+
+        if (BUILD_DXVK_SPIRV)
+            CompileToDxvkSPV_CS(${HLSL_PATH} "${dxvk_spv_cs_file}" ${WORKING_DIR})
+            list(APPEND outputs_dxvk_spv ${dxvk_spv_cs_file} ${dxvk_spv_cs_file})
+        endif()
     endforeach()   
     
     if (BUILD_DXBC50)
@@ -654,6 +785,12 @@ function(CompileShadersCS)
         set(target_name ${PROJECT_NAME}-spv-cs)
         add_custom_target(${target_name} DEPENDS ${outputs_spv})
         set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/spv")
+    endif()
+
+    if (BUILD_DXVK_SPIRV)
+        set(target_name ${PROJECT_NAME}-dxvk-spv-cs)
+        add_custom_target(${target_name} DEPENDS ${outputs_dxvk_spv})
+        set_target_properties(${target_name} PROPERTIES FOLDER "ppx/projects/0_shaders-targets/dxvk_spv")
     endif()
 endfunction()
 

@@ -137,7 +137,7 @@ class Image;
 class Instance;
 class Pipeline;
 class PipelineInterface;
-class QueryPool;
+class Query;
 class Queue;
 class RenderPass;
 class RenderTargetView;
@@ -266,10 +266,10 @@ struct ApiObjectLookUp<grfx::Gpu>
 };
 
 template <>
-struct ApiObjectLookUp<grfx::QueryPool>
+struct ApiObjectLookUp<grfx::Query>
 {
-    using GrfxType = grfx::QueryPool;
-    using ApiType  = vk::QueryPool;
+    using GrfxType = grfx::Query;
+    using ApiType  = vk::Query;
 };
 
 template <>

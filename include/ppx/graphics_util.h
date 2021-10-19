@@ -25,7 +25,7 @@ public:
 
 private:
     grfx::ImageUsageFlags mAdditionalUsage = grfx::ImageUsageFlags();
-    uint32_t              mMipLevelCount   = PPX_ALL_MIP_LEVELS;
+    uint32_t              mMipLevelCount   = PPX_REMAINING_MIP_LEVELS;
 
     friend Result CreateImageFromBitmap(
         grfx::Queue*        pQueue,
@@ -42,6 +42,13 @@ private:
     friend Result CreateImageFromFile(
         grfx::Queue*        pQueue,
         const fs::path&     path,
+        grfx::Image**       ppImage,
+        const ImageOptions& options,
+        bool                useGpu);
+
+    friend Result CreateImageFromBitmapGpu(
+        grfx::Queue*        pQueue,
+        const Bitmap*       pBitmap,
         grfx::Image**       ppImage,
         const ImageOptions& options);
 };
@@ -73,6 +80,16 @@ Result CreateImageFromBitmap(
 Result CreateImageFromFile(
     grfx::Queue*        pQueue,
     const fs::path&     path,
+    grfx::Image**       ppImage,
+    const ImageOptions& options = ImageOptions(),
+    bool                useGpu  = false);
+
+//! @fn CreateMipMapsForImage
+//!
+//!
+Result CreateImageFromBitmapGpu(
+    grfx::Queue*        pQueue,
+    const Bitmap*       pBitmap,
     grfx::Image**       ppImage,
     const ImageOptions& options = ImageOptions());
 

@@ -120,7 +120,7 @@ if (PPX_D3D12 OR PPX_DXVK)
     )
 endif()
 
-if (PPX_DXVK)
+if (PPX_DXVK OR PPX_DXVK_SPV)
     list(APPEND IMGUI_SOURCE_FILES
         ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx11.h
         ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx11.cpp
@@ -139,6 +139,8 @@ list(
     ${INC_DIR}/ppx/ccomptr.h
     ${INC_DIR}/ppx/font.h
     ${INC_DIR}/ppx/fs.h
+    ${INC_DIR}/ppx/generate_mip_shader_DX.h
+    ${INC_DIR}/ppx/generate_mip_shader_VK.h
     ${INC_DIR}/ppx/geometry.h
     ${INC_DIR}/ppx/graphics_util.h
     ${INC_DIR}/ppx/headless_application.h
@@ -257,7 +259,7 @@ list(
     ${SRC_DIR}/ppx/io/obj_loader.cpp
 )
 
-if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK)
+if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK OR PPX_DXVK_SPV)
     list(
         APPEND PPX_GRFX_DX_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx/dx_util.h
@@ -269,7 +271,7 @@ if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK)
     )
 endif()
 
-if (PPX_D3D11 OR PPX_DXVK)
+if (PPX_D3D11 OR PPX_DXVK OR PPX_DXVK_SPV)
     list(
         APPEND PPX_GRFX_DX11_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx11/000_dx11_config.h
@@ -555,6 +557,7 @@ if (PPX_DXVK)
                "-Wno-unused-private-field"
                "-Wno-missing-braces"
                "-Wno-unused-const-variable"
+               "-Werror=return-type"
         )
     endif()
 endif()
@@ -609,6 +612,7 @@ if (PPX_VULKAN)
         target_compile_options(
             ${PROJECT_NAME}
             PUBLIC -Wno-missing-braces        
+                   -Werror=return-type
 		)
     elseif (PPX_LINUX)
 
@@ -624,7 +628,7 @@ if (PPX_VULKAN)
     endif()
 endif()
 
-if (PPX_DXVK)
+if (PPX_DXVK OR PPX_DXVK_SPV)
     target_compile_definitions(
         ${PROJECT_NAME}
         PUBLIC  PPX_DXVK PPX_D3D11 PPX_D3D12
@@ -704,9 +708,9 @@ if (PPX_VULKAN)
     endif()
 endif()
 
-if (PPX_DXVK)
+if (PPX_DXVK OR PPX_DXVK_SPV)
     if (PPX_GGP)
-        target_link_libraries(${PROJECT_NAME} 
+        target_link_libraries(${PROJECT_NAME}
             PUBLIC dxvk porto
         )
     elseif(PPX_MSW)

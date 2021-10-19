@@ -23,6 +23,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <bitset>
 
 #include "ppx/ccomptr.h"
 #include "ppx/obj_ptr.h"

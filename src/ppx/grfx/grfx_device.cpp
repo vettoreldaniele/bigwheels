@@ -46,7 +46,7 @@ void Device::Destroy()
     DestroyAllObjects(mImages);
     DestroyAllObjects(mGraphicsPipelines);
     DestroyAllObjects(mPipelineInterfaces);
-    DestroyAllObjects(mQueryPools);
+    DestroyAllObjects(mQuerys);
     DestroyAllObjects(mRenderTargetViews);
     DestroyAllObjects(mSampledImageViews);
     DestroyAllObjects(mSamplers);
@@ -479,21 +479,21 @@ void Device::DestroyPipelineInterface(const grfx::PipelineInterface* pPipelineIn
     DestroyObject(mPipelineInterfaces, pPipelineInterface);
 }
 
-Result Device::CreateQueryPool(const grfx::QueryPoolCreateInfo* pCreateInfo, grfx::QueryPool** ppQueryPool)
+Result Device::CreateQuery(const grfx::QueryCreateInfo* pCreateInfo, grfx::Query** ppQuery)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
-    PPX_ASSERT_NULL_ARG(ppQueryPool);
-    Result gxres = CreateObject(pCreateInfo, mQueryPools, ppQueryPool);
+    PPX_ASSERT_NULL_ARG(ppQuery);
+    Result gxres = CreateObject(pCreateInfo, mQuerys, ppQuery);
     if (Failed(gxres)) {
         return gxres;
     }
     return ppx::SUCCESS;
 }
 
-void Device::DestroyQueryPool(const grfx::QueryPool* pQueryPool)
+void Device::DestroyQuery(const grfx::Query* pQuery)
 {
-    PPX_ASSERT_NULL_ARG(pQueryPool);
-    DestroyObject(mQueryPools, pQueryPool);
+    PPX_ASSERT_NULL_ARG(pQuery);
+    DestroyObject(mQuerys, pQuery);
 }
 
 Result Device::CreateRenderPass(const grfx::RenderPassCreateInfo* pCreateInfo, grfx::RenderPass** ppRenderPass)

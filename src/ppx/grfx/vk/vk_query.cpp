@@ -1,12 +1,40 @@
 #include "ppx/grfx/vk/vk_query.h"
 #include "ppx/grfx/vk/vk_device.h"
 #include "ppx/grfx/vk/vk_instance.h"
+#include "ppx/grfx/vk/vk_command.h"
+#include "ppx/grfx/vk/vk_buffer.h"
 
 namespace ppx {
 namespace grfx {
 namespace vk {
 
-Result QueryPool::CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo)
+Query::Query()
+    : mType(VK_QUERY_TYPE_MAX_ENUM)
+    , mMultiplier(1)
+{
+}
+
+uint32_t Query::GetQueryTypeSize(VkQueryType type, uint32_t multiplier) const
+{
+    uint32_t result = 0;
+    switch (type) {
+        case VK_QUERY_TYPE_OCCLUSION:
+        case VK_QUERY_TYPE_TIMESTAMP:
+            // this need VK_QUERY_RESULT_64_BIT to be set
+            result = (uint32_t)sizeof(uint64_t);
+            break;
+        case VK_QUERY_TYPE_PIPELINE_STATISTICS:
+            // this need VK_QUERY_RESULT_64_BIT to be set
+            result = (uint32_t)sizeof(uint64_t) * multiplier;
+            break;
+        default:
+            PPX_ASSERT_MSG(false, "Unsupported query type");
+            break;
+    }
+    return result;
+}
+
+Result Query::CreateApiObjects(const grfx::QueryCreateInfo* pCreateInfo)
 {
     VkQueryPoolCreateInfo vkci = {VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO};
     vkci.flags                 = 0;
@@ -14,8 +42,10 @@ Result QueryPool::CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo)
     vkci.queryCount            = pCreateInfo->count;
     vkci.pipelineStatistics    = 0;
 
+    mType = vkci.queryType;
+    mMultiplier = 1;
+
     if (vkci.queryType == VK_QUERY_TYPE_PIPELINE_STATISTICS) {
-        vkci.queryCount         = 11 * pCreateInfo->count;
         vkci.pipelineStatistics = VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT |
                                   VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT |
                                   VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT |
@@ -27,6 +57,8 @@ Result QueryPool::CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo)
                                   VK_QUERY_PIPELINE_STATISTIC_TESSELLATION_CONTROL_SHADER_PATCHES_BIT |
                                   VK_QUERY_PIPELINE_STATISTIC_TESSELLATION_EVALUATION_SHADER_INVOCATIONS_BIT |
                                   VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT;
+        std::bitset<32> flagbit(vkci.pipelineStatistics);
+        mMultiplier = (uint32_t)flagbit.count();
     }
 
     VkResult vkres = vkCreateQueryPool(ToApi(GetDevice())->GetVkDevice(), &vkci, nullptr, &mQueryPool);
@@ -34,10 +66,24 @@ Result QueryPool::CreateApiObjects(const grfx::QueryPoolCreateInfo* pCreateInfo)
         return ppx::ERROR_API_FAILURE;
     }
 
+    grfx::BufferCreateInfo createInfo  = {};
+    createInfo.size                    = vkci.queryCount * GetQueryTypeSize(mType, mMultiplier);
+    createInfo.structuredElementStride = GetQueryTypeSize(mType, mMultiplier);
+    createInfo.usageFlags              = grfx::BUFFER_USAGE_TRANSFER_DST;
+    createInfo.memoryUsage             = grfx::MEMORY_USAGE_GPU_TO_CPU;
+    createInfo.initialState            = grfx::RESOURCE_STATE_COPY_DST;
+    createInfo.ownership               = grfx::OWNERSHIP_REFERENCE;
+
+    // Create buffer
+    Result ppxres = GetDevice()->CreateBuffer(&createInfo, &mBuffer);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
     return ppx::SUCCESS;
 }
 
-void QueryPool::DestroyApiObjects()
+void Query::DestroyApiObjects()
 {
     if (mQueryPool) {
         vkDestroyQueryPool(
@@ -47,15 +93,40 @@ void QueryPool::DestroyApiObjects()
 
         mQueryPool.Reset();
     }
+
+    if (mBuffer) {
+        mBuffer.Reset();
+    }
 }
 
-void QueryPool::Reset(uint32_t firstQuery, uint32_t queryCount)
+void Query::Reset(uint32_t firstQuery, uint32_t queryCount)
 {
 #ifdef VK_API_VERION_1_2
     vkResetQueryPool(ToApi(GetDevice())->GetVkDevice(), mQueryPool, firstQuery, queryCount);
 #else
     ToApi(GetDevice())->ResetQueryPoolEXT(mQueryPool, firstQuery, queryCount);
 #endif
+}
+
+Result Query::GetData(void* pDstData, uint64_t dstDataSize)
+{
+    void*  pMappedAddress = 0;
+    Result ppxres         = mBuffer->MapMemory(0, &pMappedAddress);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    size_t copySize = std::min<size_t>(dstDataSize, mBuffer->GetSize());
+    memcpy(pDstData, pMappedAddress, copySize);
+
+    mBuffer->UnmapMemory();
+
+    return ppx::SUCCESS;
+}
+
+VkBufferPtr Query::GetReadBackBuffer() const
+{
+    return ToApi(mBuffer)->GetVkBuffer();
 }
 
 } // namespace vk
