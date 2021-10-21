@@ -31,10 +31,35 @@
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 
+// *** GGP PLATFORM NOTE ***
+//
+// DXIIVK's D3D12 implementation on does *NOT* yet
+// support root constants or D3DCompile. This version of
+// the ImGui DX12 backend adds a path for using a constant
+// buffer and embedded shaders to work around this. It also
+// uses platform specific code for fence handling when
+// comping on GGP versus Windows. 
+// 
+// If you want to use the work around path when running on
+// native D3D12 - you'll need to force DXBC shaders by
+// uncommenting the #define in the next section. Otherwise
+// pipeline creation will fail.
+//
+#if defined(PPX_DXIIVK)
+#define USE_DXIIVK_WORK_AROUND
+#endif // defined(PPX_DXIIVK)
+
+// If it's necessary to use the embeeded DXBC shaders for 
+// some purpose - uncomment the #define below.
+//
+#if defined(USE_DXIIVK_WORK_AROUND)
+#define FORCE_DXBC_SHADERS
+#endif
+
 // DirectX
 #include <d3d12.h>
 #include <dxgi1_4.h>
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/dx12/dx12_util.h"
 #else
@@ -60,7 +85,7 @@ static DXGI_FORMAT                  g_RTVFormat = DXGI_FORMAT_UNKNOWN;
 static ID3D12Resource*              g_pFontTextureResource = NULL;
 static D3D12_CPU_DESCRIPTOR_HANDLE  g_hFontSrvCpuDescHandle = {};
 static D3D12_GPU_DESCRIPTOR_HANDLE  g_hFontSrvGpuDescHandle = {};
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
 static UINT                         g_handleIncrementSize = 0;
 #endif
 
@@ -70,7 +95,7 @@ struct FrameResources
     ID3D12Resource*     VertexBuffer;
     int                 IndexBufferSize;
     int                 VertexBufferSize;
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
     ID3D12Resource*             CpuConstantBuffer;
     ID3D12Resource*             GpuConstantBuffer;
     D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferCpuDescHandle = {};
@@ -94,7 +119,7 @@ struct VERTEX_CONSTANT_BUFFER
     float   mvp[4][4];
 };
 
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
 //-----------------------------------------------------------------------------
 // SHADERS
 //-----------------------------------------------------------------------------
@@ -130,6 +155,179 @@ PS_INPUT main(VS_INPUT input)
   return output;
 }
 */
+const unsigned char __hlsl_shader_vs_dxbc[] = {
+     68,  88,  66,  67,  57, 193, 
+    160,  74, 183, 128, 120, 225, 
+    201,  97,  48, 232, 182,  42, 
+     16,  52,   1,   0,   0,   0, 
+    252,   3,   0,   0,   5,   0, 
+      0,   0,  52,   0,   0,   0, 
+     88,   1,   0,   0, 200,   1, 
+      0,   0,  60,   2,   0,   0, 
+     96,   3,   0,   0,  82,  68, 
+     69,  70,  28,   1,   0,   0, 
+      1,   0,   0,   0, 116,   0, 
+      0,   0,   1,   0,   0,   0, 
+     60,   0,   0,   0,   1,   5, 
+    254, 255,   0,   5,   0,   0, 
+    244,   0,   0,   0,  19,  19, 
+     68,  37,  60,   0,   0,   0, 
+     24,   0,   0,   0,  40,   0, 
+      0,   0,  40,   0,   0,   0, 
+     36,   0,   0,   0,  12,   0, 
+      0,   0,   0,   0,   0,   0, 
+    100,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      1,   0,   0,   0,   1,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0, 118, 101, 
+    114, 116, 101, 120,  66, 117, 
+    102, 102, 101, 114,   0, 171, 
+    171, 171, 100,   0,   0,   0, 
+      1,   0,   0,   0, 140,   0, 
+      0,   0,  64,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0, 180,   0,   0,   0, 
+      0,   0,   0,   0,  64,   0, 
+      0,   0,   2,   0,   0,   0, 
+    208,   0,   0,   0,   0,   0, 
+      0,   0, 255, 255, 255, 255, 
+      0,   0,   0,   0, 255, 255, 
+    255, 255,   0,   0,   0,   0, 
+     80, 114, 111, 106, 101,  99, 
+    116, 105, 111, 110,  77,  97, 
+    116, 114, 105, 120,   0, 102, 
+    108, 111,  97, 116,  52, 120, 
+     52,   0, 171, 171,   3,   0, 
+      3,   0,   4,   0,   4,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+    197,   0,   0,   0,  77, 105, 
+     99, 114, 111, 115, 111, 102, 
+    116,  32,  40,  82,  41,  32, 
+     72,  76,  83,  76,  32,  83, 
+    104,  97, 100, 101, 114,  32, 
+     67, 111, 109, 112, 105, 108, 
+    101, 114,  32,  49,  48,  46, 
+     49,   0,  73,  83,  71,  78, 
+    104,   0,   0,   0,   3,   0, 
+      0,   0,   8,   0,   0,   0, 
+     80,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      3,   0,   0,   0,   0,   0, 
+      0,   0,   3,   3,   0,   0, 
+     89,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      3,   0,   0,   0,   1,   0, 
+      0,   0,  15,  15,   0,   0, 
+     95,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      3,   0,   0,   0,   2,   0, 
+      0,   0,   3,   3,   0,   0, 
+     80,  79,  83,  73,  84,  73, 
+     79,  78,   0,  67,  79,  76, 
+     79,  82,   0,  84,  69,  88, 
+     67,  79,  79,  82,  68,   0, 
+     79,  83,  71,  78, 108,   0, 
+      0,   0,   3,   0,   0,   0, 
+      8,   0,   0,   0,  80,   0, 
+      0,   0,   0,   0,   0,   0, 
+      1,   0,   0,   0,   3,   0, 
+      0,   0,   0,   0,   0,   0, 
+     15,   0,   0,   0,  92,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   3,   0, 
+      0,   0,   1,   0,   0,   0, 
+     15,   0,   0,   0,  98,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   3,   0, 
+      0,   0,   2,   0,   0,   0, 
+      3,  12,   0,   0,  83,  86, 
+     95,  80,  79,  83,  73,  84, 
+     73,  79,  78,   0,  67,  79, 
+     76,  79,  82,   0,  84,  69, 
+     88,  67,  79,  79,  82,  68, 
+      0, 171,  83,  72,  69,  88, 
+     28,   1,   0,   0,  81,   0, 
+      1,   0,  71,   0,   0,   0, 
+    106,   8,   0,   1,  89,   0, 
+      0,   7,  70, 142,  48,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      4,   0,   0,   0,   0,   0, 
+      0,   0,  95,   0,   0,   3, 
+     50,  16,  16,   0,   0,   0, 
+      0,   0,  95,   0,   0,   3, 
+    242,  16,  16,   0,   1,   0, 
+      0,   0,  95,   0,   0,   3, 
+     50,  16,  16,   0,   2,   0, 
+      0,   0, 103,   0,   0,   4, 
+    242,  32,  16,   0,   0,   0, 
+      0,   0,   1,   0,   0,   0, 
+    101,   0,   0,   3, 242,  32, 
+     16,   0,   1,   0,   0,   0, 
+    101,   0,   0,   3,  50,  32, 
+     16,   0,   2,   0,   0,   0, 
+    104,   0,   0,   2,   1,   0, 
+      0,   0,  56,   0,   0,   9, 
+    242,   0,  16,   0,   0,   0, 
+      0,   0,  86,  21,  16,   0, 
+      0,   0,   0,   0,  70, 142, 
+     48,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   1,   0, 
+      0,   0,  50,   0,   0,  11, 
+    242,   0,  16,   0,   0,   0, 
+      0,   0,  70, 142,  48,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      6,  16,  16,   0,   0,   0, 
+      0,   0,  70,  14,  16,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   9, 242,  32,  16,   0, 
+      0,   0,   0,   0,  70,  14, 
+     16,   0,   0,   0,   0,   0, 
+     70, 142,  48,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      3,   0,   0,   0,  54,   0, 
+      0,   5, 242,  32,  16,   0, 
+      1,   0,   0,   0,  70,  30, 
+     16,   0,   1,   0,   0,   0, 
+     54,   0,   0,   5,  50,  32, 
+     16,   0,   2,   0,   0,   0, 
+     70,  16,  16,   0,   2,   0, 
+      0,   0,  62,   0,   0,   1, 
+     83,  84,  65,  84, 148,   0, 
+      0,   0,   6,   0,   0,   0, 
+      1,   0,   0,   0,   0,   0, 
+      0,   0,   6,   0,   0,   0, 
+      3,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      1,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      2,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0
+};
+
 const unsigned char __hlsl_shader_vs_spv[] = {
   0x03, 0x02, 0x23, 0x07, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0e, 0x00,
   0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00, 0x02, 0x00,
@@ -266,6 +464,139 @@ float4 main(PS_INPUT input) : SV_Target
   return out_col; 
 }
 */
+static const unsigned char __hlsl_shader_ps_dxbc[] = {
+     68,  88,  66,  67, 160,  61, 
+    230,   2,  21, 142, 223,  26, 
+    192, 184,  65, 141,  26,  72, 
+     63,  93,   1,   0,   0,   0, 
+      8,   3,   0,   0,   5,   0, 
+      0,   0,  52,   0,   0,   0, 
+      4,   1,   0,   0, 120,   1, 
+      0,   0, 172,   1,   0,   0, 
+    108,   2,   0,   0,  82,  68, 
+     69,  70, 200,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   2,   0,   0,   0, 
+     60,   0,   0,   0,   1,   5, 
+    255, 255,   0,   5,   0,   0, 
+    158,   0,   0,   0,  19,  19, 
+     68,  37,  60,   0,   0,   0, 
+     24,   0,   0,   0,  40,   0, 
+      0,   0,  40,   0,   0,   0, 
+     36,   0,   0,   0,  12,   0, 
+      0,   0,   0,   0,   0,   0, 
+    140,   0,   0,   0,   3,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   2,   0,   0,   0, 
+      1,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0, 149,   0, 
+      0,   0,   2,   0,   0,   0, 
+      5,   0,   0,   0,   4,   0, 
+      0,   0, 255, 255, 255, 255, 
+      1,   0,   0,   0,   1,   0, 
+      0,   0,  12,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0, 115,  97, 109, 112, 
+    108, 101, 114,  48,   0, 116, 
+    101, 120, 116, 117, 114, 101, 
+     48,   0,  77, 105,  99, 114, 
+    111, 115, 111, 102, 116,  32, 
+     40,  82,  41,  32,  72,  76, 
+     83,  76,  32,  83, 104,  97, 
+    100, 101, 114,  32,  67, 111, 
+    109, 112, 105, 108, 101, 114, 
+     32,  49,  48,  46,  49,   0, 
+    171, 171,  73,  83,  71,  78, 
+    108,   0,   0,   0,   3,   0, 
+      0,   0,   8,   0,   0,   0, 
+     80,   0,   0,   0,   0,   0, 
+      0,   0,   1,   0,   0,   0, 
+      3,   0,   0,   0,   0,   0, 
+      0,   0,  15,   0,   0,   0, 
+     92,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      3,   0,   0,   0,   1,   0, 
+      0,   0,  15,  15,   0,   0, 
+     98,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      3,   0,   0,   0,   2,   0, 
+      0,   0,   3,   3,   0,   0, 
+     83,  86,  95,  80,  79,  83, 
+     73,  84,  73,  79,  78,   0, 
+     67,  79,  76,  79,  82,   0, 
+     84,  69,  88,  67,  79,  79, 
+     82,  68,   0, 171,  79,  83, 
+     71,  78,  44,   0,   0,   0, 
+      1,   0,   0,   0,   8,   0, 
+      0,   0,  32,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   3,   0,   0,   0, 
+      0,   0,   0,   0,  15,   0, 
+      0,   0,  83,  86,  95,  84, 
+     97, 114, 103, 101, 116,   0, 
+    171, 171,  83,  72,  69,  88, 
+    184,   0,   0,   0,  81,   0, 
+      0,   0,  46,   0,   0,   0, 
+    106,   8,   0,   1,  90,   0, 
+      0,   6,  70, 110,  48,   0, 
+      0,   0,   0,   0,   2,   0, 
+      0,   0,   2,   0,   0,   0, 
+      0,   0,   0,   0,  88,  24, 
+      0,   7,  70, 126,  48,   0, 
+      0,   0,   0,   0,   1,   0, 
+      0,   0,   1,   0,   0,   0, 
+     85,  85,   0,   0,   0,   0, 
+      0,   0,  98,  16,   0,   3, 
+    242,  16,  16,   0,   1,   0, 
+      0,   0,  98,  16,   0,   3, 
+     50,  16,  16,   0,   2,   0, 
+      0,   0, 101,   0,   0,   3, 
+    242,  32,  16,   0,   0,   0, 
+      0,   0, 104,   0,   0,   2, 
+      1,   0,   0,   0,  69,   0, 
+      0,  11, 242,   0,  16,   0, 
+      0,   0,   0,   0,  70,  16, 
+     16,   0,   2,   0,   0,   0, 
+     70, 126,  32,   0,   0,   0, 
+      0,   0,   1,   0,   0,   0, 
+      0,  96,  32,   0,   0,   0, 
+      0,   0,   2,   0,   0,   0, 
+     56,   0,   0,   7, 242,  32, 
+     16,   0,   0,   0,   0,   0, 
+     70,  14,  16,   0,   0,   0, 
+      0,   0,  70,  30,  16,   0, 
+      1,   0,   0,   0,  62,   0, 
+      0,   1,  83,  84,  65,  84, 
+    148,   0,   0,   0,   3,   0, 
+      0,   0,   1,   0,   0,   0, 
+      0,   0,   0,   0,   3,   0, 
+      0,   0,   1,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   1,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      1,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0,   0,   0,   0,   0, 
+      0,   0
+};
+
 static const unsigned char __hlsl_shader_ps_spv[] = {
   0x03, 0x02, 0x23, 0x07, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0e, 0x00,
   0x1d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00, 0x02, 0x00,
@@ -378,7 +709,7 @@ static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, ID3D12Graphic
             { 0.0f,         0.0f,           0.5f,       0.0f },
             { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
         };
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
        (void)vertex_constant_buffer;
        void* p_mapped_address = NULL;
        HRESULT hr = fr->CpuConstantBuffer->Map(0, nullptr, &p_mapped_address);
@@ -420,7 +751,7 @@ static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, ID3D12Graphic
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     ctx->SetPipelineState(g_pPipelineState);
     ctx->SetGraphicsRootSignature(g_pRootSignature);
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
     //ctx->CopyResource(fr->GpuConstantBuffer, fr->CpuConstantBuffer);
     ctx->CopyBufferRegion(fr->GpuConstantBuffer, 0, fr->CpuConstantBuffer, 0, sizeof(VERTEX_CONSTANT_BUFFER));
 #else
@@ -468,7 +799,6 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
         if (g_pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS(&fr->VertexBuffer)) < 0)
             return;
     }
-#if defined(PPX_DXVK)
     if (fr->IndexBuffer == NULL || fr->IndexBufferSize < draw_data->TotalIdxCount)
     {
         SafeRelease(fr->IndexBuffer);
@@ -492,6 +822,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
         if (g_pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS(&fr->IndexBuffer)) < 0)
             return;
     }
+#if defined(USE_DXIIVK_WORK_AROUND)
     if ((fr->CpuConstantBuffer == NULL) || (fr->GpuConstantBuffer == NULL)) {
         SafeRelease(fr->CpuConstantBuffer);
         SafeRelease(fr->GpuConstantBuffer);
@@ -527,7 +858,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
 
         g_pd3dDevice->CreateConstantBufferView(&cbv_desc, fr->ConstantBufferCpuDescHandle);
     }
-#endif
+#endif // defined(USE_DXIIVK_WORK_AROUND)
 
     // Upload vertex/index data into a single contiguous GPU buffer
     void* vtx_resource, *idx_resource;
@@ -579,7 +910,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
                 const D3D12_RECT r = { (LONG)(pcmd->ClipRect.x - clip_off.x), (LONG)(pcmd->ClipRect.y - clip_off.y), (LONG)(pcmd->ClipRect.z - clip_off.x), (LONG)(pcmd->ClipRect.w - clip_off.y) };
                 if (r.right > r.left && r.bottom > r.top)
                 {
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
                     ctx->SetGraphicsRootDescriptorTable(0, fr->ConstantBufferGpuDescHandle);
                     ctx->SetGraphicsRootDescriptorTable(1, *(D3D12_GPU_DESCRIPTOR_HANDLE*)&pcmd->TextureId);
 #else
@@ -629,7 +960,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         g_pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc,
             D3D12_RESOURCE_STATE_COPY_DEST, NULL, IID_PPV_ARGS(&pTexture));
 
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND) && defined(PPX_GGP)
         UINT uploadPitch = (width * 4);
 #else
         UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
@@ -690,7 +1021,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         hr = g_pd3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
         IM_ASSERT(SUCCEEDED(hr));
 
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND) && defined(PPX_GGP)
         HANDLE event = CreateEventPORTO(0, 0, 0, 0);
 #else        
         HANDLE event = CreateEvent(0, 0, 0, 0);
@@ -725,8 +1056,8 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         IM_ASSERT(SUCCEEDED(hr));
 
         fence->SetEventOnCompletion(1, event);
-#if defined(PPX_DXVK)
-       WaitForSingleObjectExPORTO(event, INFINITE, FALSE);
+#if defined(USE_DXIIVK_WORK_AROUND) && defined(PPX_GGP)
+        WaitForSingleObjectExPORTO(event, INFINITE, FALSE);
 #else
         WaitForSingleObject(event, INFINITE);
 #endif
@@ -734,7 +1065,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         cmdList->Release();
         cmdAlloc->Release();
         cmdQueue->Release();
-#if ! defined(PPX_DXVK)
+#if ! defined(USE_DXIIVK_WORK_AROUND)
         CloseHandle(event);
 #endif
         fence->Release();
@@ -767,7 +1098,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
 
     // Create the root signature
     {
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
         D3D12_DESCRIPTOR_RANGE descRangeCBV = {};
         descRangeCBV.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
         descRangeCBV.NumDescriptors = 1;
@@ -776,7 +1107,11 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         descRangeCBV.OffsetInDescriptorsFromTableStart = 0;
 
         D3D12_DESCRIPTOR_RANGE descRangeSRV = {};
+#if defined(PPX_GGP)
         descRangeSRV.RangeType = static_cast<D3D12_DESCRIPTOR_RANGE_TYPE>(DXVK_D3D12_DESCRIPTOR_RANGE_TYPE_SRV_TEXTURE);
+#else
+        descRangeSRV.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+#endif
         descRangeSRV.NumDescriptors = 1;
         descRangeSRV.BaseShaderRegister = 1;
         descRangeSRV.RegisterSpace = 0;
@@ -843,7 +1178,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         staticSampler.ShaderRegister = 0;
         staticSampler.RegisterSpace = 0;
         staticSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-#endif
+#endif // defined(USE_DXIIVK_WORK_AROUND)
 
         D3D12_ROOT_SIGNATURE_DESC desc = {};
         desc.NumParameters = _countof(param);
@@ -881,9 +1216,16 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
     psoDesc.SampleDesc.Count = 1;
     psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(FORCE_DXBC_SHADERS)
+    // Use DXBC for 
+    psoDesc.VS = {__hlsl_shader_vs_dxbc, sizeof(__hlsl_shader_vs_dxbc)};
+    psoDesc.PS = {__hlsl_shader_ps_dxbc, sizeof(__hlsl_shader_ps_dxbc)};
+#else
+    // SPIR-V
     psoDesc.VS = {__hlsl_shader_vs_spv, sizeof(__hlsl_shader_vs_spv)};
     psoDesc.PS = {__hlsl_shader_ps_spv, sizeof(__hlsl_shader_ps_spv)};
+#endif
 
     // Create the input layout
     static D3D12_INPUT_ELEMENT_DESC local_layout[] =
@@ -965,7 +1307,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         }
         psoDesc.PS = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
     }
-#endif
+#endif // defined(USE_DXIIVK_WORK_AROUND)
 
     // Create the blending setup
     {
@@ -1010,12 +1352,14 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
     }
 
     HRESULT result_pipeline_state = g_pd3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&g_pPipelineState));
-#if ! defined(PPX_DXVK)
+#if ! defined(USE_DXIIVK_WORK_AROUND)
     vertexShaderBlob->Release();
     pixelShaderBlob->Release();
 #endif
-    if (result_pipeline_state != S_OK)
+    if (result_pipeline_state != S_OK) {
+        assert(false && "Failed to create graphics pipeline");
         return false;
+    }
 
     ImGui_ImplDX12_CreateFontsTexture();
 
@@ -1039,7 +1383,7 @@ void    ImGui_ImplDX12_InvalidateDeviceObjects()
         FrameResources* fr = &g_pFrameResources[i];
         SafeRelease(fr->IndexBuffer);
         SafeRelease(fr->VertexBuffer);
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
         SafeRelease(fr->CpuConstantBuffer);
         SafeRelease(fr->GpuConstantBuffer);
 #endif
@@ -1063,7 +1407,7 @@ bool ImGui_ImplDX12_Init(ID3D12Device* device, int num_frames_in_flight, int rtv
     g_frameIndex = UINT_MAX;
     IM_UNUSED(cbv_srv_heap); // Unused in master branch (will be used by multi-viewports)
 
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
     g_handleIncrementSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 #endif
 
@@ -1075,7 +1419,7 @@ bool ImGui_ImplDX12_Init(ID3D12Device* device, int num_frames_in_flight, int rtv
         fr->VertexBuffer = NULL;
         fr->IndexBufferSize = 10000;
         fr->VertexBufferSize = 5000;
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
         fr->CpuConstantBuffer = NULL;
         fr->GpuConstantBuffer = NULL;
         fr->ConstantBufferCpuDescHandle = { font_srv_cpu_desc_handle.ptr + (i + 1) * g_handleIncrementSize };
@@ -1096,7 +1440,7 @@ void ImGui_ImplDX12_Shutdown()
     g_hFontSrvGpuDescHandle.ptr = 0;
     g_numFramesInFlight = 0;
     g_frameIndex = UINT_MAX;
-#if defined(PPX_DXVK)
+#if defined(USE_DXIIVK_WORK_AROUND)
     g_handleIncrementSize = 0;
 #endif
 }

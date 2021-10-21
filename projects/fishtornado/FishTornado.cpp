@@ -6,6 +6,14 @@
 #define kShadowRes          1024
 #define kCausticsImageCount 32
 
+// *** NOTE ***
+// 
+// Pipeline queries do not work on DXIIVK yet.
+// 
+#if ! defined(PPX_DXIIVK)
+#define ENABLE_PIPELINE_QUERIES
+#endif
+
 static const float3 kFogColor   = float3(15.0f, 86.0f, 107.0f) / 255.0f;
 static const float3 kFloorColor = float3(145.0f, 189.0f, 155.0f) / 255.0f;
 
@@ -487,10 +495,12 @@ void FishTornadoApp::Render()
 
     // Read query results
     if (GetFrameCount() > 0) {
+#if defined(ENABLE_PIPELINE_QUERIES)
         uint64_t data[2] = {0};
         PPX_CHECKED_CALL(ppxres = prevFrame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mTotalGpuFrameTime = (data[1] - data[0]);
         PPX_CHECKED_CALL(ppxres = prevFrame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+#endif
     }
 
     // Build command buffer
@@ -499,9 +509,10 @@ void FishTornadoApp::Render()
         frame.timestampQuery->Reset(0, 2);
         frame.pipelineStatsQuery->Reset(0, 1);
 
-/*        // Write start timestamp
-        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
-*/
+#if defined(ENABLE_PIPELINE_QUERIES)
+       // Write start timestamp
+       frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+#endif
 
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
         mFlocking.CopyConstantsToGpu(frameIndex, frame.cmd);
@@ -561,17 +572,16 @@ void FishTornadoApp::Render()
 
             mShark.DrawForward(frameIndex, frame.cmd);
 
-/*            frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
-*/ 
+#if defined(ENABLE_PIPELINE_QUERIES)
+            frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
+#endif
+ 
             mFlocking.DrawForward(frameIndex, frame.cmd);
-/*            frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
-*/
-            mOcean.DrawForward(frameIndex, frame.cmd);
+#if defined(ENABLE_PIPELINE_QUERIES)
+           frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
+#endif
 
-            //frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 0, nullptr);
-            //frame.cmd->BindGraphicsPipeline(mPipeline);
-            //frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
-            //frame.cmd->Draw(3, 1, 0, 0);
+            mOcean.DrawForward(frameIndex, frame.cmd);
 
             // Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });
@@ -583,14 +593,17 @@ void FishTornadoApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
 
-/*        // Write end timestamp
+#if defined(ENABLE_PIPELINE_QUERIES)
+        // Write end timestamp
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
-*/
+#endif
     }
     
+#if defined(ENABLE_PIPELINE_QUERIES)
     // Resolve queries
     frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
     frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
+#endif
 
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
