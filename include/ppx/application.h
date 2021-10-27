@@ -6,6 +6,10 @@
 #include "ppx/imgui_impl.h"
 #include "ppx/timer.h"
 
+#if defined(PORTO_D3DCOMPILE)
+#include "ppx/grfx/dx/d3dcompile_util.h"
+#endif
+
 // clang-format off
 #if ! defined(GLFW_INCLUDE_NONE)
 #   define GLFW_INCLUDE_NONE
@@ -301,6 +305,22 @@ public:
     //
     std::vector<char> LoadShader(const fs::path& baseDir, const std::string& baseName) const;
     Result            CreateShader(const fs::path& baseDir, const std::string& baseName, grfx::ShaderModule** ppShaderModule) const;
+
+#if defined(PORTO_D3DCOMPILE)
+    // Compile a HLSL shader from baseDir
+    //
+    // 'baseDir' is path to the directory that contains HLSL file.
+    // 'baseName' is the filename WITHOUT the hlsl extension.
+    //
+    // Example(s):
+    //   CompileHlslShader("shaders", "Texture", "vs_5_0", &VS)
+    //     - compiles shader file: shaders/Texture.hlsl using DXC with "-Tvs_5_0" option
+    //
+    //   LoadShader("some/path/shaders", "Texture.vs")
+    //     - compiles shader file: some/path/shaders/Texture.hlsl using DXC with "-Tvs_5_0" option
+    //
+    Result CompileHlslShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, grfx::ShaderModule** ppShaderModule) const;
+#endif
 
     void*              GetWindow() const { return mWindow; }
     grfx::InstancePtr  GetInstance() const { return mInstance; }

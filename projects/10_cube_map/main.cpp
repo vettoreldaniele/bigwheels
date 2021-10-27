@@ -2,6 +2,10 @@
 #include "ppx/graphics_util.h"
 using namespace ppx;
 
+#if defined(PORTO_D3DCOMPILE)
+#include "ppx/grfx/dx/d3dcompile_util.h"
+#endif
+
 #if defined(USE_DX11)
 const grfx::Api kApi = grfx::API_DX_11_1;
 #elif defined(USE_DX12)
@@ -165,14 +169,26 @@ void ProjApp::Setup()
         SetupEntity(mesh, GeometryOptions::InterleavedU16().AddNormal(), &mReflector);
     }
 
+#if defined(PORTO_D3DCOMPILE)
+    grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
+        GetAssetPath("basic/shaders"));
+#endif
     // Sky box pipeline
     {
+#if defined(PORTO_D3DCOMPILE)
+        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "SkyBox", "vs_5_0", &basicShaderIncludeHandler);
+#else
         std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "SkyBox.vs");
+#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
+#if defined(PORTO_D3DCOMPILE)
+        bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "SkyBox", "ps_5_0", &basicShaderIncludeHandler);
+#else
         bytecode = LoadShader(GetAssetPath("basic/shaders"), "SkyBox.ps");
+#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
@@ -205,12 +221,20 @@ void ProjApp::Setup()
 
     // Reflector pipeline
     {
+#if defined(PORTO_D3DCOMPILE)
+        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "CubeMap", "vs_5_0", &basicShaderIncludeHandler);
+#else
         std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "CubeMap.vs");
+#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
+#if defined(PORTO_D3DCOMPILE)
+        bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "CubeMap", "ps_5_0", &basicShaderIncludeHandler);
+#else
         bytecode = LoadShader(GetAssetPath("basic/shaders"), "CubeMap.ps");
+#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));

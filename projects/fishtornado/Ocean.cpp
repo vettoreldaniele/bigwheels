@@ -97,8 +97,13 @@ void Ocean::Setup(uint32_t numFramesInFlight)
     {
         {
             grfx::ShaderModulePtr VS, PS;
+#if defined(PORTO_D3DCOMPILE)
+            PPX_CHECKED_CALL(ppxres = pApp->CompileHlslShader(pApp->GetAssetPath("fishtornado/shaders"), "OceanBeam", "vs_5_0", &VS));
+            PPX_CHECKED_CALL(ppxres = pApp->CompileHlslShader(pApp->GetAssetPath("fishtornado/shaders"), "OceanBeam", "ps_5_0", &PS));
+#else
             PPX_CHECKED_CALL(ppxres = pApp->CreateShader(pApp->GetAssetPath("fishtornado/shaders"), "OceanBeam.vs", &VS));
             PPX_CHECKED_CALL(ppxres = pApp->CreateShader(pApp->GetAssetPath("fishtornado/shaders"), "OceanBeam.ps", &PS));
+#endif
 
             const grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX;
             grfx::VertexDescription     vertexDescription;

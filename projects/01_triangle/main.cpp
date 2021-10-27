@@ -1,4 +1,9 @@
 #include "ppx/ppx.h"
+
+#if defined(PORTO_D3DCOMPILE)
+#include "ppx/grfx/dx/d3dcompile_util.h"
+#endif
+
 using namespace ppx;
 
 #if defined(USE_DX11)
@@ -62,12 +67,22 @@ void ProjApp::Setup()
 
     // Pipeline
     {
+#if defined(PORTO_D3DCOMPILE)
+        grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
+            GetAssetPath("basic/shaders"));
+        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "StaticVertexColors", "vs_5_0", &basicShaderIncludeHandler);
+#else
         std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticVertexColors.vs");
+#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
+#if defined(PORTO_D3DCOMPILE)
+        bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "StaticVertexColors", "ps_5_0", &basicShaderIncludeHandler);
+#else
         bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticVertexColors.ps");
+#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
