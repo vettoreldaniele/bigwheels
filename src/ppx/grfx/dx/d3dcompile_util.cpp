@@ -39,8 +39,9 @@ std::vector<char> CompileShader(const fs::path& baseDir, const std::string& base
     D3D_SHADER_MACRO defines[2] = {
         {"PPX_D3D11", "1"},
         {nullptr, nullptr}};
-    ID3DBlob* spirv        = nullptr;
-    ID3DBlob* errorMessage = nullptr;
+    ID3DBlob*         spirv        = nullptr;
+    ID3DBlob*         errorMessage = nullptr;
+    std::vector<char> spirvCode;
 
     auto hlslCode = LoadHlslFile(baseDir, baseName);
 
@@ -48,14 +49,20 @@ std::vector<char> CompileShader(const fs::path& baseDir, const std::string& base
     if (errorMessage) {
         std::cerr << static_cast<char*>(errorMessage->GetBufferPointer())
                   << std::endl;
+        errorMessage->Release();
+        if (spirv)
+            spirv->Release();
         PPX_ASSERT_MSG(false, "D3DCompile failed");
+        return spirvCode;
     }
 
     PPX_ASSERT_MSG(hr == S_OK, "D3DCompile failed");
 
-    std::vector<char> spirvCode;
     spirvCode.resize(spirv->GetBufferSize());
     memcpy(spirvCode.data(), spirv->GetBufferPointer(), spirvCode.size());
+    spirv->Release();
+    if (errorMessage)
+        errorMessage->Release();
     return spirvCode;
 }
 
