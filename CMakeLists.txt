@@ -40,7 +40,7 @@ endif()
 # Configure graphics API
 # ------------------------------------------------------------------------------
 
-if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK) AND (NOT DEFINED PPX_DXVK_SPV) AND (NOT DEFINED PPX_VULKAN))
+if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK) AND (NOT DEFINED PPX_DXIIVK) AND (NOT DEFINED PPX_DXVK_SPV) AND (NOT DEFINED PPX_VULKAN))
     message("No PPX graphics API(s) specified - configuring based on current host")
     if (GGP)
         set(PPX_VULKAN TRUE)
@@ -56,10 +56,11 @@ endif()
 set(PPX_D3D11_MSG    FALSE)
 set(PPX_D3D12_MSG    FALSE)
 set(PPX_DXVK_MSG     FALSE)
+set(PPX_DXIIVK_MSG   FALSE)
 set(PPX_DXVK_SPV_MSG FALSE)
 set(PPX_VULKAN_MSG   FALSE)
 
-# D3D12
+# D3D11
 if (PPX_D3D11)
     set(PPX_D3D11_MSG TRUE)
 endif()
@@ -73,6 +74,10 @@ if (PPX_DXVK)
     #    message(FATAL_ERROR "PPX_DXVK requires GGP")
     #endif()
     set(PPX_DXVK_MSG TRUE)
+endif()
+# DXIIVK
+if (PPX_DXIIVK)
+    set(PPX_DXIIVK_MSG TRUE)
 endif()
 # DXVK_SPV
 if (PPX_DXVK_SPV)
@@ -89,6 +94,7 @@ endif()
 message("Graphics API D3D11    : ${PPX_D3D11_MSG}")
 message("Graphics API D3D12    : ${PPX_D3D12_MSG}")
 message("Graphics API DXVK     : ${PPX_DXVK_MSG}")
+message("Graphics API DXIIVK   : ${PPX_DXIIVK_MSG}")
 message("Graphics API DXVK SPV : ${PPX_DXVK_SPV_MSG}")
 message("Graphics API Vulkan   : ${PPX_VULKAN_MSG}")
 
@@ -148,7 +154,7 @@ add_subdirectory(${PPX_THIRD_PARTY_DIR}/cpu_features)
 # Add PPX library
 # ------------------------------------------------------------------------------
 
-if (PPX_DXVK OR PPX_DXVK_SPV)
+if (PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV)
     add_subdirectory(${PPX_THIRD_PARTY_DIR}/libporto)
     target_compile_definitions(
         porto
