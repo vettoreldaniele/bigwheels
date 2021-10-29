@@ -7,9 +7,9 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 
-#if ! defined(PPX_DXVK)
+#if ! defined(PPX_DXIIVK)
 #include <dxgidebug.h>
-#endif // ! defined(PPX_DXVK)
+#endif // ! defined(PPX_DXIIVK)
 
 //#if defined(PPX_MSW)
 //#include <wrl/client.h>
@@ -34,14 +34,14 @@ namespace dx12 {
 
 using DXGIAdapterPtr              = CComPtr<IDXGIAdapter4>;
 using DXGIFactoryPtr              = CComPtr<IDXGIFactory7>;
-#if ! defined(PPX_DXVK)
+#if ! defined(PPX_DXIIVK)
 using DXGIDebugPtr                = CComPtr<IDXGIDebug1>;
 using DXGIInfoQueuePtr            = CComPtr<IDXGIInfoQueue>;
 #endif
 using DXGISwapChainPtr            = CComPtr<IDXGISwapChain4>;
 using D3D12CommandAllocatorPtr    = CComPtr<ID3D12CommandAllocator>;
 using D3D12CommandQueuePtr        = CComPtr<ID3D12CommandQueue>;
-#if ! defined(PPX_DXVK)
+#if ! defined(PPX_DXIIVK)
 using D3D12DebugPtr               = CComPtr<ID3D12Debug>;
 #endif
 using D3D12DescriptorHeapPtr      = CComPtr<ID3D12DescriptorHeap>;
@@ -291,7 +291,7 @@ const typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(const ObjPtr<GrfxTypeT
 } // namespace grfx
 } // namespace ppx
 
-#if defined(PPX_DXVK) && !defined(PPX_GGP)
+#if defined(PPX_DXIIVK) && !defined(PPX_GGP)
 typedef DWORD(WINAPI* PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO)(
     HANDLE hHandle,
     DWORD  dwMilliseconds,
@@ -305,6 +305,6 @@ typedef HANDLE(WINAPI* PFN_CREATE_EVENT_PORTO)(
 
 extern PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO;
 extern PFN_CREATE_EVENT_PORTO              CreateEventPORTO;
-#endif // defined(PPX_DXVK)
+#endif // defined(PPX_DXIIVK)
 
 #endif // ppx_grfx_dx12_config_h

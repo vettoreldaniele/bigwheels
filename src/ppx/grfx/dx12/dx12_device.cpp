@@ -15,10 +15,10 @@
 
 #include "ppx/grfx/grfx_scope.h"
 
-#if defined(PPX_DXVK) && !defined(PPX_GGP)
+#if defined(PPX_DXIIVK) && !defined(PPX_GGP)
 PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO = nullptr;
 PFN_CREATE_EVENT_PORTO              CreateEventPORTO           = nullptr;
-#endif // defined(PPX_DXVK)
+#endif // defined(PPX_DXIIVK)
 namespace ppx {
 namespace grfx {
 namespace dx12 {
@@ -49,10 +49,10 @@ void Device::LoadRootSignatureFunctions()
     }
 #endif
 
-#if defined(PPX_DXVK) && !defined(PPX_GGP)
+#if defined(PPX_DXIIVK) && !defined(PPX_GGP)
     CreateEventPORTO           = (PFN_CREATE_EVENT_PORTO)GetProcAddress(module, "CreateEventPORTO");
     WaitForSingleObjectExPORTO = (PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO)GetProcAddress(module, "WaitForSingleObjectExPORTO");
-#endif // defined(PPX_DXVK)
+#endif // defined(PPX_DXIIVK)
 }
 
 Result Device::CreateQueues(const grfx::DeviceCreateInfo* pCreateInfo)
@@ -146,7 +146,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     // Cast to XIDXGIAdapter
     typename DXGIAdapterPtr::InterfaceType* pAdapter = ToApi(pCreateInfo->pGpu)->GetDxAdapter();
 
-#if !defined(PPX_DXVK)
+#if !defined(PPX_DXIIVK)
     //
     // Enable SM 6.0 for DXIL support
     //
@@ -198,7 +198,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
         PPX_LOG_INFO("D3D12 SM 6.0+ support enabled (DXIL)")
     }
-#endif // ! defined(PPX_DXVK)
+#endif // ! defined(PPX_DXIIVK)
 
     // Create real D3D12 device
     HRESULT hr = D3D12CreateDevice(pAdapter, featureLevel, IID_PPV_ARGS(&mDevice));

@@ -213,7 +213,7 @@ Result Swapchain::AcquireNextImage(
     // Wait on swapchain
     {
         DWORD millis = UINT32_MAX;
-#if defined(PPX_DXVK)
+#if defined(PPX_DXIIVK)
         //DWORD result = WaitForSingleObjectExPORTO(mFrameLatencyWaitableObject, millis, TRUE);
 #else
         DWORD result = WaitForSingleObjectEx(mFrameLatencyWaitableObject, millis, TRUE);
