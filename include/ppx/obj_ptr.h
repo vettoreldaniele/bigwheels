@@ -1,9 +1,9 @@
 #ifndef obj_ptr_h
 #define obj_ptr_h
 
-#if defined(PPX_DXVK) && !defined(PPX_MSW)
+#if (defined(PPX_DXVK) || defined(PPX_DXIIVK)) && !defined(PPX_MSW)
 #include <windows.h>
-#endif // defined(PPX_DXVK) && !defined(PPX_MSW);
+#endif // (defined(PPX_DXVK) || defined(PPX_DXIIVK)) && !defined(PPX_MSW)
 
 //! @class ObjPtrRefBase
 //!
@@ -92,9 +92,9 @@ class ObjPtr
 public:
     using object_type = ObjectT;
 
-#if defined(PPX_DXVK) && !defined(PPX_MSW)
+#if (defined(PPX_DXVK) || defined(PPX_DXIIVK)) && !defined(PPX_MSW)
     using InterfaceType = ObjectT;
-#endif // defined(PPX_DXVK) && !defined(PPX_MSW);
+#endif // (defined(PPX_DXVK) || defined(PPX_DXIIVK)) && !defined(PPX_MSW)
 
 
     ObjPtr(ObjectT* ptr = nullptr)
@@ -133,14 +133,14 @@ public:
         return mPtr;
     }
 
-#if defined(PPX_DXVK) && !defined(PPX_MSW)
+#if (defined(PPX_DXVK) || defined(PPX_DXIIVK)) && !defined(PPX_MSW)
     template <typename T>
     HRESULT As(ObjPtrRef<T> obj) const {
         ObjectT* ptr = mPtr;
         Set(reinterpret_cast<void**>(&ptr), &obj);
         return S_OK;
     }
-#endif // defined(PPX_DXVK) && !defined(PPX_MSW);
+#endif // (defined(PPX_DXVK) || defined(PPX_DXIIVK)) && !defined(PPX_MSW)
 
     void Reset()
     {
