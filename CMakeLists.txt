@@ -155,6 +155,13 @@ add_subdirectory(${PPX_THIRD_PARTY_DIR}/cpu_features)
 # ------------------------------------------------------------------------------
 
 if (PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV)
+    if (PPX_DXVK)
+        set(ENABLE_DXVK   ON CACHE BOOL "" FORCE)
+        set(ENABLE_DXIIVK OFF CACHE BOOL "" FORCE)
+    elseif(PPX_DXIIVK)
+        set(ENABLE_DXVK   OFF CACHE BOOL "" FORCE)
+        set(ENABLE_DXIIVK ON CACHE BOOL "" FORCE)
+    endif()
     add_subdirectory(${PPX_THIRD_PARTY_DIR}/libporto)
     target_compile_definitions(
         porto

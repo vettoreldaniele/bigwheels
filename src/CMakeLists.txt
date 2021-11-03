@@ -628,10 +628,17 @@ if (PPX_VULKAN)
     endif()
 endif()
 
-if (PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV)
+if (PPX_DXVK OR PPX_DXVK_SPV)
     target_compile_definitions(
         ${PROJECT_NAME}
-        PUBLIC  PPX_DXVK PPX_DXIIVK PPX_D3D11 PPX_D3D12
+        PUBLIC  PPX_DXVK PPX_D3D11
+    )
+endif()
+
+if (PPX_DXIIVK)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PPX_DXIIVK PPX_D3D12
     )
 endif()
 
@@ -640,33 +647,21 @@ endif()
 # ------------------------------------------------------------------------------
 
 if (PPX_D3D11 OR PPX_D3D12)
-    if (PPX_GGP)
-        target_link_libraries(${PROJECT_NAME} 
-            PUBLIC dxvk
-        )
-    else()
-        target_link_libraries(${PROJECT_NAME} 
-            PUBLIC dxgi.lib dxguid.lib
-        )
-    endif()
+    target_link_libraries(${PROJECT_NAME} 
+        PUBLIC dxgi.lib dxguid.lib
+    )
 endif()
 
 if (PPX_D3D11)
-    # Link in d3d11.lib
     target_link_libraries(${PROJECT_NAME} 
         PUBLIC d3d11.lib
     )
 endif()
 
 if (PPX_D3D12)
-    # Link in d3d12.lib
-    if (PPX_GGP)
-        # Nothing for now
-    else()
-        target_link_libraries(${PROJECT_NAME} 
-            PUBLIC d3d12.lib
-        )
-    endif()
+    target_link_libraries(${PROJECT_NAME} 
+        PUBLIC d3d12.lib
+    )
 endif()
 
 if (PPX_VULKAN)
@@ -708,16 +703,32 @@ if (PPX_VULKAN)
     endif()
 endif()
 
-if (PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV)
+if (PPX_DXVK OR PPX_DXVK_SPV)
     if (PPX_GGP)
         target_link_libraries(${PROJECT_NAME}
-            PUBLIC dxvk porto
+            PUBLIC porto
         )
-    elseif(PPX_MSW)
+    else()
         target_link_libraries(${PROJECT_NAME} 
-            PUBLIC d3d11 d3d12 shcore.lib
+            PUBLIC shcore
         )
     endif()
+
+    target_link_libraries(${PROJECT_NAME}
+        PUBLIC dxvk
+    )
+endif()
+
+if (PPX_DXIIVK)
+    if (PPX_GGP)
+        target_link_libraries(${PROJECT_NAME}
+            PUBLIC porto
+        )
+    endif()
+
+    target_link_libraries(${PROJECT_NAME}
+        PUBLIC d3d12 dxgi
+    )
 endif()
 
 # ------------------------------------------------------------------------------
