@@ -320,9 +320,9 @@ function(add_dxvk_spv_sample name is_gui)
     endif()
 endfunction()
 
-function(add_dxvk_dx12_sample name is_gui)
+function(add_dxiivk_dx12_sample name is_gui)
     if (PPX_DXIIVK)
-        set (api_tag "dxvk_dx12")
+        set (api_tag "dxiivk_dx12")
         set (target_name "${api_tag}_${PROJECT_NAME}")
         set (additional_files "${ARGV2}")
 
