@@ -48,7 +48,7 @@
 # Build Instructions
 ## GGP (on Windows)
 ```
-git clone --recursive git@github.com:googlestadia/BigWheels.git
+git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
 mkdir build-ggp
 cd build-ggp
@@ -63,7 +63,7 @@ Built binaries are written to `BigWheels\bin\vk_*`.
 ## GGP using DXVK (libporto) (on Windows)
 NOTE: There are two repos for the steps in this section.
 ```
-git clone --recursive git@github.com:googlestadia/BigWheels.git
+git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels\third_party
 git clone <URL to libporto repo>
 cd ..
@@ -82,7 +82,7 @@ Built binaries are written to `BigWheels\bin\dxvk_*`.
 ## GGP using DXVK SPIR-V (libporto) (on Windows)
 NOTE: There are two repos for the steps in this section.
 ```
-git clone --recursive git@github.com:googlestadia/BigWheels.git
+git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels\third_party
 git clone <URL to libporto repo>
 cd ..
@@ -101,7 +101,7 @@ Built binaries are written to `BigWheels\bin\dxvk_spv_*`.
 ### GGP using DXVK SPIR-V (libporto) with `D3DCompile()` (on Windows)
 NOTE: There are two repos for the steps in this section.
 ```
-git clone --recursive git@github.com:googlestadia/BigWheels.git
+git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels\third_party
 git clone <URL to libporto repo>
 cd ..
@@ -123,7 +123,7 @@ Built binaries are written to `BigWheels\bin\dxvk_spv_d3dcompile_01_triangle`,
 
 ## GGP (on Linux)
 ```
-git clone --recursive git@github.com:googlestadia/BigWheels.git
+git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
 mkdir build-ggp
 cd build-ggp
@@ -143,7 +143,7 @@ ggp ssh put -r assets
 
 ## Linux
 ```
-git clone --recursive git@github.com:googlestadia/BigWheels.git
+git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
 mkdir build-make
 cd build-make
@@ -155,7 +155,7 @@ Built binaries are written to `BigWheels/bin`.
 
 ## Windows 
 ```
-git clone --recursive git@github.com:googlestadia/BigWheels.git
+git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
 mkdir build-vs2019
 cd build-vs2019
