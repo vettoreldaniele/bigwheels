@@ -95,7 +95,30 @@ Open `BigWheels.sln` and build
 Built binaries are written to `BigWheels\bin\dxvk_spv_*`.
 
 **NOTE:**
-* **libporto** must be manually cloned into BigWheels\third_party.
+* **libporto** must be manually cloned into BigWheels\third\_party.
+* GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.
+
+### GGP using DXVK SPIR-V (libporto) with `D3DCompile()` (on Windows)
+NOTE: There are two repos for the steps in this section.
+```
+git clone --recursive git@github.com:googlestadia/BigWheels.git
+cd BigWheels\third_party
+git clone <URL to libporto repo>
+cd ..
+mkdir build-dxvk-spv
+cd build-dxvk-spv
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXVK_SPV_D3DCOMPILE=true
+```
+
+Open `BigWheels.sln` and build
+
+Built binaries are written to `BigWheels\bin\dxvk_spv_d3dcompile_01_triangle`,
+`BigWheels\bin\dxvk_spv_d3dcompile_15_basic_material`, and `BigWheels\bin\dxvk_spv_*`.
+`BigWheels\bin\dxvk_spv_d3dcompile_*` use `D3DCompile()` for HLSL shaders while `BigWheels\bin\dxvk_spv_*` just uses the SPIR-V shaders.
+
+**NOTE:**
+* **libporto** must be manually cloned into BigWheels\third\_party.
+* We added `BigWheels\bin\dxvk_spv_d3dcompile_*` target only to projects/01\_triangle and projects/15\_basic\_material.
 * GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.
 
 ## GGP (on Linux)

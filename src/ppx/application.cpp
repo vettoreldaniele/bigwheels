@@ -1324,6 +1324,25 @@ Result Application::CreateShader(const fs::path& baseDir, const std::string& bas
     return ppx::SUCCESS;
 }
 
+#if defined(PORTO_D3DCOMPILE)
+Result Application::CompileHlslShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, grfx::ShaderModule** ppShaderModule) const
+{
+    grfx::dx::ShaderIncludeHandler shaderIncludeHandler(baseDir);
+    std::vector<char>              bytecode = grfx::dx::CompileShader(baseDir, baseName, shaderModel, &shaderIncludeHandler);
+    if (bytecode.empty()) {
+        return ppx::ERROR_GRFX_INVALID_SHADER_BYTE_CODE;
+    }
+
+    grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
+    Result                       ppxres           = GetDevice()->CreateShaderModule(&shaderCreateInfo, ppShaderModule);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+#endif
+
 float Application::GetElapsedSeconds() const
 {
     return static_cast<float>(mTimer.SecondsSinceStart());

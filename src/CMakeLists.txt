@@ -120,7 +120,7 @@ if (PPX_D3D12 OR PPX_DXIIVK)
     )
 endif()
 
-if (PPX_DXVK OR PPX_DXVK_SPV)
+if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     list(APPEND IMGUI_SOURCE_FILES
         ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx11.h
         ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx11.cpp
@@ -259,7 +259,7 @@ list(
     ${SRC_DIR}/ppx/io/obj_loader.cpp
 )
 
-if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV)
+if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     list(
         APPEND PPX_GRFX_DX_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx/dx_util.h
@@ -271,7 +271,19 @@ if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV)
     )
 endif()
 
-if (PPX_D3D11 OR PPX_DXVK OR PPX_DXVK_SPV)
+if (PPX_DXVK_SPV_D3DCOMPILE)
+    list(
+        APPEND PPX_GRFX_DX_HEADER_FILES
+        ${INC_DIR}/ppx/grfx/dx/d3dcompile_util.h
+    )
+
+    list(
+        APPEND PPX_GRFX_DX_SOURCE_FILES
+        ${SRC_DIR}/ppx/grfx/dx/d3dcompile_util.cpp
+    )
+endif()
+
+if (PPX_D3D11 OR PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     list(
         APPEND PPX_GRFX_DX11_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx11/000_dx11_config.h
@@ -571,8 +583,16 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 if (PPX_MSW)
-    target_link_libraries(${PROJECT_NAME} 
+    target_link_libraries(
+        ${PROJECT_NAME}
         PUBLIC shcore.lib
+    )
+endif()
+
+if (PPX_DXVK_SPV_D3DCOMPILE)
+    target_link_libraries(
+        ${PROJECT_NAME}
+        PUBLIC porto_d3dcompiler
     )
 endif()
 
@@ -628,7 +648,7 @@ if (PPX_VULKAN)
     endif()
 endif()
 
-if (PPX_DXVK OR PPX_DXVK_SPV)
+if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     target_compile_definitions(
         ${PROJECT_NAME}
         PUBLIC  PPX_DXVK PPX_D3D11
@@ -639,6 +659,13 @@ if (PPX_DXIIVK)
     target_compile_definitions(
         ${PROJECT_NAME}
         PUBLIC  PPX_DXIIVK PPX_D3D12
+    )
+endif()
+
+if (PPX_DXVK_SPV_D3DCOMPILE)
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC  PORTO_D3DCOMPILE
     )
 endif()
 
@@ -703,7 +730,7 @@ if (PPX_VULKAN)
     endif()
 endif()
 
-if (PPX_DXVK OR PPX_DXVK_SPV)
+if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     if (PPX_GGP)
         target_link_libraries(${PROJECT_NAME}
             PUBLIC porto

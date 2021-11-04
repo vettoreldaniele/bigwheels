@@ -51,3 +51,5 @@ add_dxil_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dxvk_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dxvk_spv_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
 add_dxiivk_dx12_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
+add_dxvk_spv_d3dcompile_sample(${PROJECT_NAME} TRUE "${HLSL_FILES}")
+
