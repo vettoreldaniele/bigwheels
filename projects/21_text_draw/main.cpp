@@ -85,8 +85,8 @@ void ProjApp::Setup()
 
     // Texture font
     {
-        Font font;
-        PPX_CHECKED_CALL(Font::CreateFromFile(GetAssetPath("basic/fonts/Roboto/Roboto-Regular.ttf"), &font));
+        ppx::Font font;
+        PPX_CHECKED_CALL(ppx::Font::CreateFromFile(GetAssetPath("basic/fonts/Roboto/Roboto-Regular.ttf"), &font));
 
         grfx::TextureFontCreateInfo createInfo = {};
         createInfo.font                        = font;
