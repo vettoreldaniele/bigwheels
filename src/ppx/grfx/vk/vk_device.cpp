@@ -110,7 +110,7 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         mExtensions.push_back(VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME);
 
         // Descriptor indexing
-        mExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+//        mExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
 
         // Timeline semaphore - if present
         if (ElementExists(std::string(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME), mFoundExtensions)) {
@@ -142,8 +142,8 @@ Result Device::ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhy
     features                     = {};
     features.fullDrawIndexUint32 = VK_TRUE;
     features.imageCubeArray      = VK_TRUE;
-    features.geometryShader      = VK_TRUE;
-    features.tessellationShader  = VK_TRUE;
+//    features.geometryShader      = VK_TRUE;
+//    features.tessellationShader  = VK_TRUE;
 
     // Select between default or custom features
     if (!IsNull(pCreateInfo->pVulkanDeviceFeatures)) {

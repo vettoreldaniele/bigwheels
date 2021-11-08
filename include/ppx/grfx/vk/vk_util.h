@@ -10,6 +10,7 @@ namespace vk {
 
 const char* ToString(VkResult value);
 const char* ToString(VkDescriptorType value);
+const char* ToString(VkPresentModeKHR value);
 
 VkAttachmentLoadOp         ToVkAttachmentLoadOp(grfx::AttachmentLoadOp value);
 VkAttachmentStoreOp        ToVkAttachmentStoreOp(grfx::AttachmentStoreOp value);

@@ -4,6 +4,8 @@ cmake_policy(SET CMP0054 NEW)
 
 project(BigWheels)
 
+option(PPX_SWIFTSHADER "Use SwiftShader for Vulkan" FALSE)
+
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 # Detect Linux

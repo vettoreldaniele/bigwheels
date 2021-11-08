@@ -76,6 +76,20 @@ const char* ToString(VkDescriptorType value)
     return "<unknown VkDescriptorType value>";
 }
 
+const char* ToString(VkPresentModeKHR value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case VK_PRESENT_MODE_IMMEDIATE_KHR    : return "VK_PRESENT_MODE_IMMEDIATE_KHR"; break;
+        case VK_PRESENT_MODE_MAILBOX_KHR      : return "VK_PRESENT_MODE_MAILBOX_KHR"; break;
+        case VK_PRESENT_MODE_FIFO_KHR         : return "VK_PRESENT_MODE_FIFO_KHR"; break;
+        case VK_PRESENT_MODE_FIFO_RELAXED_KHR : return "VK_PRESENT_MODE_FIFO_RELAXED_KHR"; break;
+    }
+    // clang-format on
+    return "<unknown VkPresentModeKHR value>";    
+}
+
 VkAttachmentLoadOp ToVkAttachmentLoadOp(grfx::AttachmentLoadOp value)
 {
     // clang-format off
