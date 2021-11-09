@@ -15,13 +15,6 @@
 #   define GLFW_INCLUDE_NONE
 #endif
 #include <GLFW/glfw3.h>
-
-#if defined(PPX_LINUX)
-#   define GLFW_EXPOSE_NATIVE_X11 
-#elif defined(PPX_MSW)
-#   define GLFW_EXPOSE_NATIVE_WIN32
-#endif
-#include <GLFW/glfw3native.h>
 // clang-format on
 
 namespace ppx {

@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdlib>
 #include <set>
 
@@ -182,8 +183,8 @@ public:
     virtual void Setup() override;
     virtual void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) override;
     virtual void Render() override;
-    virtual void KeyDown(KeyCode key) override;
-    virtual void KeyUp(KeyCode key) override;
+    virtual void KeyDown(ppx::KeyCode key) override;
+    virtual void KeyUp(ppx::KeyCode key) override;
 
 private:
     struct PerFrame
@@ -205,7 +206,7 @@ private:
     PerspCamera                  mPerspCamera;
     ArcballCamera                mArcballCamera;
     PerspCamera*                 mCurrentCamera;
-    std::set<KeyCode>            mPressedKeys;
+    std::set<ppx::KeyCode>       mPressedKeys;
     Person                       mPerson;
 
     void SetupDescriptors();
@@ -339,7 +340,7 @@ void ProjApp::SetupEntities()
     // SGW = SGA / SGD
     float gridRatio    = static_cast<float>(kGridWidth) / static_cast<float>(kGridDepth);
     float subGridArea  = (kGridWidth * kGridDepth) / static_cast<float>(numObstacles);
-    float subGridDepth = std::sqrtf(subGridArea / gridRatio);
+    float subGridDepth = std::sqrt(subGridArea / gridRatio);
     float subGridWidth = subGridArea / subGridDepth;
 
     ppx::Random random;
@@ -525,12 +526,12 @@ void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t b
     UpdateCamera(mCurrentCamera);
 }
 
-void ProjApp::KeyDown(KeyCode key)
+void ProjApp::KeyDown(ppx::KeyCode key)
 {
     mPressedKeys.insert(key);
 }
 
-void ProjApp::KeyUp(KeyCode key)
+void ProjApp::KeyUp(ppx::KeyCode key)
 {
     mPressedKeys.erase(key);
 }
@@ -538,18 +539,18 @@ void ProjApp::KeyUp(KeyCode key)
 void Person::Move(MovementDirection dir, float distance)
 {
     if (dir == MovementDirection::FORWARD) {
-        location += float3(distance * std::cosf(azimuth), 0, distance * std::sinf(azimuth));
+        location += float3(distance * std::cos(azimuth), 0, distance * std::sin(azimuth));
     }
     else if (dir == MovementDirection::LEFT) {
         float perpendicularDir = azimuth - pi<float>() / 2.0f;
-        location += float3(distance * std::cosf(perpendicularDir), 0, distance * std::sinf(perpendicularDir));
+        location += float3(distance * std::cos(perpendicularDir), 0, distance * std::sin(perpendicularDir));
     }
     else if (dir == MovementDirection::RIGHT) {
         float perpendicularDir = azimuth + pi<float>() / 2.0f;
-        location += float3(distance * std::cosf(perpendicularDir), 0, distance * std::sinf(perpendicularDir));
+        location += float3(distance * std::cos(perpendicularDir), 0, distance * std::sin(perpendicularDir));
     }
     else if (dir == MovementDirection::BACKWARD) {
-        location += float3(-distance * std::cosf(azimuth), 0, -distance * std::sinf(azimuth));
+        location += float3(-distance * std::cos(azimuth), 0, -distance * std::sin(azimuth));
     }
     else {
         PPX_ASSERT_MSG(false, "unhandled direction code " << static_cast<int>(dir));

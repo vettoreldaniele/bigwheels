@@ -1,16 +1,15 @@
 #ifndef FISHTORNADO_H
 #define FISHTORNADO_H
 
-#include "ppx/ppx.h"
-#include "ppx/camera.h"
-using namespace ppx;
-
 #include "Buffer.h"
 #include "Config.h"
 #include "Flocking.h"
 #include "Ocean.h"
 #include "ShaderConfig.h"
 #include "Shark.h"
+
+#include "ppx/ppx.h"
+#include "ppx/camera.h"
 
 #if defined(USE_DX11)
 const grfx::Api kApi = grfx::API_DX_11_1;
