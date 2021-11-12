@@ -1,9 +1,7 @@
 *.swp
 .DS_Store
 .vscode/
-build-vs2017/
-build-vs2019/
-build-ggp/
+build-*/
 .vs/
 bin/
 lib/
