@@ -8,6 +8,8 @@
    * Shaders are compiled with DXC/DXIL
  * **dxvk** - D3D11 using DXVK with SM 5.0
    * Shaders are compiled with FXC
+ * **dxiivk** - D3D12 using DXVK with SM 5.0
+   * Shaders are compiled with FXC
  * **dxvk_spv** - D3D11 using DXVK with SM 5.0
    * Shaders are compiled with DXC/SPIR-V
  * **vk** - Vulkan
@@ -74,6 +76,25 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP 
 Open `BigWheels.sln` and build
 
 Built binaries are written to `BigWheels\bin\dxvk_*`.
+
+**NOTE:**
+* **libporto** must be manually cloned into BigWheels\third_party.
+* GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
+
+## GGP using DXIIVK (libporto) (on Windows)
+NOTE: There are two repos for the steps in this section.
+```
+git clone --recursive https://github.com/googlestadia/BigWheels
+cd BigWheels\third_party
+git clone <URL to libporto repo>
+cd ..
+mkdir build-dxiivk
+cd build-dxiivk
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" .. -DPPX_DXIIVK=1
+```
+Open `BigWheels.sln` and build
+
+Built binaries are written to `BigWheels\bin\dxiivk_dx12_*`.
 
 **NOTE:**
 * **libporto** must be manually cloned into BigWheels\third_party.
