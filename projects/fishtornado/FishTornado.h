@@ -86,8 +86,8 @@ private:
         grfx::DrawPassPtr      shadowDrawPass;
         grfx::DescriptorSetPtr sceneSet;
         grfx::DescriptorSetPtr sceneShadowSet; // See note in SetupSetLayouts()
-        //grfx::QueryPtr         timestampQuery;
-        //grfx::QueryPtr         pipelineStatsQuery;
+        grfx::QueryPtr         timestampQuery;
+        grfx::QueryPtr         pipelineStatsQuery;
     };
 
     grfx::DescriptorPoolPtr      mDescriptorPool;

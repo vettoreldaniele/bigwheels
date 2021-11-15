@@ -20,7 +20,7 @@ Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* 
         VkPipelineStageFlags stageMask  = 0; // Not used
         VkAccessFlags        accessMask = 0; // Not used
 
-        Result ppxres = ToVkBarrierDst(pCreateInfo->depthStencilState, stageMask, accessMask, depthStencillayout);
+        Result ppxres = ToVkBarrierDst(pCreateInfo->depthStencilState, false, false, stageMask, accessMask, depthStencillayout);
         if (Failed(ppxres)) {
             PPX_ASSERT_MSG(false, "failed to determine layout for depth stencil state");
             return ppxres;

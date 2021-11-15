@@ -162,10 +162,24 @@ void CommandBuffer::TransitionImageLayout(
         dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     }
 
-    Result ppxres = ToVkBarrierSrc(beforeState, srcStageMask, srcAccessMask, oldLayout);
+    vk::Device* pDevice = ToApi(GetDevice());
+
+    Result ppxres = ToVkBarrierSrc(
+        beforeState,
+        pDevice->GetDeviceFeatures().geometryShader,
+        pDevice->GetDeviceFeatures().tessellationShader,
+        srcStageMask,
+        srcAccessMask,
+        oldLayout);
     PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "couldn't get src barrier data");
 
-    ppxres = ToVkBarrierDst(afterState, dstStageMask, dstAccessMask, newLayout);
+    ppxres = ToVkBarrierDst(
+        afterState,
+        pDevice->GetDeviceFeatures().geometryShader,
+        pDevice->GetDeviceFeatures().tessellationShader,
+        dstStageMask,
+        dstAccessMask,
+        newLayout);
     PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "couldn't get dst barrier data");
 
     VkImageMemoryBarrier barrier            = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
@@ -235,10 +249,24 @@ void CommandBuffer::BufferResourceBarrier(
         dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     }
 
-    Result ppxres = ToVkBarrierSrc(beforeState, srcStageMask, srcAccessMask, oldLayout);
+    vk::Device* pDevice = ToApi(GetDevice());
+
+    Result ppxres = ToVkBarrierSrc(
+        beforeState,
+        pDevice->GetDeviceFeatures().geometryShader,
+        pDevice->GetDeviceFeatures().tessellationShader,
+        srcStageMask,
+        srcAccessMask,
+        oldLayout);
     PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "couldn't get src barrier data");
 
-    ppxres = ToVkBarrierDst(afterState, dstStageMask, dstAccessMask, newLayout);
+    ppxres = ToVkBarrierDst(
+        afterState,
+        pDevice->GetDeviceFeatures().geometryShader,
+        pDevice->GetDeviceFeatures().tessellationShader,
+        dstStageMask,
+        dstAccessMask,
+        newLayout);
     PPX_ASSERT_MSG(ppxres == ppx::SUCCESS, "couldn't get dst barrier data");
 
     VkBufferMemoryBarrier barrier = {VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
@@ -526,7 +554,7 @@ void CommandBuffer::CopyImageToBuffer(
 
 void CommandBuffer::BeginQuery(
     const grfx::Query* pQuery,
-    uint32_t               queryIndex)
+    uint32_t           queryIndex)
 {
     PPX_ASSERT_NULL_ARG(pQuery);
     PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
@@ -545,7 +573,7 @@ void CommandBuffer::BeginQuery(
 
 void CommandBuffer::EndQuery(
     const grfx::Query* pQuery,
-    uint32_t               queryIndex)
+    uint32_t           queryIndex)
 {
     PPX_ASSERT_NULL_ARG(pQuery);
     PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
@@ -570,12 +598,12 @@ void CommandBuffer::WriteTimestamp(
 }
 
 void CommandBuffer::ResolveQueryData(
-    grfx::Query*    pQuery,
-    uint32_t        startIndex,
-    uint32_t        numQueries)
+    grfx::Query* pQuery,
+    uint32_t     startIndex,
+    uint32_t     numQueries)
 {
     PPX_ASSERT_MSG((startIndex + numQueries) <= pQuery->GetCount(), "invalid query index/number");
-    const VkQueryResultFlags flags            = VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_64_BIT;
+    const VkQueryResultFlags flags = VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_64_BIT;
     vkCmdCopyQueryPoolResults(mCommandBuffer, ToApi(pQuery)->GetVkQueryPool(), startIndex, numQueries, ToApi(pQuery)->GetReadBackBuffer(), 0, ToApi(pQuery)->GetQueryTypeSize(), flags);
 }
 

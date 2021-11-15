@@ -109,8 +109,12 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         // VK_EXT_host_query_reset
         mExtensions.push_back(VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME);
 
-        // Descriptor indexing
-//        mExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+        // Descriptor indexing 
+        // 
+        // 2021/11/15 - Added conditional check for descriptor indexing to accomodate SwiftShader
+        if (ElementExists(std::string(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME), mFoundExtensions)) {
+            mExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+        }
 
         // Timeline semaphore - if present
         if (ElementExists(std::string(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME), mFoundExtensions)) {
@@ -138,14 +142,24 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
 
 Result Device::ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhysicalDeviceFeatures& features)
 {
-    // Default device features
+    vk::Gpu* pGpu = ToApi(pCreateInfo->pGpu);
+    
+    VkPhysicalDeviceFeatures foundFeatures = {};
+    vkGetPhysicalDeviceFeatures(pGpu->GetVkGpu(), &foundFeatures);
+
+    // Default device feature
+    //
+    // 2021/11/15 - Changed logic to use feature bit from GPU for geo and tess shaders to accomodate
+    //              SwiftShader not having support for these shader types.
+    //
     features                     = {};
     features.fullDrawIndexUint32 = VK_TRUE;
     features.imageCubeArray      = VK_TRUE;
-//    features.geometryShader      = VK_TRUE;
-//    features.tessellationShader  = VK_TRUE;
+    features.geometryShader      = foundFeatures.geometryShader;
+    features.tessellationShader  = foundFeatures.tessellationShader;
 
-    // Select between default or custom features
+    // Select between default or custom features 
+    //
     if (!IsNull(pCreateInfo->pVulkanDeviceFeatures)) {
         const VkPhysicalDeviceFeatures* pFeatures = static_cast<const VkPhysicalDeviceFeatures*>(pCreateInfo->pVulkanDeviceFeatures);
         features                                  = *pFeatures;
@@ -208,7 +222,6 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 {
     std::vector<float>                   queuePriorities;
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    VkPhysicalDeviceFeatures             features;
 
     Result ppxres = ConfigureQueueInfo(pCreateInfo, queuePriorities, queueCreateInfos);
     if (Failed(ppxres)) {
@@ -220,7 +233,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         return ppxres;
     }
 
-    ppxres = ConfigurFeatures(pCreateInfo, features);
+    ppxres = ConfigurFeatures(pCreateInfo, mDeviceFeatures);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -245,7 +258,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     vkci.ppEnabledLayerNames     = nullptr;
     vkci.enabledExtensionCount   = CountU32(extensions);
     vkci.ppEnabledExtensionNames = DataPtr(extensions);
-    vkci.pEnabledFeatures        = &features;
+    vkci.pEnabledFeatures        = &mDeviceFeatures;
 
     // Log layers and extensions
     {

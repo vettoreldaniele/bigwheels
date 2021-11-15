@@ -47,8 +47,20 @@ VkStencilOp                ToVkStencilOp(grfx::StencilOp value);
 VkTessellationDomainOrigin ToVkTessellationDomainOrigin(grfx::TessellationDomainOrigin value);
 VkVertexInputRate          ToVkVertexInputRate(grfx::VertexInputRate value);
 
-Result ToVkBarrierSrc(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout);
-Result ToVkBarrierDst(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout);
+Result ToVkBarrierSrc(
+    ResourceState         state,
+    bool                  hasGeometryShader,
+    bool                  hasTessellationShader,
+    VkPipelineStageFlags& stageMask,
+    VkAccessFlags&        accessMask,
+    VkImageLayout&        layout);
+Result ToVkBarrierDst(
+    ResourceState         state,
+    bool                  hasGeometryShader,
+    bool                  hasTessellationShader,
+    VkPipelineStageFlags& stageMask,
+    VkAccessFlags&        accessMask,
+    VkImageLayout&        layout);
 
 VkImageAspectFlags DetermineAspectMask(VkFormat format);
 

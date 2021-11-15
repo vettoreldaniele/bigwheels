@@ -61,6 +61,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "03_square_textured";
+    settings.enableImGui      = true;
     settings.window.width     = kWindowWidth;
     settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
@@ -152,7 +153,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Texture", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};

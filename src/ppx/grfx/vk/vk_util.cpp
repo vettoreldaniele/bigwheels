@@ -87,7 +87,7 @@ const char* ToString(VkPresentModeKHR value)
         case VK_PRESENT_MODE_FIFO_RELAXED_KHR : return "VK_PRESENT_MODE_FIFO_RELAXED_KHR"; break;
     }
     // clang-format on
-    return "<unknown VkPresentModeKHR value>";    
+    return "<unknown VkPresentModeKHR value>";
 }
 
 VkAttachmentLoadOp ToVkAttachmentLoadOp(grfx::AttachmentLoadOp value)
@@ -772,22 +772,36 @@ VkVertexInputRate ToVkVertexInputRate(grfx::VertexInputRate value)
     return ppx::InvalidValue<VkVertexInputRate>();
 }
 
-static Result ToVkBarrier(ResourceState state, bool isSource, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout)
+static Result ToVkBarrier(
+    ResourceState         state,
+    bool                  hasGeometryShader,
+    bool                  hasTessellationShader,
+    bool                  isSource,
+    VkPipelineStageFlags& stageMask,
+    VkAccessFlags&        accessMask,
+    VkImageLayout&        layout)
 {
-    const VkPipelineStageFlags PIPELINE_STAGE_ALL_SHADER_STAGES =
+    VkPipelineStageFlags PIPELINE_STAGE_ALL_SHADER_STAGES =
         VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-        VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-        VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-        VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 
-    const VkPipelineStageFlags PIPELINE_STAGE_NON_PIXEL_SHADER_STAGES =
+    VkPipelineStageFlags PIPELINE_STAGE_NON_PIXEL_SHADER_STAGES =
         VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-        VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-        VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-        VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+    if (hasGeometryShader) {
+        PIPELINE_STAGE_ALL_SHADER_STAGES |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+        PIPELINE_STAGE_NON_PIXEL_SHADER_STAGES |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+    }
+    if (hasGeometryShader) {
+        PIPELINE_STAGE_ALL_SHADER_STAGES |=
+            VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+            VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+        PIPELINE_STAGE_NON_PIXEL_SHADER_STAGES |=
+            VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+            VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+    }
 
     switch (state) {
         default: return ppx::ERROR_FAILED; break;
@@ -929,14 +943,26 @@ static Result ToVkBarrier(ResourceState state, bool isSource, VkPipelineStageFla
     return ppx::SUCCESS;
 }
 
-Result ToVkBarrierSrc(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout)
+Result ToVkBarrierSrc(
+    ResourceState         state,
+    bool                  hasGeometryShader,
+    bool                  hasTessellationShader,
+    VkPipelineStageFlags& stageMask,
+    VkAccessFlags&        accessMask,
+    VkImageLayout&        layout)
 {
-    return ToVkBarrier(state, true, stageMask, accessMask, layout);
+    return ToVkBarrier(state, hasGeometryShader, hasTessellationShader, true, stageMask, accessMask, layout);
 }
 
-Result ToVkBarrierDst(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout)
+Result ToVkBarrierDst(
+    ResourceState         state,
+    bool                  hasGeometryShader,
+    bool                  hasTessellationShader,
+    VkPipelineStageFlags& stageMask,
+    VkAccessFlags&        accessMask,
+    VkImageLayout&        layout)
 {
-    return ToVkBarrier(state, false, stageMask, accessMask, layout);
+    return ToVkBarrier(state, hasGeometryShader, hasTessellationShader, false, stageMask, accessMask, layout);
 }
 
 VkImageAspectFlags DetermineAspectMask(VkFormat format)
