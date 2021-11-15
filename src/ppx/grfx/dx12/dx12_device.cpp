@@ -27,11 +27,11 @@ void Device::LoadRootSignatureFunctions()
 {
 
 #if defined(PPX_GGP)
-        mFnD3D12CreateRootSignatureDeserializer = D3D12CreateRootSignatureDeserializer;
-        mFnD3D12SerializeVersionedRootSignature = D3D12SerializeVersionedRootSignature;
-        mFnD3D12CreateVersionedRootSignatureDeserializer = D3D12CreateVersionedRootSignatureDeserializer;
+    mFnD3D12CreateRootSignatureDeserializer = D3D12CreateRootSignatureDeserializer;
+    mFnD3D12SerializeVersionedRootSignature = D3D12SerializeVersionedRootSignature;
+    mFnD3D12CreateVersionedRootSignatureDeserializer = D3D12CreateVersionedRootSignatureDeserializer;
 #else
-    HMODULE module = ::GetModuleHandle(TEXT("d3d12.dll"));
+    HMODULE module = ::GetModuleHandle(TEXT("dxiivk.dll"));
 
     // Load root signature version 1.1 functions
     {

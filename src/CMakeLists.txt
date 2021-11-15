@@ -754,7 +754,7 @@ if (PPX_DXIIVK)
     endif()
 
     target_link_libraries(${PROJECT_NAME}
-        PUBLIC d3d12 dxgi
+        PUBLIC dxiivk
     )
 endif()
 
