@@ -321,6 +321,7 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, m1x1BlackTexture));
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampler(RENDER_SHADOW_SAMPLER_REGISTER, 0, mClampedSampler));
 
+#if defined(ENABLE_PIPELINE_QUERIES)
         // Timestamp query
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
@@ -332,6 +333,7 @@ void FishTornadoApp::SetupPerFrame()
         queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
         queryCreateInfo.count = 1;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+#endif
     }
 }
 
@@ -518,10 +520,10 @@ void FishTornadoApp::Render()
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
+#if defined(ENABLE_PIPELINE_QUERIES)
         frame.timestampQuery->Reset(0, 2);
         frame.pipelineStatsQuery->Reset(0, 1);
 
-#if defined(ENABLE_PIPELINE_QUERIES)
        // Write start timestamp
        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
 #endif
