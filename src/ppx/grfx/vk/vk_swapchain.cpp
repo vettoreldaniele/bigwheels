@@ -240,6 +240,42 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, "Invalid swapchain present mode");
         return ppx::ERROR_INVALID_CREATE_ARGUMENT;
     }
+    // Fall back if present mode isn't supported
+    {
+        uint32_t count = 0;
+        VkResult vkres = vkGetPhysicalDeviceSurfacePresentModesKHR(
+            ToApi(GetDevice()->GetGpu())->GetVkGpu(),
+            ToApi(pCreateInfo->pSurface)->GetVkSurface(),
+            &count,
+            nullptr);
+        if (vkres != VK_SUCCESS) {
+            PPX_ASSERT_MSG(false, "vkCreateSwapchainKHR failed: " << ToString(vkres));
+            return ppx::ERROR_API_FAILURE;
+        }
+
+        std::vector<VkPresentModeKHR> presentModes(count);
+        vkres = vkGetPhysicalDeviceSurfacePresentModesKHR(
+            ToApi(GetDevice()->GetGpu())->GetVkGpu(),
+            ToApi(pCreateInfo->pSurface)->GetVkSurface(),
+            &count,
+            presentModes.data());
+        if (vkres != VK_SUCCESS) {
+            PPX_ASSERT_MSG(false, "vkCreateSwapchainKHR failed: " << ToString(vkres));
+            return ppx::ERROR_API_FAILURE;
+        }
+
+        bool supported = false;
+        for (uint32_t i = 0; i < count; ++i) {
+            if (presentMode == presentModes[i]) {
+                supported = true;
+                break;
+            }
+        }
+        if (!supported) {
+            PPX_LOG_WARN("Switching Vulkan present mode to VK_PRESENT_MODE_FIFO_KHR because " << ToString(presentMode) << " is not supported");
+            presentMode = VK_PRESENT_MODE_FIFO_KHR;
+        }
+    }
 
     // Image usage
     //

@@ -264,7 +264,8 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
-    settings.grfx.enableDebug           = true;
+    settings.grfx.enableDebug           = false;
+    settings.enableImGui                = true;
     settings.grfx.numFramesInFlight     = 1;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
@@ -407,7 +408,7 @@ void ProjApp::SetupIBLResources()
             GetAssetPath("basic/shaders"));
         std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Texture", "vs_5_0", &basicShaderIncludeHandler);
 #else
-        std::vector<char> bytecode     = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -417,7 +418,7 @@ void ProjApp::SetupIBLResources()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Texture", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -731,7 +732,7 @@ void ProjApp::Setup()
         write.bufferOffset           = 0;
         write.bufferRange            = PPX_WHOLE_SIZE;
         write.structuredElementCount = 1;
-        write.pBuffer = mGpuLightConstants;
+        write.pBuffer                = mGpuLightConstants;
         PPX_CHECKED_CALL(ppxres = mSceneDataSet->UpdateDescriptors(1, &write));
     }
 
@@ -849,7 +850,7 @@ void ProjApp::Setup()
         std::vector<char> bytecode = grfx::dx::CompileShader(
             GetAssetPath("materials/shaders"), "VertexShader", "vs_5_0", &materialShaderIncludeHandler);
 #else
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("materials/shaders"), "VertexShader.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("materials/shaders"), "VertexShader.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -1224,8 +1225,8 @@ void ProjApp::Render()
             frame.cmd->DrawIndexed(mIBLModel->GetIndexCount());
 
             //// Draw ImGui
-            //DrawDebugInfo([this]() { this->DrawGui(); });
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo([this]() { this->DrawGui(); });
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

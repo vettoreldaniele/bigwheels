@@ -10,6 +10,7 @@ namespace vk {
 
 const char* ToString(VkResult value);
 const char* ToString(VkDescriptorType value);
+const char* ToString(VkPresentModeKHR value);
 
 VkAttachmentLoadOp         ToVkAttachmentLoadOp(grfx::AttachmentLoadOp value);
 VkAttachmentStoreOp        ToVkAttachmentStoreOp(grfx::AttachmentStoreOp value);
@@ -46,8 +47,18 @@ VkStencilOp                ToVkStencilOp(grfx::StencilOp value);
 VkTessellationDomainOrigin ToVkTessellationDomainOrigin(grfx::TessellationDomainOrigin value);
 VkVertexInputRate          ToVkVertexInputRate(grfx::VertexInputRate value);
 
-Result ToVkBarrierSrc(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout);
-Result ToVkBarrierDst(ResourceState state, VkPipelineStageFlags& stageMask, VkAccessFlags& accessMask, VkImageLayout& layout);
+Result ToVkBarrierSrc(
+    ResourceState                   state,
+    const VkPhysicalDeviceFeatures& features,
+    VkPipelineStageFlags&           stageMask,
+    VkAccessFlags&                  accessMask,
+    VkImageLayout&                  layout);
+Result ToVkBarrierDst(
+    ResourceState                   state,
+    const VkPhysicalDeviceFeatures& features,
+    VkPipelineStageFlags&           stageMask,
+    VkAccessFlags&                  accessMask,
+    VkImageLayout&                  layout);
 
 VkImageAspectFlags DetermineAspectMask(VkFormat format);
 

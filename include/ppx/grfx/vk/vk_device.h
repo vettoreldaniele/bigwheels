@@ -18,6 +18,8 @@ public:
     VkDevicePtr     GetVkDevice() const { return mDevice; }
     VmaAllocatorPtr GetVmaAllocator() const { return mVmaAllocator; }
 
+    const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return mDeviceFeatures; }
+
     bool HasTimelineSemaphore() const { return mHasTimelineSemaphore; }
     bool HasExtendedDynamicState() const { return mHasExtendedDynamicState; }
     bool HasUnreistrictedDepthRange() const { return mHasUnrestrictedDepthRange; }
@@ -68,6 +70,7 @@ private:
     std::vector<std::string> mFoundExtensions;
     std::vector<std::string> mExtensions;
     VkDevicePtr              mDevice;
+    VkPhysicalDeviceFeatures mDeviceFeatures = {};
     VmaAllocatorPtr          mVmaAllocator;
     bool                     mHasTimelineSemaphore      = false;
     bool                     mHasExtendedDynamicState   = false;
