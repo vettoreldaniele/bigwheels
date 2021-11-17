@@ -48,19 +48,17 @@ VkTessellationDomainOrigin ToVkTessellationDomainOrigin(grfx::TessellationDomain
 VkVertexInputRate          ToVkVertexInputRate(grfx::VertexInputRate value);
 
 Result ToVkBarrierSrc(
-    ResourceState         state,
-    bool                  hasGeometryShader,
-    bool                  hasTessellationShader,
-    VkPipelineStageFlags& stageMask,
-    VkAccessFlags&        accessMask,
-    VkImageLayout&        layout);
+    ResourceState                   state,
+    const VkPhysicalDeviceFeatures& features,
+    VkPipelineStageFlags&           stageMask,
+    VkAccessFlags&                  accessMask,
+    VkImageLayout&                  layout);
 Result ToVkBarrierDst(
-    ResourceState         state,
-    bool                  hasGeometryShader,
-    bool                  hasTessellationShader,
-    VkPipelineStageFlags& stageMask,
-    VkAccessFlags&        accessMask,
-    VkImageLayout&        layout);
+    ResourceState                   state,
+    const VkPhysicalDeviceFeatures& features,
+    VkPipelineStageFlags&           stageMask,
+    VkAccessFlags&                  accessMask,
+    VkImageLayout&                  layout);
 
 VkImageAspectFlags DetermineAspectMask(VkFormat format);
 

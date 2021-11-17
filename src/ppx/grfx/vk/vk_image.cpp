@@ -105,11 +105,17 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
     mImageAspect = DetermineAspectMask(mVkFormat);
 
     if ((pCreateInfo->initialState != grfx::RESOURCE_STATE_UNDEFINED) && IsNull(pCreateInfo->pApiObject)) {
+        vk::Device*          pDevice       = ToApi(GetDevice());
         VkPipelineStageFlags pipelineStage = 0;
         VkAccessFlags        accessMask    = 0;
         VkImageLayout        layout        = VK_IMAGE_LAYOUT_UNDEFINED;
         // Determine pipeline stage and layout from the initial state
-        Result ppxres = ToVkBarrierDst(pCreateInfo->initialState, false, false, pipelineStage, accessMask, layout);
+        Result ppxres = ToVkBarrierDst(
+            pCreateInfo->initialState,
+            pDevice->GetDeviceFeatures(),
+            pipelineStage,
+            accessMask,
+            layout);
         if (Failed(ppxres)) {
             PPX_ASSERT_MSG(false, "couldn't determine pipeline stage and layout from initial state");
             return ppxres;

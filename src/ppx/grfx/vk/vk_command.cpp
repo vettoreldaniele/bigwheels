@@ -166,8 +166,7 @@ void CommandBuffer::TransitionImageLayout(
 
     Result ppxres = ToVkBarrierSrc(
         beforeState,
-        pDevice->GetDeviceFeatures().geometryShader,
-        pDevice->GetDeviceFeatures().tessellationShader,
+        pDevice->GetDeviceFeatures(),
         srcStageMask,
         srcAccessMask,
         oldLayout);
@@ -175,8 +174,7 @@ void CommandBuffer::TransitionImageLayout(
 
     ppxres = ToVkBarrierDst(
         afterState,
-        pDevice->GetDeviceFeatures().geometryShader,
-        pDevice->GetDeviceFeatures().tessellationShader,
+        pDevice->GetDeviceFeatures(),
         dstStageMask,
         dstAccessMask,
         newLayout);
@@ -253,8 +251,7 @@ void CommandBuffer::BufferResourceBarrier(
 
     Result ppxres = ToVkBarrierSrc(
         beforeState,
-        pDevice->GetDeviceFeatures().geometryShader,
-        pDevice->GetDeviceFeatures().tessellationShader,
+        pDevice->GetDeviceFeatures(),
         srcStageMask,
         srcAccessMask,
         oldLayout);
@@ -262,8 +259,7 @@ void CommandBuffer::BufferResourceBarrier(
 
     ppxres = ToVkBarrierDst(
         afterState,
-        pDevice->GetDeviceFeatures().geometryShader,
-        pDevice->GetDeviceFeatures().tessellationShader,
+        pDevice->GetDeviceFeatures(),
         dstStageMask,
         dstAccessMask,
         newLayout);
