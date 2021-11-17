@@ -31,7 +31,12 @@ void Device::LoadRootSignatureFunctions()
     mFnD3D12SerializeVersionedRootSignature = D3D12SerializeVersionedRootSignature;
     mFnD3D12CreateVersionedRootSignatureDeserializer = D3D12CreateVersionedRootSignatureDeserializer;
 #else
+
+#if defined (PPX_DXIIVK)
     HMODULE module = ::GetModuleHandle(TEXT("dxiivk.dll"));
+#else
+    HMODULE module = ::GetModuleHandle(TEXT("d3d12.dll"));
+#endif
 
     // Load root signature version 1.1 functions
     {
