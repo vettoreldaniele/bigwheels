@@ -284,11 +284,7 @@ D3D12_RESOURCE_STATES ToD3D12ResourceStates(grfx::ResourceState value)
         case grfx::RESOURCE_STATE_COPY_DST                  : return D3D12_RESOURCE_STATE_COPY_DEST; break;
         case grfx::RESOURCE_STATE_RESOLVE_SRC               : return D3D12_RESOURCE_STATE_RESOLVE_SOURCE; break;
         case grfx::RESOURCE_STATE_RESOLVE_DST               : return D3D12_RESOURCE_STATE_RESOLVE_DEST; break;
-#if defined(PPX_DXVK_1)
-        case grfx::RESOURCE_STATE_PRESENT                   : return static_cast<D3D12_RESOURCE_STATES>(DXVK_D3D12_RESOURCE_STATE_PRESENT); break;
-#else
         case grfx::RESOURCE_STATE_PRESENT                   : return D3D12_RESOURCE_STATE_PRESENT; break;
-#endif
         case grfx::RESOURCE_STATE_UNORDERED_ACCESS          : return D3D12_RESOURCE_STATE_UNORDERED_ACCESS; break;
     }
     // clang-format on
