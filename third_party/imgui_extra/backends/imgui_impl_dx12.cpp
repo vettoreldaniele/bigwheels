@@ -41,18 +41,19 @@
 // comping on GGP versus Windows. 
 // 
 // If you want to use the work around path when running on
-// native D3D12 - you'll need to force DXBC shaders by
-// uncommenting the #define in the next section. Otherwise
-// pipeline creation will fail.
+// native D3D12 - you'll need to force enable
+// USE_DXIIVK_WORK_AROUND
 //
 #if defined(PPX_DXIIVK)
 #define USE_DXIIVK_WORK_AROUND
+#else
+#define USE_NATIVE_D3D12
 #endif // defined(PPX_DXIIVK)
 
-// If it's necessary to use the embeeded DXBC shaders for 
-// some purpose - uncomment the #define below.
+// It's necessary to use the embedded DXBC shaders for native D3D12
+// if the workaround path is enabled
 //
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_DXIIVK_WORK_AROUND) && defined(USE_NATIVE_D3D12)
 #define FORCE_DXBC_SHADERS
 #endif
 
@@ -960,7 +961,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         g_pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc,
             D3D12_RESOURCE_STATE_COPY_DEST, NULL, IID_PPV_ARGS(&pTexture));
 
-#if defined(USE_DXIIVK_WORK_AROUND) && defined(PPX_GGP)
+#if defined(USE_DXIIVK_WORK_AROUND) && !defined(USE_NATIVE_D3D12)
         UINT uploadPitch = (width * 4);
 #else
         UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
@@ -1021,7 +1022,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         hr = g_pd3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
         IM_ASSERT(SUCCEEDED(hr));
 
-#if defined(USE_DXIIVK_WORK_AROUND) && defined(PPX_GGP)
+#if defined(USE_DXIIVK_WORK_AROUND) && !defined(USE_NATIVE_D3D12)
         HANDLE event = CreateEventPORTO(0, 0, 0, 0);
 #else        
         HANDLE event = CreateEvent(0, 0, 0, 0);
@@ -1056,7 +1057,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         IM_ASSERT(SUCCEEDED(hr));
 
         fence->SetEventOnCompletion(1, event);
-#if defined(USE_DXIIVK_WORK_AROUND) && defined(PPX_GGP)
+#if defined(USE_DXIIVK_WORK_AROUND) && !defined(USE_NATIVE_D3D12)
         WaitForSingleObjectExPORTO(event, INFINITE, FALSE);
 #else
         WaitForSingleObject(event, INFINITE);
@@ -1107,7 +1108,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         descRangeCBV.OffsetInDescriptorsFromTableStart = 0;
 
         D3D12_DESCRIPTOR_RANGE descRangeSRV = {};
-#if defined(PPX_GGP)
+#if !defined(USE_NATIVE_D3D12)
         descRangeSRV.RangeType = static_cast<D3D12_DESCRIPTOR_RANGE_TYPE>(DXVK_D3D12_DESCRIPTOR_RANGE_TYPE_SRV_TEXTURE);
 #else
         descRangeSRV.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
