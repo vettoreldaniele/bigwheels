@@ -1222,11 +1222,6 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
     // Use DXBC for 
     psoDesc.VS = {__hlsl_shader_vs_dxbc, sizeof(__hlsl_shader_vs_dxbc)};
     psoDesc.PS = {__hlsl_shader_ps_dxbc, sizeof(__hlsl_shader_ps_dxbc)};
-#else
-    // SPIR-V
-    psoDesc.VS = {__hlsl_shader_vs_spv, sizeof(__hlsl_shader_vs_spv)};
-    psoDesc.PS = {__hlsl_shader_ps_spv, sizeof(__hlsl_shader_ps_spv)};
-#endif
 
     // Create the input layout
     static D3D12_INPUT_ELEMENT_DESC local_layout[] =
@@ -1235,6 +1230,21 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, uv),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
+
+#else
+    // SPIR-V
+    psoDesc.VS = {__hlsl_shader_vs_spv, sizeof(__hlsl_shader_vs_spv)};
+    psoDesc.PS = {__hlsl_shader_ps_spv, sizeof(__hlsl_shader_ps_spv)};
+
+    // Create the input layout
+    static D3D12_INPUT_ELEMENT_DESC local_layout[] =
+    {
+        { "POSITION",  0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD0", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, uv),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR0",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+#endif
+
     psoDesc.InputLayout = { local_layout, 3 };
 #else
     ID3DBlob* vertexShaderBlob;
