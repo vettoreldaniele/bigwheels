@@ -200,3 +200,41 @@ The build system will generate an error if the DXC executable is not present.
 
 ## FXC
 The build system will look for `fxc.exe` in the Windows SDK version that CMake selects. 
+
+# Using SwiftShader
+
+BigWheels can use SwiftShader's Vulkan ICD in place of a GPU's ICD using the `VK_ICD_FILENAMES` environment variable. No special build mode required, just make sure the build for the desired platform has Vulkan enabled. If `VK_ICD_FILENAMES` is present, the Vulkan loader will use its value to load the ICD instead of going through discovery. Using BigWheels with SwiftShader does mean building SwiftShader. To build SwiftShader use the instructions that follow.
+
+## Building SwiftShader on Windows
+```
+git clone https://swiftshader.googlesource.com/SwiftShader
+cd SwiftShader
+mkdir build-vs2019
+cmake .. -G "Visual Studio 16 2019" -A x64 -Thost=x64 -DSWIFTSHADER_BUILD_EGL=FALSE -DSWIFTSHADER_BUILD_GLESv2=FALSE -DSWIFTSHADER_BUILD_PVR=FALSE -DSWIFTSHADER_BUILD_TESTS=FALSE -DSWIFTSHADER_WARNINGS_AS_ERRORS=FALSE -DREACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION=FALSE -DSWIFTSHADER_ENABLE_ASTC=FALSE -DSPIRV_SKIP_EXECUTABLES=TRUE
+```
+Open `SwiftShader.sln` and build.
+
+The DLL and JSON for the ICD are located in `build-vs2019/Windows`.
+
+## Building SwiftShader on Linux
+```
+git clone https://swiftshader.googlesource.com/SwiftShader
+cd SwiftShader
+mkdir build-make
+cd build-make
+cmake .. -DSWIFTSHADER_BUILD_EGL=FALSE -DSWIFTSHADER_BUILD_GLESv2=FALSE -DSWIFTSHADER_BUILD_PVR=FALSE -DSWIFTSHADER_BUILD_TESTS=FALSE -DSWIFTSHADER_WARNINGS_AS_ERRORS=FALSE -DREACTOR_ENABLE_MEMORY_SANITIZER_INSTRUMENTATION=FALSE -DSWIFTSHADER_ENABLE_ASTC=FALSE -DSPIRV_SKIP_EXECUTABLES=TRUE
+make -j <# CPUs to use>
+```
+The .so and JSON for the ICD are located in `build-make/Linux`.
+
+## Location of ICD
+
+The DLL/.so and JSON can be copied to a different location. Remember to set/export the `VK_ICD_FILENAMES` environment variable before running any of the BigWheels samples. 
+
+### Windows  
+Add `VK_ICD_FILENAMES=/absolute/path/to/vk_swiftshader_icd.json` as an entry to `Configuration Properties -> Debugging -> Environment` in the project's property pages
+
+### Linux
+```
+export VK_ICD_FILENAMES=/absolute/path/to/vk_swiftshader_icd.json
+```
