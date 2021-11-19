@@ -395,7 +395,11 @@ Result CreateImageFromBitmapGpu(
             case grfx::API_DX_11_1:
             case grfx::API_DX_12_0:
             case grfx::API_DX_12_1:
+#if defined(PPX_DXIIVK)
+                bytecode = { std::begin(GenerateMipShaderVK), std::end(GenerateMipShaderVK) };
+#else
                 bytecode = {std::begin(GenerateMipShaderDX), std::end(GenerateMipShaderDX)};
+#endif
                 break;
             default:
                 PPX_ASSERT_MSG(false, "CS shader for this API is not present");
