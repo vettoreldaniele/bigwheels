@@ -137,6 +137,7 @@ list(
     ${INC_DIR}/ppx/bounding_volume.h
     ${INC_DIR}/ppx/camera.h
     ${INC_DIR}/ppx/ccomptr.h
+    ${INC_DIR}/ppx/command_line_parser.h
     ${INC_DIR}/ppx/font.h
     ${INC_DIR}/ppx/fs.h
     ${INC_DIR}/ppx/generate_mip_shader_DX.h
@@ -168,6 +169,7 @@ list(
     ${SRC_DIR}/ppx/bitmap.cpp
     ${SRC_DIR}/ppx/bounding_volume.cpp
     ${SRC_DIR}/ppx/camera.cpp
+    ${SRC_DIR}/ppx/command_line_parser.cpp
     ${SRC_DIR}/ppx/font.cpp
     ${SRC_DIR}/ppx/geometry.cpp
     ${SRC_DIR}/ppx/graphics_util.cpp
