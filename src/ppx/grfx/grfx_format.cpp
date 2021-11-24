@@ -122,7 +122,7 @@ uint32_t FormatSize(grfx::Format format)
         case grfx::FORMAT_BC1_RGBA_SRGB       : return 2; break;
         case grfx::FORMAT_BC1_RGBA_UNORM      : return 2; break;
         case grfx::FORMAT_BC1_RGB_SRGB        : return 2; break;
-        case grfx::FORMAT_BC1_RGB_UNORM       : return 4; break;
+        case grfx::FORMAT_BC1_RGB_UNORM       : return 2; break;
         case grfx::FORMAT_BC2_SRGB            : return 4; break;
         case grfx::FORMAT_BC2_UNORM           : return 4; break;
         case grfx::FORMAT_BC3_SRGB            : return 4; break;
