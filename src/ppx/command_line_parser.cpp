@@ -164,6 +164,11 @@ bool CommandLineParser::isOK() const
     return mStateOk;
 }
 
+std::string CommandLineParser::getUsageMsg() const
+{
+    return mUsageMsg;
+}
+
 bool CommandLineParser::extractGpuIndex(const std::string& str)
 {
     int id = parseInt(str);

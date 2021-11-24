@@ -36,6 +36,7 @@ public:
     std::map<std::string, std::string> getExtraOptions() const;
     std::set<std::string>              getExtraFlags() const;
     std::string                        getErrorMsgs() const;
+    std::string                        getUsageMsg() const;
     bool                               isOK() const;
 
 private:
@@ -47,9 +48,9 @@ private:
     const std::string                  mUsageMsg = R"(
 --help                        Prints this help and exits
 --list-gpus                   Prints a list of the available GPUs on the current system with their id  and exits (See --gpu).
---gpu=<index>                 Select the gpu with the given index. To determine valid index use --list-gpus
---resolution=<Width>x<Height> Specify the main window resolution in pixels. Width and Height must be two positive integers
---frame-count=N               The app exits after sucessfully render N frames
+--gpu <index>                 Select the gpu with the given index. To determine valid index use --list-gpus
+--resolution <Width>x<Height> Specify the main window resolution in pixels. Width and Height must be two positive integers
+--frame-count <N>             The app exits after sucessfully render N frames
 )";
     bool                               extractGpuIndex(const std::string& str);
     bool                               extractResolution(const std::string& str);

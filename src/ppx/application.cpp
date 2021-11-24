@@ -660,8 +660,13 @@ Result Application::InitializeGrfxDevice()
             return ppx::ERROR_SINGLE_INIT_ONLY;
         }
 
+        uint32_t gpuIndex = 0;
+        if (mStandarOptions.gpu_index != -1) {
+            gpuIndex = mStandarOptions.gpu_index;
+        }
+
         grfx::GpuPtr gpu;
-        Result       ppxres = mInstance->GetGpu(0, &gpu);
+        Result       ppxres = mInstance->GetGpu(gpuIndex, &gpu);
         if (Failed(ppxres)) {
             PPX_ASSERT_MSG(false, "grfx::Instance::GetGpu failed");
             return ppxres;
@@ -1106,11 +1111,37 @@ int Application::Run(int argc, char** argv)
     for (int i = 0; i < argc; ++i) {
         mCommandLineArgs.push_back(argv[i]);
     }
+    // Parse args
+    mCommandLineParser.parse(argc, argv);
+    mStandarOptions = mCommandLineParser.getOptions();
+
+    if (!mCommandLineParser.isOK()) {
+        PPX_LOG_ERROR(mCommandLineParser.getErrorMsgs());
+        PPX_ASSERT_MSG(false, "Unable to parse command line arguments");
+        return EXIT_FAILURE;
+    }
+
+    if (mStandarOptions.help) {
+        PPX_LOG_INFO(mCommandLineParser.getUsageMsg());
+        return EXIT_SUCCESS;
+    }
 
     // Initialize the platform
     Result ppxres = InitializePlatform();
     if (Failed(ppxres)) {
         return EXIT_FAILURE;
+    }
+
+    // If command line argument provided width and height
+    if (mStandarOptions.resolution.first != -1 && mStandarOptions.resolution.second != -1) {
+        mSettings.window.width  = mStandarOptions.resolution.first;
+        mSettings.window.height = mStandarOptions.resolution.second;
+    }
+
+    mMaxFrame = UINT64_MAX;
+    // If command line provided a maximum number of frames to draw
+    if (mStandarOptions.frame_count != -1) {
+        mMaxFrame = mStandarOptions.frame_count;
     }
 
     // Call config
@@ -1120,6 +1151,19 @@ int Application::Run(int argc, char** argv)
     ppxres = InitializeGrfxDevice();
     if (Failed(ppxres)) {
         return EXIT_FAILURE;
+    }
+
+    // List gpus
+    if (mStandarOptions.list_gpus) {
+        uint32_t count = GetInstance()->GetGpuCount();
+        std::stringstream ss;
+        for (uint32_t i = 0; i < count; ++i) {
+            grfx::GpuPtr gpu;
+            GetInstance()->GetGpu(i, &gpu);
+            ss << i << " " << gpu->GetDeviceName() << std::endl;
+        }
+        PPX_LOG_INFO(ss.str());
+        return EXIT_SUCCESS;
     }
 
     // Create window
@@ -1206,6 +1250,10 @@ int Application::Run(int argc, char** argv)
                 mFirstFrameTime = mTimer.SecondsSinceStart();
             }
         }
+        // If we reach the maximum number of frames allowed
+        if (mFrameCount >= mMaxFrame) {
+            glfwSetWindowShouldClose(static_cast<GLFWwindow*>(mWindow), 1);
+        }
     }
     // ---------------------------------------------------------------------------------------------
     // Main loop [END]
@@ -1244,6 +1292,21 @@ std::vector<const char*> Application::GetCommandLineArgs() const
         args.push_back(mCommandLineArgs[i].c_str());
     }
     return args;
+}
+
+StandarOptions Application::GetStandardOptions() const
+{
+    return mStandarOptions;
+}
+
+std::map<std::string, std::string> Application::GetExtraOptions() const
+{
+    return mCommandLineParser.getExtraOptions();
+}
+
+std::set<std::string> Application::GetExtraFlags() const
+{
+    return mCommandLineParser.getExtraFlags();
 }
 
 grfx::Rect Application::GetScissor() const
