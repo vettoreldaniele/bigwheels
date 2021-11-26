@@ -328,6 +328,7 @@ public:
     float    GetElapsedSeconds() const;
     uint64_t GetFrameCount() const { return mFrameCount; }
     float    GetAverageFPS() const { return mAverageFPS; }
+    float    GetAverageFrameTime() const { return mAverageFrameTime; }
     uint32_t GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
     uint32_t GetInFlightFrameIndex() const { return static_cast<uint32_t>(mFrameCount % mSettings.grfx.numFramesInFlight); }
     uint32_t GetPreviousInFlightFrameIndex() const { return static_cast<uint32_t>((mFrameCount - 1) % mSettings.grfx.numFramesInFlight); }
@@ -387,6 +388,7 @@ private:
     float    mFrameStartTime    = 0;
     float    mFrameEndTime      = 0;
     float    mPreviousFrameTime = 0;
+    float    mAverageFrameTime  = 0;
     double   mFirstFrameTime    = 0;
 };
 

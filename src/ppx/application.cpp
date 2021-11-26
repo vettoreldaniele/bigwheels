@@ -951,6 +951,10 @@ void Application::DispatchSetup()
 void Application::DispatchShutdown()
 {
     Shutdown();
+
+    PPX_LOG_INFO("Number of frames drawn: " << GetFrameCount());
+    PPX_LOG_INFO("Average frame time:     " << GetAverageFrameTime() << " ms");
+    PPX_LOG_INFO("Average FPS:            " << GetAverageFPS());
 }
 
 void Application::DispatchMove(int32_t x, int32_t y)
@@ -1190,6 +1194,7 @@ int Application::Run(int argc, char** argv)
         mAverageFPS        = static_cast<float>(mFrameCount / mTimer.SecondsSinceStart());
         mFrameEndTime      = static_cast<float>(mTimer.MillisSinceStart());
         mPreviousFrameTime = mFrameEndTime - mFrameStartTime;
+        mAverageFrameTime  = static_cast<float>(mTimer.MillisSinceStart() / mFrameCount);
 
         // Pace frames - if needed
         if (mSettings.grfx.pacedFrameRate > 0) {
@@ -1446,6 +1451,14 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
             ImGui::Text("Previous CPU Frame Time");
             ImGui::NextColumn();
             ImGui::Text("%f ms", mPreviousFrameTime);
+            ImGui::NextColumn();
+        }
+
+        // Average frame time
+        {
+            ImGui::Text("Average Frame Time");
+            ImGui::NextColumn();
+            ImGui::Text("%f ms", mAverageFrameTime);
             ImGui::NextColumn();
         }
 
