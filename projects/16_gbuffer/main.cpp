@@ -19,9 +19,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth  1920
-#define kWindowHeight 1080
-
 bool gUpdateOnce = false;
 
 class ProjApp
@@ -44,6 +41,8 @@ private:
         ppx::grfx::FencePtr         renderCompleteFence;
     };
 
+    uint32_t                     mWindowWidth;
+    uint32_t                     mWindowHeight;
     std::vector<PerFrame>        mPerFrame;
     grfx::DescriptorPoolPtr      mDescriptorPool;
     PerspCamera                  mCamera;
@@ -126,9 +125,12 @@ private:
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
+    // If user did not provide resolution from the CL use this default
+    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
+        settings.window.width  = 1920;
+        settings.window.height = 1080;
+    }
     settings.appName          = "gbuffer";
-    settings.window.width     = kWindowWidth;
-    settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)
@@ -137,6 +139,8 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
+    mWindowWidth  = settings.window.width;
+    mWindowHeight = settings.window.height;
 }
 
 void ProjApp::SetupPerFrame()

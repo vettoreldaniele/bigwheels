@@ -14,13 +14,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#if defined(PPX_GGP)
-#define kWindowWidth  1920
-#define kWindowHeight 1080
-#else
-#define kWindowWidth  1280
-#define kWindowHeight 720
-#endif
 #define kNumThreadsX          8
 #define kNumThreadsY          8
 #define kDefaultShaderToy     4
@@ -61,6 +54,8 @@ private:
     grfx::SamplerPtr             mFullScreenSampler;
     grfx::SampledImageViewPtr    mFullScreenSampledImageView;
     grfx::StorageImageViewPtr    mOutputStorageImageView;
+    uint32_t                     mWindowWidth;
+    uint32_t                     mWindowHeight;
     std::vector<const char*>     mShaderToyNames;
     grfx::BufferPtr              mShaderToyUniformBuffer;
     grfx::DescriptorSetLayoutPtr mShaderToyDescriptorSetLayout;
@@ -73,10 +68,13 @@ private:
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
+    // If user did not provide resolution from the CL use this default
+    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
+        settings.window.width  = 1280;
+        settings.window.height = 720;
+    }
     settings.appName          = "shadertoy";
     settings.enableImGui      = true;
-    settings.window.width     = kWindowWidth;
-    settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)
@@ -85,6 +83,8 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
+    mWindowWidth  = settings.window.width;
+    mWindowHeight = settings.window.height;
 }
 
 void ProjApp::Setup()

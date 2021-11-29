@@ -15,10 +15,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth  1280
-#define kWindowHeight 720
-#define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
-
 #define kShadowMapSize 1024
 
 class ProjApp
@@ -79,6 +75,9 @@ private:
     float3                       mLightPosition = float3(0, 5, 5);
     PerspCamera                  mLightCamera;
     bool                         mUsePCF = false;
+    uint32_t                     mWindowWidth;
+    uint32_t                     mWindowHeight;
+    float                        mWindowAspect;
 
 private:
     void SetupEntity(
@@ -91,9 +90,12 @@ private:
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
+    // If user did not provide resolution from the CL use this default
+    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
+        settings.window.width  = 1280;
+        settings.window.height = 720;
+    }
     settings.appName                    = "camera";
-    settings.window.width               = kWindowWidth;
-    settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = true;
@@ -103,6 +105,9 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
+    mWindowWidth  = settings.window.width;
+    mWindowHeight = settings.window.height;
+    mWindowAspect = float(mWindowWidth) / float(mWindowHeight);
 }
 
 void ProjApp::SetupEntity(

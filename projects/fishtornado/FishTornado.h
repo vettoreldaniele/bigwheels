@@ -95,6 +95,8 @@ private:
     grfx::DescriptorSetLayoutPtr mModelDataSetLayout;
     grfx::DescriptorSetLayoutPtr mMaterialSetLayout;
     std::vector<PerFrame>        mPerFrame;
+    uint32_t                     mWindowWidth;
+    uint32_t                     mWindowHeight;
     grfx::TexturePtr             mCausticsTexture;
     grfx::TexturePtr             m1x1BlackTexture;
     grfx::SamplerPtr             mClampedSampler;

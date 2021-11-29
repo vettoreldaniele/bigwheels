@@ -1,8 +1,6 @@
 #include "FishTornado.h"
 #include "ppx/graphics_util.h"
 
-#define kWindowWidth        1920
-#define kWindowHeight       1080
 #define kShadowRes          1024
 #define kCausticsImageCount 32
 
@@ -139,9 +137,12 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
 
 void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 {
+    // If user did not provide resolution from the CL use this default
+    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
+        settings.window.width  = 1920;
+        settings.window.height = 1080;
+    }
     settings.appName                    = "Fish Tornado";
-    settings.window.width               = kWindowWidth;
-    settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.enableImGui                = true;
     settings.grfx.numFramesInFlight     = 2;
@@ -154,6 +155,8 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
+    mWindowWidth  = settings.window.width;
+    mWindowHeight = settings.window.height;
 }
 
 void FishTornadoApp::SetupDescriptorPool()

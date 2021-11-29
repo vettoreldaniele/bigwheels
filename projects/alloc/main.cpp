@@ -9,9 +9,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth  1280
-#define kWindowHeight 720
-
 class ProjApp
     : public ppx::Application
 {
@@ -26,13 +23,18 @@ private:
     ppx::grfx::PipelineInterfacePtr mPipelineInterface;
     ppx::grfx::GraphicsPipelinePtr  mPipeline;
     ppx::grfx::BufferPtr            mVertexBuffer;
+    uint32_t                        mWindowWidth;
+    uint32_t                        mWindowHeight;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
+    // If user did not provide resolution from the CL use this default
+    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
+        settings.window.width  = 1280;
+        settings.window.height = 720;
+    }
     settings.appName          = "alloc";
-    settings.window.width     = kWindowWidth;
-    settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)
@@ -41,6 +43,8 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
+    mWindowWidth  = settings.window.width;
+    mWindowHeight = settings.window.height;
 }
 
 static void YayOrNay(uint32_t first, uint32_t last, const char* status)
