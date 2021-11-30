@@ -264,7 +264,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
-    settings.grfx.enableDebug           = false;
+    settings.grfx.enableDebug           = true;
     settings.enableImGui                = true;
     settings.grfx.numFramesInFlight     = 1;
 #if defined(USE_DXIL)

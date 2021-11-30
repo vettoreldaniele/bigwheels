@@ -9,8 +9,10 @@
 // *** NOTE ***
 // 
 // Pipeline queries do not work on DXIIVK yet.
+// Pipeline stats queries are not supported by Nvidia Vulkan Driver (TODO: Need to check VkDeviceCreateInfo.pEnabledFeatures.pipelineStatisticsQuery!)
+//
 // 
-#if ! defined(PPX_DXIIVK)
+#if ! defined(PPX_DXIIVK) && ! defined(USE_VK)
 #define ENABLE_PIPELINE_QUERIES
 #endif
 
@@ -143,7 +145,7 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
     settings.grfx.api                   = kApi;
     settings.enableImGui                = true;
     settings.grfx.numFramesInFlight     = 2;
-    settings.grfx.enableDebug           = false;
+    settings.grfx.enableDebug           = true;
     settings.grfx.swapchain.imageCount  = 3;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
 #if defined(USE_DXIL)
@@ -505,11 +507,13 @@ void FishTornadoApp::Render()
     PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(ppxres = prevFrame.renderCompleteFence->WaitAndReset());
+    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
 
     // Read query results
     if (GetFrameCount() > 0) {
 #if defined(ENABLE_PIPELINE_QUERIES)
+        PPX_CHECKED_CALL(ppxres = prevFrame.renderCompleteFence->WaitAndReset());
+
         uint64_t data[2] = {0};
         PPX_CHECKED_CALL(ppxres = prevFrame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mTotalGpuFrameTime = (data[1] - data[0]);

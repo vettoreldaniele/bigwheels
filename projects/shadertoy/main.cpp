@@ -78,7 +78,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.window.width     = kWindowWidth;
     settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = false;
+    settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
@@ -139,8 +139,8 @@ void ProjApp::Setup()
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
         gpCreateInfo.frontFace                          = grfx::FRONT_FACE_CCW;
-        gpCreateInfo.depthReadEnable                    = true;
-        gpCreateInfo.depthWriteEnable                   = true;
+        gpCreateInfo.depthReadEnable                    = false;
+        gpCreateInfo.depthWriteEnable                   = false;
         gpCreateInfo.blendModes[0]                      = grfx::BLEND_MODE_NONE;
         gpCreateInfo.outputState.renderTargetCount      = 1;
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
