@@ -40,17 +40,10 @@ private:
     int32_t               mMouseY = 0;
     uint32_t              mMouseButtons;
     KeyState              mKeyStates[TOTAL_KEY_COUNT] = {0};
-    uint32_t              mWindowWidth;
-    uint32_t              mWindowHeight;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    // If user did not provide resolution from the CL use this default
-    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
-        settings.window.width  = 1280;
-        settings.window.height = 720;
-    }
     settings.appName          = "input";
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
@@ -61,8 +54,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
-    mWindowWidth  = settings.window.width;
-    mWindowHeight = settings.window.height;
 }
 
 void ProjApp::Setup()

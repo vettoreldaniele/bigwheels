@@ -72,18 +72,10 @@ private:
     grfx::Rect                        mScissorRect;
     grfx::VertexBinding               mVertexBinding;
     std::vector<TexturedShape>        mShapes;
-    uint32_t                          mWindowWidth;
-    uint32_t                          mWindowHeight;
-    float                             mWindowAspect;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    // If user did not provide resolution from the CL use this default
-    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
-        settings.window.width  = 1280;
-        settings.window.height = 720;
-    }
     settings.appName                    = "11_compressed_textures";
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
@@ -94,9 +86,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
-    mWindowWidth  = settings.window.width;
-    mWindowHeight = settings.window.height;
-    mWindowAspect = float(mWindowWidth) / float(mWindowHeight);
 }
 
 void ProjApp::Setup()
@@ -309,8 +298,8 @@ void ProjApp::Setup()
     }
 
     // Viewport and scissor rect
-    mViewport    = {0, 0, float(mWindowWidth), float(mWindowHeight), 0, 1};
-    mScissorRect = {0, 0, mWindowWidth, mWindowHeight};
+    mViewport    = {0, 0, float(GetWindowWidth()), float(GetWindowHeight()), 0, 1};
+    mScissorRect = {0, 0, GetWindowWidth(), GetWindowHeight()};
 }
 
 void ProjApp::Render()
@@ -332,7 +321,7 @@ void ProjApp::Render()
     // Update uniform buffers.
     for (auto& shape : mShapes) {
         float    t = GetElapsedSeconds();
-        float4x4 P = glm::perspective(glm::radians(60.0f), mWindowAspect, 0.001f, 10000.0f);
+        float4x4 P = glm::perspective(glm::radians(60.0f), GetWindowAspect(), 0.001f, 10000.0f);
         float4x4 V = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
         float4x4 T   = glm::translate(float3(shape.homeLoc[0], shape.homeLoc[1], -5 + sin(shape.id * t / 2))); // * sin(t / 2)));
         float4x4 R   = glm::rotate(shape.id + t, float3(shape.id * t, 0, 0)) * glm::rotate(shape.id + t / 4, float3(0, shape.id * t, 0)) * glm::rotate(shape.id + t / 4, float3(0, 0, shape.id * t));

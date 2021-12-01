@@ -21,7 +21,7 @@ struct StandardOptions
     int                 frame_count;
 
     StandardOptions();
-    void setDefault();
+    void SetDefault();
 };
 // -------------------------------------------------------------------------------------------------
 // CommandLineParser
@@ -31,13 +31,13 @@ class CommandLineParser
 public:
     CommandLineParser();
     CommandLineParser(int argc, char* argv[]);
-    void                               parse(int argc, char* argv[]);
-    StandardOptions                    getOptions() const;
-    std::map<std::string, std::string> getExtraOptions() const;
-    std::set<std::string>              getExtraFlags() const;
-    std::string                        getErrorMsgs() const;
-    std::string                        getUsageMsg() const;
-    bool                               isOK() const;
+    void                               Parse(int argc, char* argv[]);
+    StandardOptions                    GetOptions() const;
+    std::map<std::string, std::string> GetExtraOptions() const;
+    std::set<std::string>              GetExtraFlags() const;
+    std::string                        GetErrorMsgs() const;
+    std::string                        GetUsageMsg() const;
+    bool                               IsOK() const;
 
 private:
     StandardOptions                    mOpts;
@@ -52,17 +52,17 @@ private:
 --resolution <Width>x<Height> Specify the main window resolution in pixels. Width and Height must be two positive integers
 --frame-count <N>             The app exits after sucessfully rendering N frames
 )";
-    bool                               extractGpuIndex(const std::string& str);
-    bool                               extractResolution(const std::string& str);
-    bool                               extractFrameCount(const std::string& str);
+    bool                               ExtractGpuIndex(const std::string& str);
+    bool                               ExtractResolution(const std::string& str);
+    bool                               ExtractFrameCount(const std::string& str);
     // string related methods
-    int         parseInt(const std::string& str);
-    bool        matchesOption(const std::string& str, const std::string& pattern) const;
-    bool        optionOrFlag(const std::string& s) const;
-    void        ltrim(std::string& s) const;
-    void        rtrim(std::string& s) const;
-    void        trim(std::string& s) const;
-    std::string trim_copy(std::string s) const;
+    int         ParseInt(const std::string& str);
+    bool        MatchesOption(const std::string& str, const std::string& pattern) const;
+    bool        OptionOrFlag(const std::string& s) const;
+    void        LTrim(std::string& s) const;
+    void        RTrim(std::string& s) const;
+    void        Trim(std::string& s) const;
+    std::string TrimCopy(std::string s) const;
 };
 } // namespace ppx
 

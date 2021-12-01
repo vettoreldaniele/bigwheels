@@ -49,9 +49,6 @@ private:
     grfx::DescriptorPoolPtr      mDescriptorPool;
     grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
     grfx::GraphicsPipelinePtr    mTrianglePipeline;
-    uint32_t                     mWindowWidth;
-    uint32_t                     mWindowHeight;
-    float                        mWindowAspect;
     Entity                       mCube;
     grfx::GraphicsPipelinePtr    mWirePipeline;
     Entity                       mWirePlane;
@@ -65,11 +62,6 @@ private:
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    // If user did not provide resolution from the CL use this default
-    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
-        settings.window.width  = 1280;
-        settings.window.height = 720;
-    }
     settings.appName                    = "18_arcball_camera";
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
@@ -80,9 +72,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
-    mWindowWidth  = settings.window.width;
-    mWindowHeight = settings.window.height;
-    mWindowAspect = float(mWindowWidth) / float(mWindowHeight);
 }
 
 void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)

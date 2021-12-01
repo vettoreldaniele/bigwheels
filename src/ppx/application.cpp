@@ -29,8 +29,8 @@
 namespace ppx {
 
 const char*    kDefaultAppName      = "PPX Application";
-const uint32_t kDefaultWindowWidth  = 640;
-const uint32_t kDefaultWindowHeight = 480;
+const uint32_t kDefaultWindowWidth  = 1280;
+const uint32_t kDefaultWindowHeight = 720;
 
 static Application* sApplicationInstance = nullptr;
 
@@ -1112,17 +1112,17 @@ int Application::Run(int argc, char** argv)
         mCommandLineArgs.push_back(argv[i]);
     }
     // Parse args
-    mCommandLineParser.parse(argc, argv);
-    mStandardOptions = mCommandLineParser.getOptions();
+    mCommandLineParser.Parse(argc, argv);
+    mStandardOptions = mCommandLineParser.GetOptions();
 
-    if (!mCommandLineParser.isOK()) {
-        PPX_LOG_ERROR(mCommandLineParser.getErrorMsgs());
+    if (!mCommandLineParser.IsOK()) {
+        PPX_LOG_ERROR(mCommandLineParser.GetErrorMsgs());
         PPX_ASSERT_MSG(false, "Unable to parse command line arguments");
         return EXIT_FAILURE;
     }
 
     if (mStandardOptions.help) {
-        PPX_LOG_INFO(mCommandLineParser.getUsageMsg());
+        PPX_LOG_INFO(mCommandLineParser.GetUsageMsg());
         return EXIT_SUCCESS;
     }
 
@@ -1301,12 +1301,12 @@ StandardOptions Application::GetStandardOptions() const
 
 std::map<std::string, std::string> Application::GetExtraOptions() const
 {
-    return mCommandLineParser.getExtraOptions();
+    return mCommandLineParser.GetExtraOptions();
 }
 
 std::set<std::string> Application::GetExtraFlags() const
 {
-    return mCommandLineParser.getExtraFlags();
+    return mCommandLineParser.GetExtraFlags();
 }
 
 grfx::Rect Application::GetScissor() const

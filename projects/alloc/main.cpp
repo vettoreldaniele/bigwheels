@@ -23,17 +23,10 @@ private:
     ppx::grfx::PipelineInterfacePtr mPipelineInterface;
     ppx::grfx::GraphicsPipelinePtr  mPipeline;
     ppx::grfx::BufferPtr            mVertexBuffer;
-    uint32_t                        mWindowWidth;
-    uint32_t                        mWindowHeight;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    // If user did not provide resolution from the CL use this default
-    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
-        settings.window.width  = 1280;
-        settings.window.height = 720;
-    }
     settings.appName          = "alloc";
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
@@ -43,8 +36,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
-    mWindowWidth  = settings.window.width;
-    mWindowHeight = settings.window.height;
 }
 
 static void YayOrNay(uint32_t first, uint32_t last, const char* status)

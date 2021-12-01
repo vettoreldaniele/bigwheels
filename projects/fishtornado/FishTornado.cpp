@@ -137,11 +137,6 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
 
 void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 {
-    // If user did not provide resolution from the CL use this default
-    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
-        settings.window.width  = 1920;
-        settings.window.height = 1080;
-    }
     settings.appName                    = "Fish Tornado";
     settings.grfx.api                   = kApi;
     settings.enableImGui                = true;
@@ -155,8 +150,6 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
-    mWindowWidth  = settings.window.width;
-    mWindowHeight = settings.window.height;
 }
 
 void FishTornadoApp::SetupDescriptorPool()

@@ -44,17 +44,10 @@ private:
     grfx::Viewport                    mViewport;
     grfx::Rect                        mScissorRect;
     grfx::VertexBinding               mVertexBinding;
-    uint32_t                          mWindowWidth;
-    uint32_t                          mWindowHeight;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    // If user did not provide resolution from the CL use this default
-    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
-        settings.window.width  = 1280;
-        settings.window.height = 720;
-    }
     settings.appName          = "02_triangle_spinning";
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
@@ -65,8 +58,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.grfx.enableDXVKSPV = true;
 #endif
 
-    mWindowWidth  = settings.window.width;
-    mWindowHeight = settings.window.height;
 }
 
 void ProjApp::Setup()
@@ -199,8 +190,8 @@ void ProjApp::Setup()
     }
 
     // Viewport and scissor rect
-    mViewport    = {0, 0, float(mWindowWidth), float(mWindowHeight), 0, 1};
-    mScissorRect = {0, 0, mWindowWidth, mWindowHeight};
+    mViewport    = {0, 0, float(GetWindowWidth()), float(GetWindowHeight()), 0, 1};
+    mScissorRect = {0, 0, GetWindowWidth(), GetWindowHeight()};
 }
 
 void ProjApp::Render()

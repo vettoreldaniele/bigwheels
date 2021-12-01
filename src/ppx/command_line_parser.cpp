@@ -13,10 +13,10 @@ namespace ppx {
 // -------------------------------------------------------------------------------------------------
 StandardOptions::StandardOptions()
 {
-    setDefault();
+    SetDefault();
 }
 
-void StandardOptions::setDefault()
+void StandardOptions::SetDefault()
 {
     help = list_gpus = false;
     gpu_index = frame_count = resolution.first = resolution.second = -1;
@@ -26,18 +26,18 @@ void StandardOptions::setDefault()
 // -------------------------------------------------------------------------------------------------
 CommandLineParser::CommandLineParser()
 {
-    mOpts.setDefault();
+    mOpts.SetDefault();
     mStateOk = true; //Assume we are good to go
 }
 
 CommandLineParser::CommandLineParser(int argc, char* argv[])
 {
-    mOpts.setDefault();
+    mOpts.SetDefault();
     mStateOk = true; //Assume we are good to go
-    parse(argc, argv);
+    Parse(argc, argv);
 }
 
-void CommandLineParser::parse(int argc, char* argv[])
+void CommandLineParser::Parse(int argc, char* argv[])
 {
     // argc is always >= 1 and argv[0] it's the name of the executable
     if (argc < 2) {
@@ -51,19 +51,19 @@ void CommandLineParser::parse(int argc, char* argv[])
     mErorrMsgs.str("");
     // Loop to procees all the arguments
     for (size_t i = 0; i < args.size(); ++i) {
-        std::string arg = trim_copy(args[i]);
-        if (optionOrFlag(arg)) {
-            if (matchesOption(arg, "help")) {
+        std::string arg = TrimCopy(args[i]);
+        if (OptionOrFlag(arg)) {
+            if (MatchesOption(arg, "help")) {
                 mOpts.help = true;
             }
-            else if (matchesOption(arg, "list-gpus")) {
+            else if (MatchesOption(arg, "list-gpus")) {
                 mOpts.list_gpus = true;
             }
-            else if (matchesOption(arg, "gpu")) {
+            else if (MatchesOption(arg, "gpu")) {
                 if ((i + 1) < args.size()) {
-                    std::string parameter = trim_copy(args[i + 1]);
-                    if (!optionOrFlag(parameter)) {
-                        extractGpuIndex(parameter);
+                    std::string parameter = TrimCopy(args[i + 1]);
+                    if (!OptionOrFlag(parameter)) {
+                        ExtractGpuIndex(parameter);
                         i++; // We just consumed the parameter for this option
                     }
                     else {
@@ -76,11 +76,11 @@ void CommandLineParser::parse(int argc, char* argv[])
                     mStateOk = false;
                 }
             }
-            else if (matchesOption(arg, "resolution")) {
+            else if (MatchesOption(arg, "resolution")) {
                 if ((i + 1) < args.size()) {
-                    std::string parameter = trim_copy(args[i + 1]);
-                    if (!optionOrFlag(parameter)) {
-                        extractResolution(trim_copy(parameter));
+                    std::string parameter = TrimCopy(args[i + 1]);
+                    if (!OptionOrFlag(parameter)) {
+                        ExtractResolution(TrimCopy(parameter));
                         i++; // We just consumed the parameter for this option
                     }
                     else {
@@ -93,11 +93,11 @@ void CommandLineParser::parse(int argc, char* argv[])
                     mStateOk = false;
                 }
             }
-            else if (matchesOption(arg, "frame-count")) {
+            else if (MatchesOption(arg, "frame-count")) {
                 if ((i + 1) < args.size()) {
-                    std::string parameter = trim_copy(args[i + 1]);
-                    if (!optionOrFlag(parameter)) {
-                        extractFrameCount(parameter);
+                    std::string parameter = TrimCopy(args[i + 1]);
+                    if (!OptionOrFlag(parameter)) {
+                        ExtractFrameCount(parameter);
                         i++; // We just consumed the parameter for this option
                     }
                     else {
@@ -110,10 +110,10 @@ void CommandLineParser::parse(int argc, char* argv[])
                     mStateOk = false;
                 }
             }
-            else if (optionOrFlag(arg)) { // This is a non-standar option or flag
+            else if (OptionOrFlag(arg)) { // This is a non-standar option or flag
                 if ((i + 1) < args.size()) {
-                    std::string parameter = trim_copy(args[i + 1]);
-                    if (!optionOrFlag(parameter)) {
+                    std::string parameter = TrimCopy(args[i + 1]);
+                    if (!OptionOrFlag(parameter)) {
                         // It is an option with his corresponding parameter
                         mExtraOptions[arg.substr(2)] = parameter;
                         i++; // we just consume the parameter for this option
@@ -139,39 +139,39 @@ void CommandLineParser::parse(int argc, char* argv[])
     }
 }
 
-StandardOptions CommandLineParser::getOptions() const
+StandardOptions CommandLineParser::GetOptions() const
 {
     return mOpts;
 }
 
-std::map<std::string, std::string> CommandLineParser::getExtraOptions() const
+std::map<std::string, std::string> CommandLineParser::GetExtraOptions() const
 {
     return mExtraOptions;
 }
 
-std::set<std::string> CommandLineParser::getExtraFlags() const
+std::set<std::string> CommandLineParser::GetExtraFlags() const
 {
     return mExtraFlags;
 }
 
-std::string CommandLineParser::getErrorMsgs() const
+std::string CommandLineParser::GetErrorMsgs() const
 {
     return mErorrMsgs.str();
 }
 
-bool CommandLineParser::isOK() const
+bool CommandLineParser::IsOK() const
 {
     return mStateOk;
 }
 
-std::string CommandLineParser::getUsageMsg() const
+std::string CommandLineParser::GetUsageMsg() const
 {
     return mUsageMsg;
 }
 
-bool CommandLineParser::extractGpuIndex(const std::string& str)
+bool CommandLineParser::ExtractGpuIndex(const std::string& str)
 {
-    int id = parseInt(str);
+    int id = ParseInt(str);
     if (id >= 0) {
         mOpts.gpu_index = id;
         return true;
@@ -183,15 +183,15 @@ bool CommandLineParser::extractGpuIndex(const std::string& str)
     }
 }
 
-bool CommandLineParser::extractResolution(const std::string& str)
+bool CommandLineParser::ExtractResolution(const std::string& str)
 {
     int width  = -1;
     int height = -1;
 
     size_t found = str.find("x");
     if (found != std::string::npos) {
-        width  = parseInt(str.substr(0, found));
-        height = parseInt(str.substr(found + 1));
+        width  = ParseInt(str.substr(0, found));
+        height = ParseInt(str.substr(found + 1));
         if (width < 1 || height < 1) {
             mStateOk = false;
             mErorrMsgs << "Invalid resolution: " << str << std::endl;
@@ -210,9 +210,9 @@ bool CommandLineParser::extractResolution(const std::string& str)
     }
 }
 
-bool CommandLineParser::extractFrameCount(const std::string& str)
+bool CommandLineParser::ExtractFrameCount(const std::string& str)
 {
-    int n = parseInt(str);
+    int n = ParseInt(str);
     if (n > 0) {
         mOpts.frame_count = n;
         return true;
@@ -224,7 +224,7 @@ bool CommandLineParser::extractFrameCount(const std::string& str)
     }
 }
 
-int CommandLineParser::parseInt(const std::string& str)
+int CommandLineParser::ParseInt(const std::string& str)
 {
     int value = -1;
     try {
@@ -241,9 +241,9 @@ int CommandLineParser::parseInt(const std::string& str)
     return value;
 }
 
-bool CommandLineParser::matchesOption(const std::string& str, const std::string& pattern) const
+bool CommandLineParser::MatchesOption(const std::string& str, const std::string& pattern) const
 {
-    if (optionOrFlag(str)) {
+    if (OptionOrFlag(str)) {
         return str.substr(2) == pattern;
     }
 
@@ -251,7 +251,7 @@ bool CommandLineParser::matchesOption(const std::string& str, const std::string&
 }
 
 // trim from start (in place)
-void CommandLineParser::ltrim(std::string& s) const
+void CommandLineParser::LTrim(std::string& s) const
 {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
                 return !std::isspace(ch);
@@ -259,7 +259,7 @@ void CommandLineParser::ltrim(std::string& s) const
 }
 
 // trim from end (in place)
-void CommandLineParser::rtrim(std::string& s) const
+void CommandLineParser::RTrim(std::string& s) const
 {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
                 return !std::isspace(ch);
@@ -268,20 +268,20 @@ void CommandLineParser::rtrim(std::string& s) const
 }
 
 // trim from both ends (in place)
-void CommandLineParser::trim(std::string& s) const
+void CommandLineParser::Trim(std::string& s) const
 {
-    ltrim(s);
-    rtrim(s);
+    LTrim(s);
+    RTrim(s);
 }
 
 // trim from both ends (copying)
-std::string CommandLineParser::trim_copy(std::string s) const
+std::string CommandLineParser::TrimCopy(std::string s) const
 {
-    trim(s);
+    Trim(s);
     return s;
 }
 
-bool CommandLineParser::optionOrFlag(const std::string& s) const
+bool CommandLineParser::OptionOrFlag(const std::string& s) const
 {
     if (s.size() > 3) {
         return s.substr(0, 2) == "--";

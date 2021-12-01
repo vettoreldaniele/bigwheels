@@ -55,9 +55,7 @@ private:
     grfx::ImagePtr               mNormalMap;
     grfx::SampledImageViewPtr    mAlbedoTextureView;
     grfx::SampledImageViewPtr    mNormalMapView;
-    grfx::SamplerPtr             mSampler;\
-    uint32_t                     mWindowWidth;
-    uint32_t                     mWindowHeight;
+    grfx::SamplerPtr             mSampler;
     Entity                       mCube;
     Entity                       mSphere;
     std::vector<Entity*>         mEntities;
@@ -86,11 +84,6 @@ private:
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
-    // If user did not provide resolution from the CL use this default
-    if (GetStandardOptions().resolution.first == -1 && GetStandardOptions().resolution.second == -1) {
-        settings.window.width  = 1280;
-        settings.window.height = 720;
-    }
     settings.appName                    = "normal_map";
     settings.enableImGui                = true;
     settings.grfx.api                   = kApi;
@@ -102,8 +95,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
-    mWindowWidth  = settings.window.width;
-    mWindowHeight = settings.window.height;
 }
 
 void ProjApp::SetupEntity(
