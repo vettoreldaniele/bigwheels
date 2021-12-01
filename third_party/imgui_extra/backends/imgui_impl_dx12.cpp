@@ -70,7 +70,7 @@
 #endif
 #endif
 
-#if ! defined(_MSC_VER)
+#if !defined(_MSC_VER) && !defined(_countof)
 template<typename T, std::size_t N>
 constexpr std::size_t _countof(T const (&)[N])
 {
