@@ -661,8 +661,8 @@ Result Application::InitializeGrfxDevice()
         }
 
         uint32_t gpuIndex = 0;
-        if (mStandarOptions.gpu_index != -1) {
-            gpuIndex = mStandarOptions.gpu_index;
+        if (mStandardOptions.gpu_index != -1) {
+            gpuIndex = mStandardOptions.gpu_index;
         }
 
         grfx::GpuPtr gpu;
@@ -1113,7 +1113,7 @@ int Application::Run(int argc, char** argv)
     }
     // Parse args
     mCommandLineParser.parse(argc, argv);
-    mStandarOptions = mCommandLineParser.getOptions();
+    mStandardOptions = mCommandLineParser.getOptions();
 
     if (!mCommandLineParser.isOK()) {
         PPX_LOG_ERROR(mCommandLineParser.getErrorMsgs());
@@ -1121,7 +1121,7 @@ int Application::Run(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    if (mStandarOptions.help) {
+    if (mStandardOptions.help) {
         PPX_LOG_INFO(mCommandLineParser.getUsageMsg());
         return EXIT_SUCCESS;
     }
@@ -1133,15 +1133,15 @@ int Application::Run(int argc, char** argv)
     }
 
     // If command line argument provided width and height
-    if (mStandarOptions.resolution.first != -1 && mStandarOptions.resolution.second != -1) {
-        mSettings.window.width  = mStandarOptions.resolution.first;
-        mSettings.window.height = mStandarOptions.resolution.second;
+    if (mStandardOptions.resolution.first != -1 && mStandardOptions.resolution.second != -1) {
+        mSettings.window.width  = mStandardOptions.resolution.first;
+        mSettings.window.height = mStandardOptions.resolution.second;
     }
 
     mMaxFrame = UINT64_MAX;
     // If command line provided a maximum number of frames to draw
-    if (mStandarOptions.frame_count != -1) {
-        mMaxFrame = mStandarOptions.frame_count;
+    if (mStandardOptions.frame_count != -1) {
+        mMaxFrame = mStandardOptions.frame_count;
     }
 
     // Call config
@@ -1154,7 +1154,7 @@ int Application::Run(int argc, char** argv)
     }
 
     // List gpus
-    if (mStandarOptions.list_gpus) {
+    if (mStandardOptions.list_gpus) {
         uint32_t count = GetInstance()->GetGpuCount();
         std::stringstream ss;
         for (uint32_t i = 0; i < count; ++i) {
@@ -1294,9 +1294,9 @@ std::vector<const char*> Application::GetCommandLineArgs() const
     return args;
 }
 
-StandarOptions Application::GetStandardOptions() const
+StandardOptions Application::GetStandardOptions() const
 {
-    return mStandarOptions;
+    return mStandardOptions;
 }
 
 std::map<std::string, std::string> Application::GetExtraOptions() const

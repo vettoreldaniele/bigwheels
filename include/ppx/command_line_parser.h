@@ -8,9 +8,9 @@
 
 namespace ppx {
 // -------------------------------------------------------------------------------------------------
-// StandarOptions
+// StandardOptions
 // -------------------------------------------------------------------------------------------------
-struct StandarOptions
+struct StandardOptions
 {
     // Flags
     bool help;
@@ -20,7 +20,7 @@ struct StandarOptions
     std::pair<int, int> resolution;
     int                 frame_count;
 
-    StandarOptions();
+    StandardOptions();
     void setDefault();
 };
 // -------------------------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ public:
     CommandLineParser();
     CommandLineParser(int argc, char* argv[]);
     void                               parse(int argc, char* argv[]);
-    StandarOptions                     getOptions() const;
+    StandardOptions                    getOptions() const;
     std::map<std::string, std::string> getExtraOptions() const;
     std::set<std::string>              getExtraFlags() const;
     std::string                        getErrorMsgs() const;
@@ -40,7 +40,7 @@ public:
     bool                               isOK() const;
 
 private:
-    StandarOptions                     mOpts;
+    StandardOptions                    mOpts;
     std::map<std::string, std::string> mExtraOptions;
     std::set<std::string>              mExtraFlags;
     bool                               mStateOk;
@@ -50,7 +50,7 @@ private:
 --list-gpus                   Prints a list of the available GPUs on the current system with their id  and exits (See --gpu).
 --gpu <index>                 Select the gpu with the given index. To determine valid index use --list-gpus
 --resolution <Width>x<Height> Specify the main window resolution in pixels. Width and Height must be two positive integers
---frame-count <N>             The app exits after sucessfully render N frames
+--frame-count <N>             The app exits after sucessfully rendering N frames
 )";
     bool                               extractGpuIndex(const std::string& str);
     bool                               extractResolution(const std::string& str);
@@ -62,8 +62,6 @@ private:
     void        ltrim(std::string& s) const;
     void        rtrim(std::string& s) const;
     void        trim(std::string& s) const;
-    std::string ltrim_copy(std::string s) const;
-    std::string rtrim_copy(std::string s) const;
     std::string trim_copy(std::string s) const;
 };
 } // namespace ppx

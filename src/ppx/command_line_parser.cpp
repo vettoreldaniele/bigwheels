@@ -11,12 +11,12 @@ namespace ppx {
 // -------------------------------------------------------------------------------------------------
 // StandarOptions
 // -------------------------------------------------------------------------------------------------
-StandarOptions::StandarOptions()
+StandardOptions::StandardOptions()
 {
     setDefault();
 }
 
-void StandarOptions::setDefault()
+void StandardOptions::setDefault()
 {
     help = list_gpus = false;
     gpu_index = frame_count = resolution.first = resolution.second = -1;
@@ -139,7 +139,7 @@ void CommandLineParser::parse(int argc, char* argv[])
     }
 }
 
-StandarOptions CommandLineParser::getOptions() const
+StandardOptions CommandLineParser::getOptions() const
 {
     return mOpts;
 }
@@ -272,20 +272,6 @@ void CommandLineParser::trim(std::string& s) const
 {
     ltrim(s);
     rtrim(s);
-}
-
-// trim from start (copying)
-std::string CommandLineParser::ltrim_copy(std::string s) const
-{
-    ltrim(s);
-    return s;
-}
-
-// trim from end (copying)
-std::string CommandLineParser::rtrim_copy(std::string s) const
-{
-    rtrim(s);
-    return s;
 }
 
 // trim from both ends (copying)

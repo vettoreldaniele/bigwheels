@@ -275,7 +275,7 @@ public:
     void Quit();
 
     std::vector<const char*>           GetCommandLineArgs() const;
-    StandarOptions                     GetStandardOptions() const;
+    StandardOptions                    GetStandardOptions() const;
     std::map<std::string, std::string> GetExtraOptions() const;
     std::set<std::string>              GetExtraFlags() const;
 
@@ -372,7 +372,7 @@ private:
 private:
     std::vector<std::string>   mCommandLineArgs;
     CommandLineParser          mCommandLineParser;
-    StandarOptions             mStandarOptions;
+    StandardOptions            mStandardOptions;
     uint64_t                   mMaxFrame;
     ApplicationSettings        mSettings = {};
     std::string                mDecoratedApiName;
