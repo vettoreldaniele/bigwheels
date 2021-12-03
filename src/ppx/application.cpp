@@ -1133,7 +1133,7 @@ int Application::Run(int argc, char** argv)
     }
 
     // If command line argument provided width and height
-    if (mStandardOptions.resolution.first != -1 && mStandardOptions.resolution.second != -1) {
+    if ((mStandardOptions.resolution.first != -1) && (mStandardOptions.resolution.second != -1)) {
         mSettings.window.width  = mStandardOptions.resolution.first;
         mSettings.window.height = mStandardOptions.resolution.second;
     }
@@ -1252,7 +1252,7 @@ int Application::Run(int argc, char** argv)
         }
         // If we reach the maximum number of frames allowed
         if (mFrameCount >= mMaxFrame) {
-            glfwSetWindowShouldClose(static_cast<GLFWwindow*>(mWindow), 1);
+            Quit();
         }
     }
     // ---------------------------------------------------------------------------------------------
@@ -1294,17 +1294,17 @@ std::vector<const char*> Application::GetCommandLineArgs() const
     return args;
 }
 
-StandardOptions Application::GetStandardOptions() const
+const StandardOptions Application::GetStandardOptions() const
 {
     return mStandardOptions;
 }
 
-std::map<std::string, std::string> Application::GetExtraOptions() const
+const std::map<std::string, std::string> Application::GetExtraOptions() const
 {
     return mCommandLineParser.GetExtraOptions();
 }
 
-std::set<std::string> Application::GetExtraFlags() const
+const std::set<std::string> Application::GetExtraFlags() const
 {
     return mCommandLineParser.GetExtraFlags();
 }
