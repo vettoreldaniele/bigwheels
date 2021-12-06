@@ -162,6 +162,7 @@ if (PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
         set(ENABLE_DXVK   OFF CACHE BOOL "" FORCE)
         set(ENABLE_DXIIVK ON CACHE BOOL "" FORCE)
     endif()
+    set(LIBPORTO_DISABLE_SAMPLES ON)
     add_subdirectory(${PPX_THIRD_PARTY_DIR}/libporto)
     target_compile_definitions(
         porto
