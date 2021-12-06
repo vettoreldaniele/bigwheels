@@ -14,13 +14,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#if defined(PPX_GGP)
-#define kWindowWidth  1920
-#define kWindowHeight 1080
-#else
-#define kWindowWidth  1280
-#define kWindowHeight 720
-#endif
 #define kNumThreadsX          8
 #define kNumThreadsY          8
 #define kDefaultShaderToy     4
@@ -75,8 +68,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "shadertoy";
     settings.enableImGui      = true;
-    settings.window.width     = kWindowWidth;
-    settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)

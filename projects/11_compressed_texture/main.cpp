@@ -14,10 +14,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth  1280
-#define kWindowHeight 720
-#define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
-
 struct ShapeDesc
 {
     const char* texturePath;
@@ -81,8 +77,6 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "11_compressed_textures";
-    settings.window.width               = kWindowWidth;
-    settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = true;
@@ -304,8 +298,8 @@ void ProjApp::Setup()
     }
 
     // Viewport and scissor rect
-    mViewport    = {0, 0, kWindowWidth, kWindowHeight, 0, 1};
-    mScissorRect = {0, 0, kWindowWidth, kWindowHeight};
+    mViewport    = {0, 0, float(GetWindowWidth()), float(GetWindowHeight()), 0, 1};
+    mScissorRect = {0, 0, GetWindowWidth(), GetWindowHeight()};
 }
 
 void ProjApp::Render()
@@ -327,7 +321,7 @@ void ProjApp::Render()
     // Update uniform buffers.
     for (auto& shape : mShapes) {
         float    t = GetElapsedSeconds();
-        float4x4 P = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
+        float4x4 P = glm::perspective(glm::radians(60.0f), GetWindowAspect(), 0.001f, 10000.0f);
         float4x4 V = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
         float4x4 T   = glm::translate(float3(shape.homeLoc[0], shape.homeLoc[1], -5 + sin(shape.id * t / 2))); // * sin(t / 2)));
         float4x4 R   = glm::rotate(shape.id + t, float3(shape.id * t, 0, 0)) * glm::rotate(shape.id + t / 4, float3(0, shape.id * t, 0)) * glm::rotate(shape.id + t / 4, float3(0, 0, shape.id * t));

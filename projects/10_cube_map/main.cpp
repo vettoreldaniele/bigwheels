@@ -22,11 +22,6 @@ const grfx::Api kApi = grfx::API_VK_1_1;
 #define ENABLE_PIPELINE_QUERIES
 #endif
 
-
-#define kWindowWidth  1280
-#define kWindowHeight 720
-#define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
-
 class ProjApp
     : public ppx::Application
 {
@@ -81,8 +76,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "10_cube_map";
     settings.enableImGui                = true;
-    settings.window.width               = kWindowWidth;
-    settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = true;
@@ -334,7 +327,7 @@ void ProjApp::Render()
     // Update uniform buffer
     {
         float3   eyePos = float3(0, 0, 5);
-        float4x4 P      = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
+        float4x4 P      = glm::perspective(glm::radians(60.0f), GetWindowAspect(), 0.001f, 10000.0f);
         float4x4 V      = glm::lookAt(eyePos, float3(0, 0, 0), float3(0, 1, 0));
         float4x4 M      = glm::translate(float3(0, 0, 0));
 

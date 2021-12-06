@@ -14,14 +14,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#if defined(PPX_GGP)
-#define kWindowWidth  1920
-#define kWindowHeight 1080
-#else
-#define kWindowWidth  1280
-#define kWindowHeight 720
-#endif
-
 class ProjApp
     : public ppx::Application
 {
@@ -62,8 +54,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "03_square_textured";
     settings.enableImGui      = true;
-    settings.window.width     = kWindowWidth;
-    settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)
@@ -236,8 +226,8 @@ void ProjApp::Setup()
     }
 
     // Viewport and scissor rect
-    mViewport    = {0, 0, kWindowWidth, kWindowHeight, 0, 1};
-    mScissorRect = {0, 0, kWindowWidth, kWindowHeight};
+    mViewport    = {0, 0, float(GetWindowWidth()), float(GetWindowHeight()), 0, 1};
+    mScissorRect = {0, 0, GetWindowWidth(), GetWindowHeight()};
 }
 
 void ProjApp::Render()

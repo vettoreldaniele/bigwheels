@@ -1,8 +1,6 @@
 #include "FishTornado.h"
 #include "ppx/graphics_util.h"
 
-#define kWindowWidth        1920
-#define kWindowHeight       1080
 #define kShadowRes          1024
 #define kCausticsImageCount 32
 
@@ -140,8 +138,6 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
 void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "Fish Tornado";
-    settings.window.width               = kWindowWidth;
-    settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.enableImGui                = true;
     settings.grfx.numFramesInFlight     = 2;

@@ -14,15 +14,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#if defined(PPX_GGP)
-#define kWindowWidth  1920
-#define kWindowHeight 1080
-#else
-#define kWindowWidth  1280
-#define kWindowHeight 720
-#endif
-#define kWindowAspect (float)kWindowWidth / (float)kWindowHeight
-
 class ProjApp
     : public ppx::Application
 {
@@ -71,8 +62,6 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "17_primitives";
-    settings.window.width               = kWindowWidth;
-    settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = true;
@@ -264,7 +253,7 @@ void ProjApp::Render()
     // Update uniform buffer
     {
         float    t = GetElapsedSeconds();
-        float4x4 P = glm::perspective(glm::radians(60.0f), kWindowAspect, 0.001f, 10000.0f);
+        float4x4 P = glm::perspective(glm::radians(60.0f), GetWindowAspect(), 0.001f, 10000.0f);
         float4x4 V = glm::lookAt(float3(0, 0, 8), float3(0, 0, 0), float3(0, 1, 0));
         float4x4 M = glm::rotate(t, float3(0, 0, 1)) * glm::rotate(2 * t, float3(0, 1, 0)) * glm::rotate(t, float3(1, 0, 0));
 

@@ -15,9 +15,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth  1280
-#define kWindowHeight 720
-
 class ProjApp
     : public ppx::Application
 {
@@ -89,8 +86,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "normal_map";
     settings.enableImGui                = true;
-    settings.window.width               = kWindowWidth;
-    settings.window.height              = kWindowHeight;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = true;

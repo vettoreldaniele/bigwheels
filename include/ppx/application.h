@@ -2,6 +2,7 @@
 #define ppx_application_h
 
 #include "ppx/base_application.h"
+#include "ppx/command_line_parser.h"
 #include "ppx/000_math_config.h"
 #include "ppx/imgui_impl.h"
 #include "ppx/timer.h"
@@ -273,7 +274,10 @@ public:
     int  Run(int argc, char** argv);
     void Quit();
 
-    std::vector<const char*> GetCommandLineArgs() const;
+    std::vector<const char*>                 GetCommandLineArgs() const;
+    const StandardOptions                    GetStandardOptions() const;
+    const std::map<std::string, std::string> GetExtraOptions() const;
+    const std::set<std::string>              GetExtraFlags() const;
 
     const ApplicationSettings* GetSettings() const { return &mSettings; }
     uint32_t                   GetWindowWidth() const { return mSettings.window.width; }
@@ -367,6 +371,9 @@ private:
 
 private:
     std::vector<std::string>   mCommandLineArgs;
+    CommandLineParser          mCommandLineParser;
+    StandardOptions            mStandardOptions;
+    uint64_t                   mMaxFrame;
     ApplicationSettings        mSettings = {};
     std::string                mDecoratedApiName;
     Timer                      mTimer;

@@ -13,9 +13,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#define kWindowWidth  1280
-#define kWindowHeight 720
-
 class ProjApp
     : public ppx::Application
 {
@@ -52,8 +49,6 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "02_triangle_spinning";
-    settings.window.width     = kWindowWidth;
-    settings.window.height    = kWindowHeight;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)
@@ -62,6 +57,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
+
 }
 
 void ProjApp::Setup()
@@ -194,8 +190,8 @@ void ProjApp::Setup()
     }
 
     // Viewport and scissor rect
-    mViewport    = {0, 0, kWindowWidth, kWindowHeight, 0, 1};
-    mScissorRect = {0, 0, kWindowWidth, kWindowHeight};
+    mViewport    = {0, 0, float(GetWindowWidth()), float(GetWindowHeight()), 0, 1};
+    mScissorRect = {0, 0, GetWindowWidth(), GetWindowHeight()};
 }
 
 void ProjApp::Render()
