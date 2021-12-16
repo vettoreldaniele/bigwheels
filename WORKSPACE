@@ -1,5 +1,4 @@
-load("//build_defs:gsutil.bzl", "gsutil_toolchain")
-load("//:third_party/YetiSDK/yeti_repository.bzl", "yeti_repository")
+load("//build_defs:gsutil.bzl", "gsutil_archive", "gsutil_toolchain")
 
 gsutil_toolchain(
     name = "yeti_crosstool_debian",
@@ -98,8 +97,9 @@ new_local_repository(
     path = "third_party/xxHash",
 )
 
-# TODO(chouinard): Try replacing this with a `gsutil_archive`
-# instead of relying on local SDK.
-yeti_repository(
+gsutil_archive(
     name = "YetiSDK",
+    url = "gs://pikmin_sdk/prod/latest/internal/YetiSDK-linux.tar.gz",
+    strip_components = ["YetiSDK"],
+    build_tpl_path = "//:third_party/YetiSDK.BUILD.bazel",
 )
