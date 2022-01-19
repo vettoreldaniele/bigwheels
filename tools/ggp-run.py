@@ -94,8 +94,13 @@ def main():
   )
   args = parser.parse_args()
 
-  rc = _SyncToInstance(args.ggp_bin, args.instance,
-                       ['assets', 'bazel-bin/assets', args.binary],
+  sources = ['assets', args.binary]
+  if os.path.exists('bazel-bin/assets'):
+    sources.append('bazel-bin/assets')
+  else:
+    logging.warning(
+        'Directory bazel-bin/assets not found, it will not be uploaded')
+  rc = _SyncToInstance(args.ggp_bin, args.instance, sources,
                        '/mnt/developer/%s/' % args.app_path)
   if rc != 0:
     return rc
