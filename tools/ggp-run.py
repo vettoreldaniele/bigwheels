@@ -40,7 +40,7 @@ def _SyncToInstance(ggp_bin, instance, sources, dst):
   return subprocess.call(cmd)
 
 
-def _RunOnInstance(ggp_bin, instance, app_path, binary):
+def _RunOnInstance(ggp_bin, instance, app_path, binary, ggp_vars):
   """Runs the given binary on the instance.
 
   Args:
@@ -48,6 +48,7 @@ def _RunOnInstance(ggp_bin, instance, app_path, binary):
     instance: The instance name or ID. None, if only one instance is reserved.
     app_path: Path relative to /mnt/developer where the binary can be found.
     binary: The binary to execute.
+    ggp_vars: The --vars string to pass to the ggp binary.
 
   Returns:
     A return code value. 0 means success.
@@ -59,6 +60,8 @@ def _RunOnInstance(ggp_bin, instance, app_path, binary):
   ]
   if instance is not None:
     cmd.extend(['--instance', instance])
+  if ggp_vars:
+    cmd.extend(['--vars', ggp_vars])
   logging.info('$ %s', ' '.join(cmd))
   return subprocess.call(cmd)
 
@@ -92,6 +95,11 @@ def main():
       'binary',
       help='Binary to execute on the instance.',
   )
+  parser.add_argument(
+      '--vars',
+      default='',
+      help='The --vars string to pass to the ggp binary as part of the `ggp run` command.',
+  )
   args = parser.parse_args()
 
   sources = ['assets', args.binary]
@@ -105,7 +113,8 @@ def main():
   if rc != 0:
     return rc
 
-  return _RunOnInstance(args.ggp_bin, args.instance, args.app_path, args.binary)
+  return _RunOnInstance(args.ggp_bin, args.instance, args.app_path, args.binary,
+                        args.vars)
 
 
 if __name__ == '__main__':
