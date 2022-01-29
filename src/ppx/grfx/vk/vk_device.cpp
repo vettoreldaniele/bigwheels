@@ -155,6 +155,7 @@ Result Device::ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhy
     features                     = {};
     features.fullDrawIndexUint32 = VK_TRUE;
     features.imageCubeArray      = VK_TRUE;
+    features.pipelineStatisticsQuery = foundFeatures.pipelineStatisticsQuery;
     features.geometryShader      = foundFeatures.geometryShader;
     features.tessellationShader  = foundFeatures.tessellationShader;
 

@@ -3,6 +3,7 @@
 
 #include "ppx/base_application.h"
 #include "ppx/command_line_parser.h"
+#include "ppx/csv_file_log.h"
 #include "ppx/000_math_config.h"
 #include "ppx/imgui_impl.h"
 #include "ppx/timer.h"
@@ -276,6 +277,7 @@ public:
 
     std::vector<const char*>                 GetCommandLineArgs() const;
     const StandardOptions                    GetStandardOptions() const;
+    CSVFileLog&                              GetCSVLogger() { return mFileLog; };
     const std::map<std::string, std::string> GetExtraOptions() const;
     const std::set<std::string>              GetExtraFlags() const;
 
@@ -374,6 +376,7 @@ private:
     std::vector<std::string>   mCommandLineArgs;
     CommandLineParser          mCommandLineParser;
     StandardOptions            mStandardOptions;
+    CSVFileLog                 mFileLog;
     uint64_t                   mMaxFrame;
     ApplicationSettings        mSettings = {};
     std::string                mDecoratedApiName;
