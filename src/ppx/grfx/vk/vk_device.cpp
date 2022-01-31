@@ -152,12 +152,12 @@ Result Device::ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhy
     // 2021/11/15 - Changed logic to use feature bit from GPU for geo and tess shaders to accomodate
     //              SwiftShader not having support for these shader types.
     //
-    features                     = {};
-    features.fullDrawIndexUint32 = VK_TRUE;
-    features.imageCubeArray      = VK_TRUE;
+    features                         = {};
+    features.fullDrawIndexUint32     = VK_TRUE;
+    features.imageCubeArray          = VK_TRUE;
     features.pipelineStatisticsQuery = foundFeatures.pipelineStatisticsQuery;
-    features.geometryShader      = foundFeatures.geometryShader;
-    features.tessellationShader  = foundFeatures.tessellationShader;
+    features.geometryShader          = foundFeatures.geometryShader;
+    features.tessellationShader      = foundFeatures.tessellationShader;
 
     // Select between default or custom features 
     //

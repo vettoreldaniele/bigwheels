@@ -277,7 +277,7 @@ public:
 
     std::vector<const char*>                 GetCommandLineArgs() const;
     const StandardOptions                    GetStandardOptions() const;
-    CSVFileLog&                              GetCSVLogger() { return mFileLog; };
+    CSVFileLog&                              GetCSVLogger() { return mFileLog; }
     const std::map<std::string, std::string> GetExtraOptions() const;
     const std::set<std::string>              GetExtraFlags() const;
 

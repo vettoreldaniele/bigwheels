@@ -1241,8 +1241,8 @@ int Application::Run(int argc, char** argv)
         mAverageFrameTime  = static_cast<float>(mTimer.MillisSinceStart() / mFrameCount);
 
         // Log frame stats
-        mFileLog.logField(mFrameCount);
-        mFileLog.lastField(mPreviousFrameTime);
+        mFileLog.LogField(mFrameCount);
+        mFileLog.LastField(mPreviousFrameTime);
 
         // Pace frames - if needed
         if (mSettings.grfx.pacedFrameRate > 0) {
