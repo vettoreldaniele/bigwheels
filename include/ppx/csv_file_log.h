@@ -32,7 +32,7 @@ public:
     }
 
     template <typename T>
-    void logField(const T& value)
+    void LogField(const T& value)
     {
         Lock();
         (*this) << value << ",";
@@ -40,14 +40,14 @@ public:
         Unlock();
     }
     template <typename T>
-    void lastField(const T& value)
+    void LastField(const T& value)
     {
         Lock();
         (*this) << value << "\n";
         Flush();
         Unlock();
     }
-    void newLine()
+    void NewLine()
     {
         Lock();
         (*this) << "\n";
