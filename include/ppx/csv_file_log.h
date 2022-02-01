@@ -24,6 +24,10 @@ public:
 
     void Restart(const std::string& filepath);
 
+    void Lock();
+    void Unlock();
+    void Flush();
+
     template <typename T>
     CSVFileLog& operator<<(const T& value)
     {
@@ -34,31 +38,19 @@ public:
     template <typename T>
     void LogField(const T& value)
     {
-        Lock();
         (*this) << value << ",";
-        Flush();
-        Unlock();
     }
     template <typename T>
     void LastField(const T& value)
     {
-        Lock();
         (*this) << value << "\n";
-        Flush();
-        Unlock();
     }
     void NewLine()
     {
-        Lock();
         (*this) << "\n";
-        Flush();
-        Unlock();
     }
 
 private:
-    void Lock();
-    void Unlock();
-    void Flush();
     void Write(const char* msg);
 
 private:
