@@ -1,0 +1,13 @@
+load("//tools:yeti.bzl", "yeti_cc_binary")
+load("//build_defs:config.bzl", "COPTS")
+
+yeti_cc_binary(
+    name = "primitive_assembly",
+    srcs = ["main.cpp"],
+    copts = COPTS,
+    data = [
+        "//assets:basic/shaders/spv/PassThroughPos.ps.spv",
+        "//assets:basic/shaders/spv/PassThroughPos.vs.spv",
+    ],
+    deps = ["//:ppx"],
+)

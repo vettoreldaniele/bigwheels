@@ -18,7 +18,7 @@ const grfx::Api kApi = grfx::API_VK_1_1;
 //
 // Pipeline queries do not work on DXIIVK yet.
 //
-#if !defined(PPX_DXIIVK) && !defined(PPX_D3D11)
+#if !defined(PPX_DXIIVK)
 #define ENABLE_PIPELINE_QUERIES
 #endif
 
@@ -448,10 +448,14 @@ void ProjApp::DrawGui()
         GetGraphicsQueue()->GetTimestampFrequency(&frequency);
 
         ImGui::Columns(2);
-
+        const float gpuWorkDuration = static_cast<float>(mGpuWorkDuration / static_cast<double>(frequency)) * 1000.0f;
+        GetCSVLogger().Lock();
+        GetCSVLogger().LogField(gpuWorkDuration);
+        GetCSVLogger().Flush();
+        GetCSVLogger().Unlock();
         ImGui::Text("GPU Work Duration");
         ImGui::NextColumn();
-        ImGui::Text("%f ms ", static_cast<float>(mGpuWorkDuration / static_cast<double>(frequency)) * 1000.0f);
+        ImGui::Text("%f ms ", gpuWorkDuration);
         ImGui::NextColumn();
 
         ImGui::Columns(1);
