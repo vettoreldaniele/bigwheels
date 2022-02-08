@@ -179,4 +179,14 @@ add_subdirectory(src)
 if (PPX_BUILD_PROJECTS)
     message("Building sample projects")
     add_subdirectory(projects)
-endif()    
+endif()
+
+
+# ------------------------------------------------------------------------------
+# Add benchmarks
+# ------------------------------------------------------------------------------
+
+if (PPX_BUILD_BENCHMARKS)
+    message("Building benchmarks projects")
+    add_subdirectory(benchmarks)
+endif()
