@@ -16,6 +16,12 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
+// Skybox registers
+#define SKYBOX_CONSTANTS_REGISTER 0
+#define SKYBOX_TEXTURE_REGISTER   1
+#define SKYBOX_SAMPLER_REGISTER   2
+
+// Material registers
 // b#
 #define SCENE_CONSTANTS_REGISTER    0
 #define MATERIAL_CONSTANTS_REGISTER 1
@@ -84,14 +90,17 @@ private:
     grfx::ModelPtr              mCeberusModel;
     std::vector<grfx::ModelPtr> mModels;
 
-    grfx::ModelPtr                mIBLModel;
-    grfx::DescriptorSetLayoutPtr  mIBLLayout;
-    grfx::DescriptorSetPtr        mIBLSet;
-    grfx::BufferPtr               mIBLConstants;
+    // Skybox (a sphere really)
+    grfx::ModelPtr                mSkyboxModel;
+    grfx::DescriptorSetLayoutPtr  mSkyboxLayout;
+    grfx::DescriptorSetPtr        mSkyboxSet;
+    grfx::BufferPtr               mSkyboxConstants;
+    grfx::PipelineInterfacePtr    mSkyboxPipelineInterface;
+    grfx::GraphicsPipelinePtr     mSkyboxPipeline;
+
+    // IBL and environemnt reflection maps
     std::vector<grfx::TexturePtr> mIBLMaps;
-    std::vector<grfx::TexturePtr> mIBLEnvMaps;
-    grfx::PipelineInterfacePtr    mIBLPipelineInterface;
-    grfx::GraphicsPipelinePtr     mIBLPipeline;
+    std::vector<grfx::TexturePtr> mEnvMaps;
 
     // Descriptor Set 0 - Scene Data
     grfx::DescriptorSetLayoutPtr mSceneDataLayout;
@@ -233,16 +242,16 @@ private:
     uint32_t           mCurrentIBLIndex = 0;
     uint32_t           mTargetIBLIndex  = 0;
     std::vector<char*> mIBLNames        = {
-        "GoldenHour",
-        "PaperMill",
-        "UenoShrine",
-        "TokyoBigSight",
-        "TropicalBeach",
+               "GoldenHour",
+               "PaperMill",
+               "UenoShrine",
+               "TokyoBigSight",
+               "TropicalBeach",
     };
 
 private:
     void SetupSamplers();
-    void SetupIBLResources();
+    void SetupLightingResources();
     void SetupMaterialResources(
         const fs::path&    albedoPath,
         const fs::path&    roughnessPath,
@@ -284,14 +293,14 @@ void ProjApp::SetupSamplers()
     PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
 }
 
-void ProjApp::SetupIBLResources()
+void ProjApp::SetupLightingResources()
 {
     Result ppxres = ppx::SUCCESS;
 
     Geometry geo;
     TriMesh  mesh = TriMesh::CreateSphere(5, 32, 16, TriMeshOptions().Indices().TexCoords());
     PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
+    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSkyboxModel));
 
     // Layout - the binding values here map to the Texture shader (Texture.hlsl)
     //
@@ -299,7 +308,7 @@ void ProjApp::SetupIBLResources()
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mIBLLayout));
+    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mSkyboxLayout));
 
     // Uniform buffer
     {
@@ -308,7 +317,7 @@ void ProjApp::SetupIBLResources()
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mIBLConstants));
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mSkyboxConstants));
     }
 
     // Texture create options
@@ -322,7 +331,7 @@ void ProjApp::SetupIBLResources()
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &refl, textureOptions));
-        mIBLEnvMaps.push_back(refl);
+        mEnvMaps.push_back(refl);
     }
 
     // PaperMill
@@ -333,7 +342,7 @@ void ProjApp::SetupIBLResources()
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &refl, textureOptions));
-        mIBLEnvMaps.push_back(refl);
+        mEnvMaps.push_back(refl);
     }
 
     // UenoShrine
@@ -344,7 +353,7 @@ void ProjApp::SetupIBLResources()
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &refl, textureOptions));
-        mIBLEnvMaps.push_back(refl);
+        mEnvMaps.push_back(refl);
     }
 
     // TokyoBigSight
@@ -355,7 +364,7 @@ void ProjApp::SetupIBLResources()
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &refl, textureOptions));
-        mIBLEnvMaps.push_back(refl);
+        mEnvMaps.push_back(refl);
     }
 
     // TropicalBeach
@@ -366,33 +375,33 @@ void ProjApp::SetupIBLResources()
 
         grfx::TexturePtr refl;
         PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &refl, textureOptions));
-        mIBLEnvMaps.push_back(refl);
+        mEnvMaps.push_back(refl);
     }
 
-    // Allocate descriptor set
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mIBLLayout, &mIBLSet));
+    // Allocate descriptor set for sky box
+    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSkyboxLayout, &mSkyboxSet));
 
     // Update descriptors
     {
         grfx::WriteDescriptor write = {};
-        write.binding               = 0;
+        write.binding               = SKYBOX_CONSTANTS_REGISTER;
         write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         write.bufferOffset          = 0;
         write.bufferRange           = PPX_WHOLE_SIZE;
-        write.pBuffer               = mIBLConstants;
-        PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+        write.pBuffer               = mSkyboxConstants;
+        PPX_CHECKED_CALL(ppxres = mSkyboxSet->UpdateDescriptors(1, &write));
 
         write            = {};
-        write.binding    = 1;
+        write.binding    = SKYBOX_TEXTURE_REGISTER;
         write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
-        PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+        write.pImageView = mEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
+        PPX_CHECKED_CALL(ppxres = mSkyboxSet->UpdateDescriptors(1, &write));
 
         write          = {};
-        write.binding  = 2;
+        write.binding  = SKYBOX_SAMPLER_REGISTER;
         write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
         write.pSampler = mSampler;
-        PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+        PPX_CHECKED_CALL(ppxres = mSkyboxSet->UpdateDescriptors(1, &write));
     }
 
     // Pipeline
@@ -422,15 +431,15 @@ void ProjApp::SetupIBLResources()
         grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
         piCreateInfo.setCount                          = 1;
         piCreateInfo.sets[0].set                       = 0;
-        piCreateInfo.sets[0].pLayout                   = mIBLLayout;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mIBLPipelineInterface));
+        piCreateInfo.sets[0].pLayout                   = mSkyboxLayout;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mSkyboxPipelineInterface));
 
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {PS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mIBLModel->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mIBLModel->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mIBLModel->GetVertexBinding(1);
+        gpCreateInfo.vertexInputState.bindingCount      = mSkyboxModel->GetVertexBufferCount();
+        gpCreateInfo.vertexInputState.bindings[0]       = *mSkyboxModel->GetVertexBinding(0);
+        gpCreateInfo.vertexInputState.bindings[1]       = *mSkyboxModel->GetVertexBinding(1);
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_FRONT;
@@ -441,8 +450,8 @@ void ProjApp::SetupIBLResources()
         gpCreateInfo.outputState.renderTargetCount      = 1;
         gpCreateInfo.outputState.renderTargetFormats[0] = GetSwapchain()->GetColorFormat();
         gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
-        gpCreateInfo.pPipelineInterface                 = mIBLPipelineInterface;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mIBLPipeline));
+        gpCreateInfo.pPipelineInterface                 = mSkyboxPipelineInterface;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mSkyboxPipeline));
         GetDevice()->DestroyShaderModule(VS);
         GetDevice()->DestroyShaderModule(PS);
     }
@@ -517,13 +526,13 @@ void ProjApp::SetupMaterialResources(
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
-    // Environment map
+    // Environment reflection map
     {
         grfx::WriteDescriptor write = {};
         write.binding               = ENV_MAP_TEXTURE_REGISTER;
         write.arrayIndex            = 0;
         write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
+        write.pImageView            = mEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
         PPX_CHECKED_CALL(ppxres = materialResources.set->UpdateDescriptors(1, &write));
     }
 
@@ -734,8 +743,8 @@ void ProjApp::Setup()
     // Samplers
     SetupSamplers();
 
-    // Environment and reflection maps
-    SetupIBLResources();
+    // Lighting (environment and reflection maps)
+    SetupLightingResources();
 
     // Material data resources
     SetupMaterials();
@@ -975,35 +984,35 @@ void ProjApp::UpdateEnvDescriptors()
     if (mCurrentIBLIndex != mTargetIBLIndex) {
         mCurrentIBLIndex = mTargetIBLIndex;
 
-        // IBL
+        // Skybox texture
         {
             grfx::WriteDescriptor write = {};
             write                       = {};
-            write.binding               = 1;
+            write.binding               = SKYBOX_TEXTURE_REGISTER;
             write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
-            PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+            write.pImageView            = mEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
+            PPX_CHECKED_CALL(ppxres = mSkyboxSet->UpdateDescriptors(1, &write));
         }
 
         // Material resources
         for (size_t i = 0; i < mMaterialResourcesSets.size(); ++i) {
-            // Environment map
+            // IBL map
             {
                 grfx::WriteDescriptor write = {};
-                write.binding               = 6;
+                write.binding               = IBL_MAP_TEXTURE_REGISTER;
                 write.arrayIndex            = 0;
                 write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
                 write.pImageView            = mIBLMaps[mCurrentIBLIndex]->GetSampledImageView();
                 PPX_CHECKED_CALL(ppxres = mMaterialResourcesSets[i]->UpdateDescriptors(1, &write));
             }
 
-            // Reflection map
+            // Environment reflection map
             {
                 grfx::WriteDescriptor write = {};
-                write.binding               = 7;
+                write.binding               = ENV_MAP_TEXTURE_REGISTER;
                 write.arrayIndex            = 0;
                 write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-                write.pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
+                write.pImageView            = mEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
                 PPX_CHECKED_CALL(ppxres = mMaterialResourcesSets[i]->UpdateDescriptors(1, &write));
             }
         }
@@ -1065,7 +1074,7 @@ void ProjApp::Render()
         pSceneData->lightCount           = 4;
         pSceneData->ambient              = mAmbient;
         pSceneData->iblLevelCount        = static_cast<float>(mIBLMaps[mTargetIBLIndex]->GetMipLevelCount());
-        pSceneData->envLevelCount        = static_cast<float>(mIBLEnvMaps[mTargetIBLIndex]->GetMipLevelCount());
+        pSceneData->envLevelCount        = static_cast<float>(mEnvMaps[mTargetIBLIndex]->GetMipLevelCount());
 
         mCpuSceneConstants->UnmapMemory();
 
@@ -1171,17 +1180,17 @@ void ProjApp::Render()
         GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
     }
 
-    // Update IBL environment constants
+    // Update skybox constants
     {
         void* pMappedAddress = nullptr;
-        PPX_CHECKED_CALL(ppxres = mIBLConstants->MapMemory(0, &pMappedAddress));
+        PPX_CHECKED_CALL(ppxres = mSkyboxConstants->MapMemory(0, &pMappedAddress));
 
         const float4x4& VP  = mCamera.GetViewProjectionMatrix();
         float4x4        M   = glm::rotate(0.0f, float3(0, 1, 0));
         float4x4        mat = VP * M;
         memcpy(pMappedAddress, &mat, sizeof(mat));
 
-        mIBLConstants->UnmapMemory();
+        mSkyboxConstants->UnmapMemory();
     }
 
     // Build command buffer
@@ -1212,12 +1221,12 @@ void ProjApp::Render()
             frame.cmd->BindVertexBuffers(mModels[mModelIndex]);
             frame.cmd->DrawIndexed(mModels[mModelIndex]->GetIndexCount());
 
-            // Draw IBL environment
-            frame.cmd->BindGraphicsDescriptorSets(mIBLPipelineInterface, 1, &mIBLSet);
-            frame.cmd->BindGraphicsPipeline(mIBLPipeline);
-            frame.cmd->BindIndexBuffer(mIBLModel);
-            frame.cmd->BindVertexBuffers(mIBLModel);
-            frame.cmd->DrawIndexed(mIBLModel->GetIndexCount());
+            // Draw sky box
+            frame.cmd->BindGraphicsDescriptorSets(mSkyboxPipelineInterface, 1, &mSkyboxSet);
+            frame.cmd->BindGraphicsPipeline(mSkyboxPipeline);
+            frame.cmd->BindIndexBuffer(mSkyboxModel);
+            frame.cmd->BindVertexBuffers(mSkyboxModel);
+            frame.cmd->DrawIndexed(mSkyboxModel->GetIndexCount());
 
             //// Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });
@@ -1246,9 +1255,9 @@ void ProjApp::DrawGui()
 {
     ImGui::Separator();
 
-    //ImGui::SliderFloat("Rot Y", &mRotY, -180.0f, 180.0f, "%.03f degrees");
+    // ImGui::SliderFloat("Rot Y", &mRotY, -180.0f, 180.0f, "%.03f degrees");
     //
-    //ImGui::Separator();
+    // ImGui::Separator();
 
     ImGui::SliderFloat("Ambient", &mAmbient, 0.0f, 1.0f, "%.03f");
 
