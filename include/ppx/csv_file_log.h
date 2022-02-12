@@ -22,12 +22,6 @@ public:
     CSVFileLog(const std::string& filepath);
     ~CSVFileLog();
 
-    void Restart(const std::string& filepath);
-
-    void Lock();
-    void Unlock();
-    void Flush();
-
     template <typename T>
     CSVFileLog& operator<<(const T& value)
     {
@@ -52,6 +46,9 @@ public:
 
 private:
     void Write(const char* msg);
+    void Lock();
+    void Unlock();
+    void Flush();
 
 private:
     std::string       mFilePath;
@@ -61,7 +58,5 @@ private:
 };
 
 } // namespace ppx
-
-
 
 #endif // PPX_CSV_FILE_LOG_H

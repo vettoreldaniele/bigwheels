@@ -3,7 +3,6 @@
 
 #include "ppx/base_application.h"
 #include "ppx/command_line_parser.h"
-#include "ppx/csv_file_log.h"
 #include "ppx/000_math_config.h"
 #include "ppx/imgui_impl.h"
 #include "ppx/timer.h"
@@ -277,7 +276,6 @@ public:
 
     std::vector<const char*>                 GetCommandLineArgs() const;
     const StandardOptions                    GetStandardOptions() const;
-    CSVFileLog&                              GetCSVLogger() { return mFileLog; }
     const std::map<std::string, std::string> GetExtraOptions() const;
     const std::set<std::string>              GetExtraFlags() const;
 
@@ -323,7 +321,10 @@ public:
     Result CompileHlslShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, grfx::ShaderModule** ppShaderModule) const;
 #endif
 
-    void*              GetWindow() const { return mWindow; }
+    void* GetWindow() const
+    {
+        return mWindow;
+    }
     grfx::InstancePtr  GetInstance() const { return mInstance; }
     grfx::DevicePtr    GetDevice() const { return mDevice; }
     grfx::QueuePtr     GetGraphicsQueue(uint32_t index = 0) const { return GetDevice()->GetGraphicsQueue(index); }
@@ -332,6 +333,7 @@ public:
     grfx::SwapchainPtr GetSwapchain() const { return mSwapchain; }
 
     float    GetElapsedSeconds() const;
+    float    GetPrevFrameTime() const { return mPreviousFrameTime; }
     uint64_t GetFrameCount() const { return mFrameCount; }
     float    GetAverageFPS() const { return mAverageFPS; }
     float    GetAverageFrameTime() const { return mAverageFrameTime; }
@@ -376,7 +378,6 @@ private:
     std::vector<std::string>   mCommandLineArgs;
     CommandLineParser          mCommandLineParser;
     StandardOptions            mStandardOptions;
-    CSVFileLog                 mFileLog;
     uint64_t                   mMaxFrame;
     ApplicationSettings        mSettings = {};
     std::string                mDecoratedApiName;

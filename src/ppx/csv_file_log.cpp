@@ -5,31 +5,21 @@ namespace ppx {
 CSVFileLog::CSVFileLog()
     : CSVFileLog(PPX_DEFAULT_CSV_FILE)
 {
-
 }
 
-void CSVFileLog::Restart(const std::string& filepath)
+CSVFileLog::CSVFileLog(const std::string& filepath)
 {
-    // Close previoust stream
-    Flush();
-    if (mFileStream.is_open()) {
-        mFileStream.close();
-    }
-    // Open a new one
     mFilePath = filepath;
     if (!mFilePath.empty()) {
         mFileStream.open(mFilePath.c_str());
     }
-}
-
-
-CSVFileLog::CSVFileLog(const std::string& filepath)
-{
-    Restart(filepath);
+    Lock();
 }
 
 CSVFileLog::~CSVFileLog()
 {
+    Flush();
+    Unlock();
     if (mFileStream.is_open()) {
         mFileStream.close();
     }
