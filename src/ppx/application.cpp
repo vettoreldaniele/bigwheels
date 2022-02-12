@@ -1025,7 +1025,7 @@ void Application::ResizeCallback(uint32_t width, uint32_t height)
 }
 
 void Application::KeyDownCallback(KeyCode key)
-{    
+{
     if (mSettings.enableImGui && ImGui::GetIO().WantCaptureKeyboard) {
         return;
     }
@@ -1159,7 +1159,7 @@ int Application::Run(int argc, char** argv)
 
     // List gpus
     if (mStandardOptions.list_gpus) {
-        uint32_t count = GetInstance()->GetGpuCount();
+        uint32_t          count = GetInstance()->GetGpuCount();
         std::stringstream ss;
         for (uint32_t i = 0; i < count; ++i) {
             grfx::GpuPtr gpu;
@@ -1239,14 +1239,6 @@ int Application::Run(int argc, char** argv)
         mFrameEndTime      = static_cast<float>(mTimer.MillisSinceStart());
         mPreviousFrameTime = mFrameEndTime - mFrameStartTime;
         mAverageFrameTime  = static_cast<float>(mTimer.MillisSinceStart() / mFrameCount);
-
-        // Log frame stats
-        mFileLog.Lock();
-        mFileLog.LogField(mFrameCount);
-        mFileLog.LastField(mPreviousFrameTime);
-        mFileLog.Flush();
-        mFileLog.Unlock();
-        
 
         // Pace frames - if needed
         if (mSettings.grfx.pacedFrameRate > 0) {

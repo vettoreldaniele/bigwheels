@@ -1,4 +1,5 @@
 #include "ppx/ppx.h"
+#include "ppx/csv_file_log.h"
 
 #if defined(PORTO_D3DCOMPILE)
 #include "ppx/grfx/dx/d3dcompile_util.h"
@@ -14,7 +15,7 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#if !defined(PPX_DXIIVK) && !defined(USE_VK)
+#if !defined(PPX_DXIIVK)
 #define ENABLE_PIPELINE_QUERIES
 #endif
 
@@ -25,6 +26,7 @@ public:
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;
     virtual void Render() override;
+    void         SaveResultsToFile();
 
 private:
     struct PerFrame
@@ -36,12 +38,11 @@ private:
         ppx::grfx::FencePtr         renderCompleteFence;
         ppx::grfx::QueryPtr         timestampQuery;
 #if defined(ENABLE_PIPELINE_QUERIES)
-        ppx::grfx::QueryPtr         pipelineStatsQuery;
+        ppx::grfx::QueryPtr pipelineStatsQuery;
 #endif // defined(ENABLE_PIPELINE_QUERIES)
     };
 
     std::vector<PerFrame>           mPerFrame;
-    grfx::DescriptorPoolPtr         mDescriptorPool;
     ppx::grfx::ShaderModulePtr      mVS;
     ppx::grfx::ShaderModulePtr      mPS;
     ppx::grfx::PipelineInterfacePtr mPipelineInterface;
@@ -53,16 +54,27 @@ private:
     grfx::VertexBinding             mVertexBinding;
     uint2                           mRenderTargetSize;
     uint32_t                        mNumTriangles;
-    uint64_t                        mGpuWorkDuration = 0;
+    std::string                     mCSVFileName;
+    uint64_t                        mGpuWorkDuration    = 0;
     grfx::PipelineStatistics        mPipelineStatistics = {};
-    // For drawing into the swapchain
-    grfx::DescriptorSetLayoutPtr mDrawToSwapchainLayout;
-    grfx::DescriptorSetPtr       mDrawToSwapchainSet;
-    grfx::FullscreenQuadPtr      mDrawToSwapchain;
-    grfx::SamplerPtr             mSampler;
 
-    void SetupDrawToSwapchain();
     void SetupTestParameters();
+
+    struct PerFrameRegister
+    {
+        uint64_t frameNumber;
+        float    gpuWorkDuration;
+        float    cpuFrameTime;
+#if defined(ENABLE_PIPELINE_QUERIES)
+        uint64_t numVertices;
+        uint64_t numPrimitives;
+        uint64_t clipPrimitives;
+        uint64_t clipInvocations;
+        uint64_t vsInvocations;
+        uint64_t psInvocations;
+#endif // defined(ENABLE_PIPELINE_QUERIES)
+    };
+    std::vector<PerFrameRegister> mFrameRegisters;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -79,72 +91,21 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #endif
 }
 
-void ProjApp::SetupDrawToSwapchain()
+void ProjApp::SaveResultsToFile()
 {
-    Result ppxres = ppx::SUCCESS;
-
-    // Descriptor set layout
-    {
-        // Descriptor set layout
-        grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLER));
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDrawToSwapchainLayout));
-    }
-
-    // Pipeline
-    {
-        grfx::ShaderModulePtr VS;
-#if defined(PORTO_D3DCOMPILE)
-        grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
-            GetAssetPath("basic/shaders"));
-        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "FullScreenTriangle", "vs_5_0", &basicShaderIncludeHandler);
-#else
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
-#endif
-        PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
-        grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
-
-        grfx::ShaderModulePtr PS;
-#if defined(PORTO_D3DCOMPILE)
-        bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "FullScreenTriangle", "ps_5_0", &basicShaderIncludeHandler);
-#else
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
-#endif
-        PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
-        shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
-
-        grfx::FullscreenQuadCreateInfo createInfo = {};
-        createInfo.VS                             = VS;
-        createInfo.PS                             = PS;
-        createInfo.setCount                       = 1;
-        createInfo.sets[0].set                    = 0;
-        createInfo.sets[0].pLayout                = mDrawToSwapchainLayout;
-        createInfo.renderTargetCount              = 1;
-        createInfo.renderTargetFormats[0]         = GetSwapchain()->GetColorFormat();
-        createInfo.depthStencilFormat             = GetSwapchain()->GetDepthFormat();
-
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFullscreenQuad(&createInfo, &mDrawToSwapchain));
-    }
-
-    // Allocate descriptor set
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDrawToSwapchainLayout, &mDrawToSwapchainSet));
-
-    // Write descriptors
-    {
-        grfx::WriteDescriptor writes[2] = {};
-        writes[0].binding               = 0;
-        writes[0].arrayIndex            = 0;
-        writes[0].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        writes[0].pImageView            = mDrawPass->GetRenderTargetTexture(0)->GetSampledImageView();
-
-        writes[1].binding  = 1;
-        writes[1].type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-        writes[1].pSampler = mSampler;
-
-        PPX_CHECKED_CALL(ppxres = mDrawToSwapchainSet->UpdateDescriptors(2, writes));
+    CSVFileLog fileLogger = {mCSVFileName};
+    for (const auto& row : mFrameRegisters) {
+        fileLogger.LogField(row.frameNumber);
+#if defined(ENABLE_PIPELINE_QUERIES)
+        fileLogger.LogField(row.numVertices);
+        fileLogger.LogField(row.numPrimitives);
+        fileLogger.LogField(row.clipPrimitives);
+        fileLogger.LogField(row.clipInvocations);
+        fileLogger.LogField(row.vsInvocations);
+        fileLogger.LogField(row.psInvocations);
+#endif // defined(ENABLE_PIPELINE_QUERIES)
+        fileLogger.LogField(row.gpuWorkDuration);
+        fileLogger.LastField(row.cpuFrameTime);
     }
 }
 
@@ -156,25 +117,19 @@ void ProjApp::SetupTestParameters()
     // Number of triangles to draw
     mNumTriangles = 1000000;
     if (cl_options.count("triangles") > 0) {
-        try
-        {
+        try {
             mNumTriangles = static_cast<uint32_t>(std::stoul(cl_options.at("triangles")));
         }
-        catch (std::exception&)
-        {
+        catch (std::exception&) {
             PPX_LOG_WARN("Invalid value for number of triangles, default to: 1,000,0000");
         }
-    }   
+    }
     // Name of the CSV output file
+    mCSVFileName = "stats.csv";
     if (cl_options.count("stats-file") > 0) {
         const std::string file = cl_options.at("stats-file");
-        if (!file.empty())
-        {
-            GetCSVLogger().Restart(file);
-        }
-        else
-        {
-            PPX_LOG_WARN("Invalid name for CSV log file, default to: stats.csv");
+        if (file.empty()) {
+            PPX_LOG_WARN("Invalid name for CSV log file, default to: " + mCSVFileName);
         }
     }
 }
@@ -182,30 +137,8 @@ void ProjApp::SetupTestParameters()
 void ProjApp::Setup()
 {
     Result ppxres = ppx::SUCCESS;
-    
+
     SetupTestParameters();
-
-    // Create descriptor pool
-    {
-        grfx::DescriptorPoolCreateInfo createInfo = {};
-        createInfo.sampler                        = 1;
-        createInfo.sampledImage                   = 1;
-        createInfo.uniformBuffer                  = 0;
-        createInfo.structuredBuffer               = 0;
-
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
-    }
-
-    // Sampler
-    {
-        grfx::SamplerCreateInfo createInfo = {};
-        createInfo.magFilter               = grfx::FILTER_NEAREST;
-        createInfo.minFilter               = grfx::FILTER_NEAREST;
-        createInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_NEAREST;
-        createInfo.minLod                  = 0.0f;
-        createInfo.maxLod                  = FLT_MAX;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mSampler));
-    }
 
     // Draw pass
     {
@@ -213,8 +146,8 @@ void ProjApp::Setup()
         // be added during create. So we only need to specify the additional
         // usage flags here.
         //
-        grfx::ImageUsageFlags        additionalUsageFlags = grfx::IMAGE_USAGE_SAMPLED;
-        
+        grfx::ImageUsageFlags additionalUsageFlags = 0;
+
         grfx::DrawPassCreateInfo createInfo     = {};
         createInfo.width                        = mRenderTargetSize.x;
         createInfo.height                       = mRenderTargetSize.y;
@@ -223,8 +156,8 @@ void ProjApp::Setup()
         createInfo.depthStencilFormat           = grfx::FORMAT_D32_FLOAT;
         createInfo.renderTargetUsageFlags[0]    = additionalUsageFlags;
         createInfo.depthStencilUsageFlags       = additionalUsageFlags;
-        createInfo.renderTargetInitialStates[0] = grfx::RESOURCE_STATE_SHADER_RESOURCE;
-        createInfo.depthStencilInitialState     = grfx::RESOURCE_STATE_SHADER_RESOURCE;
+        createInfo.renderTargetInitialStates[0] = grfx::RESOURCE_STATE_RENDER_TARGET;
+        createInfo.depthStencilInitialState     = grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE;
         createInfo.renderTargetClearValues[0]   = {0, 0, 0, 0};
         createInfo.depthStencilClearValue       = {1.0f, 0xFF};
 
@@ -234,19 +167,19 @@ void ProjApp::Setup()
     {
 #if defined(PORTO_D3DCOMPILE)
         grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
-            GetAssetPath("basic/shaders"));
-        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "PassThroughPos", "vs_5_0", &basicShaderIncludeHandler);
+            GetAssetPath("benchmarks/shaders"));
+        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("benchmarks/shaders"), "PassThroughPos", "vs_5_0", &basicShaderIncludeHandler);
 #else
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "PassThroughPos.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("benchmarks/shaders"), "PassThroughPos.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
 #if defined(PORTO_D3DCOMPILE)
-        bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "PassThroughPos", "ps_5_0", &basicShaderIncludeHandler);
+        bytecode = grfx::dx::CompileShader(GetAssetPath("benchmarks/shaders"), "PassThroughPos", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "PassThroughPos.ps");
+        bytecode                   = LoadShader(GetAssetPath("benchmarks/shaders"), "PassThroughPos.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -339,9 +272,6 @@ void ProjApp::Setup()
 
     mViewport    = {0, 0, float(mRenderTargetSize.x), float(mRenderTargetSize.y), 0, 1};
     mScissorRect = {0, 0, mRenderTargetSize.x, mRenderTargetSize.y};
-
-    // Setup fullscreen quad to draw to swapchain
-    SetupDrawToSwapchain();
 }
 
 void ProjApp::Render()
@@ -377,13 +307,6 @@ void ProjApp::Render()
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
-        // Transition texture to render target
-        frame.cmd->TransitionImageLayout(
-            mDrawPass,
-            grfx::RESOURCE_STATE_SHADER_RESOURCE,
-            grfx::RESOURCE_STATE_RENDER_TARGET,
-            grfx::RESOURCE_STATE_SHADER_RESOURCE,
-            grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE);
         // Write start timestamp
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
         // Render pass to texture
@@ -410,14 +333,7 @@ void ProjApp::Render()
 #if defined(ENABLE_PIPELINE_QUERIES)
         frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
 #endif
-        // Transition texture to Shader resource
-        frame.cmd->TransitionImageLayout(
-            mDrawPass,
-            grfx::RESOURCE_STATE_RENDER_TARGET,
-            grfx::RESOURCE_STATE_SHADER_RESOURCE,
-            grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE,
-            grfx::RESOURCE_STATE_SHADER_RESOURCE);
-        // Blit the texture into the swapchain
+        // Present the swapchain
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
 
@@ -427,8 +343,7 @@ void ProjApp::Render()
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(renderPass);
         {
-            // Draw render target output to swapchain
-            frame.cmd->Draw(mDrawToSwapchain, 1, &mDrawToSwapchainSet);
+            // Presenting the swapchain without rendering anything (Test is made in the previous pass)
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
@@ -447,21 +362,26 @@ void ProjApp::Render()
     PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
 
     PPX_CHECKED_CALL(ppxres = swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
-    // Register the gpu timestamp query
-    uint64_t frequency = 0;
-    GetGraphicsQueue()->GetTimestampFrequency(&frequency);
-    const float gpuWorkDuration = static_cast<float>(mGpuWorkDuration / static_cast<double>(frequency)) * 1000.0f;
-    GetCSVLogger().Lock();
-    GetCSVLogger().LogField(gpuWorkDuration);
+    if (GetFrameCount() > 0) {
+        // Get the gpu timestamp query
+        uint64_t frequency = 0;
+        GetGraphicsQueue()->GetTimestampFrequency(&frequency);
+        const float gpuWorkDuration = static_cast<float>(mGpuWorkDuration / static_cast<double>(frequency)) * 1000.0f;
+        // Store this frame stats ina register
+        PerFrameRegister csvRow = {};
+        csvRow.frameNumber      = GetFrameCount();
+        csvRow.gpuWorkDuration  = gpuWorkDuration;
+        csvRow.cpuFrameTime     = GetPrevFrameTime();
 #if defined(ENABLE_PIPELINE_QUERIES)
-    GetCSVLogger().LogField(mPipelineStatistics.IAVertices);
-    GetCSVLogger().LogField(mPipelineStatistics.IAPrimitives);
-    GetCSVLogger().LogField(mPipelineStatistics.VSInvocations);
-    GetCSVLogger().LogField(mPipelineStatistics.CPrimitives);
-    GetCSVLogger().LogField(mPipelineStatistics.PSInvocations);
+        csvRow.numVertices     = mPipelineStatistics.IAVertices;
+        csvRow.numPrimitives   = mPipelineStatistics.IAPrimitives;
+        csvRow.clipPrimitives  = mPipelineStatistics.CPrimitives;
+        csvRow.clipInvocations = mPipelineStatistics.CInvocations;
+        csvRow.vsInvocations   = mPipelineStatistics.VSInvocations;
+        csvRow.psInvocations   = mPipelineStatistics.PSInvocations;
 #endif
-    GetCSVLogger().Flush();
-    GetCSVLogger().Unlock();
+        mFrameRegisters.push_back(csvRow);
+    }
 }
 
 int main(int argc, char** argv)
@@ -469,6 +389,7 @@ int main(int argc, char** argv)
     ProjApp app;
 
     int res = app.Run(argc, argv);
+    app.SaveResultsToFile();
 
     return res;
 }
