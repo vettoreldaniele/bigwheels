@@ -449,10 +449,6 @@ void ProjApp::DrawGui()
 
         ImGui::Columns(2);
         const float gpuWorkDuration = static_cast<float>(mGpuWorkDuration / static_cast<double>(frequency)) * 1000.0f;
-        GetCSVLogger().Lock();
-        GetCSVLogger().LogField(gpuWorkDuration);
-        GetCSVLogger().Flush();
-        GetCSVLogger().Unlock();
         ImGui::Text("GPU Work Duration");
         ImGui::NextColumn();
         ImGui::Text("%f ms ", gpuWorkDuration);
