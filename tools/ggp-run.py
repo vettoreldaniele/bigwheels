@@ -40,7 +40,7 @@ def _SyncToInstance(ggp_bin, instance, sources, dst):
   return subprocess.call(cmd)
 
 
-def _RunOnInstance(ggp_bin, instance, app_path, binary, ggp_vars):
+def _RunOnInstance(ggp_bin, instance, app_path, binary, binary_args, ggp_vars):
   """Runs the given binary on the instance.
 
   Args:
@@ -48,15 +48,18 @@ def _RunOnInstance(ggp_bin, instance, app_path, binary, ggp_vars):
     instance: The instance name or ID. None, if only one instance is reserved.
     app_path: Path relative to /mnt/developer where the binary can be found.
     binary: The binary to execute.
+    binary_args: The command-line arguments to pass to the binary.
     ggp_vars: The --vars string to pass to the ggp binary.
 
   Returns:
     A return code value. 0 means success.
   """
+
+  binary_cmd = '"%s/%s %s"' % (app_path, os.path.basename(binary), binary_args)
+
   cmd = [
       ggp_bin, 'run', '--no-launch-browser',
-      '--application=Yeti Development Application', '--cmd',
-      '%s/%s' % (app_path, os.path.basename(binary))
+      '--application="Yeti Development Application"', '--cmd', binary_cmd
   ]
   if instance is not None:
     cmd.extend(['--instance', instance])
@@ -96,6 +99,11 @@ def main():
       help='Binary to execute on the instance.',
   )
   parser.add_argument(
+      '--binary_args',
+      default='',
+      help='The command-line arguments to pass to the binary.',
+  )
+  parser.add_argument(
       '--vars',
       default='',
       help='The --vars string to pass to the ggp binary as part of the `ggp run` command.',
@@ -114,7 +122,7 @@ def main():
     return rc
 
   return _RunOnInstance(args.ggp_bin, args.instance, args.app_path, args.binary,
-                        args.vars)
+                        args.binary_args, args.vars)
 
 
 if __name__ == '__main__':
