@@ -1,3 +1,4 @@
+#include <deque>
 #include "ppx/ppx.h"
 #include "ppx/csv_file_log.h"
 
@@ -63,8 +64,8 @@ private:
     struct PerFrameRegister
     {
         uint64_t frameNumber;
-        float    gpuWorkDuration;
-        float    cpuFrameTime;
+        float    gpuWorkDurationMs;
+        float    cpuFrameTimeMs;
 #if defined(ENABLE_PIPELINE_QUERIES)
         uint64_t numVertices;
         uint64_t numPrimitives;
@@ -74,7 +75,7 @@ private:
         uint64_t psInvocations;
 #endif // defined(ENABLE_PIPELINE_QUERIES)
     };
-    std::vector<PerFrameRegister> mFrameRegisters;
+    std::deque<PerFrameRegister> mFrameRegisters;
 };
 
 void ProjApp::Config(ppx::ApplicationSettings& settings)
@@ -104,8 +105,8 @@ void ProjApp::SaveResultsToFile()
         fileLogger.LogField(row.vsInvocations);
         fileLogger.LogField(row.psInvocations);
 #endif // defined(ENABLE_PIPELINE_QUERIES)
-        fileLogger.LogField(row.gpuWorkDuration);
-        fileLogger.LastField(row.cpuFrameTime);
+        fileLogger.LogField(row.gpuWorkDurationMs);
+        fileLogger.LastField(row.cpuFrameTimeMs);
     }
 }
 
@@ -229,7 +230,7 @@ void ProjApp::Setup()
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
-        // Create the timestam queries
+        // Create the timestamp queries
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
@@ -327,7 +328,7 @@ void ProjApp::Render()
         }
         frame.cmd->EndRenderPass();
         // Write end timestamp
-        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 1);
         // Resolve queries
         frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
 #if defined(ENABLE_PIPELINE_QUERIES)
@@ -367,11 +368,11 @@ void ProjApp::Render()
         uint64_t frequency = 0;
         GetGraphicsQueue()->GetTimestampFrequency(&frequency);
         const float gpuWorkDuration = static_cast<float>(mGpuWorkDuration / static_cast<double>(frequency)) * 1000.0f;
-        // Store this frame stats ina register
-        PerFrameRegister csvRow = {};
-        csvRow.frameNumber      = GetFrameCount();
-        csvRow.gpuWorkDuration  = gpuWorkDuration;
-        csvRow.cpuFrameTime     = GetPrevFrameTime();
+        // Store this frame stats in a register
+        PerFrameRegister csvRow  = {};
+        csvRow.frameNumber       = GetFrameCount();
+        csvRow.gpuWorkDurationMs = gpuWorkDuration;
+        csvRow.cpuFrameTimeMs    = GetPrevFrameTime();
 #if defined(ENABLE_PIPELINE_QUERIES)
         csvRow.numVertices     = mPipelineStatistics.IAVertices;
         csvRow.numPrimitives   = mPipelineStatistics.IAPrimitives;
