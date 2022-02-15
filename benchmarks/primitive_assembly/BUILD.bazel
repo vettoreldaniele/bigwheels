@@ -6,8 +6,8 @@ yeti_cc_binary(
     srcs = ["main.cpp"],
     copts = COPTS,
     data = [
-        "//assets:basic/shaders/spv/PassThroughPos.ps.spv",
-        "//assets:basic/shaders/spv/PassThroughPos.vs.spv",
+        "//assets:benchmarks/shaders/PassThroughPos.ps.spv",
+        "//assets:benchmarks/shaders/PassThroughPos.vs.spv",
     ],
     deps = ["//:ppx"],
 )
