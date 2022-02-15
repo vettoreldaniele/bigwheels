@@ -1025,7 +1025,7 @@ void Application::ResizeCallback(uint32_t width, uint32_t height)
 }
 
 void Application::KeyDownCallback(KeyCode key)
-{    
+{
     if (mSettings.enableImGui && ImGui::GetIO().WantCaptureKeyboard) {
         return;
     }
@@ -1159,7 +1159,7 @@ int Application::Run(int argc, char** argv)
 
     // List gpus
     if (mStandardOptions.list_gpus) {
-        uint32_t count = GetInstance()->GetGpuCount();
+        uint32_t          count = GetInstance()->GetGpuCount();
         std::stringstream ss;
         for (uint32_t i = 0; i < count; ++i) {
             grfx::GpuPtr gpu;

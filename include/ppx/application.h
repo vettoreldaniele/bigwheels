@@ -321,7 +321,10 @@ public:
     Result CompileHlslShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, grfx::ShaderModule** ppShaderModule) const;
 #endif
 
-    void*              GetWindow() const { return mWindow; }
+    void* GetWindow() const
+    {
+        return mWindow;
+    }
     grfx::InstancePtr  GetInstance() const { return mInstance; }
     grfx::DevicePtr    GetDevice() const { return mDevice; }
     grfx::QueuePtr     GetGraphicsQueue(uint32_t index = 0) const { return GetDevice()->GetGraphicsQueue(index); }
@@ -330,6 +333,7 @@ public:
     grfx::SwapchainPtr GetSwapchain() const { return mSwapchain; }
 
     float    GetElapsedSeconds() const;
+    float    GetPrevFrameTime() const { return mPreviousFrameTime; }
     uint64_t GetFrameCount() const { return mFrameCount; }
     float    GetAverageFPS() const { return mAverageFPS; }
     float    GetAverageFrameTime() const { return mAverageFrameTime; }
