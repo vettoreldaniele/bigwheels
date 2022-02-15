@@ -55,11 +55,11 @@ def _RunOnInstance(ggp_bin, instance, app_path, binary, binary_args, ggp_vars):
     A return code value. 0 means success.
   """
 
-  binary_cmd = '"%s/%s %s"' % (app_path, os.path.basename(binary), binary_args)
+  binary_cmd = '%s/%s %s' % (app_path, os.path.basename(binary), binary_args)
 
   cmd = [
       ggp_bin, 'run', '--no-launch-browser',
-      '--application="Yeti Development Application"', '--cmd', binary_cmd
+      '--application=Yeti Development Application', '--cmd', binary_cmd
   ]
   if instance is not None:
     cmd.extend(['--instance', instance])
