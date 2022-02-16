@@ -1,4 +1,4 @@
-#include <algorithm> 
+#include <algorithm>
 #include <iostream>
 #include <locale>
 #include <vector>
@@ -27,13 +27,13 @@ void StandardOptions::SetDefault()
 CommandLineParser::CommandLineParser()
 {
     mOpts.SetDefault();
-    mStateOk = true; //Assume we are good to go
+    mStateOk = true; // Assume we are good to go
 }
 
 CommandLineParser::CommandLineParser(int argc, char* argv[])
 {
     mOpts.SetDefault();
-    mStateOk = true; //Assume we are good to go
+    mStateOk = true; // Assume we are good to go
     Parse(argc, argv);
 }
 
@@ -110,21 +110,22 @@ void CommandLineParser::Parse(int argc, char* argv[])
                     mStateOk = false;
                 }
             }
-            else if (OptionOrFlag(arg)) { // This is a non-standar option or flag
+            else if (OptionOrFlag(arg)) { // This is a non-standard option or flag
+                std::string optName = arg.substr(2);
                 if ((i + 1) < args.size()) {
                     std::string parameter = TrimCopy(args[i + 1]);
                     if (!OptionOrFlag(parameter)) {
-                        // It is an option with his corresponding parameter
-                        mExtraOptions[arg.substr(2)] = parameter;
-                        i++; // we just consume the parameter for this option
+                        // It is an option with its corresponding parameter
+                         mExtraOptions.AddOption(optName, parameter);
+                        i++; // We just consumed the parameter for this option
                     }
                     else { // It is a flag
-                        mExtraFlags.insert(arg.substr(2));
+                        mExtraOptions.AddOption(optName, "1");
                     }
                 }
                 else {
                     // It is also a flag
-                    mExtraFlags.insert(arg.substr(2));
+                    mExtraOptions.AddOption(optName, "1");
                 }
             }
             else {
@@ -144,14 +145,9 @@ StandardOptions CommandLineParser::GetOptions() const
     return mOpts;
 }
 
-std::map<std::string, std::string> CommandLineParser::GetExtraOptions() const
+const CliOptions& CommandLineParser::GetExtraOptions() const
 {
     return mExtraOptions;
-}
-
-std::set<std::string> CommandLineParser::GetExtraFlags() const
-{
-    return mExtraFlags;
 }
 
 std::string CommandLineParser::GetErrorMsgs() const

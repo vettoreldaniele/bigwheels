@@ -113,25 +113,18 @@ void ProjApp::SaveResultsToFile()
 void ProjApp::SetupTestParameters()
 {
     // Set render target size
-    mRenderTargetSize                             = uint2(1, 1);
-    std::map<std::string, std::string> cl_options = GetExtraOptions();
+    mRenderTargetSize = uint2(1, 1);
+
+    auto cl_options = GetExtraOptions();
+
     // Number of triangles to draw
-    mNumTriangles = 1000000;
-    if (cl_options.count("triangles") > 0) {
-        try {
-            mNumTriangles = static_cast<uint32_t>(std::stoul(cl_options.at("triangles")));
-        }
-        catch (std::exception&) {
-            PPX_LOG_WARN("Invalid value for number of triangles, default to: 1,000,0000");
-        }
-    }
+    mNumTriangles = cl_options.GetOptionValueOrDefault<uint32_t>("triangles", 1000000);
+
     // Name of the CSV output file
-    mCSVFileName = "stats.csv";
-    if (cl_options.count("stats-file") > 0) {
-        const std::string file = cl_options.at("stats-file");
-        if (file.empty()) {
-            PPX_LOG_WARN("Invalid name for CSV log file, default to: " + mCSVFileName);
-        }
+    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    if (mCSVFileName.empty()) {
+        mCSVFileName = "stats.csv";
+        PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);
     }
 }
 

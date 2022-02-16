@@ -1304,14 +1304,9 @@ const StandardOptions Application::GetStandardOptions() const
     return mStandardOptions;
 }
 
-const std::map<std::string, std::string> Application::GetExtraOptions() const
+const CliOptions& Application::GetExtraOptions() const
 {
     return mCommandLineParser.GetExtraOptions();
-}
-
-const std::set<std::string> Application::GetExtraFlags() const
-{
-    return mCommandLineParser.GetExtraFlags();
 }
 
 grfx::Rect Application::GetScissor() const

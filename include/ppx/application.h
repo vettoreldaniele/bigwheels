@@ -274,10 +274,9 @@ public:
     int  Run(int argc, char** argv);
     void Quit();
 
-    std::vector<const char*>                 GetCommandLineArgs() const;
-    const StandardOptions                    GetStandardOptions() const;
-    const std::map<std::string, std::string> GetExtraOptions() const;
-    const std::set<std::string>              GetExtraFlags() const;
+    std::vector<const char*> GetCommandLineArgs() const;
+    const StandardOptions    GetStandardOptions() const;
+    const CliOptions&        GetExtraOptions() const;
 
     const ApplicationSettings* GetSettings() const { return &mSettings; }
     uint32_t                   GetWindowWidth() const { return mSettings.window.width; }
