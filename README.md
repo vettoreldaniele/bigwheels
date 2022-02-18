@@ -31,6 +31,7 @@
      * Recent Vulkan SDK
        * 1.2.154.1 or later
      * Recent version of Windows SDK
+	   * 10.0.22000 or later
  * Hardware
    * AMD
      * Vega GPUs
