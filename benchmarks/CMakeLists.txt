@@ -12,7 +12,7 @@ function(add_vk_benchmark name is_gui)
             get_filename_component(ext ${filepath} EXT)
             if (("${ext}" STREQUAL ".hlsl") OR ("${ext}" STREQUAL ".hlsli"))
                 list(APPEND shader_files ${filepath})
-                set_source_files_properties(${filepath} PROPERTIES VS_TOOL_OVERRIDE "None")            
+                set_source_files_properties(${filepath} PROPERTIES VS_TOOL_OVERRIDE "None")
             endif()
         endforeach()
         source_group("Shader Files" FILES ${shader_files})
@@ -22,9 +22,9 @@ function(add_vk_benchmark name is_gui)
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
             ${additional_files}
         )
-    
+
         add_shader_dependencies(${target_name} "spv")
-        
+
         set_target_properties(
             ${target_name}
             PROPERTIES FOLDER "ppx/benchmarks/${api_tag}"
@@ -33,23 +33,24 @@ function(add_vk_benchmark name is_gui)
         target_include_directories(
             ${target_name}
             PUBLIC ${PPX_DIR}/include
-                   ${PPX_DIR}/projects/common   
+                   ${PPX_DIR}/projects/common
         )
-        
+
         target_compile_definitions(${target_name} PRIVATE USE_VK)
 
         target_link_libraries(
             ${target_name}
             PUBLIC ppx
         )
-        
+
         if (is_gui)
             target_link_libraries(
                 ${target_name}
                 PUBLIC glfw
-            )    
+            )
         endif()
     endif()
 endfunction()
 
 add_subdirectory(primitive_assembly)
+add_subdirectory(texture_load)
