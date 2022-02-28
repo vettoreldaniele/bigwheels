@@ -16,10 +16,6 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-#if !defined(PPX_DXIIVK)
-#define ENABLE_PIPELINE_QUERIES
-#endif
-
 class ProjApp
     : public ppx::Application
 {
@@ -38,9 +34,7 @@ private:
         ppx::grfx::SemaphorePtr     renderCompleteSemaphore;
         ppx::grfx::FencePtr         renderCompleteFence;
         ppx::grfx::QueryPtr         timestampQuery;
-#if defined(ENABLE_PIPELINE_QUERIES)
-        ppx::grfx::QueryPtr pipelineStatsQuery;
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+        ppx::grfx::QueryPtr         pipelineStatsQuery;
     };
 
     std::vector<PerFrame>           mPerFrame;
@@ -57,6 +51,7 @@ private:
     uint32_t                        mNumTriangles;
     std::string                     mCSVFileName;
     uint64_t                        mGpuWorkDuration    = 0;
+    bool                            mUsePipelineQuery   = false;
     grfx::PipelineStatistics        mPipelineStatistics = {};
 
     void SetupTestParameters();
@@ -66,14 +61,12 @@ private:
         uint64_t frameNumber;
         float    gpuWorkDurationMs;
         float    cpuFrameTimeMs;
-#if defined(ENABLE_PIPELINE_QUERIES)
         uint64_t numVertices;
         uint64_t numPrimitives;
         uint64_t clipPrimitives;
         uint64_t clipInvocations;
         uint64_t vsInvocations;
         uint64_t psInvocations;
-#endif // defined(ENABLE_PIPELINE_QUERIES)
     };
     std::deque<PerFrameRegister> mFrameRegisters;
 };
@@ -97,14 +90,14 @@ void ProjApp::SaveResultsToFile()
     CSVFileLog fileLogger = {mCSVFileName};
     for (const auto& row : mFrameRegisters) {
         fileLogger.LogField(row.frameNumber);
-#if defined(ENABLE_PIPELINE_QUERIES)
-        fileLogger.LogField(row.numVertices);
-        fileLogger.LogField(row.numPrimitives);
-        fileLogger.LogField(row.clipPrimitives);
-        fileLogger.LogField(row.clipInvocations);
-        fileLogger.LogField(row.vsInvocations);
-        fileLogger.LogField(row.psInvocations);
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+        if (mUsePipelineQuery) {
+            fileLogger.LogField(row.numVertices);
+            fileLogger.LogField(row.numPrimitives);
+            fileLogger.LogField(row.clipPrimitives);
+            fileLogger.LogField(row.clipInvocations);
+            fileLogger.LogField(row.vsInvocations);
+            fileLogger.LogField(row.psInvocations);
+        }
         fileLogger.LogField(row.gpuWorkDurationMs);
         fileLogger.LastField(row.cpuFrameTimeMs);
     }
@@ -126,6 +119,15 @@ void ProjApp::SetupTestParameters()
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);
     }
+
+    // Whether to use pipeline statistics queries.
+    mUsePipelineQuery = cl_options.GetOptionValueOrDefault<bool>("use-pipeline-query", false);
+
+#if defined(PPX_DXIIVK)
+    if (mUsePipelineQuery) {
+        PPX_ASSERT_MSG(false, "Pipeline statistics queries are not supported in DX12 VK");
+    }
+#endif
 }
 
 void ProjApp::Setup()
@@ -228,13 +230,14 @@ void ProjApp::Setup()
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
-#if defined(ENABLE_PIPELINE_QUERIES)
+
         // Pipeline statistics query pool
-        queryCreateInfo       = {};
-        queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
-        queryCreateInfo.count = 1;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+        if (mUsePipelineQuery) {
+            queryCreateInfo       = {};
+            queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
+            queryCreateInfo.count = 1;
+            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+        }
         mPerFrame.push_back(frame);
     }
 
@@ -289,15 +292,15 @@ void ProjApp::Render()
         uint64_t data[2] = {0};
         PPX_CHECKED_CALL(ppxres = frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mGpuWorkDuration = data[1] - data[0];
-#if defined(ENABLE_PIPELINE_QUERIES)
-        PPX_CHECKED_CALL(ppxres = frame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+        if (mUsePipelineQuery) {
+            PPX_CHECKED_CALL(ppxres = frame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+        }
     }
     // Reset queries
     frame.timestampQuery->Reset(0, 2);
-#if defined(ENABLE_PIPELINE_QUERIES)
-    frame.pipelineStatsQuery->Reset(0, 1);
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+    if (mUsePipelineQuery) {
+        frame.pipelineStatsQuery->Reset(0, 1);
+    }
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
@@ -311,22 +314,22 @@ void ProjApp::Render()
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 0, nullptr);
             frame.cmd->BindGraphicsPipeline(mPipeline);
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
-#if defined(ENABLE_PIPELINE_QUERIES)
-            frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
-#endif
+            if (mUsePipelineQuery) {
+                frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
+            }
             frame.cmd->Draw(3, mNumTriangles, 0, 0);
-#if defined(ENABLE_PIPELINE_QUERIES)
-            frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
-#endif
+            if (mUsePipelineQuery) {
+                frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
+            }
         }
         frame.cmd->EndRenderPass();
         // Write end timestamp
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 1);
         // Resolve queries
         frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
-#if defined(ENABLE_PIPELINE_QUERIES)
-        frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
-#endif
+        if (mUsePipelineQuery) {
+            frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
+        }
         // Present the swapchain
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
@@ -366,14 +369,14 @@ void ProjApp::Render()
         csvRow.frameNumber       = GetFrameCount();
         csvRow.gpuWorkDurationMs = gpuWorkDuration;
         csvRow.cpuFrameTimeMs    = GetPrevFrameTime();
-#if defined(ENABLE_PIPELINE_QUERIES)
-        csvRow.numVertices     = mPipelineStatistics.IAVertices;
-        csvRow.numPrimitives   = mPipelineStatistics.IAPrimitives;
-        csvRow.clipPrimitives  = mPipelineStatistics.CPrimitives;
-        csvRow.clipInvocations = mPipelineStatistics.CInvocations;
-        csvRow.vsInvocations   = mPipelineStatistics.VSInvocations;
-        csvRow.psInvocations   = mPipelineStatistics.PSInvocations;
-#endif
+        if (mUsePipelineQuery) {
+            csvRow.numVertices     = mPipelineStatistics.IAVertices;
+            csvRow.numPrimitives   = mPipelineStatistics.IAPrimitives;
+            csvRow.clipPrimitives  = mPipelineStatistics.CPrimitives;
+            csvRow.clipInvocations = mPipelineStatistics.CInvocations;
+            csvRow.vsInvocations   = mPipelineStatistics.VSInvocations;
+            csvRow.psInvocations   = mPipelineStatistics.PSInvocations;
+        }
         mFrameRegisters.push_back(csvRow);
     }
 }
