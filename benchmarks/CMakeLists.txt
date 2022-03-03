@@ -54,3 +54,5 @@ endfunction()
 
 add_subdirectory(primitive_assembly)
 add_subdirectory(texture_load)
+add_subdirectory(texture_sample)
+add_subdirectory(draw_call)
