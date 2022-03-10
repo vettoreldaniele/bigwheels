@@ -73,6 +73,10 @@ private:
     // Drawn rectangle sizes (number of mipmaps of target resolution)
     uint32_t mNumRectSizes = 0;
 
+    // If set, the mip level to render each frame.
+    // If unset (-1), mip levels are cycled one per frame.
+    int32_t mForcedMipLevel = -1;
+
     // Stats
     uint64_t    mGpuWorkDuration = 0;
     std::string mCSVFileName;
@@ -140,6 +144,10 @@ void ProjApp::Setup()
         mSamplerMipmapFilterType = "linear";
         PPX_LOG_WARN("Invalid sampler mipmap filter type (must be `linear` or `nearest`), defaulting to: " + mSamplerMipmapFilterType);
     }
+
+    // Forced mip level to use for all frames (instead of cycling through all mip levels, one per frame).
+    // This value is validated once the image is created and the mip level count is known.
+    mForcedMipLevel = cl_options.GetOptionValueOrDefault<int32_t>("force-mip-level", -1);
 
     Result ppxres = ppx::SUCCESS;
 
@@ -258,6 +266,11 @@ void ProjApp::Setup()
             grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(image);
             PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&viewCreateInfo, &imageView));
             mSampledImageViews.push_back(imageView);
+
+            if (mForcedMipLevel != -1 && mForcedMipLevel >= imageView->GetMipLevelCount()) {
+                mForcedMipLevel = -1;
+                PPX_LOG_WARN("Invalid mip level, defaulting to all mip levels");
+            }
         }
         grfx::SamplerCreateInfo samplerCreateInfo;
         grfx::Filter filter =  mSamplerFilterType == "linear" ?  grfx::FILTER_LINEAR : grfx::FILTER_NEAREST;
@@ -371,6 +384,9 @@ void ProjApp::Render()
     frame.timestampQuery->Reset(0, 2);
 
     int mipLevel = GetFrameCount() % mNumRectSizes;
+    if (mForcedMipLevel != -1) {
+        mipLevel = mForcedMipLevel;
+    }
 
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
