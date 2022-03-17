@@ -307,11 +307,11 @@ void ProjApp::Render()
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
-        // Write start timestamp
-        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
         // Render pass to texture
         frame.cmd->BeginRenderPass(mDrawPass, grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_RENDER_TARGETS);
         {
+            // Write start timestamp
+            frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
             frame.cmd->SetScissors(1, &mScissorRect);
             frame.cmd->SetViewports(1, &mViewport);
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 0, nullptr);
