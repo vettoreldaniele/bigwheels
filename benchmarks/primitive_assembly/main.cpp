@@ -90,16 +90,19 @@ void ProjApp::SaveResultsToFile()
     CSVFileLog fileLogger = {mCSVFileName};
     for (const auto& row : mFrameRegisters) {
         fileLogger.LogField(row.frameNumber);
-        if (mUsePipelineQuery) {
+        fileLogger.LogField(row.gpuWorkDurationMs);
+        if (!mUsePipelineQuery) {
+            fileLogger.LastField(row.cpuFrameTimeMs);
+        }
+        else {
+            fileLogger.LogField(row.cpuFrameTimeMs);
             fileLogger.LogField(row.numVertices);
             fileLogger.LogField(row.numPrimitives);
             fileLogger.LogField(row.clipPrimitives);
             fileLogger.LogField(row.clipInvocations);
             fileLogger.LogField(row.vsInvocations);
-            fileLogger.LogField(row.psInvocations);
+            fileLogger.LastField(row.psInvocations);
         }
-        fileLogger.LogField(row.gpuWorkDurationMs);
-        fileLogger.LastField(row.cpuFrameTimeMs);
     }
 }
 
