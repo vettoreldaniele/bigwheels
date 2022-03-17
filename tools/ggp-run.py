@@ -14,30 +14,10 @@ import logging
 import os
 import subprocess
 import sys
+import ggp_utils
 
 # Default location for the 'ggp' binary.
 _GGP_BIN = 'ggp'
-
-
-def _SyncToInstance(ggp_bin, instance, sources, dst):
-  """Transfers the given file to the given instance.
-
-  Args:
-    ggp_bin: Path to the ggp executable.
-    instance: The instance name or ID. None, if only one instance is reserved.
-    sources: A list of local paths to synchronize.
-    dst: The path of the destination directory on the instance.
-
-  Returns:
-    A return code value. 0 means success.
-  """
-  cmd = [ggp_bin, 'ssh', 'sync', '-r', '--progress']
-  if instance is not None:
-    cmd.extend(['--instance', instance])
-  cmd.extend(sources)
-  cmd.append(dst)
-  logging.info('$ %s', ' '.join(cmd))
-  return subprocess.call(cmd)
 
 
 def _RunOnInstance(ggp_bin, instance, app_path, binary, binary_args, ggp_vars):
@@ -116,13 +96,13 @@ def main():
   else:
     logging.warning(
         'Directory bazel-bin/assets not found, it will not be uploaded')
-  rc = _SyncToInstance(args.ggp_bin, args.instance, sources,
-                       '/mnt/developer/%s/' % args.app_path)
+  rc = ggp_utils.SyncFilesToInstance(args.ggp_bin, args.instance, sources,
+                                     '/mnt/developer/%s/' % args.app_path)
   if rc != 0:
     return rc
 
-  return _RunOnInstance(args.ggp_bin, args.instance, args.app_path, args.binary,
-                        args.binary_args, args.vars)
+  return ggp_utils.RunOnInstance(args.ggp_bin, args.instance, args.app_path,
+                                 args.binary, args.binary_args, args.vars)
 
 
 if __name__ == '__main__':
