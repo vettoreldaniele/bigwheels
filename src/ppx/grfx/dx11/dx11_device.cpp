@@ -382,6 +382,11 @@ Result Device::WaitIdle()
     return ppx::ERROR_FAILED;
 }
 
+bool Device::PipelineStatsAvailable() const
+{
+    return true;
+}
+
 Result Device::GetStructuredBufferSRV(
     const grfx::Buffer*                                  pBuffer,
     UINT                                                 numElements,

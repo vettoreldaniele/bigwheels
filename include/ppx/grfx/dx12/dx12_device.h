@@ -47,6 +47,8 @@ public:
 
     virtual Result WaitIdle() override;
 
+    virtual bool PipelineStatsAvailable() const override;
+
 protected:
     virtual Result AllocateObject(grfx::Buffer** ppObject) override;
     virtual Result AllocateObject(grfx::CommandBuffer** ppObject) override;
