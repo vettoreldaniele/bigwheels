@@ -7,10 +7,8 @@
 // *** NOTE ***
 // 
 // Pipeline queries do not work on DXIIVK yet.
-// Pipeline stats queries are not supported by Nvidia Vulkan Driver (TODO: Need to check VkDeviceCreateInfo.pEnabledFeatures.pipelineStatisticsQuery!)
-//
 // 
-#if ! defined(PPX_DXIIVK) && ! defined(USE_VK)
+#if ! defined(PPX_DXIIVK)
 #define ENABLE_PIPELINE_QUERIES
 #endif
 
@@ -319,18 +317,21 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, m1x1BlackTexture));
         PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampler(RENDER_SHADOW_SAMPLER_REGISTER, 0, mClampedSampler));
 
-#if defined(ENABLE_PIPELINE_QUERIES)
+
         // Timestamp query
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
-
-        // Pipeline statistics query pool
-        queryCreateInfo       = {};
-        queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
-        queryCreateInfo.count = 1;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+#if defined(ENABLE_PIPELINE_QUERIES)
+        if (GetDevice()->PipelineStatsAvailable())
+        {
+            // Pipeline statistics query pool
+            queryCreateInfo       = {};
+            queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
+            queryCreateInfo.count = 1;
+            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+        }
 #endif
     }
 }
@@ -507,26 +508,33 @@ void FishTornadoApp::Render()
 
     // Read query results
     if (GetFrameCount() > 0) {
-#if defined(ENABLE_PIPELINE_QUERIES)
-        PPX_CHECKED_CALL(ppxres = prevFrame.renderCompleteFence->WaitAndReset());
+
+        //PPX_CHECKED_CALL(ppxres = prevFrame.renderCompleteFence->WaitAndReset());
 
         uint64_t data[2] = {0};
         PPX_CHECKED_CALL(ppxres = prevFrame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mTotalGpuFrameTime = (data[1] - data[0]);
-        PPX_CHECKED_CALL(ppxres = prevFrame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+#if defined(ENABLE_PIPELINE_QUERIES)
+        if (GetDevice()->PipelineStatsAvailable())
+        {
+            PPX_CHECKED_CALL(ppxres = prevFrame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+        }
 #endif
     }
 
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
-#if defined(ENABLE_PIPELINE_QUERIES)
         frame.timestampQuery->Reset(0, 2);
-        frame.pipelineStatsQuery->Reset(0, 1);
-
-       // Write start timestamp
-       frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+#if defined(ENABLE_PIPELINE_QUERIES)
+        if (GetDevice()->PipelineStatsAvailable())
+        {
+            frame.pipelineStatsQuery->Reset(0, 1);
+        }
 #endif
+        // Write start timestamp
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+
 
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
         mFlocking.CopyConstantsToGpu(frameIndex, frame.cmd);
@@ -585,14 +593,18 @@ void FishTornadoApp::Render()
             frame.cmd->SetViewports(renderPass->GetViewport());
 
             mShark.DrawForward(frameIndex, frame.cmd);
-
 #if defined(ENABLE_PIPELINE_QUERIES)
-            frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
-#endif
- 
+            if (GetDevice()->PipelineStatsAvailable())
+            {
+                frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
+            }
+#endif 
             mFlocking.DrawForward(frameIndex, frame.cmd);
 #if defined(ENABLE_PIPELINE_QUERIES)
-           frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
+            if (GetDevice()->PipelineStatsAvailable())
+            {
+                frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
+            }
 #endif
 
             mOcean.DrawForward(frameIndex, frame.cmd);
@@ -607,16 +619,18 @@ void FishTornadoApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
 
-#if defined(ENABLE_PIPELINE_QUERIES)
         // Write end timestamp
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
-#endif
     }
     
-#if defined(ENABLE_PIPELINE_QUERIES)
+
     // Resolve queries
     frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
-    frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
+#if defined(ENABLE_PIPELINE_QUERIES)
+    if (GetDevice()->PipelineStatsAvailable())
+    {
+        frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
+    }
 #endif
 
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
