@@ -632,6 +632,11 @@ Result Device::WaitIdle()
     return ppx::SUCCESS;
 }
 
+bool Device::PipelineStatsAvailable() const
+{
+    return true;
+}
+
 } // namespace dx12
 } // namespace grfx
 } // namespace ppx

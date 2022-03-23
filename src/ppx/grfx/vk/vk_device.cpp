@@ -583,6 +583,11 @@ Result Device::WaitIdle()
     return ppx::SUCCESS;
 }
 
+bool Device::PipelineStatsAvailable() const
+{
+    return mDeviceFeatures.pipelineStatisticsQuery;
+}
+
 void Device::ResetQueryPoolEXT(
     VkQueryPool queryPool,
     uint32_t    firstQuery,

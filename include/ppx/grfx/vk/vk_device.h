@@ -26,6 +26,8 @@ public:
 
     virtual Result WaitIdle() override;
 
+    virtual bool PipelineStatsAvailable() const override;
+
     void ResetQueryPoolEXT(
         VkQueryPool queryPool,
         uint32_t    firstQuery,

@@ -75,7 +75,12 @@ private:
         grfx::FencePtr         imageAcquiredFence;
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
+        ppx::grfx::QueryPtr    timestampQuery;
+        ppx::grfx::QueryPtr    pipelineStatsQuery;
     };
+
+    grfx::PipelineStatistics mPipelineStatistics = {};
+    uint64_t                 mTotalGpuFrameTime  = 0;
 
     grfx::TexturePtr m1x1BlackTexture;
     grfx::TexturePtr m1x1WhiteTexture;
@@ -91,12 +96,12 @@ private:
     std::vector<grfx::ModelPtr> mModels;
 
     // Skybox (a sphere really)
-    grfx::ModelPtr                mSkyboxModel;
-    grfx::DescriptorSetLayoutPtr  mSkyboxLayout;
-    grfx::DescriptorSetPtr        mSkyboxSet;
-    grfx::BufferPtr               mSkyboxConstants;
-    grfx::PipelineInterfacePtr    mSkyboxPipelineInterface;
-    grfx::GraphicsPipelinePtr     mSkyboxPipeline;
+    grfx::ModelPtr               mSkyboxModel;
+    grfx::DescriptorSetLayoutPtr mSkyboxLayout;
+    grfx::DescriptorSetPtr       mSkyboxSet;
+    grfx::BufferPtr              mSkyboxConstants;
+    grfx::PipelineInterfacePtr   mSkyboxPipelineInterface;
+    grfx::GraphicsPipelinePtr    mSkyboxPipeline;
 
     // IBL and environemnt reflection maps
     std::vector<grfx::TexturePtr> mIBLMaps;
@@ -242,11 +247,11 @@ private:
     uint32_t           mCurrentIBLIndex = 0;
     uint32_t           mTargetIBLIndex  = 0;
     std::vector<char*> mIBLNames        = {
-               "GoldenHour",
-               "PaperMill",
-               "UenoShrine",
-               "TokyoBigSight",
-               "TropicalBeach",
+        "GoldenHour",
+        "PaperMill",
+        "UenoShrine",
+        "TokyoBigSight",
+        "TropicalBeach",
     };
 
 private:
@@ -962,6 +967,19 @@ void ProjApp::Setup()
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
+        grfx::QueryCreateInfo queryCreateInfo = {};
+        queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
+        queryCreateInfo.count                 = 2;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
+
+        // Pipeline statistics query pool
+        if (GetDevice()->PipelineStatsAvailable()) {
+            queryCreateInfo       = {};
+            queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
+            queryCreateInfo.count = 1;
+            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+        }
+
         mPerFrame.push_back(frame);
     }
 }
@@ -1193,6 +1211,22 @@ void ProjApp::Render()
         mSkyboxConstants->UnmapMemory();
     }
 
+    // Read query results
+    if (GetFrameCount() > 0) {
+        uint64_t data[2] = {0};
+        PPX_CHECKED_CALL(ppxres = frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
+        mTotalGpuFrameTime = data[1] - data[0];
+        if (GetDevice()->PipelineStatsAvailable()) {
+            PPX_CHECKED_CALL(ppxres = frame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+        }
+    }
+
+    // Reset query
+    frame.timestampQuery->Reset(0, 2);
+    if (GetDevice()->PipelineStatsAvailable()) {
+        frame.pipelineStatsQuery->Reset(0, 1);
+    }
+
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
@@ -1205,6 +1239,7 @@ void ProjApp::Render()
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(renderPass);
         {
+            frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
             frame.cmd->SetScissors(GetScissor());
             frame.cmd->SetViewports(GetViewport());
             // Draw model
@@ -1219,7 +1254,14 @@ void ProjApp::Render()
 
             frame.cmd->BindIndexBuffer(mModels[mModelIndex]);
             frame.cmd->BindVertexBuffers(mModels[mModelIndex]);
+
+            if (GetDevice()->PipelineStatsAvailable()) {
+                frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
+            }
             frame.cmd->DrawIndexed(mModels[mModelIndex]->GetIndexCount());
+            if (GetDevice()->PipelineStatsAvailable()) {
+                frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
+            }
 
             // Draw sky box
             frame.cmd->BindGraphicsDescriptorSets(mSkyboxPipelineInterface, 1, &mSkyboxSet);
@@ -1233,6 +1275,13 @@ void ProjApp::Render()
             DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 1);
+
+        // Resolve queries
+        frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
+        if (GetDevice()->PipelineStatsAvailable()) {
+            frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
+        }
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
@@ -1363,6 +1412,51 @@ void ProjApp::DrawGui()
 
     ImGui::SliderFloat("PBR IBL Strength", &mMaterialData.iblStrength, 0.0f, 25.0f, "%.03f");
     ImGui::SliderFloat("PBR Reflection Strength", &mMaterialData.envStrength, 0.0f, 5.0f, "%.03f");
+
+    ImGui::Separator();
+
+    ImGui::Columns(2);
+
+    uint64_t frequency = 0;
+    GetGraphicsQueue()->GetTimestampFrequency(&frequency);
+    ImGui::Text("Previous GPU Frame Time");
+    ImGui::NextColumn();
+    ImGui::Text("%f ms ", static_cast<float>(mTotalGpuFrameTime / static_cast<double>(frequency)) * 1000.0f);
+    ImGui::NextColumn();
+
+    ImGui::Separator();
+
+    ImGui::Text("IAVertices");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.IAVertices);
+    ImGui::NextColumn();
+
+    ImGui::Text("IAPrimitives");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.IAPrimitives);
+    ImGui::NextColumn();
+
+    ImGui::Text("VSInvocations");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.VSInvocations);
+    ImGui::NextColumn();
+
+    ImGui::Text("CInvocations");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.CInvocations);
+    ImGui::NextColumn();
+
+    ImGui::Text("CPrimitives");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.CPrimitives);
+    ImGui::NextColumn();
+
+    ImGui::Text("PSInvocations");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.PSInvocations);
+    ImGui::NextColumn();
+
+    ImGui::Columns(1);
 }
 
 int main(int argc, char** argv)
