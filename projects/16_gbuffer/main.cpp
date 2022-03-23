@@ -39,7 +39,12 @@ private:
         ppx::grfx::FencePtr         imageAcquiredFence;
         ppx::grfx::SemaphorePtr     renderCompleteSemaphore;
         ppx::grfx::FencePtr         renderCompleteFence;
+        ppx::grfx::QueryPtr         timestampQuery;
+        ppx::grfx::QueryPtr         pipelineStatsQuery;
     };
+
+    grfx::PipelineStatistics mPipelineStatistics = {};
+    uint64_t                 mTotalGpuFrameTime  = 0;
 
     std::vector<PerFrame>        mPerFrame;
     grfx::DescriptorPoolPtr      mDescriptorPool;
@@ -154,6 +159,19 @@ void ProjApp::SetupPerFrame()
 
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+
+        grfx::QueryCreateInfo queryCreateInfo = {};
+        queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
+        queryCreateInfo.count                 = 2;
+        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
+
+        // Pipeline statistics query pool
+        if (GetDevice()->PipelineStatsAvailable()) {
+            queryCreateInfo       = {};
+            queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
+            queryCreateInfo.count = 1;
+            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+        }
 
         mPerFrame.push_back(frame);
     }
@@ -335,7 +353,7 @@ void ProjApp::SetupIBLResources()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Texture", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -457,7 +475,7 @@ void ProjApp::SetupGBufferLightQuad()
         GetAssetPath("gbuffer/shaders"));
     std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("gbuffer/shaders"), "DeferredLight", "vs_5_0", &gbufferShaderIncludeHandler);
 #else
-    std::vector<char>     bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DeferredLight.vs");
+    std::vector<char> bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DeferredLight.vs");
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
     grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -467,7 +485,7 @@ void ProjApp::SetupGBufferLightQuad()
 #if defined(PORTO_D3DCOMPILE)
     bytecode = grfx::dx::CompileShader(GetAssetPath("gbuffer/shaders"), "DeferredLight", "ps_5_0", &gbufferShaderIncludeHandler);
 #else
-    bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DeferredLight.ps");
+    bytecode                   = LoadShader(GetAssetPath("gbuffer/shaders"), "DeferredLight.ps");
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -498,7 +516,7 @@ void ProjApp::SetupDebugDraw()
         GetAssetPath("gbuffer/shaders"));
     std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute", "vs_5_0", &gbufferShaderIncludeHandler);
 #else
-    std::vector<char>     bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute.vs");
+    std::vector<char> bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute.vs");
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
     grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -508,7 +526,7 @@ void ProjApp::SetupDebugDraw()
 #if defined(PORTO_D3DCOMPILE)
     bytecode = grfx::dx::CompileShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute", "ps_5_0", &gbufferShaderIncludeHandler);
 #else
-    bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute.ps");
+    bytecode                   = LoadShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute.ps");
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -550,7 +568,7 @@ void ProjApp::SetupDrawToSwapchain()
             GetAssetPath("basic/shaders"));
         std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "FullScreenTriangle", "vs_5_0", &basicShaderIncludeHandler);
 #else
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -560,7 +578,7 @@ void ProjApp::SetupDrawToSwapchain()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "FullScreenTriangle", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
+        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -590,9 +608,9 @@ void ProjApp::SetupDrawToSwapchain()
         writes[0].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         writes[0].pImageView            = mGBufferLightPass->GetRenderTargetTexture(0)->GetSampledImageView();
 
-        writes[1].binding               = 1;
-        writes[1].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
-        writes[1].pSampler              = mSampler;
+        writes[1].binding  = 1;
+        writes[1].type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
+        writes[1].pSampler = mSampler;
 
         PPX_CHECKED_CALL(ppxres = mDrawToSwapchainSet->UpdateDescriptors(2, writes));
     }
@@ -733,20 +751,20 @@ void ProjApp::Setup()
         mSceneDataSet->SetName("Scene Data");
 
         // Update descriptor
-        grfx::WriteDescriptor writes[2]   = {};
-        writes[0].binding                 = SCENE_CONSTANTS_REGISTER;
-        writes[0].type                    = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        writes[0].bufferOffset            = 0;
-        writes[0].bufferRange             = PPX_WHOLE_SIZE;
-        writes[0].pBuffer                 = mGpuSceneConstants;
+        grfx::WriteDescriptor writes[2] = {};
+        writes[0].binding               = SCENE_CONSTANTS_REGISTER;
+        writes[0].type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        writes[0].bufferOffset          = 0;
+        writes[0].bufferRange           = PPX_WHOLE_SIZE;
+        writes[0].pBuffer               = mGpuSceneConstants;
 
-        writes[1].binding                 = LIGHT_DATA_REGISTER;
-        writes[1].arrayIndex              = 0;
-        writes[1].type                    = grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER;
-        writes[1].bufferOffset            = 0;
-        writes[1].bufferRange             = PPX_WHOLE_SIZE;
-        writes[1].structuredElementCount  = 1;
-        writes[1].pBuffer                 = mGpuLightConstants;
+        writes[1].binding                = LIGHT_DATA_REGISTER;
+        writes[1].arrayIndex             = 0;
+        writes[1].type                   = grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER;
+        writes[1].bufferOffset           = 0;
+        writes[1].bufferRange            = PPX_WHOLE_SIZE;
+        writes[1].structuredElementCount = 1;
+        writes[1].pBuffer                = mGpuLightConstants;
         PPX_CHECKED_CALL(ppxres = mSceneDataSet->UpdateDescriptors(2, writes));
     }
 
@@ -966,6 +984,22 @@ void ProjApp::Render()
     // Update descriptors
     UpdateEnvDescriptors();
 
+    // Read query results
+    if (GetFrameCount() > 0) {
+        uint64_t data[2] = {0};
+        PPX_CHECKED_CALL(ppxres = frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
+        mTotalGpuFrameTime = data[1] - data[0];
+        if (GetDevice()->PipelineStatsAvailable()) {
+            PPX_CHECKED_CALL(ppxres = frame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+        }
+    }
+
+    // Reset query
+    frame.timestampQuery->Reset(0, 2);
+    if (GetDevice()->PipelineStatsAvailable()) {
+        frame.pipelineStatsQuery->Reset(0, 1);
+    }
+
     // Build command buffer
     PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
     {
@@ -983,8 +1017,16 @@ void ProjApp::Render()
             grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE);
         frame.cmd->BeginRenderPass(mGBufferRenderPass, grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_RENDER_TARGETS | grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_DEPTH);
         {
+            frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+
+            if (GetDevice()->PipelineStatsAvailable()) {
+                frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
+            }
             for (size_t i = 0; i < mEntities.size(); ++i) {
                 mEntities[i].Draw(mSceneDataSet, frame.cmd);
+            }
+            if (GetDevice()->PipelineStatsAvailable()) {
+                frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
             }
         }
         frame.cmd->EndRenderPass();
@@ -1032,6 +1074,8 @@ void ProjApp::Render()
             }
         }
         frame.cmd->EndRenderPass();
+        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 1);
+
         frame.cmd->TransitionImageLayout(
             mGBufferLightPass,
             grfx::RESOURCE_STATE_RENDER_TARGET,
@@ -1060,6 +1104,11 @@ void ProjApp::Render()
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
+    }
+    // Resolve queries
+    frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
+    if (GetDevice()->PipelineStatsAvailable()) {
+        frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
     }
     PPX_CHECKED_CALL(ppxres = frame.cmd->End());
 
@@ -1117,6 +1166,51 @@ void ProjApp::DrawGui()
         }
         ImGui::EndCombo();
     }
+
+    ImGui::Separator();
+
+    ImGui::Columns(2);
+
+    uint64_t frequency = 0;
+    GetGraphicsQueue()->GetTimestampFrequency(&frequency);
+    ImGui::Text("Previous GPU Frame Time");
+    ImGui::NextColumn();
+    ImGui::Text("%f ms ", static_cast<float>(mTotalGpuFrameTime / static_cast<double>(frequency)) * 1000.0f);
+    ImGui::NextColumn();
+
+    ImGui::Separator();
+
+    ImGui::Text("IAVertices");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.IAVertices);
+    ImGui::NextColumn();
+
+    ImGui::Text("IAPrimitives");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.IAPrimitives);
+    ImGui::NextColumn();
+
+    ImGui::Text("VSInvocations");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.VSInvocations);
+    ImGui::NextColumn();
+
+    ImGui::Text("CInvocations");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.CInvocations);
+    ImGui::NextColumn();
+
+    ImGui::Text("CPrimitives");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.CPrimitives);
+    ImGui::NextColumn();
+
+    ImGui::Text("PSInvocations");
+    ImGui::NextColumn();
+    ImGui::Text("%lu", mPipelineStatistics.PSInvocations);
+    ImGui::NextColumn();
+
+    ImGui::Columns(1);
 }
 
 int main(int argc, char** argv)
