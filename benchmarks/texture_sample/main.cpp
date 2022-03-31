@@ -273,8 +273,8 @@ void ProjApp::Setup()
             }
         }
         grfx::SamplerCreateInfo samplerCreateInfo;
-        grfx::Filter filter =  mSamplerFilterType == "linear" ?  grfx::FILTER_LINEAR : grfx::FILTER_NEAREST;
-        grfx::SamplerMipmapMode mipmapFilter =  mSamplerFilterType == "linear" ?  grfx::SAMPLER_MIPMAP_MODE_LINEAR : grfx::SAMPLER_MIPMAP_MODE_NEAREST;
+        grfx::Filter filter = mSamplerFilterType == "linear" ?  grfx::FILTER_LINEAR : grfx::FILTER_NEAREST;
+        grfx::SamplerMipmapMode mipmapFilter = mSamplerMipmapFilterType == "linear" ?  grfx::SAMPLER_MIPMAP_MODE_LINEAR : grfx::SAMPLER_MIPMAP_MODE_NEAREST;
         samplerCreateInfo.magFilter = filter;
         samplerCreateInfo.minFilter = filter;
         samplerCreateInfo.mipmapMode = mipmapFilter;
