@@ -1,0 +1,15 @@
+load("//tools:yeti.bzl", "yeti_cc_binary")
+load("//build_defs:config.bzl", "COPTS")
+
+yeti_cc_binary(
+    name = "overdraw",
+    srcs = ["main.cpp"],
+    copts = COPTS,
+    data = [
+        "//assets:benchmarks/shaders/spv/TextureSample.ps.spv",
+        "//assets:benchmarks/shaders/spv/TextureSample.vs.spv",
+        "//assets:benchmarks/shaders/spv/TextureSample_ExplicitEarlyZ.ps.spv",
+        "//assets:benchmarks/shaders/spv/TextureSample_ExplicitEarlyZ.vs.spv",
+    ],
+    deps = ["//:ppx"],
+)

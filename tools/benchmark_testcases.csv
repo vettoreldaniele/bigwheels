@@ -13,3 +13,11 @@ draw_call_1000_instanced, Draw call (1000 triangles) (instanced), vk_draw_call, 
 primitive_assembly_10, Primitive assembly (10 triangles), vk_primitive_assembly, --triangles 10
 primitive_assembly_100, Primitive assembly (100 triangles), vk_primitive_assembly, --triangles 100
 primitive_assembly_1000, Primitive assembly (1000 triangles), vk_primitive_assembly, --triangles 1000
+overdraw_4_frontback, Overdraw (4 layers) (front-to-back), vk_overdraw, --num-layers 4 --draw-front-to-back true
+overdraw_4_frontback_nodepth, Overdraw (4 layers) (front-to-back) (depth disabled), vk_overdraw, --num-layers 4 --draw-front-to-back true --enable-depth false
+overdraw_4_frontback_forcedearlyz, Overdraw (4 layers) (front-to-back) (forced early-z), vk_overdraw, --num-layers 4 --draw-front-to-back true --use-explicit-early-z
+overdraw_4_backfront, Overdraw (4 layers) (back-to-front), vk_overdraw, --num-layers 4 --draw-front-to-back false
+overdraw_8_frontback, Overdraw (8 layers) (front-to-back), vk_overdraw, --num-layers 8 --draw-front-to-back true
+overdraw_8_frontback_nodepth, Overdraw (8 layers) (front-to-back) (depth disabled), vk_overdraw, --num-layers 8 --draw-front-to-back true --enable-depth false
+overdraw_8_frontback_forcedearlyz, Overdraw (8 layers) (front-to-back) (forced early-z), vk_overdraw, --num-layers 8 --draw-front-to-back true --use-explicit-early-z
+overdraw_8_backfront, Overdraw (8 layers) (back-to-front), vk_overdraw, --num-layers 8 --draw-front-to-back false
