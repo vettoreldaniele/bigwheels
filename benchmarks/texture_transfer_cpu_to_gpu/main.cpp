@@ -150,8 +150,6 @@ void ProjApp::SetupTestParameters()
 
 void ProjApp::SetupDrawToSwapchain()
 {
-    Result ppxres = ppx::SUCCESS;
-
     // Create descriptor pool
     {
         grfx::DescriptorPoolCreateInfo createInfo = {};
@@ -160,7 +158,7 @@ void ProjApp::SetupDrawToSwapchain()
         createInfo.uniformBuffer                  = 0;
         createInfo.structuredBuffer               = 0;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
+        PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
     }
 
     // Sampler
@@ -171,7 +169,7 @@ void ProjApp::SetupDrawToSwapchain()
         createInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_NEAREST;
         createInfo.minLod                  = 0.0f;
         createInfo.maxLod                  = FLT_MAX;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mSampler));
+        PPX_CHECKED_CALL(GetDevice()->CreateSampler(&createInfo, &mSampler));
     }
 
     // Descriptor set layout
@@ -180,7 +178,7 @@ void ProjApp::SetupDrawToSwapchain()
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLER));
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDrawToSwapchainLayout));
+        PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDrawToSwapchainLayout));
     }
 
     // Pipeline
@@ -195,7 +193,7 @@ void ProjApp::SetupDrawToSwapchain()
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
+        PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
 #if defined(PORTO_D3DCOMPILE)
@@ -205,7 +203,7 @@ void ProjApp::SetupDrawToSwapchain()
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
+        PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
         grfx::FullscreenQuadCreateInfo createInfo = {};
         createInfo.VS                             = VS;
@@ -217,16 +215,15 @@ void ProjApp::SetupDrawToSwapchain()
         createInfo.renderTargetFormats[0]         = GetSwapchain()->GetColorFormat();
         createInfo.depthStencilFormat             = GetSwapchain()->GetDepthFormat();
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFullscreenQuad(&createInfo, &mDrawToSwapchain));
+        PPX_CHECKED_CALL(GetDevice()->CreateFullscreenQuad(&createInfo, &mDrawToSwapchain));
     }
 
     // Allocate descriptor set
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDrawToSwapchainLayout, &mDrawToSwapchainSet));
+    PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDrawToSwapchainLayout, &mDrawToSwapchainSet));
 }
 
 void ProjApp::TransferTexture(const std::string fileName)
 {
-    Result ppxres = ppx::ERROR_FAILED;
     Timer  timer;
     PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
 
@@ -235,7 +232,7 @@ void ProjApp::TransferTexture(const std::string fileName)
 
     Bitmap bitmap;
     // Load bitmap to CPU from file
-    PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(GetAssetPath(fileName), &bitmap));
+    PPX_CHECKED_CALL(Bitmap::LoadFile(GetAssetPath(fileName), &bitmap));
     // Create target image
     grfx::ImagePtr image;
     {
@@ -253,13 +250,13 @@ void ProjApp::TransferTexture(const std::string fileName)
         ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
         ci.initialState                = grfx::RESOURCE_STATE_SHADER_RESOURCE;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateImage(&ci, &image));
+        PPX_CHECKED_CALL(GetDevice()->CreateImage(&ci, &image));
     }
     // This is the actual test, we timer it on the CPU
     // Since we time in CPU we put a hard barrier to ensure GPU finishes
     GetDevice()->WaitIdle();
     double transferStartTimeMs = timer.MillisSinceStart();
-    PPX_CHECKED_CALL(ppxres = grfx_util::CopyBitmapToImage(GetDevice()->GetGraphicsQueue(), &bitmap, image, 0, 0, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE));
+    PPX_CHECKED_CALL(grfx_util::CopyBitmapToImage(GetDevice()->GetGraphicsQueue(), &bitmap, image, 0, 0, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE));
     GetDevice()->WaitIdle();
     double transferEndTimeMs = timer.MillisSinceStart();
     float  elapsedTimeMs     = static_cast<float>(transferEndTimeMs - transferStartTimeMs);
@@ -274,15 +271,13 @@ void ProjApp::TransferTexture(const std::string fileName)
         // Since we later render the texture, we keep a copy of the view
         grfx::SampledImageViewPtr        imageView;
         grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(image);
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampledImageView(&viewCreateInfo, &imageView));
+        PPX_CHECKED_CALL(GetDevice()->CreateSampledImageView(&viewCreateInfo, &imageView));
         mSampledImageViews.push_back(imageView);
     }
 }
 
 void ProjApp::Setup()
 {
-    Result ppxres = ppx::SUCCESS;
-
     SetupTestParameters();
 
     // After the benchmark, we prepare to render the textures
@@ -292,18 +287,18 @@ void ProjApp::Setup()
     {
         PerFrame frame = {};
 
-        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
 
         grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
 
         grfx::FenceCreateInfo fenceCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
 
         fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         mPerFrame.push_back(frame);
     }
@@ -314,7 +309,6 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    Result    ppxres = ppx::SUCCESS;
     PerFrame& frame  = mPerFrame[0];
 
     // The benchmark happens inside this call
@@ -323,13 +317,13 @@ void ProjApp::Render()
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
     uint32_t imageIndex = UINT32_MAX;
-    PPX_CHECKED_CALL(ppxres = swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
+    PPX_CHECKED_CALL(swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
 
     // Wait for and reset image acquired fence
-    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.renderCompleteFence->WaitAndReset());
 
     // Change texture every second
     float    seconds        = GetElapsedSeconds();
@@ -347,11 +341,11 @@ void ProjApp::Render()
         writes[1].type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
         writes[1].pSampler = mSampler;
 
-        PPX_CHECKED_CALL(ppxres = mDrawToSwapchainSet->UpdateDescriptors(2, writes));
+        PPX_CHECKED_CALL(mDrawToSwapchainSet->UpdateDescriptors(2, writes));
     }
 
     // Build command buffer
-    PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
+    PPX_CHECKED_CALL(frame.cmd->Begin());
     {
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
@@ -368,7 +362,7 @@ void ProjApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }
-    PPX_CHECKED_CALL(ppxres = frame.cmd->End());
+    PPX_CHECKED_CALL(frame.cmd->End());
 
     grfx::SubmitInfo submitInfo     = {};
     submitInfo.commandBufferCount   = 1;
@@ -379,9 +373,9 @@ void ProjApp::Render()
     submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
     submitInfo.pFence               = frame.renderCompleteFence;
 
-    PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
+    PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
 
-    PPX_CHECKED_CALL(ppxres = swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
+    PPX_CHECKED_CALL(swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
 }
 
 int main(int argc, char** argv)

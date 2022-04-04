@@ -42,17 +42,15 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     const std::string&       psBaseName,
     grfx::PipelineInterface* pPipelineInterface)
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     grfx::ShaderModulePtr VS, PS;
 #if defined(PORTO_D3DCOMPILE)
     auto vsExtensionOffset = vsBaseName.rfind(".vs");
-    PPX_CHECKED_CALL(ppxres = CompileHlslShader(baseDir, vsBaseName.substr(0, vsExtensionOffset), "vs_5_0", &VS));
+    PPX_CHECKED_CALL(CompileHlslShader(baseDir, vsBaseName.substr(0, vsExtensionOffset), "vs_5_0", &VS));
     auto psExtensionOffset = psBaseName.rfind(".ps");
-    PPX_CHECKED_CALL(ppxres = CompileHlslShader(baseDir, psBaseName.substr(0, psExtensionOffset), "ps_5_0", &PS));
+    PPX_CHECKED_CALL(CompileHlslShader(baseDir, psBaseName.substr(0, psExtensionOffset), "ps_5_0", &PS));
 #else
-    PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, vsBaseName, &VS));
-    PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, psBaseName, &PS));
+    PPX_CHECKED_CALL(CreateShader(baseDir, vsBaseName, &VS));
+    PPX_CHECKED_CALL(CreateShader(baseDir, psBaseName, &PS));
 #endif
 
     const grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX;
@@ -87,7 +85,7 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     }
 
     grfx::GraphicsPipelinePtr pipeline;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &pipeline));
+    PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &pipeline));
 
     GetDevice()->DestroyShaderModule(VS);
     GetDevice()->DestroyShaderModule(PS);
@@ -100,14 +98,12 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
     const std::string&       vsBaseName,
     grfx::PipelineInterface* pPipelineInterface)
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     grfx::ShaderModulePtr VS;
 #if defined(PORTO_D3DCOMPILE)
     auto vsExtensionOffset = vsBaseName.rfind(".vs");
-    PPX_CHECKED_CALL(ppxres = CompileHlslShader(baseDir, vsBaseName.substr(0, vsExtensionOffset), "vs_5_0", &VS));
+    PPX_CHECKED_CALL(CompileHlslShader(baseDir, vsBaseName.substr(0, vsExtensionOffset), "vs_5_0", &VS));
 #else
-    PPX_CHECKED_CALL(ppxres = CreateShader(baseDir, vsBaseName, &VS));
+    PPX_CHECKED_CALL(CreateShader(baseDir, vsBaseName, &VS));
 #endif
 
     grfx::GraphicsPipelineCreateInfo2 gpCreateInfo = {};
@@ -126,7 +122,7 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
     gpCreateInfo.pPipelineInterface                = IsNull(pPipelineInterface) ? mForwardPipelineInterface.Get() : pPipelineInterface;
 
     grfx::GraphicsPipelinePtr pipeline;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &pipeline));
+    PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &pipeline));
 
     GetDevice()->DestroyShaderModule(VS);
 
@@ -152,8 +148,6 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 
 void FishTornadoApp::SetupDescriptorPool()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     grfx::DescriptorPoolCreateInfo createInfo = {};
     createInfo.sampler                        = 1000;
     createInfo.sampledImage                   = 1000;
@@ -161,24 +155,22 @@ void FishTornadoApp::SetupDescriptorPool()
     createInfo.structuredBuffer               = 1000;
     createInfo.storageTexelBuffer             = 1000;
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
+    PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
 }
 
 void FishTornadoApp::SetupSetLayouts()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     // Scene
     grfx::DescriptorSetLayoutCreateInfo createInfo = {};
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_SCENE_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_SHADOW_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_SHADOW_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER});
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataSetLayout));
+    PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataSetLayout));
 
     // Model
     createInfo = {};
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_MODEL_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER});
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mModelDataSetLayout));
+    PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&createInfo, &mModelDataSetLayout));
 
     // Material
 
@@ -190,13 +182,11 @@ void FishTornadoApp::SetupSetLayouts()
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_CAUSTICS_TEXTURE_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE});
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_CLAMPED_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER});
     createInfo.bindings.push_back(grfx::DescriptorBinding{RENDER_REPEAT_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER});
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialSetLayout));
+    PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialSetLayout));
 }
 
 void FishTornadoApp::SetupPipelineInterfaces()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     // Forward render pipeline interface
     {
         grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
@@ -207,21 +197,17 @@ void FishTornadoApp::SetupPipelineInterfaces()
         piCreateInfo.sets[1].pLayout                   = mModelDataSetLayout;
         piCreateInfo.sets[2].set                       = 2;
         piCreateInfo.sets[2].pLayout                   = mMaterialSetLayout;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mForwardPipelineInterface));
+        PPX_CHECKED_CALL(GetDevice()->CreatePipelineInterface(&piCreateInfo, &mForwardPipelineInterface));
     }
 }
 
 void FishTornadoApp::SetupTextures()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
-    PPX_CHECKED_CALL(ppxres = grfx_util::CreateTexture1x1(GetGraphicsQueue(), {0, 0, 0, 0}, &m1x1BlackTexture));
+    PPX_CHECKED_CALL(grfx_util::CreateTexture1x1(GetGraphicsQueue(), {0, 0, 0, 0}, &m1x1BlackTexture));
 }
 
 void FishTornadoApp::SetupSamplers()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     grfx::SamplerCreateInfo createInfo = {};
     createInfo.magFilter               = grfx::FILTER_LINEAR;
     createInfo.minFilter               = grfx::FILTER_LINEAR;
@@ -231,7 +217,7 @@ void FishTornadoApp::SetupSamplers()
     createInfo.addressModeW            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     createInfo.minLod                  = 0.0f;
     createInfo.maxLod                  = FLT_MAX;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mClampedSampler));
+    PPX_CHECKED_CALL(GetDevice()->CreateSampler(&createInfo, &mClampedSampler));
 
     createInfo              = {};
     createInfo.magFilter    = grfx::FILTER_LINEAR;
@@ -242,7 +228,7 @@ void FishTornadoApp::SetupSamplers()
     createInfo.addressModeW = grfx::SAMPLER_ADDRESS_MODE_REPEAT;
     createInfo.minLod       = 0.0f;
     createInfo.maxLod       = FLT_MAX;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mRepeatSampler));
+    PPX_CHECKED_CALL(GetDevice()->CreateSampler(&createInfo, &mRepeatSampler));
 
     createInfo               = {};
     createInfo.addressModeU  = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
@@ -251,13 +237,11 @@ void FishTornadoApp::SetupSamplers()
     createInfo.compareEnable = true;
     createInfo.compareOp     = grfx::COMPARE_OP_LESS_OR_EQUAL;
     createInfo.borderColor   = grfx::BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mShadowSampler));
+    PPX_CHECKED_CALL(GetDevice()->CreateSampler(&createInfo, &mShadowSampler));
 }
 
 void FishTornadoApp::SetupPerFrame()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     const uint32_t numFramesInFlight = GetNumFramesInFlight();
 
     mPerFrame.resize(numFramesInFlight);
@@ -265,21 +249,21 @@ void FishTornadoApp::SetupPerFrame()
     for (uint32_t i = 0; i < numFramesInFlight; ++i) {
         PerFrame& frame = mPerFrame[i];
 
-        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
 
         grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
 
         grfx::FenceCreateInfo fenceCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
 
         fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         // Scene constants buffer
-        PPX_CHECKED_CALL(ppxres = frame.sceneConstants.Create(GetDevice(), 3 * PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(frame.sceneConstants.Create(GetDevice(), 3 * PPX_MINIUM_CONSTANT_BUFFER_SIZE));
 
         // Shadow draw pass
         {
@@ -291,16 +275,16 @@ void FishTornadoApp::SetupPerFrame()
             drawPassCreateInfo.depthStencilInitialState = grfx::RESOURCE_STATE_SHADER_RESOURCE;
             drawPassCreateInfo.depthStencilClearValue   = {1.0f, 0xFF};
 
-            PPX_CHECKED_CALL(ppxres = ppxres = GetDevice()->CreateDrawPass(&drawPassCreateInfo, &frame.shadowDrawPass));
+            PPX_CHECKED_CALL(GetDevice()->CreateDrawPass(&drawPassCreateInfo, &frame.shadowDrawPass));
         }
 
         // Allocate scene descriptor set
-        PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneSet));
+        PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneSet));
 
         // Update scene descriptor
-        PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateUniformBuffer(RENDER_SCENE_DATA_REGISTER, 0, frame.sceneConstants.GetGpuBuffer()));
-        PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, frame.shadowDrawPass->GetDepthStencilTexture()));
-        PPX_CHECKED_CALL(ppxres = frame.sceneSet->UpdateSampler(RENDER_SHADOW_SAMPLER_REGISTER, 0, mShadowSampler));
+        PPX_CHECKED_CALL(frame.sceneSet->UpdateUniformBuffer(RENDER_SCENE_DATA_REGISTER, 0, frame.sceneConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(frame.sceneSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, frame.shadowDrawPass->GetDepthStencilTexture()));
+        PPX_CHECKED_CALL(frame.sceneSet->UpdateSampler(RENDER_SHADOW_SAMPLER_REGISTER, 0, mShadowSampler));
 
         // Scene shadow
         //
@@ -311,24 +295,24 @@ void FishTornadoApp::SetupPerFrame()
         //       data to static.
         //
         // Allocate scene shadow descriptor set
-        PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneShadowSet));
+        PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataSetLayout, &frame.sceneShadowSet));
         // Update scene shadow descriptor
-        PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateUniformBuffer(RENDER_SCENE_DATA_REGISTER, 0, frame.sceneConstants.GetGpuBuffer()));
-        PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, m1x1BlackTexture));
-        PPX_CHECKED_CALL(ppxres = frame.sceneShadowSet->UpdateSampler(RENDER_SHADOW_SAMPLER_REGISTER, 0, mClampedSampler));
+        PPX_CHECKED_CALL(frame.sceneShadowSet->UpdateUniformBuffer(RENDER_SCENE_DATA_REGISTER, 0, frame.sceneConstants.GetGpuBuffer()));
+        PPX_CHECKED_CALL(frame.sceneShadowSet->UpdateSampledImage(RENDER_SHADOW_TEXTURE_REGISTER, 0, m1x1BlackTexture));
+        PPX_CHECKED_CALL(frame.sceneShadowSet->UpdateSampler(RENDER_SHADOW_SAMPLER_REGISTER, 0, mClampedSampler));
 
         // Timestamp query
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
+        PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
 #if defined(ENABLE_PIPELINE_QUERIES)
         if (GetDevice()->PipelineStatsAvailable()) {
             // Pipeline statistics query pool
             queryCreateInfo       = {};
             queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
             queryCreateInfo.count = 1;
-            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+            PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
         }
 #endif
     }
@@ -336,13 +320,11 @@ void FishTornadoApp::SetupPerFrame()
 
 void FishTornadoApp::SetupCaustics()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     // Texture
     {
         // Load first file to get properties
         Bitmap bitmap;
-        PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(GetAssetPath("fishtornado/textures/ocean/caustics/save.00.png"), &bitmap));
+        PPX_CHECKED_CALL(Bitmap::LoadFile(GetAssetPath("fishtornado/textures/ocean/caustics/save.00.png"), &bitmap));
 
         grfx::TextureCreateInfo createInfo = {};
         createInfo.imageType               = grfx::IMAGE_TYPE_2D;
@@ -357,14 +339,12 @@ void FishTornadoApp::SetupCaustics()
         createInfo.memoryUsage             = grfx::MEMORY_USAGE_GPU_ONLY;
         createInfo.initialState            = grfx::RESOURCE_STATE_SHADER_RESOURCE;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateTexture(&createInfo, &mCausticsTexture));
+        PPX_CHECKED_CALL(GetDevice()->CreateTexture(&createInfo, &mCausticsTexture));
     }
 }
 
 void FishTornadoApp::UploadCaustics()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     for (uint32_t i = 0; i < kCausticsImageCount; ++i) {
         Timer timer;
         PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
@@ -375,9 +355,9 @@ void FishTornadoApp::UploadCaustics()
         fs::path path = GetAssetPath(filename.str());
 
         Bitmap bitmap;
-        PPX_CHECKED_CALL(ppxres = Bitmap::LoadFile(path, &bitmap));
+        PPX_CHECKED_CALL(Bitmap::LoadFile(path, &bitmap));
 
-        PPX_CHECKED_CALL(ppxres = grfx_util::CopyBitmapToTexture(GetGraphicsQueue(), &bitmap, mCausticsTexture, 0, i, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE));
+        PPX_CHECKED_CALL(grfx_util::CopyBitmapToTexture(GetGraphicsQueue(), &bitmap, mCausticsTexture, 0, i, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE));
 
         double fnEndTime = timer.SecondsSinceStart();
         float  fnElapsed = static_cast<float>(fnEndTime - fnStartTime);
@@ -387,7 +367,6 @@ void FishTornadoApp::UploadCaustics()
 
 void FishTornadoApp::SetupDebug()
 {
-    Result ppxres = ppx::ERROR_FAILED;
 #if !(defined(PPX_DXVK) && defined(PPX_D3D12))
     // Debug draw
     {
@@ -481,7 +460,6 @@ void FishTornadoApp::UpdateScene(uint32_t frameIndex)
 
 void FishTornadoApp::Render()
 {
-    Result             ppxres         = ppx::SUCCESS;
     uint32_t           frameIndex     = GetInFlightFrameIndex();
     PerFrame&          frame          = mPerFrame[frameIndex];
     uint32_t           prevFrameIndex = GetPreviousInFlightFrameIndex();
@@ -496,28 +474,28 @@ void FishTornadoApp::Render()
     mOcean.Update(frameIndex);
 
     uint32_t imageIndex = UINT32_MAX;
-    PPX_CHECKED_CALL(ppxres = swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
+    PPX_CHECKED_CALL(swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
 
     // Wait for and reset image acquired fence
-    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.renderCompleteFence->WaitAndReset());
 
     // Read query results
     if (GetFrameCount() > 0) {
         uint64_t data[2] = {0};
-        PPX_CHECKED_CALL(ppxres = prevFrame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
+        PPX_CHECKED_CALL(prevFrame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mTotalGpuFrameTime = (data[1] - data[0]);
 #if defined(ENABLE_PIPELINE_QUERIES)
         if (GetDevice()->PipelineStatsAvailable()) {
-            PPX_CHECKED_CALL(ppxres = prevFrame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+            PPX_CHECKED_CALL(prevFrame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
         }
 #endif
     }
 
     // Build command buffer
-    PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
+    PPX_CHECKED_CALL(frame.cmd->Begin());
     {
         frame.timestampQuery->Reset(0, 2);
 #if defined(ENABLE_PIPELINE_QUERIES)
@@ -621,7 +599,7 @@ void FishTornadoApp::Render()
     }
 #endif
 
-    PPX_CHECKED_CALL(ppxres = frame.cmd->End());
+    PPX_CHECKED_CALL(frame.cmd->End());
 
     grfx::SubmitInfo submitInfo     = {};
     submitInfo.commandBufferCount   = 1;
@@ -632,9 +610,9 @@ void FishTornadoApp::Render()
     submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
     submitInfo.pFence               = frame.renderCompleteFence;
 
-    PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
+    PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
 
-    PPX_CHECKED_CALL(ppxres = swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
+    PPX_CHECKED_CALL(swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
 }
 
 void FishTornadoApp::DrawGui()

@@ -135,8 +135,6 @@ void ProjApp::SetupTestParameters()
 
 void ProjApp::Setup()
 {
-    Result ppxres = ppx::SUCCESS;
-
     SetupTestParameters();
 
     // Draw pass
@@ -160,7 +158,7 @@ void ProjApp::Setup()
         createInfo.renderTargetClearValues[0]   = {0, 0, 0, 0};
         createInfo.depthStencilClearValue       = {1.0f, 0xFF};
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDrawPass(&createInfo, &mDrawPass));
+        PPX_CHECKED_CALL(GetDevice()->CreateDrawPass(&createInfo, &mDrawPass));
     }
     // Pipeline
     {
@@ -173,7 +171,7 @@ void ProjApp::Setup()
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
+        PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("benchmarks/shaders"), "PassThroughPos", "ps_5_0", &basicShaderIncludeHandler);
@@ -182,13 +180,13 @@ void ProjApp::Setup()
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
+        PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
 
         grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
         piCreateInfo.setCount                          = 0;
         piCreateInfo.sets[0].set                       = 0;
         piCreateInfo.sets[0].pLayout                   = nullptr;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
+        PPX_CHECKED_CALL(GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
 
         mVertexBinding.AppendAttribute({"POSITION", 0, grfx::FORMAT_R32G32B32A32_FLOAT, 0, PPX_APPEND_OFFSET_ALIGNED, grfx::VERTEX_INPUT_RATE_VERTEX});
 
@@ -208,38 +206,38 @@ void ProjApp::Setup()
         gpCreateInfo.outputState.renderTargetFormats[0] = mDrawPass->GetRenderTargetTexture(0)->GeImageFormat();
         gpCreateInfo.outputState.depthStencilFormat     = mDrawPass->GetDepthStencilTexture()->GeImageFormat();
         gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPipeline));
+        PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPipeline));
     }
 
     // Per frame data
     {
         PerFrame frame = {};
 
-        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
 
         grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
 
         grfx::FenceCreateInfo fenceCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
 
         fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         // Create the timestamp queries
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
+        PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
 
         // Pipeline statistics query pool
         if (mUsePipelineQuery) {
             queryCreateInfo       = {};
             queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
             queryCreateInfo.count = 1;
-            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+            PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
         }
         mPerFrame.push_back(frame);
     }
@@ -262,10 +260,10 @@ void ProjApp::Setup()
         bufferCreateInfo.memoryUsage                  = grfx::MEMORY_USAGE_CPU_TO_GPU;
         bufferCreateInfo.initialState                 = grfx::RESOURCE_STATE_VERTEX_BUFFER;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mVertexBuffer));
+        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mVertexBuffer));
 
         void* pAddr = nullptr;
-        PPX_CHECKED_CALL(ppxres = mVertexBuffer->MapMemory(0, &pAddr));
+        PPX_CHECKED_CALL(mVertexBuffer->MapMemory(0, &pAddr));
         memcpy(pAddr, vertexData.data(), dataSize);
         mVertexBuffer->UnmapMemory();
     }
@@ -276,27 +274,26 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    Result    ppxres = ppx::SUCCESS;
     PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
     uint32_t imageIndex = UINT32_MAX;
-    PPX_CHECKED_CALL(ppxres = swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
+    PPX_CHECKED_CALL(swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
 
     // Wait for and reset image acquired fence
-    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.renderCompleteFence->WaitAndReset());
 
     // Read query results
     if (GetFrameCount() > 0) {
         uint64_t data[2] = {0};
-        PPX_CHECKED_CALL(ppxres = frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
+        PPX_CHECKED_CALL(frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mGpuWorkDuration = data[1] - data[0];
         if (mUsePipelineQuery) {
-            PPX_CHECKED_CALL(ppxres = frame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+            PPX_CHECKED_CALL(frame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
         }
     }
     // Reset queries
@@ -305,7 +302,7 @@ void ProjApp::Render()
         frame.pipelineStatsQuery->Reset(0, 1);
     }
     // Build command buffer
-    PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
+    PPX_CHECKED_CALL(frame.cmd->Begin());
     {
         // Render pass to texture
         frame.cmd->BeginRenderPass(mDrawPass, grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_RENDER_TARGETS);
@@ -348,7 +345,7 @@ void ProjApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }
-    PPX_CHECKED_CALL(ppxres = frame.cmd->End());
+    PPX_CHECKED_CALL(frame.cmd->End());
 
     grfx::SubmitInfo submitInfo     = {};
     submitInfo.commandBufferCount   = 1;
@@ -359,9 +356,9 @@ void ProjApp::Render()
     submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
     submitInfo.pFence               = frame.renderCompleteFence;
 
-    PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
+    PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
 
-    PPX_CHECKED_CALL(ppxres = swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
+    PPX_CHECKED_CALL(swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
     if (GetFrameCount() > 0) {
         // Get the gpu timestamp query
         uint64_t frequency = 0;

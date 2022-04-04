@@ -65,7 +65,6 @@ static void PrintRange(bool state, uint32_t first, uint32_t last)
 
 Result ProjApp::TryAllocateRange(uint32_t rangeStart, uint32_t rangeEnd, uint32_t usageFlags)
 {
-    Result ppxres = ppx::SUCCESS;
     bool state;
     uint32_t first;
     uint32_t last;
@@ -80,7 +79,7 @@ Result ProjApp::TryAllocateRange(uint32_t rangeStart, uint32_t rangeEnd, uint32_
         // a change, we print the range of unchanging success/failure runs
         // that came before.
         ppx::grfx::BufferPtr            buffer;
-        ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &buffer);
+        Result ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &buffer);
         bool didSucceed = (ppxres == ppx::SUCCESS) ? true : false;
         if (i == rangeStart)
         {
@@ -108,8 +107,6 @@ struct Range {
 
 void ProjApp::Setup()
 {
-    Result ppxres = ppx::SUCCESS;
-
     grfx::BufferUsageFlags usageFlags;
 
     Range range = { 4, 256 * 1024 * 1024 };  // 4, 256MB

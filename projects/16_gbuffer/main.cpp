@@ -141,36 +141,34 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 
 void ProjApp::SetupPerFrame()
 {
-    Result ppxres = ppx::SUCCESS;
-
     // Per frame data
     {
         PerFrame frame = {};
 
-        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
 
         grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
 
         grfx::FenceCreateInfo fenceCreateInfo = {};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
 
         fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
+        PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
 
         // Pipeline statistics query pool
         if (GetDevice()->PipelineStatsAvailable()) {
             queryCreateInfo       = {};
             queryCreateInfo.type  = grfx::QUERY_TYPE_PIPELINE_STATISTICS;
             queryCreateInfo.count = 1;
-            PPX_CHECKED_CALL(ppxres = GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
+            PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
         }
 
         mPerFrame.push_back(frame);
@@ -179,13 +177,11 @@ void ProjApp::SetupPerFrame()
 
 void ProjApp::SetupEntities()
 {
-    Result ppxres = ppx::SUCCESS;
-
     TriMeshOptions options = TriMeshOptions().Indices().Normals().VertexColors().TexCoords().Tangents();
     TriMesh        mesh    = TriMesh::CreateSphere(1.0f, 128, 64, options);
     Geometry       geo;
-    PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
+    PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
+    PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
 
     mEntities.resize(7);
 
@@ -204,7 +200,7 @@ void ProjApp::SetupEntities()
         EntityCreateInfo createInfo = {};
         createInfo.pModel           = mSphere;
         createInfo.pMaterial        = materials[materialIndex];
-        PPX_CHECKED_CALL(ppxres = mEntities[i].Create(GetGraphicsQueue(), mDescriptorPool, &createInfo));
+        PPX_CHECKED_CALL(mEntities[i].Create(GetGraphicsQueue(), mDescriptorPool, &createInfo));
 
         float t = i / static_cast<float>(n) * 2.0f * 3.141592f;
         float r = 3.0f;
@@ -219,25 +215,23 @@ void ProjApp::SetupEntities()
         Entity* pEntity = &mEntities[n];
 
         mesh = TriMesh::CreateCube(float3(10, 1, 10), TriMeshOptions(options).TexCoordScale(float2(5)));
-        PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mBox));
+        PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
+        PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mBox));
 
         EntityCreateInfo createInfo = {};
         createInfo.pModel           = mBox;
         createInfo.pMaterial        = Material::GetMaterialStoneTile();
-        PPX_CHECKED_CALL(ppxres = pEntity->Create(GetGraphicsQueue(), mDescriptorPool, &createInfo));
+        PPX_CHECKED_CALL(pEntity->Create(GetGraphicsQueue(), mDescriptorPool, &createInfo));
         pEntity->GetTransform().SetTranslation(float3(0, -0.5f, 0));
     }
 }
 
 void ProjApp::SetupIBLResources()
 {
-    Result ppxres = ppx::SUCCESS;
-
     Geometry geo;
     TriMesh  mesh = TriMesh::CreateSphere(32, 32, 16, TriMeshOptions().Indices().TexCoords());
-    PPX_CHECKED_CALL(ppxres = Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
+    PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
+    PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
 
     // Layout - the binding values here map to the Texture shader (Texture.hlsl)
     //
@@ -245,7 +239,7 @@ void ProjApp::SetupIBLResources()
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mIBLLayout));
+    PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mIBLLayout));
 
     // Uniform buffer
     {
@@ -254,7 +248,7 @@ void ProjApp::SetupIBLResources()
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mIBLConstants));
+        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mIBLConstants));
     }
 
     // Texture create options
@@ -263,60 +257,60 @@ void ProjApp::SetupIBLResources()
     // GoldenHour
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/ibl.hdr"), &env, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &refl, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/GoldenHour/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // PaperMill
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/ibl.hdr"), &env, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &refl, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/PaperMill/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // UenoShrine
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/ibl.hdr"), &env, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &refl, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/UenoShrine/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // TokyoBigSight
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/ibl.hdr"), &env, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &refl, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TokyoBigSight/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // TropicalBeach
     {
         grfx::TexturePtr env;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/ibl.hdr"), &env, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/ibl.hdr"), &env, textureOptions));
         mIBLMaps.push_back(env);
 
         grfx::TexturePtr refl;
-        PPX_CHECKED_CALL(ppxres = grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &refl, textureOptions));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/ibl/TropicalBeach/env.hdr"), &refl, textureOptions));
         mIBLEnvMaps.push_back(refl);
     }
 
     // Allocate descriptor set
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mIBLLayout, &mIBLSet));
+    PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mIBLLayout, &mIBLSet));
     mIBLSet->SetName("IBL");
 
     // Update IBL render descriptors - just constant buffer and sampler for
@@ -332,7 +326,7 @@ void ProjApp::SetupIBLResources()
         writes[1].binding               = 2;
         writes[1].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
         writes[1].pSampler              = mSampler;
-        PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(2, writes));
+        PPX_CHECKED_CALL(mIBLSet->UpdateDescriptors(2, writes));
     }
 
     // Pipeline
@@ -347,7 +341,7 @@ void ProjApp::SetupIBLResources()
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
+        PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
 #if defined(PORTO_D3DCOMPILE)
@@ -357,13 +351,13 @@ void ProjApp::SetupIBLResources()
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
+        PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
         grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
         piCreateInfo.setCount                          = 1;
         piCreateInfo.sets[0].set                       = 0;
         piCreateInfo.sets[0].pLayout                   = mIBLLayout;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mIBLPipelineInterface));
+        PPX_CHECKED_CALL(GetDevice()->CreatePipelineInterface(&piCreateInfo, &mIBLPipelineInterface));
 
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
@@ -382,7 +376,7 @@ void ProjApp::SetupIBLResources()
         gpCreateInfo.outputState.renderTargetFormats[0] = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
         gpCreateInfo.outputState.depthStencilFormat     = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
         gpCreateInfo.pPipelineInterface                 = mIBLPipelineInterface;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mIBLPipeline));
+        PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mIBLPipeline));
         GetDevice()->DestroyShaderModule(VS);
         GetDevice()->DestroyShaderModule(PS);
     }
@@ -390,8 +384,6 @@ void ProjApp::SetupIBLResources()
 
 void ProjApp::SetupGBufferPasses()
 {
-    Result ppxres = ppx::SUCCESS;
-
     // GBuffer render draw pass
     {
         // Usage flags for render target and depth stencil will automatically
@@ -427,7 +419,7 @@ void ProjApp::SetupGBufferPasses()
         createInfo.renderTargetClearValues[3]   = rtvClearValue;
         createInfo.depthStencilClearValue       = dsvClearValue;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDrawPass(&createInfo, &mGBufferRenderPass));
+        PPX_CHECKED_CALL(GetDevice()->CreateDrawPass(&createInfo, &mGBufferRenderPass));
     }
 
     // GBuffer light render target
@@ -448,7 +440,7 @@ void ProjApp::SetupGBufferPasses()
         createInfo.RTVClearValue                   = {0, 0, 0, 0};
         createInfo.DSVClearValue                   = {1.0f, 0xFF}; // Not used - we won't write to depth
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateTexture(&createInfo, &mGBufferLightRenderTarget));
+        PPX_CHECKED_CALL(GetDevice()->CreateTexture(&createInfo, &mGBufferLightRenderTarget));
     }
 
     // GBuffer light draw pass
@@ -461,14 +453,12 @@ void ProjApp::SetupGBufferPasses()
         createInfo.pDepthStencilTexture      = mGBufferRenderPass->GetDepthStencilTexture();
         createInfo.depthStencilState         = grfx::RESOURCE_STATE_DEPTH_STENCIL_READ;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDrawPass(&createInfo, &mGBufferLightPass));
+        PPX_CHECKED_CALL(GetDevice()->CreateDrawPass(&createInfo, &mGBufferLightPass));
     }
 }
 
 void ProjApp::SetupGBufferLightQuad()
 {
-    Result ppxres = ppx::SUCCESS;
-
     grfx::ShaderModulePtr VS;
 #if defined(PORTO_D3DCOMPILE)
     grfx::dx::ShaderIncludeHandler gbufferShaderIncludeHandler(
@@ -479,7 +469,7 @@ void ProjApp::SetupGBufferLightQuad()
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
     grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
+    PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
     grfx::ShaderModulePtr PS;
 #if defined(PORTO_D3DCOMPILE)
@@ -489,7 +479,7 @@ void ProjApp::SetupGBufferLightQuad()
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
+    PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
     grfx::FullscreenQuadCreateInfo createInfo = {};
     createInfo.VS                             = VS;
@@ -503,13 +493,11 @@ void ProjApp::SetupGBufferLightQuad()
     createInfo.renderTargetFormats[0]         = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
     createInfo.depthStencilFormat             = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFullscreenQuad(&createInfo, &mGBufferLightQuad));
+    PPX_CHECKED_CALL(GetDevice()->CreateFullscreenQuad(&createInfo, &mGBufferLightQuad));
 }
 
 void ProjApp::SetupDebugDraw()
 {
-    Result ppxres = ppx::SUCCESS;
-
     grfx::ShaderModulePtr VS;
 #if defined(PORTO_D3DCOMPILE)
     grfx::dx::ShaderIncludeHandler gbufferShaderIncludeHandler(
@@ -520,7 +508,7 @@ void ProjApp::SetupDebugDraw()
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
     grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
+    PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
     grfx::ShaderModulePtr PS;
 #if defined(PORTO_D3DCOMPILE)
@@ -530,7 +518,7 @@ void ProjApp::SetupDebugDraw()
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
+    PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
     grfx::FullscreenQuadCreateInfo createInfo = {};
     createInfo.VS                             = VS;
@@ -544,20 +532,18 @@ void ProjApp::SetupDebugDraw()
     createInfo.renderTargetFormats[0]         = mGBufferLightPass->GetRenderTargetTexture(0)->GeImageFormat();
     createInfo.depthStencilFormat             = mGBufferLightPass->GetDepthStencilTexture()->GeImageFormat();
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFullscreenQuad(&createInfo, &mDebugDrawQuad));
+    PPX_CHECKED_CALL(GetDevice()->CreateFullscreenQuad(&createInfo, &mDebugDrawQuad));
 }
 
 void ProjApp::SetupDrawToSwapchain()
 {
-    Result ppxres = ppx::SUCCESS;
-
     // Descriptor set layout
     {
         // Descriptor set layout
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLER));
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDrawToSwapchainLayout));
+        PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDrawToSwapchainLayout));
     }
 
     // Pipeline
@@ -572,7 +558,7 @@ void ProjApp::SetupDrawToSwapchain()
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
+        PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
 #if defined(PORTO_D3DCOMPILE)
@@ -582,7 +568,7 @@ void ProjApp::SetupDrawToSwapchain()
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
+        PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
 
         grfx::FullscreenQuadCreateInfo createInfo = {};
         createInfo.VS                             = VS;
@@ -594,11 +580,11 @@ void ProjApp::SetupDrawToSwapchain()
         createInfo.renderTargetFormats[0]         = GetSwapchain()->GetColorFormat();
         createInfo.depthStencilFormat             = GetSwapchain()->GetDepthFormat();
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFullscreenQuad(&createInfo, &mDrawToSwapchain));
+        PPX_CHECKED_CALL(GetDevice()->CreateFullscreenQuad(&createInfo, &mDrawToSwapchain));
     }
 
     // Allocate descriptor set
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDrawToSwapchainLayout, &mDrawToSwapchainSet));
+    PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDrawToSwapchainLayout, &mDrawToSwapchainSet));
 
     // Write descriptors
     {
@@ -612,14 +598,12 @@ void ProjApp::SetupDrawToSwapchain()
         writes[1].type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
         writes[1].pSampler = mSampler;
 
-        PPX_CHECKED_CALL(ppxres = mDrawToSwapchainSet->UpdateDescriptors(2, writes));
+        PPX_CHECKED_CALL(mDrawToSwapchainSet->UpdateDescriptors(2, writes));
     }
 }
 
 void ProjApp::Setup()
 {
-    Result ppxres = ppx::SUCCESS;
-
     // Cameras
     {
         mCamera = PerspCamera(60.0f, GetWindowAspect());
@@ -633,7 +617,7 @@ void ProjApp::Setup()
         createInfo.uniformBuffer                  = 1000;
         createInfo.structuredBuffer               = 1000;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
+        PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
     }
 
     // Sampler
@@ -644,7 +628,7 @@ void ProjApp::Setup()
         createInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_LINEAR;
         createInfo.minLod                  = 0.0f;
         createInfo.maxLod                  = FLT_MAX;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSampler(&createInfo, &mSampler));
+        PPX_CHECKED_CALL(GetDevice()->CreateSampler(&createInfo, &mSampler));
     }
 
     // GBuffer passes
@@ -657,7 +641,7 @@ void ProjApp::Setup()
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mGBufferDrawAttrConstants));
+        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mGBufferDrawAttrConstants));
     }
 
     // GBuffer read
@@ -672,11 +656,11 @@ void ProjApp::Setup()
         createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_IBL_REGISTER,       grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE,  1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_SAMPLER_REGISTER,   grfx::DESCRIPTOR_TYPE_SAMPLER,        1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         createInfo.bindings.push_back({grfx::DescriptorBinding{GBUFFER_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mGBufferReadLayout));
+        PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&createInfo, &mGBufferReadLayout));
         // clang-format on
 
         // Allocate descriptor set
-        PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mGBufferReadLayout, &mGBufferReadSet));
+        PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mGBufferReadLayout, &mGBufferReadSet));
         mGBufferReadSet->SetName("GBuffer Read");
 
         // Write descriptors
@@ -706,7 +690,7 @@ void ProjApp::Setup()
         writes[5].bufferRange           = PPX_WHOLE_SIZE;
         writes[5].pBuffer               = mGBufferDrawAttrConstants;
 
-        PPX_CHECKED_CALL(ppxres = mGBufferReadSet->UpdateDescriptors(6, writes));
+        PPX_CHECKED_CALL(mGBufferReadSet->UpdateDescriptors(6, writes));
     }
 
     // Create per frame objects
@@ -719,12 +703,12 @@ void ProjApp::Setup()
         bufferCreateInfo.size                        = PPX_MINIUM_CONSTANT_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.transferSrc = true;
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mCpuSceneConstants));
+        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mCpuSceneConstants));
 
         bufferCreateInfo.usageFlags.bits.transferDst   = true;
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_GPU_ONLY;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mGpuSceneConstants));
+        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mGpuSceneConstants));
 
         // Light constants
         bufferCreateInfo                             = {};
@@ -732,22 +716,22 @@ void ProjApp::Setup()
         bufferCreateInfo.usageFlags.bits.transferSrc = true;
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
         bufferCreateInfo.structuredElementStride     = 32;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mCpuLightConstants));
+        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mCpuLightConstants));
 
         bufferCreateInfo.structuredElementStride          = 32;
         bufferCreateInfo.usageFlags.bits.transferDst      = true;
         bufferCreateInfo.usageFlags.bits.structuredBuffer = true;
         bufferCreateInfo.memoryUsage                      = grfx::MEMORY_USAGE_GPU_ONLY;
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &mGpuLightConstants));
+        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mGpuLightConstants));
 
         // Descriptor set layout
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
         createInfo.bindings.push_back({grfx::DescriptorBinding{SCENE_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
         createInfo.bindings.push_back({grfx::DescriptorBinding{LIGHT_DATA_REGISTER, grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataLayout));
+        PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&createInfo, &mSceneDataLayout));
 
         // Allocate descriptor set
-        PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataLayout, &mSceneDataSet));
+        PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mSceneDataLayout, &mSceneDataSet));
         mSceneDataSet->SetName("Scene Data");
 
         // Update descriptor
@@ -765,14 +749,14 @@ void ProjApp::Setup()
         writes[1].bufferRange            = PPX_WHOLE_SIZE;
         writes[1].structuredElementCount = 1;
         writes[1].pBuffer                = mGpuLightConstants;
-        PPX_CHECKED_CALL(ppxres = mSceneDataSet->UpdateDescriptors(2, writes));
+        PPX_CHECKED_CALL(mSceneDataSet->UpdateDescriptors(2, writes));
     }
 
     // Create materials
-    PPX_CHECKED_CALL(ppxres = Material::CreateMaterials(GetGraphicsQueue(), mDescriptorPool));
+    PPX_CHECKED_CALL(Material::CreateMaterials(GetGraphicsQueue(), mDescriptorPool));
 
     // Create pipelines
-    PPX_CHECKED_CALL(ppxres = Entity::CreatePipelines(mSceneDataLayout, mGBufferRenderPass));
+    PPX_CHECKED_CALL(Entity::CreatePipelines(mSceneDataLayout, mGBufferRenderPass));
 
     // Entities
     SetupEntities();
@@ -803,8 +787,6 @@ void ProjApp::MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t b
 
 void ProjApp::UpdateConstants()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     const float kPi = 3.1451592f;
 
     // Scene constants
@@ -831,7 +813,7 @@ void ProjApp::UpdateConstants()
         PPX_HLSL_PACK_END();
 
         void* pMappedAddress = nullptr;
-        PPX_CHECKED_CALL(ppxres = mCpuSceneConstants->MapMemory(0, &pMappedAddress));
+        PPX_CHECKED_CALL(mCpuSceneConstants->MapMemory(0, &pMappedAddress));
 
         HlslSceneData* pSceneData        = static_cast<HlslSceneData*>(pMappedAddress);
         pSceneData->viewProjectionMatrix = mCamera.GetViewProjectionMatrix();
@@ -844,7 +826,7 @@ void ProjApp::UpdateConstants()
         mCpuSceneConstants->UnmapMemory();
 
         grfx::BufferToBufferCopyInfo copyInfo = {mCpuSceneConstants->GetSize()};
-        PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuSceneConstants, mGpuSceneConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CopyBufferToBuffer(&copyInfo, mCpuSceneConstants, mGpuSceneConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER));
     }
 
     // Light constants
@@ -860,7 +842,7 @@ void ProjApp::UpdateConstants()
         PPX_HLSL_PACK_END();
 
         void* pMappedAddress = nullptr;
-        PPX_CHECKED_CALL(ppxres = mCpuLightConstants->MapMemory(0, &pMappedAddress));
+        PPX_CHECKED_CALL(mCpuLightConstants->MapMemory(0, &pMappedAddress));
 
         float t = GetElapsedSeconds();
 
@@ -895,7 +877,7 @@ void ProjApp::UpdateConstants()
         PPX_HLSL_PACK_END();
 
         void* pMappedAddress = nullptr;
-        PPX_CHECKED_CALL(ppxres = mGBufferDrawAttrConstants->MapMemory(0, &pMappedAddress));
+        PPX_CHECKED_CALL(mGBufferDrawAttrConstants->MapMemory(0, &pMappedAddress));
 
         HlslGBufferData* pGBufferData = static_cast<HlslGBufferData*>(pMappedAddress);
 
@@ -909,7 +891,7 @@ void ProjApp::UpdateConstants()
     // Update IBL environment constants
     {
         void* pMappedAddress = nullptr;
-        PPX_CHECKED_CALL(ppxres = mIBLConstants->MapMemory(0, &pMappedAddress));
+        PPX_CHECKED_CALL(mIBLConstants->MapMemory(0, &pMappedAddress));
 
         const float4x4& VP  = mCamera.GetViewProjectionMatrix();
         float4x4        M   = glm::rotate(0.0f, float3(0, 1, 0));
@@ -922,8 +904,6 @@ void ProjApp::UpdateConstants()
 
 void ProjApp::UpdateEnvDescriptors()
 {
-    Result ppxres = ppx::SUCCESS;
-
     if (mCurrentIBLIndex != mTargetIBLIndex) {
         mCurrentIBLIndex = mTargetIBLIndex;
 
@@ -940,7 +920,7 @@ void ProjApp::UpdateEnvDescriptors()
             writes[1].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
             writes[1].pImageView            = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
 
-            PPX_CHECKED_CALL(ppxres = mGBufferReadSet->UpdateDescriptors(2, writes));
+            PPX_CHECKED_CALL(mGBufferReadSet->UpdateDescriptors(2, writes));
         }
 
         // Update IBL render descriptors
@@ -951,32 +931,31 @@ void ProjApp::UpdateEnvDescriptors()
             write.bufferOffset          = 0;
             write.bufferRange           = PPX_WHOLE_SIZE;
             write.pBuffer               = mIBLConstants;
-            PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+            PPX_CHECKED_CALL(mIBLSet->UpdateDescriptors(1, &write));
 
             write            = {};
             write.binding    = 1;
             write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
             write.pImageView = mIBLEnvMaps[mCurrentIBLIndex]->GetSampledImageView();
-            PPX_CHECKED_CALL(ppxres = mIBLSet->UpdateDescriptors(1, &write));
+            PPX_CHECKED_CALL(mIBLSet->UpdateDescriptors(1, &write));
         }
     }
 }
 
 void ProjApp::Render()
 {
-    Result    ppxres = ppx::SUCCESS;
     PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
     uint32_t imageIndex = UINT32_MAX;
-    PPX_CHECKED_CALL(ppxres = swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
+    PPX_CHECKED_CALL(swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
 
     // Wait for and reset image acquired fence
-    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.renderCompleteFence->WaitAndReset());
 
     // Update constants
     UpdateConstants();
@@ -987,10 +966,10 @@ void ProjApp::Render()
     // Read query results
     if (GetFrameCount() > 0) {
         uint64_t data[2] = {0};
-        PPX_CHECKED_CALL(ppxres = frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
+        PPX_CHECKED_CALL(frame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
         mTotalGpuFrameTime = data[1] - data[0];
         if (GetDevice()->PipelineStatsAvailable()) {
-            PPX_CHECKED_CALL(ppxres = frame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+            PPX_CHECKED_CALL(frame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
         }
     }
 
@@ -1001,7 +980,7 @@ void ProjApp::Render()
     }
 
     // Build command buffer
-    PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
+    PPX_CHECKED_CALL(frame.cmd->Begin());
     {
         frame.cmd->SetScissors(mGBufferRenderPass->GetScissor());
         frame.cmd->SetViewports(mGBufferRenderPass->GetViewport());
@@ -1110,7 +1089,7 @@ void ProjApp::Render()
     if (GetDevice()->PipelineStatsAvailable()) {
         frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
     }
-    PPX_CHECKED_CALL(ppxres = frame.cmd->End());
+    PPX_CHECKED_CALL(frame.cmd->End());
 
     grfx::SubmitInfo submitInfo     = {};
     submitInfo.commandBufferCount   = 1;
@@ -1121,9 +1100,9 @@ void ProjApp::Render()
     submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
     submitInfo.pFence               = frame.renderCompleteFence;
 
-    PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
+    PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
 
-    PPX_CHECKED_CALL(ppxres = swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
+    PPX_CHECKED_CALL(swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
 }
 
 void ProjApp::DrawGui()

@@ -18,8 +18,6 @@ ppx::Result Entity::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool* 
     PPX_ASSERT_NULL_ARG(pPool);
     PPX_ASSERT_NULL_ARG(pCreateInfo);
 
-    Result ppxres = ppx::ERROR_FAILED;
-
     grfx::Device* pDevice = pQueue->GetDevice();
 
     mModel    = pCreateInfo->pModel;
@@ -31,17 +29,17 @@ ppx::Result Entity::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool* 
         bufferCreateInfo.size                        = PPX_MINIUM_CONSTANT_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.transferSrc = true;
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
-        PPX_CHECKED_CALL(ppxres = pDevice->CreateBuffer(&bufferCreateInfo, &mCpuModelConstants));
+        PPX_CHECKED_CALL(pDevice->CreateBuffer(&bufferCreateInfo, &mCpuModelConstants));
 
         bufferCreateInfo.usageFlags.bits.transferDst   = true;
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_GPU_ONLY;
-        PPX_CHECKED_CALL(ppxres = pDevice->CreateBuffer(&bufferCreateInfo, &mGpuModelConstants));
+        PPX_CHECKED_CALL(pDevice->CreateBuffer(&bufferCreateInfo, &mGpuModelConstants));
     }
 
     // Allocate descriptor set
     {
-        PPX_CHECKED_CALL(ppxres = pDevice->AllocateDescriptorSet(pPool, sModelDataLayout, &mModelDataSet));
+        PPX_CHECKED_CALL(pDevice->AllocateDescriptorSet(pPool, sModelDataLayout, &mModelDataSet));
         mModelDataSet->SetName("Model Data");
     }
 
@@ -53,7 +51,7 @@ ppx::Result Entity::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool* 
         write.bufferOffset          = 0;
         write.bufferRange           = PPX_WHOLE_SIZE;
         write.pBuffer               = mGpuModelConstants;
-        PPX_CHECKED_CALL(ppxres = mModelDataSet->UpdateDescriptors(1, &write));
+        PPX_CHECKED_CALL(mModelDataSet->UpdateDescriptors(1, &write));
     }
 
     return ppx::SUCCESS;
@@ -67,15 +65,13 @@ ppx::Result Entity::CreatePipelines(ppx::grfx::DescriptorSetLayout* pSceneDataLa
 {
     PPX_ASSERT_NULL_ARG(pSceneDataLayout);
 
-    Result ppxres = ppx::ERROR_FAILED;
-
     grfx::Device* pDevice = pSceneDataLayout->GetDevice();
 
     // Model data
     {
         grfx::DescriptorSetLayoutCreateInfo createInfo = {};
         createInfo.bindings.push_back({grfx::DescriptorBinding{MODEL_CONSTANTS_REGISTER, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
-        PPX_CHECKED_CALL(ppxres = pDevice->CreateDescriptorSetLayout(&createInfo, &sModelDataLayout));
+        PPX_CHECKED_CALL(pDevice->CreateDescriptorSetLayout(&createInfo, &sModelDataLayout));
     }
 
     // Pipeline interface
@@ -91,7 +87,7 @@ ppx::Result Entity::CreatePipelines(ppx::grfx::DescriptorSetLayout* pSceneDataLa
         createInfo.sets[3].set                       = 3;
         createInfo.sets[3].pLayout                   = sModelDataLayout;
 
-        PPX_CHECKED_CALL(ppxres = pDevice->CreatePipelineInterface(&createInfo, &sPipelineInterface));
+        PPX_CHECKED_CALL(pDevice->CreatePipelineInterface(&createInfo, &sPipelineInterface));
     }
 
     // Pipeline
@@ -108,7 +104,7 @@ ppx::Result Entity::CreatePipelines(ppx::grfx::DescriptorSetLayout* pSceneDataLa
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = pDevice->CreateShaderModule(&shaderCreateInfo, &VS));
+        PPX_CHECKED_CALL(pDevice->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
 #if defined(PORTO_D3DCOMPILE)
@@ -118,7 +114,7 @@ ppx::Result Entity::CreatePipelines(ppx::grfx::DescriptorSetLayout* pSceneDataLa
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-        PPX_CHECKED_CALL(ppxres = pDevice->CreateShaderModule(&shaderCreateInfo, &PS));
+        PPX_CHECKED_CALL(pDevice->CreateShaderModule(&shaderCreateInfo, &PS));
 
         const grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX;
         grfx::VertexDescription     vertexDescription;
@@ -154,7 +150,7 @@ ppx::Result Entity::CreatePipelines(ppx::grfx::DescriptorSetLayout* pSceneDataLa
             gpCreateInfo.vertexInputState.bindings[i] = *vertexDescription.GetBinding(i);
         }
 
-        PPX_CHECKED_CALL(ppxres = pDevice->CreateGraphicsPipeline(&gpCreateInfo, &sPipeline));
+        PPX_CHECKED_CALL(pDevice->CreateGraphicsPipeline(&gpCreateInfo, &sPipeline));
         pDevice->DestroyShaderModule(VS);
         pDevice->DestroyShaderModule(PS);
     }
@@ -168,8 +164,6 @@ void Entity::DestroyPipelines()
 
 void Entity::UpdateConstants(ppx::grfx::Queue* pQueue)
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
     const float4x4& M = mTransform.GetConcatenatedMatrix();
 
     PPX_HLSL_PACK_BEGIN();
@@ -182,7 +176,7 @@ void Entity::UpdateConstants(ppx::grfx::Queue* pQueue)
     PPX_HLSL_PACK_END();
 
     void* pMappedAddress = nullptr;
-    PPX_CHECKED_CALL(ppxres = mCpuModelConstants->MapMemory(0, &pMappedAddress));
+    PPX_CHECKED_CALL(mCpuModelConstants->MapMemory(0, &pMappedAddress));
 
     HlslModelData* pModelData = static_cast<HlslModelData*>(pMappedAddress);
     pModelData->modelMatrix   = M;
@@ -191,7 +185,7 @@ void Entity::UpdateConstants(ppx::grfx::Queue* pQueue)
     mCpuModelConstants->UnmapMemory();
 
     grfx::BufferToBufferCopyInfo copyInfo = {mCpuModelConstants->GetSize()};
-    PPX_CHECKED_CALL(ppxres = pQueue->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER));
+    PPX_CHECKED_CALL(pQueue->CopyBufferToBuffer(&copyInfo, mCpuModelConstants, mGpuModelConstants, grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_CONSTANT_BUFFER));
 }
 
 void Entity::Draw(ppx::grfx::DescriptorSet* pSceneDataSet, ppx::grfx::CommandBuffer* pCmd)

@@ -235,17 +235,15 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 
 void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
-    Result ppxres = ppx::SUCCESS;
-
-    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromTriMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
+    PPX_CHECKED_CALL(grfx_util::CreateModelFromTriMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = RoundUp(512, PPX_CONSTANT_BUFFER_ALIGNMENT);
     bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
     bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, pEntity->UniformBufferPtr()));
+    PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, pEntity->UniformBufferPtr()));
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, pEntity->DescriptorSetPtr()));
+    PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, pEntity->DescriptorSetPtr()));
 
     grfx::WriteDescriptor write = {};
     write.binding               = 0;
@@ -253,22 +251,20 @@ void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo
     write.bufferOffset          = 0;
     write.bufferRange           = PPX_WHOLE_SIZE;
     write.pBuffer               = pEntity->UniformBuffer();
-    PPX_CHECKED_CALL(ppxres = pEntity->DescriptorSet()->UpdateDescriptors(1, &write));
+    PPX_CHECKED_CALL(pEntity->DescriptorSet()->UpdateDescriptors(1, &write));
 }
 
 void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
-    Result ppxres = ppx::SUCCESS;
-
-    PPX_CHECKED_CALL(ppxres = grfx_util::CreateModelFromWireMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
+    PPX_CHECKED_CALL(grfx_util::CreateModelFromWireMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
     bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
     bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, pEntity->UniformBufferPtr()));
+    PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, pEntity->UniformBufferPtr()));
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, pEntity->DescriptorSetPtr()));
+    PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, pEntity->DescriptorSetPtr()));
 
     grfx::WriteDescriptor write = {};
     write.binding               = 0;
@@ -276,7 +272,7 @@ void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInf
     write.bufferOffset          = 0;
     write.bufferRange           = PPX_WHOLE_SIZE;
     write.pBuffer               = pEntity->UniformBuffer();
-    PPX_CHECKED_CALL(ppxres = pEntity->DescriptorSet()->UpdateDescriptors(1, &write));
+    PPX_CHECKED_CALL(pEntity->DescriptorSet()->UpdateDescriptors(1, &write));
 }
 
 void Entity::Place(int32_t subGridIx, ppx::Random& random, const int2& gridDim, const int2& subGridDim)
@@ -385,19 +381,17 @@ void ProjApp::SetupEntities()
 
 void ProjApp::SetupDescriptors()
 {
-    Result                         ppxres         = ppx::SUCCESS;
     grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
     poolCreateInfo.uniformBuffer                  = kNumEntities;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
+    PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
     grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
     layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding{0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS});
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
+    PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
 }
 
 void ProjApp::SetupPipelines()
 {
-    Result            ppxres   = ppx::SUCCESS;
 #if defined(PORTO_D3DCOMPILE)
     grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
         GetAssetPath("basic/shaders"));
@@ -407,7 +401,7 @@ void ProjApp::SetupPipelines()
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
     grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
+    PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
 #if defined(PORTO_D3DCOMPILE)
     bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "VertexColors", "ps_5_0", &basicShaderIncludeHandler);
@@ -416,13 +410,13 @@ void ProjApp::SetupPipelines()
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
+    PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
 
     grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
     piCreateInfo.setCount                          = 1;
     piCreateInfo.sets[0].set                       = 0;
     piCreateInfo.sets[0].pLayout                   = mDescriptorSetLayout;
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
+    PPX_CHECKED_CALL(GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
 
     grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
     gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
@@ -455,27 +449,26 @@ void ProjApp::SetupPipelines()
         else {
             PPX_ASSERT_MSG(false, "Unrecognized entity kind: " << static_cast<int>(entity.Kind()));
         }
-        PPX_CHECKED_CALL(ppxres = GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, entity.PipelinePtr()));
+        PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, entity.PipelinePtr()));
     }
 }
 
 void ProjApp::SetupPerFrameData(void)
 {
-    Result   ppxres = ppx::SUCCESS;
     PerFrame frame  = {};
 
-    PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
+    PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
 
     grfx::SemaphoreCreateInfo semaCreateInfo = {};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+    PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
 
     grfx::FenceCreateInfo fenceCreateInfo = {};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
+    PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
 
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
+    PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
 
     fenceCreateInfo = {true};
-    PPX_CHECKED_CALL(ppxres = GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+    PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
     mPerFrame.push_back(frame);
 }
@@ -701,19 +694,18 @@ void ProjApp::DrawCameraInfo()
 
 void ProjApp::Render()
 {
-    Result    ppxres = ppx::SUCCESS;
     PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
     uint32_t imageIndex = UINT32_MAX;
-    PPX_CHECKED_CALL(ppxres = swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
+    PPX_CHECKED_CALL(swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
 
     // Wait for and reset image acquired fence
-    PPX_CHECKED_CALL(ppxres = frame.imageAcquiredFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(ppxres = frame.renderCompleteFence->WaitAndReset());
+    PPX_CHECKED_CALL(frame.renderCompleteFence->WaitAndReset());
 
     // Update uniform buffers
     {
@@ -730,7 +722,7 @@ void ProjApp::Render()
     }
 
     // Build command buffer
-    PPX_CHECKED_CALL(ppxres = frame.cmd->Begin());
+    PPX_CHECKED_CALL(frame.cmd->Begin());
     {
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
@@ -764,7 +756,7 @@ void ProjApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }
-    PPX_CHECKED_CALL(ppxres = frame.cmd->End());
+    PPX_CHECKED_CALL(frame.cmd->End());
 
     grfx::SubmitInfo submitInfo     = {};
     submitInfo.commandBufferCount   = 1;
@@ -775,9 +767,9 @@ void ProjApp::Render()
     submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
     submitInfo.pFence               = frame.renderCompleteFence;
 
-    PPX_CHECKED_CALL(ppxres = GetGraphicsQueue()->Submit(&submitInfo));
+    PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
 
-    PPX_CHECKED_CALL(ppxres = swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
+    PPX_CHECKED_CALL(swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
 }
 
 int main(int argc, char** argv)

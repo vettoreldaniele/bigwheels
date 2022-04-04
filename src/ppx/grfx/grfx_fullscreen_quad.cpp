@@ -20,7 +20,7 @@ Result FullscreenQuad::CreateApiObjects(const grfx::FullscreenQuadCreateInfo* pC
             createInfo.sets[i].pLayout = pCreateInfo->sets[i].pLayout;
         }
 
-        Result ppxres = GetDevice()->CreatePipelineInterface(&createInfo, &mPipelineInterface);
+        ppxres = GetDevice()->CreatePipelineInterface(&createInfo, &mPipelineInterface);
         if (Failed(ppxres)) {
             PPX_ASSERT_MSG(false, "failed creating pipeline interface");
             return ppxres;

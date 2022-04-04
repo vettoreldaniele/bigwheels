@@ -32,9 +32,7 @@ static ProfilerEventToken s_vkCmdDrawIndexed         = 0;
 
 void RegisterProfilerFunctions()
 {
-    Result ppxres = ppx::ERROR_FAILED;
-
-#define REGISTER_EVENT_PARAMS(VKFN) #VKFN, &s_##VKFN
+    #define REGISTER_EVENT_PARAMS(VKFN) #VKFN, &s_##VKFN
 
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCreateBuffer)));
     PPX_CHECKED_CALL(Profiler::RegisterGrfxApiFnEvent(REGISTER_EVENT_PARAMS(vkCreateImage)));
