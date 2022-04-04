@@ -197,7 +197,7 @@ private:
     };
 
     uint32_t           mModelIndex = 0;
-    std::vector<char*> mModelNames = {
+    std::vector<const char*> mModelNames = {
         "Knob",
         "Sphere",
         "Cube",
@@ -206,7 +206,7 @@ private:
     };
 
     uint32_t           mF0Index = 0;
-    std::vector<char*> mF0Names = {
+    std::vector<const char*> mF0Names = {
         "MetalTitanium",
         "MetalChromium",
         "MetalIron",
@@ -228,7 +228,7 @@ private:
     };
 
     uint32_t           mMaterialIndex = 0;
-    std::vector<char*> mMaterialNames = {
+    std::vector<const char*> mMaterialNames = {
         "Rusted Iron",
         "SciFi Metal",
         "Painted Metal",
@@ -237,7 +237,7 @@ private:
     };
 
     uint32_t           mShaderIndex = 3;
-    std::vector<char*> mShaderNames = {
+    std::vector<const char*> mShaderNames = {
         "Gouraud",
         "Phong",
         "Blinn",
@@ -246,7 +246,7 @@ private:
 
     uint32_t           mCurrentIBLIndex = 0;
     uint32_t           mTargetIBLIndex  = 0;
-    std::vector<char*> mIBLNames        = {
+    std::vector<const char*> mIBLNames        = {
         "GoldenHour",
         "PaperMill",
         "UenoShrine",

@@ -91,7 +91,7 @@ private:
 
     bool               mDrawGBufferAttr  = false;
     uint32_t           mGBufferAttrIndex = 0;
-    std::vector<char*> mGBufferAttrNames = {
+    std::vector<const char*> mGBufferAttrNames = {
         "POSITION",
         "NORMAL",
         "ALBEDO",
@@ -105,7 +105,7 @@ private:
 
     uint32_t           mCurrentIBLIndex = UINT32_MAX;
     uint32_t           mTargetIBLIndex  = 0;
-    std::vector<char*> mIBLNames        = {
+    std::vector<const char*> mIBLNames        = {
         "GoldenHour",
         "PaperMill",
         "UenoShrine",
