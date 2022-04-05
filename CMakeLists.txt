@@ -190,3 +190,11 @@ if (PPX_BUILD_BENCHMARKS)
     message("Building benchmarks projects")
     add_subdirectory(benchmarks)
 endif()
+
+# ------------------------------------------------------------------------------
+# Enable testing support for CMake
+# ------------------------------------------------------------------------------
+option(BUILD_TESTS "Build tests" ON)
+if (BUILD_TESTS)
+    enable_testing()
+endif()

@@ -2,9 +2,6 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "pcg32",
-    srcs = glob([
-        "*.cpp",
-    ]),
     hdrs = glob([
         "*.h",
     ]),

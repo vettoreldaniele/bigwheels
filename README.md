@@ -202,6 +202,23 @@ The build system will generate an error if the DXC executable is not present.
 ## FXC
 The build system will look for `fxc.exe` in the Windows SDK version that CMake selects. 
 
+# Unit Tests
+Unit tests are supported both in CMake and Bazel. For the former, they can be optionally disabled with `-DBUILD_TESTS=OFF`.
+
+To add a new test:
+1) Add and write a new test file under `src/test/`, e.g. `src/test/new_test.cpp`.
+2) The new test will automatically be picked up by the build system.
+
+To build tests (without running them):
+* For Bazel, use `bazel build :ppx_tests`.
+* For CMake, use `make build-tests`.
+
+Test binaries are output in `test/`.
+
+To run tests (they will be built if needed):
+* For Bazel, use `bazel test :all`.
+* For CMake, use `make run-tests`.
+
 # Benchmarks
 
 BigWheels includes a variety of benchmarks that test graphics fundamentals under the `benchmarks` folder. Benchmarks use special assets found in `assets/benchmarks`.
