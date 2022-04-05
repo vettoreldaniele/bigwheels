@@ -131,3 +131,27 @@ def yeti_cc_binary(
         }),
         **kwargs
     )
+
+def yeti_cc_test(
+        copts = None,
+        data = None,
+        linkopts = None,
+        features = None,
+        malloc = None,
+        **kwargs):
+    """Yeti-specific specialization of a cc_test rule."""
+    native.cc_test(
+        copts = copts + COPTS if copts else COPTS,
+        linkopts = linkopts + LINKOPTS if linkopts else LINKOPTS,
+        data = data + TEST_DATA if data else TEST_DATA,
+        features = features + FEATURES if features else FEATURES,
+        malloc = select({
+            "//tools:asan": None,
+            "//tools:tsan": None,
+            "//tools:chromecast": None,
+            "//tools:caraway": None,
+            "//tools:gotham": None,
+            "//conditions:default": malloc,
+        }),
+        **kwargs
+    )

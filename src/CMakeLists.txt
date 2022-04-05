@@ -772,3 +772,12 @@ if (PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
         PRIVATE PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS
     )
 endif()
+
+# ------------------------------------------------------------------------------
+# Unit Tests
+# ------------------------------------------------------------------------------
+if (BUILD_TESTS)
+    enable_testing()
+    include(GoogleTest)
+    add_subdirectory(test)
+endif()

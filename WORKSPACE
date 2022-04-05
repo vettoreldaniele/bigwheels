@@ -56,6 +56,12 @@ new_local_repository(
 )
 
 new_local_repository(
+    name = "googletest",
+    build_file = "third_party/googletest/BUILD.bazel",
+    path = "third_party/googletest/",
+)
+
+new_local_repository(
     name = "imgui",
     build_file = "third_party/imgui.BUILD.bazel",
     path = "third_party/imgui",

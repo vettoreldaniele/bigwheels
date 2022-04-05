@@ -4,6 +4,7 @@
 build-*/
 .vs/
 bin/
+./test/
 lib/
 out/
 *.log
