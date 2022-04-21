@@ -1,0 +1,14 @@
+load("//tools:yeti.bzl", "yeti_cc_binary")
+load("//build_defs:config.bzl", "COPTS")
+
+yeti_cc_binary(
+    name = "22_image_filter",
+    srcs = ["main.cpp"],
+    copts = COPTS,
+    data = [
+        "//assets:basic/shaders/spv/ImageFilter.cs.spv",
+        "//assets:basic/shaders/spv/Texture.ps.spv",
+        "//assets:basic/shaders/spv/Texture.vs.spv",
+    ],
+    deps = ["//:ppx"],
+)
