@@ -151,6 +151,18 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     // Cast to XIDXGIAdapter
     typename DXGIAdapterPtr::InterfaceType* pAdapter = ToApi(pCreateInfo->pGpu)->GetDxAdapter();
 
+//
+// 20220423 (hai): DXIL is now in widespread use and not considered an
+//                 experimental feature anymore - we don't need this block.
+//                 Keeping it the block here but commented out now in case
+//                 someone is still working on an older version of Windows.
+//
+//                 If you're running Windows apps on Wine:
+//                   - VKD3D-Proton currently does not implement
+//                     D3D12EnableExperimentalFeatures so this
+//                     current function will return an API failure.
+//
+/*
 #if !defined(PPX_DXIIVK)
     //
     // Enable SM 6.0 for DXIL support
@@ -204,6 +216,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         PPX_LOG_INFO("D3D12 SM 6.0+ support enabled (DXIL)")
     }
 #endif // ! defined(PPX_DXIIVK)
+*/
 
     // Create real D3D12 device
     HRESULT hr = D3D12CreateDevice(pAdapter, featureLevel, IID_PPV_ARGS(&mDevice));
