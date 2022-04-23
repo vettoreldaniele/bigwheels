@@ -90,6 +90,7 @@ public:
     ~Platform();
 
     static PlatformId     GetPlatformId();
+    static const char*    GetPlatformString();
     static const CpuInfo& GetCpuInfo();
 
 private:
