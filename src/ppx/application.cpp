@@ -649,7 +649,7 @@ Result Application::InitializeGrfxDevice()
 
         Result ppxres = grfx::CreateInstance(&ci, &mInstance);
         if (Failed(ppxres)) {
-            PPX_ASSERT_MSG(false, "grfx::CreateInstance failed");
+            PPX_ASSERT_MSG(false, "grfx::CreateInstance failed: " << ToString(ppxres));
             return ppxres;
         }
     }
