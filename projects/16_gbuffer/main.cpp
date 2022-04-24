@@ -1078,9 +1078,9 @@ void ProjApp::Render()
             // Draw gbuffer light output to swapchain
             frame.cmd->Draw(mDrawToSwapchain, 1, &mDrawToSwapchainSet);
 
-            //// Draw ImGui
-            //DrawDebugInfo([this]() { this->DrawGui(); });
-            //DrawImGui(frame.cmd);
+            // Draw ImGui
+            DrawDebugInfo([this]() { this->DrawGui(); });
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
