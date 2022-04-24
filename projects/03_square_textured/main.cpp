@@ -55,7 +55,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.appName          = "03_square_textured";
     settings.enableImGui      = true;
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = false; //true;
+    settings.grfx.enableDebug = false;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif

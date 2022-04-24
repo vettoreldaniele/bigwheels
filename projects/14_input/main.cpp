@@ -46,7 +46,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "input";
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = false; //true;
+    settings.grfx.enableDebug = false;
     settings.enableImGui      = true;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
