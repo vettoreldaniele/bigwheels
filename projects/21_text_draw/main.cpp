@@ -43,7 +43,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "21_text_draw";
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = true;
+    settings.grfx.enableDebug = false; //true;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif

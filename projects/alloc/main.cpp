@@ -29,7 +29,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "alloc";
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = true;
+    settings.grfx.enableDebug = false; //true;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
