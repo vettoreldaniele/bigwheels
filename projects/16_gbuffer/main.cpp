@@ -129,6 +129,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "gbuffer";
+    settings.enableImGui      = true;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = false;
 #if defined(USE_DXIL)

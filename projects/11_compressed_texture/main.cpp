@@ -77,6 +77,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "11_compressed_textures";
+    settings.enableImGui                = true;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = false;

@@ -64,6 +64,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "19_camera_fit_scene";
+    settings.enableImGui                = true;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = false;
