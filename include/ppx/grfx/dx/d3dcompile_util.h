@@ -31,7 +31,7 @@ public:
             itr               = fileNameToContents.insert({pFileName, fs::load_file(filePath)}).first;
         }
         *ppData = itr->second.data();
-        *pBytes = itr->second.size();
+        *pBytes = static_cast<UINT>(itr->second.size());
         return S_OK;
     }
 
