@@ -6,6 +6,14 @@
 #include "ppx/grfx/dx/d3dcompile_util.h"
 #endif
 
+// *** NOTE ***
+//
+// Pipeline queries do not work on DXIIVK yet.
+//
+#if !defined(PPX_DXIIVK)
+#define ENABLE_GPU_QUERIES
+#endif
+
 using namespace ppx;
 
 #if defined(USE_DX11)
@@ -75,8 +83,10 @@ private:
         grfx::FencePtr         imageAcquiredFence;
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
-        ppx::grfx::QueryPtr    timestampQuery;
-        ppx::grfx::QueryPtr    pipelineStatsQuery;
+#ifdef ENABLE_GPU_QUERIES
+        ppx::grfx::QueryPtr timestampQuery;
+        ppx::grfx::QueryPtr pipelineStatsQuery;
+#endif
     };
 
     grfx::PipelineStatistics mPipelineStatistics = {};
@@ -196,7 +206,7 @@ private:
         float3(0.4f),
     };
 
-    uint32_t           mModelIndex = 0;
+    uint32_t                 mModelIndex = 0;
     std::vector<const char*> mModelNames = {
         "Knob",
         "Sphere",
@@ -205,7 +215,7 @@ private:
         "Ceberus",
     };
 
-    uint32_t           mF0Index = 0;
+    uint32_t                 mF0Index = 0;
     std::vector<const char*> mF0Names = {
         "MetalTitanium",
         "MetalChromium",
@@ -227,7 +237,7 @@ private:
         "Use Albedo Color",
     };
 
-    uint32_t           mMaterialIndex = 0;
+    uint32_t                 mMaterialIndex = 0;
     std::vector<const char*> mMaterialNames = {
         "Rusted Iron",
         "SciFi Metal",
@@ -236,7 +246,7 @@ private:
         "Ceberus",
     };
 
-    uint32_t           mShaderIndex = 3;
+    uint32_t                 mShaderIndex = 3;
     std::vector<const char*> mShaderNames = {
         "Gouraud",
         "Phong",
@@ -244,8 +254,8 @@ private:
         "PBR",
     };
 
-    uint32_t           mCurrentIBLIndex = 0;
-    uint32_t           mTargetIBLIndex  = 0;
+    uint32_t                 mCurrentIBLIndex = 0;
+    uint32_t                 mTargetIBLIndex  = 0;
     std::vector<const char*> mIBLNames        = {
         "GoldenHour",
         "PaperMill",
@@ -957,6 +967,7 @@ void ProjApp::Setup()
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
+#ifdef ENABLE_GPU_QUERIES
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
@@ -969,6 +980,7 @@ void ProjApp::Setup()
             queryCreateInfo.count = 1;
             PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
         }
+#endif
 
         mPerFrame.push_back(frame);
     }
@@ -1197,6 +1209,7 @@ void ProjApp::Render()
         mSkyboxConstants->UnmapMemory();
     }
 
+#ifdef ENABLE_GPU_QUERIES
     // Read query results
     if (GetFrameCount() > 0) {
         uint64_t data[2] = {0};
@@ -1212,6 +1225,7 @@ void ProjApp::Render()
     if (GetDevice()->PipelineStatsAvailable()) {
         frame.pipelineStatsQuery->Reset(0, 1);
     }
+#endif
 
     // Build command buffer
     PPX_CHECKED_CALL(frame.cmd->Begin());
@@ -1225,7 +1239,9 @@ void ProjApp::Render()
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(renderPass);
         {
+#ifdef ENABLE_GPU_QUERIES
             frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+#endif
             frame.cmd->SetScissors(GetScissor());
             frame.cmd->SetViewports(GetViewport());
             // Draw model
@@ -1241,13 +1257,17 @@ void ProjApp::Render()
             frame.cmd->BindIndexBuffer(mModels[mModelIndex]);
             frame.cmd->BindVertexBuffers(mModels[mModelIndex]);
 
+#ifdef ENABLE_GPU_QUERIES
             if (GetDevice()->PipelineStatsAvailable()) {
                 frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
             }
+#endif
             frame.cmd->DrawIndexed(mModels[mModelIndex]->GetIndexCount());
+#ifdef ENABLE_GPU_QUERIES
             if (GetDevice()->PipelineStatsAvailable()) {
                 frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
             }
+#endif
 
             // Draw sky box
             frame.cmd->BindGraphicsDescriptorSets(mSkyboxPipelineInterface, 1, &mSkyboxSet);
@@ -1261,6 +1281,7 @@ void ProjApp::Render()
             DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
+#ifdef ENABLE_GPU_QUERIES
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 1);
 
         // Resolve queries
@@ -1268,6 +1289,7 @@ void ProjApp::Render()
         if (GetDevice()->PipelineStatsAvailable()) {
             frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
         }
+#endif
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }
     PPX_CHECKED_CALL(frame.cmd->End());
