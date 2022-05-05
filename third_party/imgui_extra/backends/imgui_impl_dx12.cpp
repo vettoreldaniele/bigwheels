@@ -1005,11 +1005,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         hr = g_pd3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
         IM_ASSERT(SUCCEEDED(hr));
 
-#if defined(PPX_DXIIVK)
-        HANDLE event = CreateEventPORTO(0, 0, 0, 0);
-#else        
         HANDLE event = CreateEvent(0, 0, 0, 0);
-#endif
         IM_ASSERT(event != NULL);
 
         D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -1040,11 +1036,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         IM_ASSERT(SUCCEEDED(hr));
 
         fence->SetEventOnCompletion(1, event);
-#if defined(PPX_DXIIVK)
-        WaitForSingleObjectExPORTO(event, INFINITE, FALSE);
-#else
         WaitForSingleObject(event, INFINITE);
-#endif
 
         cmdList->Release();
         cmdAlloc->Release();

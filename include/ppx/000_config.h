@@ -97,7 +97,7 @@ enum Result
     ERROR_WAIT_TIMED_OUT               = -15,
     ERROR_NO_GPUS_FOUND                = -16,
     ERROR_REQUIRED_FEATURE_UNAVAILABLE = -17,
-    EEROR_BAD_DATA_SOURCE              = -18,
+    ERROR_BAD_DATA_SOURCE              = -18,
 
     ERROR_GLFW_INIT_FAILED          = -200,
     ERROR_GLFW_CREATE_WINDOW_FAILED = -201,
@@ -144,6 +144,80 @@ enum Result
     ERROR_FONT_PARSE_FAILED   = -4000,
     ERROR_INVALID_UTF8_STRING = -4001,
 };
+
+inline const char* ToString(ppx::Result value)
+{
+    // clang-format off
+    switch (value) {
+        default: break;
+        case Result::SUCCESS                                          : return "SUCCESS";
+        case Result::ERROR_FAILED                                     : return "ERROR_FAILED";
+        case Result::ERROR_ALLOCATION_FAILED                          : return "ERROR_ALLOCATION_FAILED";
+        case Result::ERROR_OUT_OF_MEMORY                              : return "ERROR_OUT_OF_MEMORY";
+        case Result::ERROR_ELEMENT_NOT_FOUND                          : return "ERROR_ELEMENT_NOT_FOUND";
+        case Result::ERROR_OUT_OF_RANGE                               : return "ERROR_OUT_OF_RANGE";
+        case Result::ERROR_DUPLICATE_ELEMENT                          : return "ERROR_DUPLICATE_ELEMENT";
+        case Result::ERROR_LIMIT_EXCEEDED                             : return "ERROR_LIMIT_EXCEEDED";
+        case Result::ERROR_PATH_DOES_NOT_EXIST                        : return "ERROR_PATH_DOES_NOT_EXIST";
+        case Result::ERROR_SINGLE_INIT_ONLY                           : return "ERROR_SINGLE_INIT_ONLY";
+        case Result::ERROR_UNEXPECTED_NULL_ARGUMENT                   : return "ERROR_UNEXPECTED_NULL_ARGUMENT";
+        case Result::ERROR_UNEXPECTED_COUNT_VALUE                     : return "ERROR_UNEXPECTED_COUNT_VALUE";
+        case Result::ERROR_UNSUPPORTED_API                            : return "ERROR_UNSUPPORTED_API";
+        case Result::ERROR_API_FAILURE                                : return "ERROR_API_FAILURE";
+        case Result::ERROR_WAIT_FAILED                                : return "ERROR_WAIT_FAILED";
+        case Result::ERROR_WAIT_TIMED_OUT                             : return "ERROR_WAIT_TIMED_OUT";
+        case Result::ERROR_NO_GPUS_FOUND                              : return "ERROR_NO_GPUS_FOUND";
+        case Result::ERROR_REQUIRED_FEATURE_UNAVAILABLE               : return "ERROR_REQUIRED_FEATURE_UNAVAILABLE";
+        case Result::ERROR_BAD_DATA_SOURCE                            : return "ERROR_BAD_DATA_SOURCE";
+
+        case Result::ERROR_GLFW_INIT_FAILED                           : return "ERROR_GLFW_INIT_FAILED";
+        case Result::ERROR_GLFW_CREATE_WINDOW_FAILED                  : return "ERROR_GLFW_CREATE_WINDOW_FAILED";
+
+        case Result::ERROR_INVALID_CREATE_ARGUMENT                    : return "ERROR_INVALID_CREATE_ARGUMENT";
+        case Result::ERROR_RANGE_ALIASING_NOT_ALLOWED                 : return "ERROR_RANGE_ALIASING_NOT_ALLOWED";
+
+        case Result::ERROR_GRFX_INVALID_OWNERSHIP                     : return "ERROR_GRFX_INVALID_OWNERSHIP";
+        case Result::ERROR_GRFX_OBJECT_OWNERSHIP_IS_RESTRICTED        : return "ERROR_GRFX_OBJECT_OWNERSHIP_IS_RESTRICTED";
+        case Result::ERROR_GRFX_UNSUPPORTED_SWAPCHAIN_FORMAT          : return "ERROR_GRFX_UNSUPPORTED_SWAPCHAIN_FORMAT";
+        case Result::ERROR_GRFX_UNSUPPORTED_PRESENT_MODE              : return "ERROR_GRFX_UNSUPPORTED_PRESENT_MODE";
+        case Result::ERROR_GRFX_MAX_VERTEX_BINDING_EXCEEDED           : return "ERROR_GRFX_MAX_VERTEX_BINDING_EXCEEDED";
+        case Result::ERROR_GRFX_VERTEX_ATTRIBUTE_FROMAT_UNDEFINED     : return "ERROR_GRFX_VERTEX_ATTRIBUTE_FROMAT_UNDEFINED";
+        case Result::ERROR_GRFX_VERTEX_ATTRIBUTE_OFFSET_OUT_OF_ORDER  : return "ERROR_GRFX_VERTEX_ATTRIBUTE_OFFSET_OUT_OF_ORDER";
+        case Result::ERROR_GRFX_CANNOT_MIX_VERTEX_INPUT_RATES         : return "ERROR_GRFX_CANNOT_MIX_VERTEX_INPUT_RATES";
+        case Result::ERROR_GRFX_UNKNOWN_DESCRIPTOR_TYPE               : return "ERROR_GRFX_UNKNOWN_DESCRIPTOR_TYPE";
+        case Result::ERROR_GRFX_INVALID_DESCRIPTOR_TYPE               : return "ERROR_GRFX_INVALID_DESCRIPTOR_TYPE";
+        case Result::ERROR_GRFX_DESCRIPTOR_COUNT_EXCEEDED             : return "ERROR_GRFX_DESCRIPTOR_COUNT_EXCEEDED";
+        case Result::ERROR_GRFX_BINDING_NOT_IN_SET                    : return "ERROR_GRFX_BINDING_NOT_IN_SET";
+        case Result::ERROR_GRFX_NON_UNIQUE_SET                        : return "ERROR_GRFX_NON_UNIQUE_SET";
+        case Result::ERROR_GRFX_MINIMUM_BUFFER_SIZE_NOT_MET           : return "ERROR_GRFX_MINIMUM_BUFFER_SIZE_NOT_MET";
+        case Result::ERROR_GRFX_INVALID_SHADER_BYTE_CODE              : return "ERROR_GRFX_INVALID_SHADER_BYTE_CODE";
+        case Result::ERROR_INVALID_PIPELINE_INTERFACE                 : return "ERROR_INVALID_PIPELINE_INTERFACE";
+        case Result::ERROR_GRFX_INVALID_QUERY_TYPE                    : return "ERROR_GRFX_INVALID_QUERY_TYPE";
+        case Result::ERROR_GRFX_INVALID_QUERY_COUNT                   : return "ERROR_GRFX_INVALID_QUERY_COUNT";
+        case Result::ERROR_GRFX_NO_QUEUES_AVAILABLE                   : return "ERROR_GRFX_NO_QUEUES_AVAILABLE";
+
+        case Result::ERROR_IMAGE_FILE_LOAD_FAILED                     : return "ERROR_IMAGE_FILE_LOAD_FAILED";
+        case Result::ERROR_IMAGE_FILE_SAVE_FAILED                     : return "ERROR_IMAGE_FILE_SAVE_FAILED";
+        case Result::ERROR_IMAGE_CANNOT_RESIZE_EXTERNAL_STORAGE       : return "ERROR_IMAGE_CANNOT_RESIZE_EXTERNAL_STORAGE";
+        case Result::ERROR_IMAGE_INVALID_FORMAT                       : return "ERROR_IMAGE_INVALID_FORMAT";
+        case Result::ERROR_IMAGE_RESIZE_FAILED                        : return "ERROR_IMAGE_RESIZE_FAILED";
+        case Result::ERROR_BITMAP_CREATE_FAILED                       : return "ERROR_BITMAP_CREATE_FAILED";
+        case Result::ERROR_BITMAP_BAD_COPY_SOURCE                     : return "ERROR_BITMAP_BAD_COPY_SOURCE";
+        case Result::ERROR_BITMAP_FOOTPRINT_MISMATCH                  : return "ERROR_BITMAP_FOOTPRINT_MISMATCH";
+
+        case Result::ERROR_NO_INDEX_DATA                              : return "ERROR_NO_INDEX_DATA";
+        case Result::ERROR_GEOMETRY_FILE_LOAD_FAILED                  : return "ERROR_GEOMETRY_FILE_LOAD_FAILED";
+        case Result::ERROR_GEOMETRY_FILE_NO_DATA                      : return "ERROR_GEOMETRY_FILE_NO_DATA";
+
+        case Result::ERROR_WINDOW_EVENTS_ALREADY_REGISTERED           : return "ERROR_WINDOW_EVENTS_ALREADY_REGISTERED";
+        case Result::ERROR_IMGUI_INITIALIZATION_FAILED                : return "ERROR_IMGUI_INITIALIZATION_FAILED";
+
+        case Result::ERROR_FONT_PARSE_FAILED                          : return "ERROR_FONT_PARSE_FAILED";
+        case Result::ERROR_INVALID_UTF8_STRING                        : return "ERROR_INVALID_UTF8_STRING";
+    }
+    // clang-format on
+    return "<unknown ppx::Result value>";
+}
 
 inline bool Success(ppx::Result value)
 {

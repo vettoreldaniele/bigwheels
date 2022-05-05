@@ -31,7 +31,7 @@ ppx::Result Font::CreateFromFile(const fs::path& path, ppx::Font* pFont)
 
     std::ifstream is(path.c_str(), std::ios::binary);
     if (!is.is_open()) {
-        return ppx::EEROR_BAD_DATA_SOURCE;
+        return ppx::ERROR_BAD_DATA_SOURCE;
     }
 
     is.seekg(0, std::ios::end);
@@ -64,7 +64,7 @@ ppx::Result Font::CreateFromMemory(size_t size, const char* pData, ppx::Font* pF
     }
 
     if ((size == 0) || IsNull(pData)) {
-        return ppx::EEROR_BAD_DATA_SOURCE;
+        return ppx::ERROR_BAD_DATA_SOURCE;
     }
 
     auto object = std::make_shared<Font::Object>();

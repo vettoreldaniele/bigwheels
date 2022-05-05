@@ -11,6 +11,14 @@ using namespace ppx;
 #include "Material.h"
 #include "Render.h"
 
+// *** NOTE ***
+//
+// Pipeline queries do not work on DXIIVK yet.
+//
+#if !defined(PPX_DXIIVK)
+#define ENABLE_GPU_QUERIES
+#endif
+
 #if defined(USE_DX11)
 const grfx::Api kApi = grfx::API_DX_11_1;
 #elif defined(USE_DX12)
@@ -39,8 +47,10 @@ private:
         ppx::grfx::FencePtr         imageAcquiredFence;
         ppx::grfx::SemaphorePtr     renderCompleteSemaphore;
         ppx::grfx::FencePtr         renderCompleteFence;
+#ifdef ENABLE_GPU_QUERIES
         ppx::grfx::QueryPtr         timestampQuery;
         ppx::grfx::QueryPtr         pipelineStatsQuery;
+#endif
     };
 
     grfx::PipelineStatistics mPipelineStatistics = {};
@@ -159,6 +169,7 @@ void ProjApp::SetupPerFrame()
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
+#ifdef ENABLE_GPU_QUERIES
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
@@ -171,6 +182,7 @@ void ProjApp::SetupPerFrame()
             queryCreateInfo.count = 1;
             PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.pipelineStatsQuery));
         }
+#endif
 
         mPerFrame.push_back(frame);
     }
@@ -964,6 +976,7 @@ void ProjApp::Render()
     // Update descriptors
     UpdateEnvDescriptors();
 
+#ifdef ENABLE_GPU_QUERIES
     // Read query results
     if (GetFrameCount() > 0) {
         uint64_t data[2] = {0};
@@ -979,6 +992,7 @@ void ProjApp::Render()
     if (GetDevice()->PipelineStatsAvailable()) {
         frame.pipelineStatsQuery->Reset(0, 1);
     }
+#endif
 
     // Build command buffer
     PPX_CHECKED_CALL(frame.cmd->Begin());
@@ -997,17 +1011,23 @@ void ProjApp::Render()
             grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE);
         frame.cmd->BeginRenderPass(mGBufferRenderPass, grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_RENDER_TARGETS | grfx::DRAW_PASS_CLEAR_FLAG_CLEAR_DEPTH);
         {
+#ifdef ENABLE_GPU_QUERIES
             frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+#endif
 
+#ifdef ENABLE_GPU_QUERIES
             if (GetDevice()->PipelineStatsAvailable()) {
                 frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
             }
+#endif
             for (size_t i = 0; i < mEntities.size(); ++i) {
                 mEntities[i].Draw(mSceneDataSet, frame.cmd);
             }
+#ifdef ENABLE_GPU_QUERIES
             if (GetDevice()->PipelineStatsAvailable()) {
                 frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
             }
+#endif
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(
@@ -1054,7 +1074,9 @@ void ProjApp::Render()
             }
         }
         frame.cmd->EndRenderPass();
+#ifdef ENABLE_GPU_QUERIES
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 1);
+#endif
 
         frame.cmd->TransitionImageLayout(
             mGBufferLightPass,
@@ -1085,11 +1107,13 @@ void ProjApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
     }
+#ifdef ENABLE_GPU_QUERIES
     // Resolve queries
     frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
     if (GetDevice()->PipelineStatsAvailable()) {
         frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
     }
+#endif
     PPX_CHECKED_CALL(frame.cmd->End());
 
     grfx::SubmitInfo submitInfo     = {};

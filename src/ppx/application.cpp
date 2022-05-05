@@ -649,7 +649,7 @@ Result Application::InitializeGrfxDevice()
 
         Result ppxres = grfx::CreateInstance(&ci, &mInstance);
         if (Failed(ppxres)) {
-            PPX_ASSERT_MSG(false, "grfx::CreateInstance failed");
+            PPX_ASSERT_MSG(false, "grfx::CreateInstance failed: " << ToString(ppxres));
             return ppxres;
         }
     }
@@ -867,7 +867,7 @@ Result Application::CreatePlatformWindow()
 
     // Decorated window title
     std::stringstream windowTitle;
-    windowTitle << mSettings.window.title << " | " << ToString(mSettings.grfx.api) << " | " << mDevice->GetDeviceName();
+    windowTitle << mSettings.window.title << " | " << ToString(mSettings.grfx.api) << " | " << mDevice->GetDeviceName() << " | " << Platform::GetPlatformString();
 
     GLFWwindow* pWindow = glfwCreateWindow(
         static_cast<int>(mSettings.window.width),
@@ -1444,6 +1444,16 @@ void Application::DrawDebugInfo(std::function<void(void)> drawAdditionalFn)
 
     if (ImGui::Begin("Debug Info")) {
         ImGui::Columns(2);
+
+        // Platform
+        {
+            ImGui::Text("Platform");
+            ImGui::NextColumn();
+            ImGui::Text("%s", Platform::GetPlatformString());
+            ImGui::NextColumn();
+        }
+
+        ImGui::Separator();
 
         // Application PID
         {

@@ -19,7 +19,7 @@ const grfx::Api kApi = grfx::API_VK_1_1;
 // Pipeline queries do not work on DXIIVK yet.
 //
 #if !defined(PPX_DXIIVK)
-#define ENABLE_PIPELINE_QUERIES
+#define ENABLE_GPU_QUERIES
 #endif
 
 class ProjApp
@@ -281,13 +281,13 @@ void ProjApp::Setup()
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
-#if defined(ENABLE_PIPELINE_QUERIES)
+#if defined(ENABLE_GPU_QUERIES)
         // Timestamp query
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
         queryCreateInfo.count                 = 2;
         PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+#endif // defined(ENABLE_GPU_QUERIES)
 
         mPerFrame.push_back(frame);
     }
@@ -308,7 +308,7 @@ void ProjApp::Render()
     // Wait for and reset render complete fence
     PPX_CHECKED_CALL(frame.renderCompleteFence->WaitAndReset());
 
-#if defined(ENABLE_PIPELINE_QUERIES)
+#if defined(ENABLE_GPU_QUERIES)
     // Read query results
     if (GetFrameCount() > 0) {
         uint64_t data[2] = {0};
@@ -317,7 +317,7 @@ void ProjApp::Render()
     }
     // Reset query
     frame.timestampQuery->Reset(0, 2);
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+#endif // defined(ENABLE_GPU_QUERIES)
 
     // Update uniform buffer
     {
@@ -366,10 +366,10 @@ void ProjApp::Render()
     // Build command buffer
     PPX_CHECKED_CALL(frame.cmd->Begin());
     {
-#if defined(ENABLE_PIPELINE_QUERIES)
+#if defined(ENABLE_GPU_QUERIES)
     // Write start timestamp
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+#endif // defined(ENABLE_GPU_QUERIES)
 
         grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
         PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
@@ -410,13 +410,13 @@ void ProjApp::Render()
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
 
-#if defined(ENABLE_PIPELINE_QUERIES)
+#if defined(ENABLE_GPU_QUERIES)
         // Write end timestamp
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
 
         // Resolve queries
         frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
-#endif // defined(ENABLE_PIPELINE_QUERIES)
+#endif // defined(ENABLE_GPU_QUERIES)
     }
     PPX_CHECKED_CALL(frame.cmd->End());
 
