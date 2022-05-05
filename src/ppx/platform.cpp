@@ -123,6 +123,18 @@ PlatformId Platform::GetPlatformId()
 #endif
 }
 
+const char* Platform::GetPlatformString()
+{
+#if defined(PPX_GGP)
+    return "GGP";
+#elif defined(PPX_LINUX)
+    return "Linux";
+#elif defined(PPX_MSW)
+    return "Windows";
+#endif
+    return "<unknown platform>";
+}
+
 const CpuInfo& Platform::GetCpuInfo()
 {
     return sPlatform.mCpuInfo;
