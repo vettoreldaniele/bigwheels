@@ -1214,7 +1214,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         { "COLOR0",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
 #else
-    // Use DXBC for 
+    // DXBC
     psoDesc.VS = {__hlsl_shader_vs_dxbc, sizeof(__hlsl_shader_vs_dxbc)};
     psoDesc.PS = {__hlsl_shader_ps_dxbc, sizeof(__hlsl_shader_ps_dxbc)};
 
