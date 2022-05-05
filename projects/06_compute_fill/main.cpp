@@ -59,8 +59,9 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "06_compute_fill";
+    settings.enableImGui      = true;
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = true;
+    settings.grfx.enableDebug = false;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif

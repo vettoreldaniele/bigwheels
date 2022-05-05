@@ -61,9 +61,10 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "27_mipmap_demo";
+    settings.enableImGui                = true;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
-    settings.grfx.enableDebug           = true;
+    settings.grfx.enableDebug           = false;
     settings.enableImGui                = true;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;

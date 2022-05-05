@@ -31,36 +31,19 @@
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 
-// *** GGP PLATFORM NOTE ***
+// 20220423 (hai): Changed USE_DXIIVK_WORK_AROUND to USE_SHADER_BINARIES.
+//                 Removed GGP platform note.
+// 20220423 (hai): Wine's implemenation of D3DCompile currently
+//                 produces DXBC from the IMGui shaders that VKD3D-Proton 
+//                 cannot translate without crashing. Setting the default
+//                 behavior to use USE_SHADER_BINARIES.
 //
-// DXIIVK's D3D12 implementation on does *NOT* yet
-// support root constants or D3DCompile. This version of
-// the ImGui DX12 backend adds a path for using a constant
-// buffer and embedded shaders to work around this. It also
-// uses platform specific code for fence handling when
-// comping on GGP versus Windows. 
-// 
-// If you want to use the work around path when running on
-// native D3D12 - you'll need to force enable
-// USE_DXIIVK_WORK_AROUND
-//
-#if defined(PPX_DXIIVK)
-#define USE_DXIIVK_WORK_AROUND
-#else
-#define USE_NATIVE_D3D12
-#endif // defined(PPX_DXIIVK)
-
-// It's necessary to use the embedded DXBC shaders for native D3D12
-// if the workaround path is enabled
-//
-#if defined(USE_DXIIVK_WORK_AROUND) && defined(USE_NATIVE_D3D12)
-#define FORCE_DXBC_SHADERS
-#endif
+#define USE_SHADER_BINARIES
 
 // DirectX
 #include <d3d12.h>
 #include <dxgi1_4.h>
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
 #include "ppx/grfx/dx12/000_dx12_config.h"
 #include "ppx/grfx/dx12/dx12_util.h"
 #else
@@ -86,7 +69,7 @@ static DXGI_FORMAT                  g_RTVFormat = DXGI_FORMAT_UNKNOWN;
 static ID3D12Resource*              g_pFontTextureResource = NULL;
 static D3D12_CPU_DESCRIPTOR_HANDLE  g_hFontSrvCpuDescHandle = {};
 static D3D12_GPU_DESCRIPTOR_HANDLE  g_hFontSrvGpuDescHandle = {};
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
 static UINT                         g_handleIncrementSize = 0;
 #endif
 
@@ -96,7 +79,7 @@ struct FrameResources
     ID3D12Resource*     VertexBuffer;
     int                 IndexBufferSize;
     int                 VertexBufferSize;
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
     ID3D12Resource*             CpuConstantBuffer;
     ID3D12Resource*             GpuConstantBuffer;
     D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferCpuDescHandle = {};
@@ -120,7 +103,7 @@ struct VERTEX_CONSTANT_BUFFER
     float   mvp[4][4];
 };
 
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
 //-----------------------------------------------------------------------------
 // SHADERS
 //-----------------------------------------------------------------------------
@@ -710,7 +693,7 @@ static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, ID3D12Graphic
             { 0.0f,         0.0f,           0.5f,       0.0f },
             { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
         };
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
        (void)vertex_constant_buffer;
        void* p_mapped_address = NULL;
        HRESULT hr = fr->CpuConstantBuffer->Map(0, nullptr, &p_mapped_address);
@@ -752,7 +735,7 @@ static void ImGui_ImplDX12_SetupRenderState(ImDrawData* draw_data, ID3D12Graphic
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     ctx->SetPipelineState(g_pPipelineState);
     ctx->SetGraphicsRootSignature(g_pRootSignature);
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
     //ctx->CopyResource(fr->GpuConstantBuffer, fr->CpuConstantBuffer);
     ctx->CopyBufferRegion(fr->GpuConstantBuffer, 0, fr->CpuConstantBuffer, 0, sizeof(VERTEX_CONSTANT_BUFFER));
 #else
@@ -823,7 +806,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
         if (g_pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, IID_PPV_ARGS(&fr->IndexBuffer)) < 0)
             return;
     }
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
     if ((fr->CpuConstantBuffer == NULL) || (fr->GpuConstantBuffer == NULL)) {
         SafeRelease(fr->CpuConstantBuffer);
         SafeRelease(fr->GpuConstantBuffer);
@@ -859,7 +842,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
 
         g_pd3dDevice->CreateConstantBufferView(&cbv_desc, fr->ConstantBufferCpuDescHandle);
     }
-#endif // defined(USE_DXIIVK_WORK_AROUND)
+#endif // defined(USE_SHADER_BINARIES)
 
     // Upload vertex/index data into a single contiguous GPU buffer
     void* vtx_resource, *idx_resource;
@@ -911,7 +894,7 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
                 const D3D12_RECT r = { (LONG)(pcmd->ClipRect.x - clip_off.x), (LONG)(pcmd->ClipRect.y - clip_off.y), (LONG)(pcmd->ClipRect.z - clip_off.x), (LONG)(pcmd->ClipRect.w - clip_off.y) };
                 if (r.right > r.left && r.bottom > r.top)
                 {
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
                     ctx->SetGraphicsRootDescriptorTable(0, fr->ConstantBufferGpuDescHandle);
                     ctx->SetGraphicsRootDescriptorTable(1, *(D3D12_GPU_DESCRIPTOR_HANDLE*)&pcmd->TextureId);
 #else
@@ -961,7 +944,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         g_pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc,
             D3D12_RESOURCE_STATE_COPY_DEST, NULL, IID_PPV_ARGS(&pTexture));
 
-#if defined(USE_DXIIVK_WORK_AROUND) && !defined(USE_NATIVE_D3D12)
+#if defined(USE_SHADER_BINARIES) && !defined(USE_SHADER_SOURCE)
         UINT uploadPitch = (width * 4);
 #else
         UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
@@ -1058,7 +1041,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         cmdList->Release();
         cmdAlloc->Release();
         cmdQueue->Release();
-#if ! defined(USE_DXIIVK_WORK_AROUND)
+#if ! defined(PPX_DXIIVK)
         CloseHandle(event);
 #endif
         fence->Release();
@@ -1091,7 +1074,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
 
     // Create the root signature
     {
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
         D3D12_DESCRIPTOR_RANGE descRangeCBV = {};
         descRangeCBV.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
         descRangeCBV.NumDescriptors = 1;
@@ -1100,7 +1083,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         descRangeCBV.OffsetInDescriptorsFromTableStart = 0;
 
         D3D12_DESCRIPTOR_RANGE descRangeSRV = {};
-#if !defined(USE_NATIVE_D3D12)
+#if defined(PPX_DXIIVK)
         descRangeSRV.RangeType = static_cast<D3D12_DESCRIPTOR_RANGE_TYPE>(DXVK_D3D12_DESCRIPTOR_RANGE_TYPE_SRV_TEXTURE);
 #else
         descRangeSRV.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
@@ -1171,7 +1154,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         staticSampler.ShaderRegister = 0;
         staticSampler.RegisterSpace = 0;
         staticSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-#endif // defined(USE_DXIIVK_WORK_AROUND)
+#endif // defined(USE_SHADER_BINARIES)
 
         D3D12_ROOT_SIGNATURE_DESC desc = {};
         desc.NumParameters = _countof(param);
@@ -1209,21 +1192,8 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
     psoDesc.SampleDesc.Count = 1;
     psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-#if defined(USE_DXIIVK_WORK_AROUND)
-#if defined(FORCE_DXBC_SHADERS)
-    // Use DXBC for 
-    psoDesc.VS = {__hlsl_shader_vs_dxbc, sizeof(__hlsl_shader_vs_dxbc)};
-    psoDesc.PS = {__hlsl_shader_ps_dxbc, sizeof(__hlsl_shader_ps_dxbc)};
-
-    // Create the input layout
-    static D3D12_INPUT_ELEMENT_DESC local_layout[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, uv),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-
-#else
+#if defined(USE_SHADER_BINARIES)
+#if defined(PPX_DXIIVK)
     // SPIR-V
     psoDesc.VS = {__hlsl_shader_vs_spv, sizeof(__hlsl_shader_vs_spv)};
     psoDesc.PS = {__hlsl_shader_ps_spv, sizeof(__hlsl_shader_ps_spv)};
@@ -1234,6 +1204,18 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         { "POSITION",  0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "TEXCOORD0", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, uv),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "COLOR0",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+#else
+    // DXBC
+    psoDesc.VS = {__hlsl_shader_vs_dxbc, sizeof(__hlsl_shader_vs_dxbc)};
+    psoDesc.PS = {__hlsl_shader_ps_dxbc, sizeof(__hlsl_shader_ps_dxbc)};
+
+    // Create the input layout
+    static D3D12_INPUT_ELEMENT_DESC local_layout[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, uv),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
 #endif
 
@@ -1310,7 +1292,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         }
         psoDesc.PS = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
     }
-#endif // defined(USE_DXIIVK_WORK_AROUND)
+#endif // defined(USE_SHADER_BINARIES)
 
     // Create the blending setup
     {
@@ -1355,7 +1337,7 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
     }
 
     HRESULT result_pipeline_state = g_pd3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&g_pPipelineState));
-#if ! defined(USE_DXIIVK_WORK_AROUND)
+#if ! defined(USE_SHADER_BINARIES)
     vertexShaderBlob->Release();
     pixelShaderBlob->Release();
 #endif
@@ -1386,7 +1368,7 @@ void    ImGui_ImplDX12_InvalidateDeviceObjects()
         FrameResources* fr = &g_pFrameResources[i];
         SafeRelease(fr->IndexBuffer);
         SafeRelease(fr->VertexBuffer);
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
         SafeRelease(fr->CpuConstantBuffer);
         SafeRelease(fr->GpuConstantBuffer);
 #endif
@@ -1410,7 +1392,7 @@ bool ImGui_ImplDX12_Init(ID3D12Device* device, int num_frames_in_flight, int rtv
     g_frameIndex = UINT_MAX;
     IM_UNUSED(cbv_srv_heap); // Unused in master branch (will be used by multi-viewports)
 
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
     g_handleIncrementSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 #endif
 
@@ -1422,7 +1404,7 @@ bool ImGui_ImplDX12_Init(ID3D12Device* device, int num_frames_in_flight, int rtv
         fr->VertexBuffer = NULL;
         fr->IndexBufferSize = 10000;
         fr->VertexBufferSize = 5000;
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
         fr->CpuConstantBuffer = NULL;
         fr->GpuConstantBuffer = NULL;
         fr->ConstantBufferCpuDescHandle = { font_srv_cpu_desc_handle.ptr + (i + 1) * g_handleIncrementSize };
@@ -1443,7 +1425,7 @@ void ImGui_ImplDX12_Shutdown()
     g_hFontSrvGpuDescHandle.ptr = 0;
     g_numFramesInFlight = 0;
     g_frameIndex = UINT_MAX;
-#if defined(USE_DXIIVK_WORK_AROUND)
+#if defined(USE_SHADER_BINARIES)
     g_handleIncrementSize = 0;
 #endif
 }

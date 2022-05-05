@@ -50,9 +50,10 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName                    = "07_draw_indexed";
+    settings.enableImGui                = true;
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
-    settings.grfx.enableDebug           = true;
+    settings.grfx.enableDebug           = false;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
