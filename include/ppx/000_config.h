@@ -97,7 +97,7 @@ enum Result
     ERROR_WAIT_TIMED_OUT               = -15,
     ERROR_NO_GPUS_FOUND                = -16,
     ERROR_REQUIRED_FEATURE_UNAVAILABLE = -17,
-    EEROR_BAD_DATA_SOURCE              = -18,
+    ERROR_BAD_DATA_SOURCE              = -18,
 
     ERROR_GLFW_INIT_FAILED          = -200,
     ERROR_GLFW_CREATE_WINDOW_FAILED = -201,
@@ -168,7 +168,7 @@ inline const char* ToString(ppx::Result value)
         case Result::ERROR_WAIT_TIMED_OUT                             : return "ERROR_WAIT_TIMED_OUT";
         case Result::ERROR_NO_GPUS_FOUND                              : return "ERROR_NO_GPUS_FOUND";
         case Result::ERROR_REQUIRED_FEATURE_UNAVAILABLE               : return "ERROR_REQUIRED_FEATURE_UNAVAILABLE";
-        case Result::EEROR_BAD_DATA_SOURCE                            : return "EEROR_BAD_DATA_SOURCE";
+        case Result::ERROR_BAD_DATA_SOURCE                            : return "ERROR_BAD_DATA_SOURCE";
 
         case Result::ERROR_GLFW_INIT_FAILED                           : return "ERROR_GLFW_INIT_FAILED";
         case Result::ERROR_GLFW_CREATE_WINDOW_FAILED                  : return "ERROR_GLFW_CREATE_WINDOW_FAILED";
