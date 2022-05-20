@@ -7,7 +7,7 @@ project(ppx)
 # ------------------------------------------------------------------------------
 
 # Detect Vulkan directories
-if (PPX_VULKAN)
+if (PPX_VULKAN OR PPX_DXIL_SPV)
     # Determine Vulkan's include directory
     if (NOT VULKAN_INCLUDE_DIR)
         if (LINUX)
@@ -99,7 +99,7 @@ list(APPEND XXHASH_FILES
     ${PPX_DIR}/third_party/xxHash/xxhash.c
 )
 
-if (PPX_VULKAN)
+if (PPX_VULKAN OR PPX_DXIL_SPV)
     list(APPEND IMGUI_SOURCE_FILES
         ${IMGUI_DIR}/backends/imgui_impl_vulkan.h
         ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
@@ -377,7 +377,7 @@ if (PPX_D3D12 OR PPX_DXIIVK)
     )
 endif()
 
-if (PPX_VULKAN)
+if (PPX_VULKAN OR PPX_DXIL_SPV)
     list(
         APPEND PPX_GRFX_VK_HEADER_FILES
         ${INC_DIR}/ppx/grfx/vk/000_vk_config.h
@@ -513,7 +513,7 @@ if (PPX_D3D12 OR PPX_DXIIVK)
 endif()
 
 # Include Vulkan directories if Vulkan is enabled
-if (PPX_VULKAN)
+if (PPX_VULKAN OR PPX_DXIL_SPV)
     target_include_directories(
         ${PROJECT_NAME}
         PRIVATE ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src
@@ -618,7 +618,7 @@ if (PPX_D3D12)
     )
 endif()
 
-if (PPX_VULKAN)
+if (PPX_VULKAN OR PPX_DXIL_SPV)
     target_compile_definitions(
         ${PROJECT_NAME}
         PUBLIC  PPX_VULKAN
@@ -695,7 +695,7 @@ if (PPX_D3D12)
     )
 endif()
 
-if (PPX_VULKAN)
+if (PPX_VULKAN OR PPX_DXIL_SPV)
     # GGP
     if (PPX_GGP)
         # Link directories

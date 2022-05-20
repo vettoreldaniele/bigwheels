@@ -40,7 +40,7 @@ endif()
 # Configure graphics API
 # ------------------------------------------------------------------------------
 
-if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK) AND (NOT DEFINED PPX_DXIIVK) AND (NOT DEFINED PPX_DXVK_SPV) AND (NOT DEFINED PPX_DXVK_SPV_D3DCOMPILE) AND (NOT DEFINED PPX_VULKAN))
+if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK) AND (NOT DEFINED PPX_DXIIVK) AND (NOT DEFINED PPX_DXVK_SPV) AND (NOT DEFINED PPX_DXVK_SPV_D3DCOMPILE) AND (NOT DEFINED PPX_DXIL_SPV) AND (NOT DEFINED PPX_VULKAN))
     message("No PPX graphics API(s) specified - configuring based on current host")
     if (GGP)
         set(PPX_VULKAN TRUE)
@@ -58,6 +58,7 @@ set(PPX_D3D12_MSG    FALSE)
 set(PPX_DXVK_MSG     FALSE)
 set(PPX_DXIIVK_MSG   FALSE)
 set(PPX_DXVK_SPV_MSG FALSE)
+set(PPX_DXIL_SPV_MSG FALSE)
 set(PPX_VULKAN_MSG   FALSE)
 
 # D3D11
@@ -86,6 +87,13 @@ if (PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     endif()
     set(PPX_DXVK_SPV_MSG TRUE)
 endif()
+# DXIL_SPV
+if (PPX_DXIL_SPV)
+    if(NOT GGP)
+        message(FATAL_ERROR "PPX_DXIL_SPV requires GGP")
+    endif()
+    set(PPX_DXIL_SPV_MSG TRUE)
+endif()
 # Vulkan
 if (PPX_VULKAN)
     set(PPX_VULKAN_MSG TRUE)
@@ -96,6 +104,7 @@ message("Graphics API D3D12    : ${PPX_D3D12_MSG}")
 message("Graphics API DXVK     : ${PPX_DXVK_MSG}")
 message("Graphics API DXIIVK   : ${PPX_DXIIVK_MSG}")
 message("Graphics API DXVK SPV : ${PPX_DXVK_SPV_MSG}")
+message("Graphics API DXIL2SPV : ${PPX_DXIL_SPV_MSG}")
 message("Graphics API Vulkan   : ${PPX_VULKAN_MSG}")
 
 # ------------------------------------------------------------------------------
