@@ -1354,9 +1354,6 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
             if (mSettings.grfx.enableDXIL) {
                 filePath = (filePath / "dxil" / baseName).append_extension(".dxil");
             }
-            else if (mSettings.grfx.enableDXILSPV) {
-                filePath = (filePath / "dxil_spv" / baseName).append_extension(".spv");
-            }
             else {
 #if (PPX_DXIIVK)
                 filePath = (filePath / "spv" / baseName).append_extension(".spv");
@@ -1368,7 +1365,12 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
 
         case grfx::API_VK_1_1:
         case grfx::API_VK_1_2: {
-            filePath = (filePath / "spv" / baseName).append_extension(".spv");
+            if (mSettings.grfx.enableDXILSPV) {
+                filePath = (filePath / "dxil_spv" / baseName).append_extension(".spv");
+            }
+            else {
+                filePath = (filePath / "spv" / baseName).append_extension(".spv");
+            }
         } break;
     }
 

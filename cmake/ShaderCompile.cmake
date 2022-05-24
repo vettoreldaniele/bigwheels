@@ -170,10 +170,10 @@ function(CompileDxilToSpv)
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
         WORKING_DIRECTORY ${WORKING_DIR}
-        COMMENT "------ Compiling VS Shader [DXC-DXIL-SPV] ------"
+        COMMENT "------ Compiling Shader [DXC-DXIL-SPV] ------"
         MAIN_DEPENDENCY ${DXIL_PATH}
         # Compile to SPIR-V
-        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL-SPV] Compiling VS ${DXIL_PATH} to ${OUTPUT_FILE}"
+        COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL-SPV] Compiling ${DXIL_PATH} to ${OUTPUT_FILE}"
         COMMAND ${DXIL2SPV_PATH} ${DXIL_PATH} -Fo ${OUTPUT_FILE}
     )
 endfunction()
@@ -552,7 +552,6 @@ function(CompileShadersVS)
 
         # DXIL SPV targets
         set(dxil_spv_vs_file ${OUTPUT_DIR}/dxil_spv/${vs_file})
-        set(dxil_spv_ps_file ${OUTPUT_DIR}/dxil_spv/${ps_file})
 
         # DXIL targets
         string(REPLACE "hlsl" "vs.dxil" vs_file ${HLSL_PATH})
@@ -596,8 +595,7 @@ function(CompileShadersVS)
 
         if (BUILD_DXIL_SPIRV)
             CompileDxilToSpv("${dxil_vs_file}" "${dxil_spv_vs_file}" ${WORKING_DIR})
-            CompileDxilToSpv("${dxil_ps_file}" "${dxil_spv_ps_file}" ${WORKING_DIR})
-            list(APPEND outputs_dxil_spv ${dxil_spv_vs_file} ${dxil_spv_ps_file})
+            list(APPEND outputs_dxil_spv ${dxil_spv_vs_file})
         endif()
     endforeach()   
     
