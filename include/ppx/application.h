@@ -206,6 +206,7 @@ struct ApplicationSettings
         bool      enableDebug       = false;
         bool      enableDXIL        = false;
         bool      enableDXVKSPV     = false;
+        bool      enableDXILSPV     = false;
         uint32_t  numFramesInFlight = 1;
         uint32_t  pacedFrameRate    = 60;
 
