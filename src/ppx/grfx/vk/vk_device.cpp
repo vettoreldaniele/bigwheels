@@ -158,6 +158,8 @@ Result Device::ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhy
     features.pipelineStatisticsQuery = foundFeatures.pipelineStatisticsQuery;
     features.geometryShader          = foundFeatures.geometryShader;
     features.tessellationShader      = foundFeatures.tessellationShader;
+    features.shaderStorageImageReadWithoutFormat  = foundFeatures.shaderStorageImageReadWithoutFormat;
+    features.shaderStorageImageWriteWithoutFormat = foundFeatures.shaderStorageImageWriteWithoutFormat;
 
     // Select between default or custom features 
     //
