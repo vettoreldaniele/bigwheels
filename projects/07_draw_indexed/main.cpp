@@ -313,8 +313,8 @@ void ProjApp::Render()
             frame.cmd->DrawIndexed(36, 1, 0, 0, 0);
 
             // Draw ImGui
-            //DrawDebugInfo();
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo();
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

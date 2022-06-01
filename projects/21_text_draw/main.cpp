@@ -42,7 +42,7 @@ private:
 void ProjApp::Config(ppx::ApplicationSettings& settings)
 {
     settings.appName          = "21_text_draw";
-    settings.enableImGui      = true;
+    settings.enableImGui      = false;
     settings.grfx.api         = kApi;
     settings.grfx.enableDebug = false;
 #if defined(USE_DXIL)
