@@ -750,9 +750,9 @@ void ProjApp::Render()
             }
 
             // Draw ImGui
-            //DrawDebugInfo([this]() { this->DrawCameraInfo(); });
-            //DrawInstructions();
-            //DrawImGui(frame.cmd);
+            DrawDebugInfo([this]() { this->DrawCameraInfo(); });
+            DrawInstructions();
+            DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
