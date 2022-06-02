@@ -1,4 +1,7 @@
-add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/googletest third_party/googletest)
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/third_party/libporto)
+    # libporto already brings along googletest. Do not add it twice.
+    add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/googletest third_party/googletest)
+endif()
 
 # Macro to create a test executable given the test name and 
 # the list of test code sources.
