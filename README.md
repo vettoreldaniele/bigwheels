@@ -206,6 +206,9 @@ Built binaries are written to `BigWheels\bin`.
 # Shader Compilation
 Shader binaries are generated during project build. For GGP and Linux only SPIR-V binaries are generated. For Windows DXBC, DXIL, and SPIR-V binaries are generated.
 
+## HLSL Binding Semantics support
+Build with `-DENABLE_HLSL_BINDING_SEMANTICS=ON` to enable HLSL binding semantics in DXC during shader compilation. Note that this requires `DXC_PATH` to be set to a DXC that supports this flag.
+
 ## DXC
 The build system will look for `dxc.exe` or `dxc` in the Vulkan SDK bin directory. 
 
