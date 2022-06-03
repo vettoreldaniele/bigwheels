@@ -38,6 +38,11 @@ if (PPX_DXIL_SPV AND NOT DXIL2SPV_PATH)
     message(FATAL_ERROR "Could not locate dxil2spv executable - dxil2spv is required")
 endif()
 
+if(ENABLE_HLSL_BINDING_SEMANTICS)
+		message("Compiling SPIR-V shaders with HLSL binding semantics")
+		set(DXC_HLSL_BINDING_SEMANTICS_FLAG "-fvk-hlsl-binding-semantics")
+endif()
+
 # To use DXVK we need to compute the FXC_PATH, in order to do that
 # we need CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION. However,
 # when a custom TOOLCHAIN is used, that variable is not set.
@@ -140,7 +145,7 @@ function(CompileToSPV_VS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling VS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -fspv-reflect -T vs_6_0 -E vsmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -fspv-reflect ${DXC_HLSL_BINDING_SEMANTICS_FLAG} -T vs_6_0 -E vsmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
     )    
 endfunction()
 
@@ -157,7 +162,7 @@ function(CompileToDxvkSPV_VS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXVK-SPV] Compiling VS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -T vs_6_0 -E vsmain -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 160 0 -fvk-s-shift 176 0 -fvk-t-shift 192 0 -fvk-u-shift 960 0 -fspv-reflect -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -T vs_6_0 -E vsmain -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 160 0 -fvk-s-shift 176 0 -fvk-t-shift 192 0 -fvk-u-shift 960 0 -fspv-reflect ${DXC_HLSL_BINDING_SEMANTICS_FLAG} -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
     )
 endfunction()
 
@@ -242,7 +247,7 @@ function(CompileToSPV_PS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -fspv-reflect -T ps_6_0 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -fspv-reflect ${DXC_HLSL_BINDING_SEMANTICS_FLAG} -T ps_6_0 -E psmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
     )    
 endfunction()
 
@@ -259,7 +264,7 @@ function(CompileToDxvkSPV_PS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXVK-SPV] Compiling PS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -T ps_6_0 -E psmain -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 0 0 -fvk-s-shift 16 0 -fvk-t-shift 32 0 -fvk-u-shift 960 0 -fspv-reflect -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -T ps_6_0 -E psmain -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 0 0 -fvk-s-shift 16 0 -fvk-t-shift 32 0 -fvk-u-shift 960 0 -fspv-reflect ${DXC_HLSL_BINDING_SEMANTICS_FLAG} -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
     )
 endfunction()
 
@@ -327,7 +332,7 @@ function(CompileToSPV_CS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-SPV] Compiling CS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -fspv-reflect -T cs_6_0 -E csmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -fspv-reflect ${DXC_HLSL_BINDING_SEMANTICS_FLAG} -T cs_6_0 -E csmain -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_DXC_VULKAN_FLAGS}
     )    
 endfunction()
 
@@ -344,7 +349,7 @@ function(CompileToDxvkSPV_CS)
         MAIN_DEPENDENCY ${HLSL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXVK-SPV] Compiling CS ${HLSL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXC_PATH} -spirv -T cs_6_0 -E csmain -spirv -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 800 0 -fvk-s-shift 816 0 -fvk-t-shift 832 0 -fvk-u-shift 1088 0 -fspv-reflect -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
+        COMMAND ${DXC_PATH} -spirv -T cs_6_0 -E csmain -spirv -fvk-use-dx-layout -fvk-use-dx-position-w -fvk-auto-shift-bindings -fvk-b-shift 800 0 -fvk-s-shift 816 0 -fvk-t-shift 832 0 -fvk-u-shift 1088 0 -fspv-reflect ${DXC_HLSL_BINDING_SEMANTICS_FLAG} -Fo ${OUTPUT_FILE} ${HLSL_PATH} ${PPX_FXC_DX11_FLAGS}
     )
 endfunction()
 
