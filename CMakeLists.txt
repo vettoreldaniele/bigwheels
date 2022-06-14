@@ -104,7 +104,7 @@ message("Graphics API D3D12    : ${PPX_D3D12_MSG}")
 message("Graphics API DXVK     : ${PPX_DXVK_MSG}")
 message("Graphics API DXIIVK   : ${PPX_DXIIVK_MSG}")
 message("Graphics API DXVK SPV : ${PPX_DXVK_SPV_MSG}")
-message("Graphics API DXIL2SPV : ${PPX_DXIL_SPV_MSG}")
+message("Graphics API DXIL SPV : ${PPX_DXIL_SPV_MSG}")
 message("Graphics API Vulkan   : ${PPX_VULKAN_MSG}")
 
 # ------------------------------------------------------------------------------

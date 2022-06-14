@@ -13,7 +13,7 @@
  * **dxvk_spv** - D3D11 using DXVK with SM 5.0
    * Shaders are compiled with DXC/SPIR-V
  * **dxil_spv** - Vulkan
-   * Shaders are compiled with DXC/DXIL followed by dxil2spv
+   * Shaders are compiled with DXC/DXIL followed by dxil-spirv
  * **vk** - Vulkan
    * Shaders are compiled with DXC/SPIR-V
 
@@ -157,18 +157,18 @@ make -j <# CPUs to use>
 
 Built binaries are written to `BigWheels/bin/vk_*`.
 
-## GGP using dxil2spv (on Linux)
-
-NOTE: dxil2spv is still under development. Only a subset of projects are currently supported.
+## GGP using dxil-spirv (on Linux)
 
 ```
 git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
-mkdir build-dxil2spv
-cd build-dxil2spv
-cmake -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake -DDXC_PATH=$PATH_TO_VULKAN_SDK/x86_64/bin/dxc -DDXIL2SPV_PATH=$PATH_TO_DXC_SRC/build/bin/dxil2spv -DPPX_DXIL_SPV=true ..
+mkdir build-dxil-spirv
+cd build-dxil-spirv
+cmake -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake -DDXC_PATH=$PATH_TO_VULKAN_SDK/x86_64/bin/dxc -DDXIL_SPIRV_PATH=$PATH_TO_DXIL_SPIRV_SRC/build/dxil-spirv -DPPX_DXIL_SPV=true ..
 make -j <# CPUs to use>
 ```
+
+Note: The dxil-spirv should be built from the [experimental/dxiivk](https://porto-internal.googlesource.com/third_party/dxil-spirv/) branch.
 
 Built binaries are written to `BigWheels/bin/dxil_spv_*`.
 

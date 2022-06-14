@@ -34,8 +34,8 @@ if (NOT DXC_PATH)
     message(FATAL_ERROR "Could not locate DXC executable - DXC is required")
 endif()
 
-if (PPX_DXIL_SPV AND NOT DXIL2SPV_PATH)
-    message(FATAL_ERROR "Could not locate dxil2spv executable - dxil2spv is required")
+if (PPX_DXIL_SPV AND NOT DXIL_SPIRV_PATH)
+    message(FATAL_ERROR "Could not locate dxil-spirv executable - dxil-spirv is required")
 endif()
 
 if(ENABLE_HLSL_BINDING_SEMANTICS)
@@ -179,7 +179,7 @@ function(CompileDxilToSpv)
         MAIN_DEPENDENCY ${DXIL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL-SPV] Compiling ${DXIL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXIL2SPV_PATH} ${DXIL_PATH} -Fo ${OUTPUT_FILE}
+        COMMAND ${DXIL_SPIRV_PATH} ${DXIL_PATH} --output ${OUTPUT_FILE}
     )
 endfunction()
 
