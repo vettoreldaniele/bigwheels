@@ -41,6 +41,8 @@ endif()
 if(ENABLE_HLSL_BINDING_SEMANTICS)
 		message("Compiling SPIR-V shaders with HLSL binding semantics")
 		set(DXC_HLSL_BINDING_SEMANTICS_FLAG "-fvk-hlsl-binding-semantics")
+else()
+		set(DXIL_SPIRV_HLSL_BINDING_SEMANTICS_FLAG "--disable-hlsl-binding-semantics")
 endif()
 
 # To use DXVK we need to compute the FXC_PATH, in order to do that
@@ -179,7 +181,7 @@ function(CompileDxilToSpv)
         MAIN_DEPENDENCY ${DXIL_PATH}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXC-DXIL-SPV] Compiling ${DXIL_PATH} to ${OUTPUT_FILE}"
-        COMMAND ${DXIL_SPIRV_PATH} ${DXIL_PATH} --output ${OUTPUT_FILE}
+        COMMAND ${DXIL_SPIRV_PATH} ${DXIL_PATH} ${DXIL_SPIRV_HLSL_BINDING_SEMANTICS_FLAG} --output ${OUTPUT_FILE}
     )
 endfunction()
 
