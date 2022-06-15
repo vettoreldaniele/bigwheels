@@ -144,6 +144,9 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXVK_SPV)
     settings.grfx.enableDXVKSPV = true;
 #endif
+#if defined(USE_DXIL_SPV)
+    settings.grfx.enableDXILSPV = true;
+#endif
 }
 
 void FishTornadoApp::SetupDescriptorPool()
