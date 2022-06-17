@@ -26,7 +26,7 @@ Result Buffer::Create(const grfx::BufferCreateInfo* pCreateInfo)
     return ppx::SUCCESS;
 }
 
-Result Buffer::CopyFromSource(uint32_t dataSize, const void* pData)
+Result Buffer::CopyFromSource(uint32_t dataSize, const void* pSrcData)
 {
     if (dataSize > GetSize()) {
         return ppx::ERROR_LIMIT_EXCEEDED;
@@ -40,13 +40,36 @@ Result Buffer::CopyFromSource(uint32_t dataSize, const void* pData)
     }
 
     // Copy
-    std::memcpy(pBufferAddress,pData, dataSize);
+    std::memcpy(pBufferAddress,pSrcData, dataSize);
 
     // Unmap
     UnmapMemory();
 
     return ppx::SUCCESS;
 }
+
+Result Buffer::CopyToDest(uint32_t dataSize, void* pDestData)
+{
+    if (dataSize > GetSize()) {
+        return ppx::ERROR_LIMIT_EXCEEDED;
+    }
+
+    // Map
+    void*  pBufferAddress = nullptr;
+    Result ppxres         = MapMemory(0, &pBufferAddress);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    // Copy
+    std::memcpy(pDestData, pBufferAddress, dataSize);
+
+    // Unmap
+    UnmapMemory();
+
+    return ppx::SUCCESS;
+}
+
 
 } // namespace grfx
 } // namespace ppx

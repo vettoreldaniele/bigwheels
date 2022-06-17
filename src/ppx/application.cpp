@@ -616,11 +616,15 @@ Result Application::InitializePlatform()
     PPX_LOG_INFO("   " << "AVX2               : " << Platform::GetCpuInfo().GetFeatures().avx2);
     // clang-format on
 
-    // Initializ glfw
-    int res = glfwInit();
-    if (res != GLFW_TRUE) {
-        PPX_ASSERT_MSG(false, "glfwInit failed");
-        return ppx::ERROR_GLFW_INIT_FAILED;
+    if (mSettings.enableDisplay) {
+      // Initializ glfw
+      int res = glfwInit();
+      if (res != GLFW_TRUE) {
+          PPX_ASSERT_MSG(false, "glfwInit failed");
+          return ppx::ERROR_GLFW_INIT_FAILED;
+      }
+    } else {
+      PPX_LOG_INFO("Display not enabled: skipping initialization of glfw");
     }
 
 #if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXIIVK) || defined(PPX_DXVK_SPV))
@@ -643,7 +647,7 @@ Result Application::InitializeGrfxDevice()
         ci.api                      = mSettings.grfx.api;
         ci.createDevices            = false;
         ci.enableDebug              = mSettings.grfx.enableDebug;
-        ci.enableSwapchain          = true;
+        ci.enableSwapchain          = mSettings.enableDisplay;
         ci.applicationName          = mSettings.appName;
         ci.engineName               = mSettings.appName;
 
@@ -698,6 +702,12 @@ Result Application::InitializeGrfxDevice()
 
 Result Application::InitializeGrfxSurface()
 {
+    if (!mSettings.enableDisplay) {
+        PPX_LOG_INFO("Display not enabled: skipping creation of surface");
+        PPX_LOG_INFO("Display not enabled: skipping creation of swapchain");
+        return ppx::SUCCESS;
+    }
+
     // Surface
     {
         grfx::SurfaceCreateInfo ci = {};
@@ -862,6 +872,11 @@ void Application::ShutdownGrfx()
 
 Result Application::CreatePlatformWindow()
 {
+    if (!mSettings.enableDisplay) {
+      PPX_LOG_INFO("Display not enabled: skipping creation of platform window");
+      return ppx::SUCCESS;
+    }
+
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, mSettings.window.resizable ? GLFW_TRUE : GLFW_FALSE);
 
@@ -1097,9 +1112,13 @@ void Application::DrawImGui(grfx::CommandBuffer* pCommandBuffer)
 
 bool Application::IsRunning() const
 {
-    int  value     = glfwWindowShouldClose(static_cast<GLFWwindow*>(mWindow));
-    bool isRunning = (value == 0);
-    return isRunning;
+    if (mSettings.enableDisplay) {
+        int  value     = glfwWindowShouldClose(static_cast<GLFWwindow*>(mWindow));
+        bool isRunning = (value == 0);
+        return isRunning;
+    } else {
+        return mRunningWithoutDisplay;
+    }
 }
 
 int Application::Run(int argc, char** argv)
@@ -1130,6 +1149,10 @@ int Application::Run(int argc, char** argv)
         return EXIT_SUCCESS;
     }
 
+    // Call config.
+    // Put this early because it might disable the display.
+    DispatchConfig();
+
     // Initialize the platform
     Result ppxres = InitializePlatform();
     if (Failed(ppxres)) {
@@ -1146,10 +1169,10 @@ int Application::Run(int argc, char** argv)
     // If command line provided a maximum number of frames to draw
     if (mStandardOptions.frame_count != -1) {
         mMaxFrame = mStandardOptions.frame_count;
+    } else if (!mSettings.enableDisplay) {
+        mMaxFrame = 1;
+        PPX_LOG_INFO("Display not enabled: frame count is " + std::to_string(mMaxFrame));
     }
-
-    // Call config
-    DispatchConfig();
 
     // Create graphics instance
     ppxres = InitializeGrfxDevice();
@@ -1170,29 +1193,34 @@ int Application::Run(int argc, char** argv)
         return EXIT_SUCCESS;
     }
 
-    // Create window
-    ppxres = CreatePlatformWindow();
-    if (Failed(ppxres)) {
-        return EXIT_FAILURE;
-    }
-
-    // Create surface
-    ppxres = InitializeGrfxSurface();
-    if (Failed(ppxres)) {
-        return EXIT_FAILURE;
-    }
-
-    // Update the window size if the settings got changed due to surface requiremetns
-    {
-        int windowWidth  = 0;
-        int windowHeight = 0;
-        glfwGetWindowSize(static_cast<GLFWwindow*>(mWindow), &windowWidth, &windowHeight);
-        if ((static_cast<uint32_t>(windowWidth) != mSettings.window.width) || (static_cast<uint32_t>(windowHeight) != mSettings.window.width)) {
-            glfwSetWindowSize(
-                static_cast<GLFWwindow*>(mWindow),
-                static_cast<int>(mSettings.window.width),
-                static_cast<int>(mSettings.window.height));
+    if (mSettings.enableDisplay) {
+        // Create window
+        ppxres = CreatePlatformWindow();
+        if (Failed(ppxres)) {
+            return EXIT_FAILURE;
         }
+
+        // Create surface
+        ppxres = InitializeGrfxSurface();
+        if (Failed(ppxres)) {
+            return EXIT_FAILURE;
+        }
+
+        // Update the window size if the settings got changed due to surface requiremetns
+        {
+            int windowWidth  = 0;
+            int windowHeight = 0;
+            glfwGetWindowSize(static_cast<GLFWwindow*>(mWindow), &windowWidth, &windowHeight);
+            if ((static_cast<uint32_t>(windowWidth) != mSettings.window.width) || (static_cast<uint32_t>(windowHeight) != mSettings.window.width)) {
+                glfwSetWindowSize(
+                    static_cast<GLFWwindow*>(mWindow),
+                    static_cast<int>(mSettings.window.width),
+                    static_cast<int>(mSettings.window.height));
+            }
+        }
+    } else {
+      PPX_LOG_INFO("Display not enabled: skipping creation of platform window");
+      PPX_LOG_INFO("Display not enabled: skipping creation of surface");
     }
 
     // Setup ImGui
@@ -1217,13 +1245,15 @@ int Application::Run(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    mRunning = true;
+    mRunningWithoutDisplay = !mSettings.enableDisplay;
     while (IsRunning()) {
         // Frame start
         mFrameStartTime = static_cast<float>(mTimer.MillisSinceStart());
 
-        // Poll events
-        glfwPollEvents();
+        if (mSettings.enableDisplay) {
+          // Poll events
+          glfwPollEvents();
+        }
 
         // Start new Imgui frame
         if (mImGui) {
@@ -1287,7 +1317,11 @@ int Application::Run(int argc, char** argv)
 
 void Application::Quit()
 {
-    glfwSetWindowShouldClose(static_cast<GLFWwindow*>(mWindow), 1);
+    if (mSettings.enableDisplay) {
+        glfwSetWindowShouldClose(static_cast<GLFWwindow*>(mWindow), 1);
+    } else {
+        mRunningWithoutDisplay = false;
+    }
 }
 
 std::vector<const char*> Application::GetCommandLineArgs() const
