@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 project(headless_compute)
-message(status "headless compute")
 
 list(APPEND CS_HLSL_FILES
     "${PPX_DIR}/assets/benchmarks/shaders/ComputeBufferIncrement.hlsl"
