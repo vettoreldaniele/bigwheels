@@ -483,7 +483,7 @@ if (PPX_LINUX OR PPX_GGP)
         ${PROJECT_NAME} PROPERTIES PREFIX "lib"
     )
 endif()
-    
+
 # ------------------------------------------------------------------------------
 # Include directories
 # ------------------------------------------------------------------------------
@@ -582,7 +582,7 @@ endif()
 # Link libraries
 # ------------------------------------------------------------------------------
 
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}
     PUBLIC cpu_features
 )
 
@@ -631,11 +631,11 @@ if (PPX_VULKAN OR PPX_DXIL_SPV)
         )
         #
         # Disaable Wno-missing-braces because it's meaningless in the cases
-        # that PPX uses. 
+        # that PPX uses.
         #
         target_compile_options(
             ${PROJECT_NAME}
-            PUBLIC -Wno-missing-braces        
+            PUBLIC -Wno-missing-braces
                    -Werror=return-type
 		)
     elseif (PPX_LINUX)
@@ -678,19 +678,19 @@ endif()
 # ------------------------------------------------------------------------------
 
 if (PPX_D3D11 OR PPX_D3D12)
-    target_link_libraries(${PROJECT_NAME} 
+    target_link_libraries(${PROJECT_NAME}
         PUBLIC dxgi.lib dxguid.lib
     )
 endif()
 
 if (PPX_D3D11)
-    target_link_libraries(${PROJECT_NAME} 
+    target_link_libraries(${PROJECT_NAME}
         PUBLIC d3d11.lib
     )
 endif()
 
 if (PPX_D3D12)
-    target_link_libraries(${PROJECT_NAME} 
+    target_link_libraries(${PROJECT_NAME}
         PUBLIC d3d12.lib
     )
 endif()
@@ -699,36 +699,36 @@ if (PPX_VULKAN OR PPX_DXIL_SPV)
     # GGP
     if (PPX_GGP)
         # Link directories
-        target_link_directories(${PROJECT_NAME} 
+        target_link_directories(${PROJECT_NAME}
             PUBLIC ${VULKAN_LIBRARY_DIR}
         )
         # Link libraries
-        target_link_libraries(${PROJECT_NAME} 
+        target_link_libraries(${PROJECT_NAME}
             PUBLIC vulkan
-        ) 
+        )
     #Linux
     elseif (PPX_LINUX)
         # Link directories
-        target_link_directories(${PROJECT_NAME} 
+        target_link_directories(${PROJECT_NAME}
             PUBLIC ${VULKAN_LIBRARY_DIR}
         )
         # Link libraries
-        target_link_libraries(${PROJECT_NAME} 
+        target_link_libraries(${PROJECT_NAME}
             PUBLIC vulkan
-        )  
-    
+        )
+
         # Link properties
         set_target_properties(${PROJECT_NAME}
             PROPERTIES OUTPUT_NAME PPX
                        LINKER_LANGUAGE CXX
         )
         # Link libraries
-        target_link_libraries(${PROJECT_NAME} 
+        target_link_libraries(${PROJECT_NAME}
             PUBLIC xcb X11-xcb
         )
     # Windows
     elseif (PPX_MSW)
-        target_link_libraries(${PROJECT_NAME} 
+        target_link_libraries(${PROJECT_NAME}
             PUBLIC "${VULKAN_LIBRARY_DIR}/vulkan-1.lib"
         )
     endif()
@@ -740,7 +740,7 @@ if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
             PUBLIC porto
         )
     else()
-        target_link_libraries(${PROJECT_NAME} 
+        target_link_libraries(${PROJECT_NAME}
             PUBLIC shcore
         )
     endif()
