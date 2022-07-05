@@ -263,7 +263,7 @@ void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInf
     PPX_CHECKED_CALL(grfx_util::CreateModelFromWireMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
-    bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
+    bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
     bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
     bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
     PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, pEntity->UniformBufferPtr()));

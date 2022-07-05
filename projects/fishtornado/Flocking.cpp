@@ -142,7 +142,7 @@ void Flocking::SetupSets()
         PPX_CHECKED_CALL(frame.renderSet->UpdateSampledImage(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, 0, frame.velocityTexture));
     }
 
-    PPX_CHECKED_CALL(mMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+    PPX_CHECKED_CALL(mMaterialConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
 
     PPX_CHECKED_CALL(device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mMaterialSet));
     PPX_CHECKED_CALL(mMaterialSet->UpdateUniformBuffer(RENDER_MATERIAL_DATA_REGISTER, 0, mMaterialConstants.GetGpuBuffer()));
@@ -267,8 +267,8 @@ void Flocking::Setup(uint32_t numFramesInFlight)
     mPerFrame.resize(numFramesInFlight);
     for (uint32_t i = 0; i < numFramesInFlight; ++i) {
         PerFrame& frame = mPerFrame[i];
-        PPX_CHECKED_CALL(frame.modelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
-        PPX_CHECKED_CALL(frame.flockingConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(frame.modelConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(frame.flockingConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
 
         grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
         PPX_CHECKED_CALL(grfx_util::CreateTextureFromBitmap(queue, &positionData, &frame.positionTexture, textureOptions));

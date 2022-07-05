@@ -23,7 +23,7 @@ void Shark::Setup(uint32_t numFramesInFlight)
     for (uint32_t i = 0; i < numFramesInFlight; ++i) {
         PerFrame& frame = mPerFrame[i];
 
-        PPX_CHECKED_CALL(mPerFrame[i].modelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(mPerFrame[i].modelConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
 
         // Allocate descriptor set
         PPX_CHECKED_CALL(device->AllocateDescriptorSet(pool, modelSetLayout, &frame.modelSet));
@@ -43,7 +43,7 @@ void Shark::Setup(uint32_t numFramesInFlight)
     PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkRoughness.png"), &mRoughnessTexture, textureOptions));
     PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkNormal.png"), &mNormalMapTexture, textureOptions));
 
-    PPX_CHECKED_CALL(mMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+    PPX_CHECKED_CALL(mMaterialConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
 
     PPX_CHECKED_CALL(device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mMaterialSet));
     PPX_CHECKED_CALL(mMaterialSet->UpdateUniformBuffer(RENDER_MATERIAL_DATA_REGISTER, 0, mMaterialConstants.GetGpuBuffer()));

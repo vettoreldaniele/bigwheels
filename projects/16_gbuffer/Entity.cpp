@@ -26,7 +26,7 @@ ppx::Result Entity::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool* 
     // Model constants
     {
         grfx::BufferCreateInfo bufferCreateInfo      = {};
-        bufferCreateInfo.size                        = PPX_MINIUM_CONSTANT_BUFFER_SIZE;
+        bufferCreateInfo.size                        = PPX_MINIMUM_CONSTANT_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.transferSrc = true;
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
         PPX_CHECKED_CALL(pDevice->CreateBuffer(&bufferCreateInfo, &mCpuModelConstants));

@@ -24,21 +24,21 @@ void Ocean::Setup(uint32_t numFramesInFlight)
 
         // Floor
         {
-            PPX_CHECKED_CALL(mPerFrame[i].floorModelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+            PPX_CHECKED_CALL(mPerFrame[i].floorModelConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
             PPX_CHECKED_CALL(device->AllocateDescriptorSet(pool, modelSetLayout, &frame.floorModelSet));
             PPX_CHECKED_CALL(frame.floorModelSet->UpdateUniformBuffer(RENDER_MODEL_DATA_REGISTER, 0, frame.floorModelConstants.GetGpuBuffer()));
         }
 
         // Surface
         {
-            PPX_CHECKED_CALL(mPerFrame[i].surfaceModelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+            PPX_CHECKED_CALL(mPerFrame[i].surfaceModelConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
             PPX_CHECKED_CALL(device->AllocateDescriptorSet(pool, modelSetLayout, &frame.surfaceModelSet));
             PPX_CHECKED_CALL(frame.surfaceModelSet->UpdateUniformBuffer(RENDER_MODEL_DATA_REGISTER, 0, frame.surfaceModelConstants.GetGpuBuffer()));
         }
 
         // Beam
         {
-            PPX_CHECKED_CALL(mPerFrame[i].beamModelConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+            PPX_CHECKED_CALL(mPerFrame[i].beamModelConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
             PPX_CHECKED_CALL(device->AllocateDescriptorSet(pool, modelSetLayout, &frame.beamModelSet));
             PPX_CHECKED_CALL(frame.beamModelSet->UpdateUniformBuffer(RENDER_MODEL_DATA_REGISTER, 0, frame.beamModelConstants.GetGpuBuffer()));
         }
@@ -56,7 +56,7 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorRoughness.png"), &mFloorRoughnessTexture, textureOptions));
         PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorNormal.png"), &mFloorNormalMapTexture, textureOptions));
 
-        PPX_CHECKED_CALL(mFloorMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(mFloorMaterialConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
 
         PPX_CHECKED_CALL(device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mFloorMaterialSet));
         PPX_CHECKED_CALL(mFloorMaterialSet->UpdateUniformBuffer(RENDER_MATERIAL_DATA_REGISTER, 0, mFloorMaterialConstants.GetGpuBuffer()));
@@ -80,7 +80,7 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(grfx_util::CreateTexture1x1(queue, float4(1, 1, 1, 1), &mSurfaceRoughnessTexture));
         PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/surfaceNormalMap.png"), &mSurfaceNormalMapTexture));
 
-        PPX_CHECKED_CALL(mSurfaceMaterialConstants.Create(device, PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(mSurfaceMaterialConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
 
         PPX_CHECKED_CALL(device->AllocateDescriptorSet(pool, pApp->GetMaterialSetLayout(), &mSurfaceMaterialSet));
         PPX_CHECKED_CALL(mSurfaceMaterialSet->UpdateUniformBuffer(RENDER_MATERIAL_DATA_REGISTER, 0, mSurfaceMaterialConstants.GetGpuBuffer()));

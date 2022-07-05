@@ -260,7 +260,7 @@ void ProjApp::SetupIBLResources()
     // Uniform buffer
     {
         grfx::BufferCreateInfo bufferCreateInfo        = {};
-        bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
+        bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
@@ -653,7 +653,7 @@ void ProjApp::Setup()
     // GBuffer attribute selection buffer
     {
         grfx::BufferCreateInfo bufferCreateInfo        = {};
-        bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
+        bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
 
@@ -716,7 +716,7 @@ void ProjApp::Setup()
     {
         // Scene constants
         grfx::BufferCreateInfo bufferCreateInfo      = {};
-        bufferCreateInfo.size                        = PPX_MINIUM_CONSTANT_BUFFER_SIZE;
+        bufferCreateInfo.size                        = PPX_MINIMUM_CONSTANT_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.transferSrc = true;
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
         PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mCpuSceneConstants));
@@ -728,7 +728,7 @@ void ProjApp::Setup()
 
         // Light constants
         bufferCreateInfo                             = {};
-        bufferCreateInfo.size                        = PPX_MINIUM_STRUCTURED_BUFFER_SIZE;
+        bufferCreateInfo.size                        = PPX_MINIMUM_STRUCTURED_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.transferSrc = true;
         bufferCreateInfo.memoryUsage                 = grfx::MEMORY_USAGE_CPU_TO_GPU;
         bufferCreateInfo.structuredElementStride     = 32;

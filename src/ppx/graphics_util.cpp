@@ -335,7 +335,7 @@ Result CreateImageFromBitmapGpu(
 
     { // Uniform buffer
         grfx::BufferCreateInfo bufferCreateInfo        = {};
-        bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
+        bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
         bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
         bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
         PPX_CHECKED_CALL(pQueue->GetDevice()->CreateBuffer(&bufferCreateInfo, &uniformBuffer));

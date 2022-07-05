@@ -97,7 +97,7 @@ void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo
     PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
-    bufferCreateInfo.size                          = PPX_MINIUM_UNIFORM_BUFFER_SIZE;
+    bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
     bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
     bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
     PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &pEntity->uniformBuffer));
@@ -348,7 +348,7 @@ void ProjApp::Render()
         M          = T * R * S;
         float3x3 N = glm::inverseTranspose(float3x3(M));
 
-        char constantData[PPX_MINIUM_CONSTANT_BUFFER_SIZE] = {0};
+        char constantData[PPX_MINIMUM_CONSTANT_BUFFER_SIZE] = {0};
         // Get offsets to memeber vars
         float4x4* pMVPMatrix      = reinterpret_cast<float4x4*>(constantData + 0);
         float4x4* pModelMatrix    = reinterpret_cast<float4x4*>(constantData + 64);

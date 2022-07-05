@@ -266,7 +266,7 @@ void FishTornadoApp::SetupPerFrame()
         PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         // Scene constants buffer
-        PPX_CHECKED_CALL(frame.sceneConstants.Create(GetDevice(), 3 * PPX_MINIUM_CONSTANT_BUFFER_SIZE));
+        PPX_CHECKED_CALL(frame.sceneConstants.Create(GetDevice(), 3 * PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
 
         // Shadow draw pass
         {

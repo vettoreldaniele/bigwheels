@@ -267,7 +267,7 @@ Result TextDraw::CreateApiObjects(const grfx::TextDrawCreateInfo* pCreateInfo)
 
     // Constant buffer
     {
-        uint64_t size = PPX_MINIUM_CONSTANT_BUFFER_SIZE;
+        uint64_t size = PPX_MINIMUM_CONSTANT_BUFFER_SIZE;
 
         grfx::BufferCreateInfo createInfo      = {};
         createInfo.size                        = size;
