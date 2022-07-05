@@ -42,6 +42,7 @@ function(add_vk_sample name is_gui)
         )
 
         add_shader_dependencies(${target_name} "spv")
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}
@@ -92,6 +93,7 @@ function(add_dx11_sample name is_gui)
         )
 
         add_shader_dependencies(${target_name} "dxbc50")
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}
@@ -142,6 +144,7 @@ function(add_dx12_sample name is_gui)
         )
 
         add_shader_dependencies(${target_name} "dxbc51")
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}
@@ -192,6 +195,7 @@ function(add_dxil_sample name is_gui)
         )
 
         add_shader_dependencies(${target_name} "dxil")
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}
@@ -242,6 +246,7 @@ function(add_dxvk_sample name is_gui)
         )
 
         add_shader_dependencies(${target_name} "dxbc50")
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}
@@ -292,6 +297,7 @@ function(add_dxvk_spv_sample name is_gui)
         )
 
         add_shader_dependencies(${target_name} "dxvk-spv")
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}
@@ -342,6 +348,7 @@ function(add_dxil_spv_sample name is_gui)
         )
 
         add_shader_dependencies(${target_name} "dxil-spv")
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}
@@ -392,6 +399,7 @@ function(add_dxiivk_dx12_sample name is_gui)
         )
 
         add_shader_dependencies(${target_name} "spv")
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}
@@ -440,6 +448,8 @@ function(add_dxvk_spv_d3dcompile_sample name is_gui)
             ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
             ${additional_files}
         )
+
+        add_dependencies(${target_name} ppx_assets)
 
         set_target_properties(
             ${target_name}

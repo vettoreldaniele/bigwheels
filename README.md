@@ -4,7 +4,7 @@
    * Shaders are compiled with FXC
  * **dx12** - D3D12 with SM 5.1
    * Shaders are compiled with FXC
- * **dxil** - D3D12 with SM 6.0+ 
+ * **dxil** - D3D12 with SM 6.0+
    * Shaders are compiled with DXC/DXIL
  * **dxvk** - D3D11 using DXVK with SM 5.0
    * Shaders are compiled with FXC
@@ -51,6 +51,11 @@
        * None tested
 
 # Build Instructions
+
+By default, built binaries are written to the source directory, under `BigWheels\bin`.
+For fully out of tree builds, pass `-DPPX_OUTPUT_DIR=<your-build-dir>` to CMake.
+This will make CMake copy both binaries and assets to `<your-build-dir>`.
+
 ## GGP (on Windows)
 ```
 git clone --recursive https://github.com/googlestadia/BigWheels
@@ -61,9 +66,9 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP 
 ```
 Open `BigWheels.sln` and build
 
-Built binaries are written to `BigWheels\bin\vk_*`.
+Built binaries are written to `PPX_OUTPUT_DIR\bin\vk_*`.
 
-**NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
+**NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.
 
 ## GGP using DXVK (libporto) (on Windows)
 NOTE: There are two repos for the steps in this section.
@@ -78,11 +83,11 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP 
 ```
 Open `BigWheels.sln` and build
 
-Built binaries are written to `BigWheels\bin\dxvk_*`.
+Built binaries are written to `PPX_OUTPUT_DIR\bin\dxvk_*`.
 
 **NOTE:**
 * **libporto** must be manually cloned into BigWheels\third_party.
-* GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
+* GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.
 
 ## GGP using DXIIVK (libporto) (on Windows)
 NOTE: There are two repos for the steps in this section.
@@ -97,11 +102,11 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP 
 ```
 Open `BigWheels.sln` and build
 
-Built binaries are written to `BigWheels\bin\dxiivk_dx12_*`.
+Built binaries are written to `PPX_OUTPUT_DIR\bin\dxiivk_dx12_*`.
 
 **NOTE:**
 * **libporto** must be manually cloned into BigWheels\third_party.
-* GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.  
+* GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.
 
 ## GGP using DXVK SPIR-V (libporto) (on Windows)
 NOTE: There are two repos for the steps in this section.
@@ -116,7 +121,7 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP 
 ```
 Open `BigWheels.sln` and build
 
-Built binaries are written to `BigWheels\bin\dxvk_spv_*`.
+Built binaries are written to `PPX_OUTPUT_DIR\bin\dxvk_spv_*`.
 
 **NOTE:**
 * **libporto** must be manually cloned into BigWheels\third\_party.
@@ -136,7 +141,7 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP 
 
 Open `BigWheels.sln` and build
 
-Built binaries are written to `BigWheels\bin\dxvk_spv_d3dcompile_01_triangle`,
+Built binaries are written to `PPX_OUTPUT_DIR\bin\dxvk_spv_d3dcompile_01_triangle`,
 `BigWheels\bin\dxvk_spv_d3dcompile_15_basic_material`, and `BigWheels\bin\dxvk_spv_*`.
 `BigWheels\bin\dxvk_spv_d3dcompile_*` use `D3DCompile()` for HLSL shaders while `BigWheels\bin\dxvk_spv_*` just uses the SPIR-V shaders.
 
@@ -155,7 +160,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake -DDXC_PATH=$PATH_T
 make -j <# CPUs to use>
 ```
 
-Built binaries are written to `BigWheels/bin/vk_*`.
+Built binaries are written to `PPX_OUTPUT_DIR/bin/vk_*`.
 
 ## GGP using dxil-spirv (on Linux)
 
@@ -170,7 +175,7 @@ make -j <# CPUs to use>
 
 Note: The dxil-spirv should be built from the [experimental/dxiivk](https://porto-internal.googlesource.com/third_party/dxil-spirv/) branch.
 
-Built binaries are written to `BigWheels/bin/dxil_spv_*`.
+Built binaries are written to `PPX_OUTPUT_DIR/bin/dxil_spv_*`.
 
 ### Running on GGP
 Push the `assets` folder up to the instance before running. Since the shaders are compiled per project they must be built and pushed *before* running.
@@ -189,9 +194,9 @@ cmake ..
 make -j <# CPUs to use>
 ```
 
-Built binaries are written to `BigWheels/bin`.
+Built binaries are written to `PPX_OUTPUT_DIR/bin`.
 
-## Windows 
+## Windows
 ```
 git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
@@ -201,7 +206,7 @@ cmake -G "Visual Studio 16 2019" -A x64 ..
 ```
 Open `BigWheels.sln` and build
 
-Built binaries are written to `BigWheels\bin`.
+Built binaries are written to `PPX_OUTPUT_DIR\bin`.
 
 # Shader Compilation
 Shader binaries are generated during project build. For GGP and Linux only SPIR-V binaries are generated. For Windows DXBC, DXIL, and SPIR-V binaries are generated.
@@ -210,7 +215,7 @@ Shader binaries are generated during project build. For GGP and Linux only SPIR-
 Build with `-DENABLE_HLSL_BINDING_SEMANTICS=ON` to enable HLSL binding semantics in DXC during shader compilation. Note that this requires `DXC_PATH` to be set to a DXC that supports this flag.
 
 ## DXC
-The build system will look for `dxc.exe` or `dxc` in the Vulkan SDK bin directory. 
+The build system will look for `dxc.exe` or `dxc` in the Vulkan SDK bin directory.
 
 To use a custom DXC executable use the following:
 ```
@@ -219,7 +224,7 @@ cmake <platform specific params> -DDXC_PATH=<path to DXC executable>
 The build system will generate an error if the DXC executable is not present.
 
 ## FXC
-The build system will look for `fxc.exe` in the Windows SDK version that CMake selects. 
+The build system will look for `fxc.exe` in the Windows SDK version that CMake selects.
 
 # Unit Tests
 Unit tests are supported both in CMake and Bazel. For the former, they can be optionally disabled with `-DBUILD_TESTS=OFF`.
@@ -247,7 +252,7 @@ To build and run benchmarks, build BigWheels for your platform of choice. Then, 
 All benchmarks support the `--stats-file path/to/stats.csv` option that controls where the results in CSV format are written to. Refer to a specific benchmark's code to determine which additional options they support.
 
 ## Running benchmarks manually
-Once a benchmark is built, its binary will be in `bin/`. Simply run the binary along with any options you want. 
+Once a benchmark is built, its binary will be in `bin/`. Simply run the binary along with any options you want.
 
 Example:
 ```
@@ -312,9 +317,9 @@ The .so and JSON for the ICD are located in `build-make/Linux`.
 
 ## Location of ICD
 
-The DLL/.so and JSON can be copied to a different location. Remember to set/export the `VK_ICD_FILENAMES` environment variable before running any of the BigWheels samples. 
+The DLL/.so and JSON can be copied to a different location. Remember to set/export the `VK_ICD_FILENAMES` environment variable before running any of the BigWheels samples.
 
-### Windows  
+### Windows
 Add `VK_ICD_FILENAMES=/absolute/path/to/vk_swiftshader_icd.json` as an entry to `Configuration Properties -> Debugging -> Environment` in the project's property pages
 
 ### Linux

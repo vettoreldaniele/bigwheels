@@ -17,6 +17,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Options
 # ------------------------------------------------------------------------------
 option(PPX_BUILD_PROJECTS "Build sample projets" ON)
+set(PPX_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "Build artifact output directory. Allows for multiple build directories. (Default: current source directory.)")
 
 # ------------------------------------------------------------------------------
 # Configure target platform
@@ -131,16 +132,28 @@ set(CMAKE_CXX_STANDARD 17)
 # Configure PPX directories
 # ------------------------------------------------------------------------------
 
-set(PPX_DIR             ${CMAKE_CURRENT_SOURCE_DIR})
-set(PPX_THIRD_PARTY_DIR ${PPX_DIR}/third_party)
-set(PPX_TESTS_DIR       ${PPX_DIR}/tests)
+set(PPX_DIR             "${CMAKE_CURRENT_SOURCE_DIR}")
+set(PPX_THIRD_PARTY_DIR "${PPX_DIR}/third_party")
+set(PPX_TESTS_DIR       "${PPX_DIR}/tests")
 
 # ------------------------------------------------------------------------------
 # Configure output directories
 # ------------------------------------------------------------------------------
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PPX_OUTPUT_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PPX_OUTPUT_DIR}/bin")
+
+set(PPX_ASSET_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+
+add_custom_target(ppx_assets)
+
+# When using a custom output directory, make sure to copy over the assets.
+if(NOT (PPX_OUTPUT_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
+    add_custom_target(ppx_copy_assets
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${PPX_ASSET_SOURCE_DIR}" "${PPX_OUTPUT_DIR}/assets"
+    )
+    add_dependencies(ppx_assets ppx_copy_assets)
+endif()
 
 # ------------------------------------------------------------------------------
 # Configure GLFW
