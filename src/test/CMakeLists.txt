@@ -28,5 +28,9 @@ add_custom_target(run-tests
     DEPENDS build-tests
 )
 
-file(GLOB TEST_SOURCES "*.cpp" "*.h")
+list(
+    APPEND TEST_SOURCES
+    shader_translator_test.cpp
+    string_util_test.cpp
+)
 package_add_test(ppx_tests ${TEST_SOURCES})
