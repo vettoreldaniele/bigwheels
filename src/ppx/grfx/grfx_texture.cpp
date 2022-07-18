@@ -8,8 +8,8 @@ namespace grfx {
 Result Texture::Create(const grfx::TextureCreateInfo* pCreateInfo)
 {
     // Copy in case view types and formats are specified:
-    //   - if an image is supplied, then the next section 
-    //     will overwrite all the image related fields with 
+    //   - if an image is supplied, then the next section
+    //     will overwrite all the image related fields with
     //     values from the supplied image.
     //   - if an image is NOT supplied, then nothing gets
     //     overwritten.
@@ -17,20 +17,21 @@ Result Texture::Create(const grfx::TextureCreateInfo* pCreateInfo)
     mCreateInfo = *pCreateInfo;
 
     if (!IsNull(pCreateInfo->pImage)) {
-        mImage                      = pCreateInfo->pImage;
-        mCreateInfo.imageType       = mImage->GetType();
-        mCreateInfo.width           = mImage->GetWidth();
-        mCreateInfo.height          = mImage->GetHeight();
-        mCreateInfo.depth           = mImage->GetDepth();
-        mCreateInfo.imageFormat     = mImage->GetFormat();
-        mCreateInfo.sampleCount     = mImage->GetSampleCount();
-        mCreateInfo.mipLevelCount   = mImage->GetMipLevelCount();
-        mCreateInfo.arrayLayerCount = mImage->GetArrayLayerCount();
-        mCreateInfo.usageFlags      = mImage->GetUsageFlags();
-        mCreateInfo.memoryUsage     = mImage->GetMemoryUsage();
-        mCreateInfo.initialState    = mImage->GetInitialState();
-        mCreateInfo.RTVClearValue   = mImage->GetRTVClearValue();
-        mCreateInfo.DSVClearValue   = mImage->GetDSVClearValue();
+        mImage                                = pCreateInfo->pImage;
+        mCreateInfo.imageType                 = mImage->GetType();
+        mCreateInfo.width                     = mImage->GetWidth();
+        mCreateInfo.height                    = mImage->GetHeight();
+        mCreateInfo.depth                     = mImage->GetDepth();
+        mCreateInfo.imageFormat               = mImage->GetFormat();
+        mCreateInfo.sampleCount               = mImage->GetSampleCount();
+        mCreateInfo.mipLevelCount             = mImage->GetMipLevelCount();
+        mCreateInfo.arrayLayerCount           = mImage->GetArrayLayerCount();
+        mCreateInfo.usageFlags                = mImage->GetUsageFlags();
+        mCreateInfo.memoryUsage               = mImage->GetMemoryUsage();
+        mCreateInfo.initialState              = mImage->GetInitialState();
+        mCreateInfo.RTVClearValue             = mImage->GetRTVClearValue();
+        mCreateInfo.DSVClearValue             = mImage->GetDSVClearValue();
+        mCreateInfo.concurrentMultiQueueUsage = mImage->GetConcurrentMultiQueueUsageEnabled();
     }
 
     // Yes, mCreateInfo will self overwrite in the following function call.
@@ -39,7 +40,7 @@ Result Texture::Create(const grfx::TextureCreateInfo* pCreateInfo)
     if (Failed(ppxres)) {
         return ppxres;
     }
-   
+
     return ppx::SUCCESS;
 }
 
@@ -52,22 +53,23 @@ Result Texture::CreateApiObjects(const grfx::TextureCreateInfo* pCreateInfo)
             return ppx::ERROR_INVALID_CREATE_ARGUMENT;
         }
 
-        grfx::ImageCreateInfo ci = {};
-        ci.type                  = pCreateInfo->imageType;
-        ci.width                 = pCreateInfo->width;
-        ci.height                = pCreateInfo->height;
-        ci.depth                 = pCreateInfo->depth;
-        ci.format                = pCreateInfo->imageFormat;
-        ci.sampleCount           = pCreateInfo->sampleCount;
-        ci.mipLevelCount         = pCreateInfo->mipLevelCount;
-        ci.arrayLayerCount       = pCreateInfo->arrayLayerCount;
-        ci.usageFlags            = pCreateInfo->usageFlags;
-        ci.memoryUsage           = pCreateInfo->memoryUsage;
-        ci.initialState          = pCreateInfo->initialState;
-        ci.RTVClearValue         = pCreateInfo->RTVClearValue;
-        ci.DSVClearValue         = pCreateInfo->DSVClearValue;
-        ci.pApiObject            = nullptr;
-        ci.ownership             = pCreateInfo->ownership;
+        grfx::ImageCreateInfo ci     = {};
+        ci.type                      = pCreateInfo->imageType;
+        ci.width                     = pCreateInfo->width;
+        ci.height                    = pCreateInfo->height;
+        ci.depth                     = pCreateInfo->depth;
+        ci.format                    = pCreateInfo->imageFormat;
+        ci.sampleCount               = pCreateInfo->sampleCount;
+        ci.mipLevelCount             = pCreateInfo->mipLevelCount;
+        ci.arrayLayerCount           = pCreateInfo->arrayLayerCount;
+        ci.usageFlags                = pCreateInfo->usageFlags;
+        ci.memoryUsage               = pCreateInfo->memoryUsage;
+        ci.initialState              = pCreateInfo->initialState;
+        ci.RTVClearValue             = pCreateInfo->RTVClearValue;
+        ci.DSVClearValue             = pCreateInfo->DSVClearValue;
+        ci.pApiObject                = nullptr;
+        ci.ownership                 = pCreateInfo->ownership;
+        ci.concurrentMultiQueueUsage = pCreateInfo->concurrentMultiQueueUsage;
 
         Result ppxres = GetDevice()->CreateImage(&ci, &mImage);
         if (Failed(ppxres)) {

@@ -15,3 +15,4 @@ CMakeSettings.json
 *.dxbc50
 *.dxbc51
 third_party/libporto/
+__pycache__

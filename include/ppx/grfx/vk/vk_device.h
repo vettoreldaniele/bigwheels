@@ -33,6 +33,14 @@ public:
         uint32_t    firstQuery,
         uint32_t    queryCount) const;
 
+    uint32_t GetGraphicsQueueFamilyIndex() const { return mGraphicsQueueFamilyIndex; }
+    uint32_t GetComputeQueueFamilyIndex() const { return mComputeQueueFamilyIndex; }
+    uint32_t GetTransferQueueFamilyIndex() const { return mTransferQueueFamilyIndex; }
+    std::array<uint32_t, 3> GetAllQueueFamilyIndices() const
+    {
+        return { mGraphicsQueueFamilyIndex, mComputeQueueFamilyIndex, mTransferQueueFamilyIndex };
+    }
+
 protected:
     virtual Result AllocateObject(grfx::Buffer** ppObject) override;
     virtual Result AllocateObject(grfx::CommandBuffer** ppObject) override;
@@ -65,7 +73,7 @@ protected:
 private:
     Result ConfigureQueueInfo(const grfx::DeviceCreateInfo* pCreateInfo, std::vector<float>& queuePriorities, std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos);
     Result ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo);
-    Result ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhysicalDeviceFeatures& features);
+    Result ConfigureFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhysicalDeviceFeatures& features);
     Result CreateQueues(const grfx::DeviceCreateInfo* pCreateInfo);
 
 private:
@@ -78,6 +86,9 @@ private:
     bool                     mHasExtendedDynamicState   = false;
     bool                     mHasUnrestrictedDepthRange = false;
     PFN_vkResetQueryPoolEXT  mFnResetQueryPoolEXT       = nullptr;
+    uint32_t                 mGraphicsQueueFamilyIndex  = 0;
+    uint32_t                 mComputeQueueFamilyIndex   = 0;
+    uint32_t                 mTransferQueueFamilyIndex  = 0;
 };
 
 } // namespace vk
