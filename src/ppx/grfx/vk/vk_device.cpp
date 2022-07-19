@@ -34,13 +34,20 @@ Result Device::ConfigureQueueInfo(const grfx::DeviceCreateInfo* pCreateInfo, std
         }
     }
 
+    // Queue families
+    {
+        mGraphicsQueueFamilyIndex = ToApi(pCreateInfo->pGpu)->GetGraphicsQueueFamilyIndex();
+        mComputeQueueFamilyIndex  = ToApi(pCreateInfo->pGpu)->GetComputeQueueFamilyIndex();
+        mTransferQueueFamilyIndex = ToApi(pCreateInfo->pGpu)->GetTransferQueueFamilyIndex();
+    }
+
     // Queues
     {
         // Graphics
         uint32_t queueCount = pCreateInfo->pGpu->GetGraphicsQueueCount();
         if (queueCount > 0) {
             VkDeviceQueueCreateInfo vkci = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
-            vkci.queueFamilyIndex        = ToApi(pCreateInfo->pGpu)->GetGraphicsQueueFamilyIndex();
+            vkci.queueFamilyIndex        = mGraphicsQueueFamilyIndex;
             vkci.queueCount              = queueCount;
             vkci.pQueuePriorities        = DataPtr(queuePriorities);
             queueCreateInfos.push_back(vkci);
@@ -49,7 +56,7 @@ Result Device::ConfigureQueueInfo(const grfx::DeviceCreateInfo* pCreateInfo, std
         queueCount = pCreateInfo->pGpu->GetComputeQueueCount();
         if (queueCount > 0) {
             VkDeviceQueueCreateInfo vkci = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
-            vkci.queueFamilyIndex        = ToApi(pCreateInfo->pGpu)->GetComputeQueueFamilyIndex();
+            vkci.queueFamilyIndex        = mComputeQueueFamilyIndex;
             vkci.queueCount              = queueCount;
             vkci.pQueuePriorities        = DataPtr(queuePriorities);
             queueCreateInfos.push_back(vkci);
@@ -58,7 +65,7 @@ Result Device::ConfigureQueueInfo(const grfx::DeviceCreateInfo* pCreateInfo, std
         queueCount = pCreateInfo->pGpu->GetTransferQueueCount();
         if (queueCount > 0) {
             VkDeviceQueueCreateInfo vkci = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
-            vkci.queueFamilyIndex        = ToApi(pCreateInfo->pGpu)->GetTransferQueueFamilyIndex();
+            vkci.queueFamilyIndex        = mTransferQueueFamilyIndex;
             vkci.queueCount              = queueCount;
             vkci.pQueuePriorities        = DataPtr(queuePriorities);
             queueCreateInfos.push_back(vkci);
@@ -140,7 +147,7 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
     return ppx::SUCCESS;
 }
 
-Result Device::ConfigurFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhysicalDeviceFeatures& features)
+Result Device::ConfigureFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhysicalDeviceFeatures& features)
 {
     vk::Gpu* pGpu = ToApi(pCreateInfo->pGpu);
     
@@ -236,7 +243,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         return ppxres;
     }
 
-    ppxres = ConfigurFeatures(pCreateInfo, mDeviceFeatures);
+    ppxres = ConfigureFeatures(pCreateInfo, mDeviceFeatures);
     if (Failed(ppxres)) {
         return ppxres;
     }

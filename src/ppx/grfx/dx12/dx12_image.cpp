@@ -35,6 +35,9 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         if (pCreateInfo->usageFlags.bits.depthStencilAttachment) {
             flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
         }
+        if (pCreateInfo->concurrentMultiQueueUsage) {
+            flags |= D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
+        }
 
         D3D12_RESOURCE_DESC resourceDesc = {};
         resourceDesc.Dimension           = ToD3D12TextureResourceDimension(pCreateInfo->type);
@@ -70,7 +73,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         }
 
         dx12::Device* pDevice = ToApi(GetDevice());
-        HRESULT     hr      = pDevice->GetAllocator()->CreateResource(
+        HRESULT       hr      = pDevice->GetAllocator()->CreateResource(
             &allocationDesc,
             &resourceDesc,
             initialResourceState,
@@ -84,7 +87,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
     }
     else {
         CComPtr<ID3D12Resource> resource = static_cast<ID3D12Resource*>(pCreateInfo->pApiObject);
-        HRESULT                hr       = resource.QueryInterface(&mResource);
+        HRESULT                 hr       = resource.QueryInterface(&mResource);
         if (FAILED(hr)) {
             PPX_ASSERT_MSG(false, "failed casting to ID3D12Resource");
             return ppx::ERROR_API_FAILURE;

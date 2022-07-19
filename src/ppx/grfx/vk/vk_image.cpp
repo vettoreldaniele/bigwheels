@@ -26,20 +26,29 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
                 createFlags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
             }
 
-            VkImageCreateInfo vkci     = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
-            vkci.flags                 = createFlags;
-            vkci.imageType             = ToVkImageType(pCreateInfo->type);
-            vkci.format                = ToVkFormat(pCreateInfo->format);
-            vkci.extent                = extent;
-            vkci.mipLevels             = pCreateInfo->mipLevelCount;
-            vkci.arrayLayers           = pCreateInfo->arrayLayerCount;
-            vkci.samples               = ToVkSampleCount(pCreateInfo->sampleCount);
-            vkci.tiling                = VK_IMAGE_TILING_OPTIMAL;
-            vkci.usage                 = ToVkImageUsageFlags(pCreateInfo->usageFlags);
-            vkci.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
-            vkci.queueFamilyIndexCount = 0;
-            vkci.pQueueFamilyIndices   = nullptr;
-            vkci.initialLayout         = VK_IMAGE_LAYOUT_UNDEFINED;
+            auto queueIndices = ToApi(GetDevice())->GetAllQueueFamilyIndices();
+
+            VkImageCreateInfo vkci = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+            vkci.flags             = createFlags;
+            vkci.imageType         = ToVkImageType(pCreateInfo->type);
+            vkci.format            = ToVkFormat(pCreateInfo->format);
+            vkci.extent            = extent;
+            vkci.mipLevels         = pCreateInfo->mipLevelCount;
+            vkci.arrayLayers       = pCreateInfo->arrayLayerCount;
+            vkci.samples           = ToVkSampleCount(pCreateInfo->sampleCount);
+            vkci.tiling            = VK_IMAGE_TILING_OPTIMAL;
+            vkci.usage             = ToVkImageUsageFlags(pCreateInfo->usageFlags);
+            vkci.initialLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
+            if (pCreateInfo->concurrentMultiQueueUsage) {
+                vkci.sharingMode           = VK_SHARING_MODE_CONCURRENT;
+                vkci.queueFamilyIndexCount = 3;
+                vkci.pQueueFamilyIndices   = queueIndices.data();
+            }
+            else {
+                vkci.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+                vkci.queueFamilyIndexCount = 0;
+                vkci.pQueueFamilyIndices   = nullptr;
+            }
 
             VkAllocationCallbacks* pAllocator = nullptr;
 
