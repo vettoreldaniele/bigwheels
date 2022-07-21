@@ -1,0 +1,10 @@
+load("//tools:yeti.bzl", "yeti_cc_binary")
+load("//build_defs:config.bzl", "COPTS")
+
+yeti_cc_binary(
+    name = "fluid_simulation",
+    srcs = ["main.cpp"],
+    copts = COPTS,
+    data = ["//assets:fluid_simulation/shaders/spv/"],
+    deps = ["//:ppx"],
+)
