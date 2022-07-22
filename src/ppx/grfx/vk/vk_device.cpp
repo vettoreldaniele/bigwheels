@@ -150,26 +150,26 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
 Result Device::ConfigureFeatures(const grfx::DeviceCreateInfo* pCreateInfo, VkPhysicalDeviceFeatures& features)
 {
     vk::Gpu* pGpu = ToApi(pCreateInfo->pGpu);
-    
+
     VkPhysicalDeviceFeatures foundFeatures = {};
     vkGetPhysicalDeviceFeatures(pGpu->GetVkGpu(), &foundFeatures);
 
-    // Default device feature
+    // Default device features
     //
     // 2021/11/15 - Changed logic to use feature bit from GPU for geo and tess shaders to accomodate
     //              SwiftShader not having support for these shader types.
     //
-    features                         = {};
-    features.fullDrawIndexUint32     = VK_TRUE;
-    features.imageCubeArray          = VK_TRUE;
-    features.pipelineStatisticsQuery = foundFeatures.pipelineStatisticsQuery;
-    features.geometryShader          = foundFeatures.geometryShader;
-    features.tessellationShader      = foundFeatures.tessellationShader;
+    features                                      = {};
+    features.fullDrawIndexUint32                  = VK_TRUE;
+    features.imageCubeArray                       = VK_TRUE;
+    features.pipelineStatisticsQuery              = foundFeatures.pipelineStatisticsQuery;
+    features.geometryShader                       = foundFeatures.geometryShader;
+    features.tessellationShader                   = foundFeatures.tessellationShader;
     features.shaderStorageImageReadWithoutFormat  = foundFeatures.shaderStorageImageReadWithoutFormat;
     features.shaderStorageImageWriteWithoutFormat = foundFeatures.shaderStorageImageWriteWithoutFormat;
+    features.samplerAnisotropy                    = foundFeatures.samplerAnisotropy;
 
-    // Select between default or custom features 
-    //
+    // Select between default or custom features.
     if (!IsNull(pCreateInfo->pVulkanDeviceFeatures)) {
         const VkPhysicalDeviceFeatures* pFeatures = static_cast<const VkPhysicalDeviceFeatures*>(pCreateInfo->pVulkanDeviceFeatures);
         features                                  = *pFeatures;
