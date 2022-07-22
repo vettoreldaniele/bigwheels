@@ -142,7 +142,6 @@ private:
     ppx::grfx::Viewport             mViewport;
     ppx::grfx::Rect                 mScissorRect;
     ppx::grfx::VertexBinding        mVertexBinding;
-    ppx::uint2                      mRenderTargetSize;
 
     // Textures loaded from disk.
     ppx::grfx::ImagePtr            mOriginalImage;
@@ -294,7 +293,7 @@ FilterShader::FilterShader(ProjApp* app, const std::string& shaderFile, ppx::flo
 
     // Compute pipeline
     {
-        std::vector<char> bytecode = mApp->LoadShader(mApp->GetAssetPath("benchmarks/shaders"), mShaderFile + ".cs");
+        std::vector<char> bytecode = mApp->LoadShader(mApp->GetAssetPath("fluid_simulation/shaders"), mShaderFile + ".cs");
         PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
         ppx::grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(mApp->GetDevice()->CreateShaderModule(&shaderCreateInfo, &mCS));
@@ -490,9 +489,6 @@ void ProjApp::Render()
     PerFrame& frame = mPerFrame[0];
 
     ppx::grfx::SwapchainPtr swapchain = GetSwapchain();
-
-    int w = swapchain->GetWidth();
-    int h = swapchain->GetHeight();
 
     uint32_t imageIndex = UINT32_MAX;
     PPX_CHECKED_CALL(swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
