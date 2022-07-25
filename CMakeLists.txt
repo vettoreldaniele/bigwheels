@@ -109,6 +109,13 @@ message("Graphics API DXIL SPV : ${PPX_DXIL_SPV_MSG}")
 message("Graphics API Vulkan   : ${PPX_VULKAN_MSG}")
 
 # ------------------------------------------------------------------------------
+# HLSL binding semantics support
+# ------------------------------------------------------------------------------
+if(ENABLE_HLSL_BINDING_SEMANTICS)
+    add_compile_definitions("ENABLE_HLSL_BINDING_SEMANTICS")
+endif()
+
+# ------------------------------------------------------------------------------
 # Add shader compile functions - needs to come after platform and API config
 # ------------------------------------------------------------------------------
 

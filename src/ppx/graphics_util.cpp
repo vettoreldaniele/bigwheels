@@ -396,7 +396,13 @@ Result CreateImageFromBitmapGpu(
             case grfx::API_DX_12_0:
             case grfx::API_DX_12_1:
 #if defined(PPX_DXIIVK)
-                bytecode = { std::begin(GenerateMipShaderVK), std::end(GenerateMipShaderVK) };
+#if defined(ENABLE_HLSL_BINDING_SEMANTICS)
+                bytecode = {
+                    std::begin(GenerateMipShaderVKHlslBindingSemantics),
+                    std::end(GenerateMipShaderVKHlslBindingSemantics)};
+#else
+                bytecode = {std::begin(GenerateMipShaderVK), std::end(GenerateMipShaderVK)};
+#endif
 #else
                 bytecode = {std::begin(GenerateMipShaderDX), std::end(GenerateMipShaderDX)};
 #endif
