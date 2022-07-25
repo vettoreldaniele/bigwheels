@@ -73,8 +73,8 @@ struct FlockingData
     hlsl_float<4>   zoneRadius;
     hlsl_float<4>   time;
     hlsl_float<4>   timeDelta;
-    hlsl_float3<16> predPos;
-    hlsl_float3<16> camPos;
+    hlsl_float3<12> predPos;
+    hlsl_float3<12> camPos;
 };
 PPX_HLSL_PACK_END();
 
