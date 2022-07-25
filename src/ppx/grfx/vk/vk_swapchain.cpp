@@ -326,6 +326,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, "vkGetSwapchainImagesKHR(0) failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
     }
+    PPX_LOG_INFO("Vulkan swapchain image count: " << imageCount);
 
     std::vector<VkImage> images(imageCount);
     if (imageCount > 0) {

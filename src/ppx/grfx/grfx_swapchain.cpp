@@ -18,8 +18,23 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         return ppxres;
     }
 
+    // Update the stored create info's image count since the actual
+    // number of images might be different (hopefully more) than
+    // what was originally requested.
+    //
+    mCreateInfo.imageCount = CountU32(mColorImages);
+    if (mCreateInfo.imageCount != pCreateInfo->imageCount) {
+        PPX_LOG_INFO("Swapchain actual image count is different from what was requested\n" 
+            << "   actual    : " << mCreateInfo.imageCount << "\n"
+            << "   requested : " << pCreateInfo->imageCount);
+    }
+
+    //
+    // NOTE: mCreateInfo.imageCount will be used from this point on.
+    //
+
     if (pCreateInfo->depthFormat != grfx::FORMAT_UNDEFINED) {
-        for (uint32_t i = 0; i < pCreateInfo->imageCount; ++i) {
+        for (uint32_t i = 0; i < mCreateInfo.imageCount; ++i) {
             grfx::ImageCreateInfo dpCreateInfo = ImageCreateInfo::DepthStencilTarget(pCreateInfo->width, pCreateInfo->height, pCreateInfo->depthFormat);
             dpCreateInfo.ownership             = grfx::OWNERSHIP_RESTRICTED;
 
@@ -34,7 +49,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
     }
 
     // Create render passes with grfx::ATTACHMENT_LOAD_OP_CLEAR for render target
-    for (size_t i = 0; i < pCreateInfo->imageCount; ++i) {
+    for (size_t i = 0; i < mCreateInfo.imageCount; ++i) {
         grfx::RenderPassCreateInfo3 rpCreateInfo = {};
         rpCreateInfo.width                       = pCreateInfo->width;
         rpCreateInfo.height                      = pCreateInfo->height;
@@ -58,7 +73,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
     }
 
     // Create render passes with grfx::ATTACHMENT_LOAD_OP_LOAD for render target
-    for (size_t i = 0; i < pCreateInfo->imageCount; ++i) {
+    for (size_t i = 0; i < mCreateInfo.imageCount; ++i) {
         grfx::RenderPassCreateInfo3 rpCreateInfo = {};
         rpCreateInfo.width                       = pCreateInfo->width;
         rpCreateInfo.height                      = pCreateInfo->height;
@@ -83,7 +98,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
 
     PPX_LOG_INFO("Swapchain created");
     PPX_LOG_INFO("   " << "resolution  : " << pCreateInfo->width << "x" << pCreateInfo->height);
-    PPX_LOG_INFO("   " << "image count : " << pCreateInfo->imageCount);
+    PPX_LOG_INFO("   " << "image count : " << mCreateInfo.imageCount);
 
     return ppx::SUCCESS;
 }

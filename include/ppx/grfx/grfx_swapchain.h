@@ -70,6 +70,9 @@ public:
 
 //! @struct SwapchainCreateInfo
 //!
+//! NOTE: The member \b imageCount is the minimum image count.
+//!       On Vulkan, the actual number of images created by
+//!       the swapchain may be greater than this value.
 //!
 struct SwapchainCreateInfo
 {
