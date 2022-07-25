@@ -46,7 +46,7 @@ list(APPEND ADDITIONAL_FILES
 
 CompileShadersVS("${VS_HLSL_FILES}" "${PPX_DIR}/assets/fluid_simulation/shaders" "${PPX_DIR}")
 CompileShadersPS("${PS_HLSL_FILES}" "${PPX_DIR}/assets/fluid_simulation/shaders" "${PPX_DIR}")
-CompileShadersCS("${CS_HLSL_FILES}" "${PPX_DIR}/assets/benchmarks/shaders" "${PPX_DIR}")
+CompileShadersCS("${CS_HLSL_FILES}" "${PPX_DIR}/assets/fluid_simulation/shaders" "${PPX_DIR}")
 
 add_vk_sample(${PROJECT_NAME}   TRUE "${ADDITIONAL_FILES}")
 add_dx11_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
