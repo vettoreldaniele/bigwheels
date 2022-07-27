@@ -27,34 +27,37 @@ class FilterShader
 public:
     FilterShader(ProjApp* app, const std::string& shaderFile, ppx::float2 filterStep);
 
+    // Move the filter area to a new location.  When it reaches any window border, make
+    // it bounce by reversing direction.
     void UpdateFilterLocation();
 
-    const ppx::grfx::PipelineInterfacePtr GetComputePipelineInterface() const { return mComputePipelineInterface; };
-    ppx::grfx::DescriptorSet**            GetComputeDescriptorSetPtr() { return &mComputeDescriptorSet; }
-    const ppx::grfx::ComputePipelinePtr   GetComputePipeline() const { return mComputePipeline; };
+    // Create a compute descriptor set inside @param ds that uses @param srcImage to sample
+    // and @param dstImage to produce output.
+    void CreateComputeDescriptor(ppx::grfx::DescriptorSet** ds, ppx::grfx::DescriptorSetLayoutPtr dsLayout, ppx::grfx::ImagePtr srcImage, ppx::grfx::ImagePtr dstImage);
+
+    const ppx::grfx::PipelineInterfacePtr GetComputePipelineInterface() const { return mPipelineInterface; };
+    const ppx::grfx::ComputePipelinePtr   GetComputePipeline() const { return mPipeline; };
     const ppx::float2&                    GetArea() const { return mCSInput.filterArea; }
 
-private:
-    ProjApp*                          mApp;
-    std::string                       mShaderFile;
-    ppx::grfx::ShaderModulePtr        mCS;
-    ppx::grfx::DescriptorSetLayoutPtr mComputeDescriptorSetLayout;
-    ppx::grfx::DescriptorSetPtr       mComputeDescriptorSet;
-    ppx::grfx::PipelineInterfacePtr   mComputePipelineInterface;
-    ppx::grfx::ComputePipelinePtr     mComputePipeline;
+    ppx::grfx::DescriptorSet** GetComputeDescriptorSetPtr(size_t ix)
+    {
+        PPX_ASSERT_MSG(ix < 2, "Invalid descriptor set index " << ix);
+        return &mDescriptorSets[ix];
+    }
 
-    // Filtering parameters for the compute shader.  Stored in binding 0.
+private:
+    ProjApp*                        mApp;
+    std::string                     mShaderFile;
+    ppx::grfx::ShaderModulePtr      mCS;
+    ppx::grfx::DescriptorSet*       mDescriptorSets[2];
+    ppx::grfx::PipelineInterfacePtr mPipelineInterface;
+    ppx::grfx::ComputePipelinePtr   mPipeline;
+
+    // Filtering parameters for the compute shader.
     ppx::grfx::BufferPtr mParams;
 
-    // The sampler used by the compute shader to filter the image.  Stored in binding 1.
+    // The sampler used by the compute shader to filter the image.
     ppx::grfx::SamplerPtr mSampler;
-
-    // The image to be sampled (binding 2).
-    ppx::grfx::SampledImageViewPtr mInputTexture;
-
-    // Storage for the modified image.  This is the output from the compute shader, stored
-    // in binding 3.
-    ppx::grfx::StorageImageViewPtr mOutputTexture;
 
     // Parameters for the compute shader.
     struct alignas(16) ComputeShaderInput
@@ -223,6 +226,39 @@ void ProjApp::Setup()
     SetupFilters();
 }
 
+void FilterShader::CreateComputeDescriptor(ppx::grfx::DescriptorSet** ds, ppx::grfx::DescriptorSetLayoutPtr dsLayout, ppx::grfx::ImagePtr srcImage, ppx::grfx::ImagePtr dstImage)
+{
+    PPX_CHECKED_CALL(mApp->GetDevice()->AllocateDescriptorSet(mApp->GetDescriptorPool(), dsLayout, ds));
+
+    constexpr int              numBindings = 4;
+    ppx::grfx::WriteDescriptor write[4];
+
+    write[0].binding      = 0;
+    write[0].type         = ppx::grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    write[0].bufferOffset = 0;
+    write[0].bufferRange  = PPX_WHOLE_SIZE;
+    write[0].pBuffer      = mParams;
+
+    write[1].binding  = 1;
+    write[1].type     = ppx::grfx::DESCRIPTOR_TYPE_SAMPLER;
+    write[1].pSampler = mSampler;
+
+    ppx::grfx::SampledImageViewPtr        inputView;
+    ppx::grfx::SampledImageViewCreateInfo sampledViewCreateInfo = ppx::grfx::SampledImageViewCreateInfo::GuessFromImage(srcImage);
+    PPX_CHECKED_CALL(mApp->GetDevice()->CreateSampledImageView(&sampledViewCreateInfo, &inputView));
+    write[2].binding    = 2;
+    write[2].type       = ppx::grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    write[2].pImageView = inputView;
+
+    ppx::grfx::StorageImageViewPtr        outputView;
+    ppx::grfx::StorageImageViewCreateInfo storageViewCreateInfo = ppx::grfx::StorageImageViewCreateInfo::GuessFromImage(dstImage);
+    PPX_CHECKED_CALL(mApp->GetDevice()->CreateStorageImageView(&storageViewCreateInfo, &outputView));
+    write[3].binding    = 3;
+    write[3].type       = ppx::grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    write[3].pImageView = outputView;
+    PPX_CHECKED_CALL((*ds)->UpdateDescriptors(numBindings, write));
+}
+
 FilterShader::FilterShader(ProjApp* app, const std::string& shaderFile, ppx::float2 filterStep)
     : mApp(app), mShaderFile(shaderFile), mFilterStep(filterStep)
 {
@@ -236,14 +272,8 @@ FilterShader::FilterShader(ProjApp* app, const std::string& shaderFile, ppx::flo
         PPX_CHECKED_CALL(mApp->GetDevice()->CreateBuffer(&bufferCreateInfo, &mParams));
     }
 
-    // Texture image, view, and sampler.
+    // Texture sampler.
     {
-        ppx::grfx::SampledImageViewCreateInfo sampledViewCreateInfo = ppx::grfx::SampledImageViewCreateInfo::GuessFromImage(mApp->GetOriginalImage());
-        PPX_CHECKED_CALL(mApp->GetDevice()->CreateSampledImageView(&sampledViewCreateInfo, &mInputTexture));
-
-        ppx::grfx::StorageImageViewCreateInfo storageViewCreateInfo = ppx::grfx::StorageImageViewCreateInfo::GuessFromImage(mApp->GetFilteredImage());
-        PPX_CHECKED_CALL(mApp->GetDevice()->CreateStorageImageView(&storageViewCreateInfo, &mOutputTexture));
-
         ppx::grfx::SamplerCreateInfo samplerCreateInfo = {};
         samplerCreateInfo.magFilter                    = ppx::grfx::FILTER_NEAREST;
         samplerCreateInfo.minFilter                    = ppx::grfx::FILTER_NEAREST;
@@ -253,45 +283,22 @@ FilterShader::FilterShader(ProjApp* app, const std::string& shaderFile, ppx::flo
         PPX_CHECKED_CALL(mApp->GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
     }
 
-    // Compute descriptors
-    {
-        ppx::grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-        layoutCreateInfo.bindings.push_back(ppx::grfx::DescriptorBinding(0, ppx::grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-        layoutCreateInfo.bindings.push_back(ppx::grfx::DescriptorBinding(1, ppx::grfx::DESCRIPTOR_TYPE_SAMPLER));
-        layoutCreateInfo.bindings.push_back(ppx::grfx::DescriptorBinding(2, ppx::grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-        layoutCreateInfo.bindings.push_back(ppx::grfx::DescriptorBinding(3, ppx::grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE));
-        PPX_CHECKED_CALL(mApp->GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mComputeDescriptorSetLayout));
+    // Descriptor set layout.
+    ppx::grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
+    ppx::grfx::DescriptorSetLayoutPtr        dsLayout;
+    layoutCreateInfo.bindings.push_back(ppx::grfx::DescriptorBinding(0, ppx::grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+    layoutCreateInfo.bindings.push_back(ppx::grfx::DescriptorBinding(1, ppx::grfx::DESCRIPTOR_TYPE_SAMPLER));
+    layoutCreateInfo.bindings.push_back(ppx::grfx::DescriptorBinding(2, ppx::grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
+    layoutCreateInfo.bindings.push_back(ppx::grfx::DescriptorBinding(3, ppx::grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE));
+    PPX_CHECKED_CALL(mApp->GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &dsLayout));
 
-        PPX_CHECKED_CALL(mApp->GetDevice()->AllocateDescriptorSet(mApp->GetDescriptorPool(), mComputeDescriptorSetLayout, &mComputeDescriptorSet));
+    // Compute descriptors.  The first one is for sampling from the original image and
+    // output into the filtered image.  The second samples from the filtered image and writes
+    // to the original image.
+    CreateComputeDescriptor(&mDescriptorSets[0], dsLayout, mApp->GetOriginalImage(), mApp->GetFilteredImage());
+    CreateComputeDescriptor(&mDescriptorSets[1], dsLayout, mApp->GetFilteredImage(), mApp->GetOriginalImage());
 
-        ppx::grfx::WriteDescriptor write = {};
-        write.binding                    = 0;
-        write.type                       = ppx::grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        write.bufferOffset               = 0;
-        write.bufferRange                = PPX_WHOLE_SIZE;
-        write.pBuffer                    = mParams;
-        PPX_CHECKED_CALL(mComputeDescriptorSet->UpdateDescriptors(1, &write));
-
-        write          = {};
-        write.binding  = 1;
-        write.type     = ppx::grfx::DESCRIPTOR_TYPE_SAMPLER;
-        write.pSampler = mSampler;
-        PPX_CHECKED_CALL(mComputeDescriptorSet->UpdateDescriptors(1, &write));
-
-        write            = {};
-        write.binding    = 2;
-        write.type       = ppx::grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        write.pImageView = mInputTexture;
-        PPX_CHECKED_CALL(mComputeDescriptorSet->UpdateDescriptors(1, &write));
-
-        write            = {};
-        write.binding    = 3;
-        write.type       = ppx::grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        write.pImageView = mOutputTexture;
-        PPX_CHECKED_CALL(mComputeDescriptorSet->UpdateDescriptors(1, &write));
-    }
-
-    // Compute pipeline
+    // Compute pipeline.
     {
         std::vector<char> bytecode = mApp->LoadShader(mApp->GetAssetPath("fluid_simulation/shaders"), mShaderFile + ".cs");
         PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
@@ -301,13 +308,13 @@ FilterShader::FilterShader(ProjApp* app, const std::string& shaderFile, ppx::flo
         ppx::grfx::PipelineInterfaceCreateInfo piCreateInfo = {};
         piCreateInfo.setCount                               = 1;
         piCreateInfo.sets[0].set                            = 0;
-        piCreateInfo.sets[0].pLayout                        = mComputeDescriptorSetLayout;
-        PPX_CHECKED_CALL(mApp->GetDevice()->CreatePipelineInterface(&piCreateInfo, &mComputePipelineInterface));
+        piCreateInfo.sets[0].pLayout                        = dsLayout;
+        PPX_CHECKED_CALL(mApp->GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
 
         ppx::grfx::ComputePipelineCreateInfo cpCreateInfo = {};
         cpCreateInfo.CS                                   = {mCS.Get(), "csmain"};
-        cpCreateInfo.pPipelineInterface                   = mComputePipelineInterface;
-        PPX_CHECKED_CALL(mApp->GetDevice()->CreateComputePipeline(&cpCreateInfo, &mComputePipeline));
+        cpCreateInfo.pPipelineInterface                   = mPipelineInterface;
+        PPX_CHECKED_CALL(mApp->GetDevice()->CreateComputePipeline(&cpCreateInfo, &mPipeline));
     }
 
     // Initialize values for the compute shader arguments.
@@ -338,6 +345,7 @@ void ProjApp::SetupFilters()
     mFilters.push_back(std::make_unique<FilterShader>(this, "bloom_final", ppx::float2(3, -1)));
     mFilters.push_back(std::make_unique<FilterShader>(this, "bloom_prefilter", ppx::float2(-1, -1)));
     mFilters.push_back(std::make_unique<FilterShader>(this, "blur", ppx::float2(-3, -2)));
+    mFilters.push_back(std::make_unique<FilterShader>(this, "blur", ppx::float2(3, 2)));
     mFilters.push_back(std::make_unique<FilterShader>(this, "checkerboard", ppx::float2(9, -4)));
     mFilters.push_back(std::make_unique<FilterShader>(this, "clear", ppx::float2(1, -12)));
     mFilters.push_back(std::make_unique<FilterShader>(this, "color", ppx::float2(10, -7)));
@@ -358,14 +366,32 @@ void ProjApp::SetupFilters()
 
 void ProjApp::SetupDrawToSwapchain()
 {
-    // Create original image
+    // Create original image.
     ppx::grfx_util::ImageOptions options = ppx::grfx_util::ImageOptions().AdditionalUsage(ppx::grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
     PPX_CHECKED_CALL(ppx::grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("benchmarks/textures/test_image_1280x720.jpg"), &mOriginalImage, options, false));
 
-    // Create Filtered image.
-    PPX_CHECKED_CALL(ppx::grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("benchmarks/textures/test_image_1280x720.jpg"), &mFilteredImage, options, false));
+    // Create filtered image.
+    {
+        ppx::grfx::ImageCreateInfo ci  = {};
+        ci.type                        = ppx::grfx::IMAGE_TYPE_2D;
+        ci.width                       = mOriginalImage->GetWidth();
+        ci.height                      = mOriginalImage->GetHeight();
+        ci.depth                       = 1;
+        ci.format                      = mOriginalImage->GetFormat();
+        ci.sampleCount                 = ppx::grfx::SAMPLE_COUNT_1;
+        ci.mipLevelCount               = mOriginalImage->GetMipLevelCount();
+        ci.arrayLayerCount             = 1;
+        ci.usageFlags.bits.transferDst = true;
+        ci.usageFlags.bits.transferSrc = true; // For CS
+        ci.usageFlags.bits.sampled     = true;
+        ci.usageFlags.bits.storage     = true; // For CS
+        ci.memoryUsage                 = ppx::grfx::MEMORY_USAGE_GPU_ONLY;
+        ci.initialState                = ppx::grfx::RESOURCE_STATE_SHADER_RESOURCE;
 
-    // Image and sampler
+        PPX_CHECKED_CALL(GetDevice()->CreateImage(&ci, &mFilteredImage));
+    }
+
+    // Image and sampler.
     {
         ppx::grfx::SampledImageViewCreateInfo presentViewCreateInfo = ppx::grfx::SampledImageViewCreateInfo::GuessFromImage(mFilteredImage);
         PPX_CHECKED_CALL(GetDevice()->CreateSampledImageView(&presentViewCreateInfo, &mPresentImageView));
@@ -508,12 +534,24 @@ void ProjApp::Render()
     PPX_CHECKED_CALL(frame.cmd->Begin());
     {
         // Filter the image with the compute shader.
+        size_t dsIx = 0;
         for (auto& filter : mFilters) {
-            frame.cmd->TransitionImageLayout(mFilteredImage, PPX_ALL_SUBRESOURCES, ppx::grfx::RESOURCE_STATE_SHADER_RESOURCE, ppx::grfx::RESOURCE_STATE_UNORDERED_ACCESS);
-            frame.cmd->BindComputeDescriptorSets(filter->GetComputePipelineInterface(), 1, filter->GetComputeDescriptorSetPtr());
+            if (dsIx == 0) {
+                frame.cmd->TransitionImageLayout(mFilteredImage, PPX_ALL_SUBRESOURCES, ppx::grfx::RESOURCE_STATE_SHADER_RESOURCE, ppx::grfx::RESOURCE_STATE_UNORDERED_ACCESS);
+            }
+            else {
+                frame.cmd->TransitionImageLayout(mOriginalImage, PPX_ALL_SUBRESOURCES, ppx::grfx::RESOURCE_STATE_SHADER_RESOURCE, ppx::grfx::RESOURCE_STATE_UNORDERED_ACCESS);
+            }
+            frame.cmd->BindComputeDescriptorSets(filter->GetComputePipelineInterface(), 1, filter->GetComputeDescriptorSetPtr(dsIx));
             frame.cmd->BindComputePipeline(filter->GetComputePipeline());
             frame.cmd->Dispatch(filter->GetArea().x, filter->GetArea().y, 1);
-            frame.cmd->TransitionImageLayout(mFilteredImage, PPX_ALL_SUBRESOURCES, ppx::grfx::RESOURCE_STATE_UNORDERED_ACCESS, ppx::grfx::RESOURCE_STATE_SHADER_RESOURCE);
+            if (dsIx == 0) {
+                frame.cmd->TransitionImageLayout(mFilteredImage, PPX_ALL_SUBRESOURCES, ppx::grfx::RESOURCE_STATE_UNORDERED_ACCESS, ppx::grfx::RESOURCE_STATE_SHADER_RESOURCE);
+            }
+            else {
+                frame.cmd->TransitionImageLayout(mOriginalImage, PPX_ALL_SUBRESOURCES, ppx::grfx::RESOURCE_STATE_UNORDERED_ACCESS, ppx::grfx::RESOURCE_STATE_SHADER_RESOURCE);
+            }
+            dsIx = (dsIx + 1) % 2;
         }
 
         ppx::grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
