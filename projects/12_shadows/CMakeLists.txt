@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project(12_camera)
+project(12_shadows)
 
 list(APPEND VSPS_HLSL_FILES
     "${PPX_DIR}/assets/basic/shaders/DiffuseShadow.hlsl"
