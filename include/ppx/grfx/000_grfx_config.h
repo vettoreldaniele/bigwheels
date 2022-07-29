@@ -182,10 +182,6 @@ struct Viewport
 //!   - grfx::Model's buffers and textures typically have OWNERSHIP_REFERENCE
 //!     ownership. However, the application is free to change ownership
 //!     to EXCLUSIVE as it sees fit.
-//!
-//! Examples of objects with OWNERSHIP_EXCLUSIVE ownership:
-//!   - Swapchain images and render passes are always OWNERSHIP_EXCLUSIVE.
-//!
 enum Ownership
 {
     OWNERSHIP_REFERENCE  = 0,
