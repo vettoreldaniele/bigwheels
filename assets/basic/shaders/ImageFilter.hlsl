@@ -23,7 +23,7 @@ float3 sharpenFilter(float2 coordCenter, float2 d);
 float3 noFilter(float2 coordCenter);
 float3 desaturate(float2 coordCenter);
 
-[numthreads(1, 1, 1)] void csmain(uint3 tid
+[numthreads(32, 32, 1)] void csmain(uint3 tid
                                   : SV_DispatchThreadID) {
     const float2 coordCenter = Param.texel_size * (tid.xy + 0.5);
     float2       d           = Param.texel_size;

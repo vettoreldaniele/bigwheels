@@ -500,7 +500,9 @@ void ProjApp::Render()
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
         frame.cmd->BindComputeDescriptorSets(mComputePipelineInterface, 1, &mComputeDescriptorSet);
         frame.cmd->BindComputePipeline(mComputePipeline);
-        frame.cmd->Dispatch(mFilteredImages[mImageOption]->GetWidth(), mFilteredImages[mImageOption]->GetHeight(), 1);
+        uint32_t dispatchX = static_cast<uint32_t>(std::ceil(mFilteredImages[mImageOption]->GetWidth() / 32.0));
+        uint32_t dispatchY = static_cast<uint32_t>(std::ceil(mFilteredImages[mImageOption]->GetHeight() / 32.0));
+        frame.cmd->Dispatch(dispatchX, dispatchY, 1);
         frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 1);
         frame.cmd->TransitionImageLayout(mFilteredImages[mImageOption], PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_UNORDERED_ACCESS, grfx::RESOURCE_STATE_SHADER_RESOURCE);
 
