@@ -215,6 +215,8 @@ void ProjApp::SetupComputeShaderPass()
         samplerCreateInfo.magFilter               = grfx::FILTER_NEAREST;
         samplerCreateInfo.minFilter               = grfx::FILTER_NEAREST;
         samplerCreateInfo.mipmapMode              = grfx::SAMPLER_MIPMAP_MODE_NEAREST;
+        samplerCreateInfo.addressModeU            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerCreateInfo.addressModeV            = grfx::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
         samplerCreateInfo.minLod                  = 0.0f;
         samplerCreateInfo.maxLod                  = FLT_MAX;
         PPX_CHECKED_CALL(GetDevice()->CreateSampler(&samplerCreateInfo, &mComputeSampler));
@@ -616,7 +618,7 @@ void ProjApp::DrawGui()
     ImGui::Separator();
     ImGui::Text("Filter time: %fms", mCSDurationMs);
     ImGui::Separator();
-    const std::vector<const char*> filterNames = {"No filter", "Blur", "Sharpen", "Desaturate"};
+    const std::vector<const char*> filterNames = {"No filter", "Blur", "Sharpen", "Desaturate", "Sobel"};
 
     if (ImGui::BeginCombo("Filter", filterNames[mFilterOption])) {
         for (size_t i = 0; i < filterNames.size(); ++i) {

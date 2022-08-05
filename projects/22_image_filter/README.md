@@ -7,6 +7,7 @@ Both the target image and the filter can be selected through the ImGui interface
 - [Gaussian blur](https://en.wikipedia.org/wiki/Gaussian_blur)
 - [Sharpening](https://en.wikipedia.org/wiki/Unsharp_masking)
 - Desaturation (grayscale)
+- [Sobel edge detection](https://en.wikipedia.org/wiki/Sobel_operator)
 
 ## Shaders
 

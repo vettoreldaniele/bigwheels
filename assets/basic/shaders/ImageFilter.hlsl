@@ -20,6 +20,7 @@ Texture2D<float4>   srcTex : register(t3);
 
 float3 blurFilter(float2 coordCenter, float2 d);
 float3 sharpenFilter(float2 coordCenter, float2 d);
+float3 sobelFilter(float2 coordCenter, float2 d);
 float3 noFilter(float2 coordCenter);
 float3 desaturate(float2 coordCenter);
 
@@ -40,6 +41,10 @@ float3 desaturate(float2 coordCenter);
 
         case 3:
             pixel = desaturate(coordCenter);
+            break;
+
+        case 4:
+            pixel = sobelFilter(coordCenter, d);
             break;
 
         default:
@@ -104,6 +109,52 @@ float3 sharpenFilter(float2 coordCenter, float2 d)
     }
 
     return color;
+}
+
+float3 sobelFilter(float2 coordCenter, float2 d)
+{
+    // clang-format off
+    const float2 samplingDeltas[3][3] = {
+        {{-d.x, -d.y}, {0.0, -d.y}, {d.x, -d.y}},
+        {{-d.x, 0.0}, {0.0, 0.0}, {d.x, 0.0}},
+        {{-d.x, d.y}, {0.0, d.y}, {d.x, d.y}}};
+    
+    const float horizontalFilter[3][3] = {
+        {1, 0, -1},
+        {2, 0, -2},
+        {1, 0, -1}
+    };
+
+    const float verticalFilter[3][3] = {
+        { 1,  2,  1},
+        { 0,  0,  0},
+        {-1, -2, -1}
+    };
+    // clang-format on
+
+    float horizontal = 0.0;
+    float vertical   = 0.0;
+    for (int j = 0; j < 3; ++j) {
+        for (int i = 0; i < 3; ++i) {
+            float2 sampleCoords = coordCenter + samplingDeltas[j][i];
+            float3 sourceColor  = srcTex.SampleLevel(nearestSampler, sampleCoords, 0).rgb;
+
+            // Apply filter to luminance component.
+            float lum = 0.3 * sourceColor.r + 0.59 * sourceColor.g + 0.11 * sourceColor.b;
+            horizontal += horizontalFilter[j][i] * lum;
+            vertical += verticalFilter[j][i] * lum;
+        }
+    }
+
+    // Compute edge weight.
+    float weight = sqrt(horizontal * horizontal + vertical * vertical);
+
+    // Draw edges in red.
+    float3 sourceColor = srcTex.SampleLevel(nearestSampler, coordCenter, 0).rgb;
+    if (weight > 0.5)
+        return lerp(sourceColor, float3(1, 0, 0), weight);
+    else
+        return sourceColor;
 }
 
 float3 desaturate(float2 coordCenter)
