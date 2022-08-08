@@ -116,7 +116,7 @@ void CommandLineParser::Parse(int argc, char* argv[])
                     std::string parameter = TrimCopy(args[i + 1]);
                     if (!OptionOrFlag(parameter)) {
                         // It is an option with its corresponding parameter
-                        mExtraOptions.AddOption(optName, parameter);
+                         mExtraOptions.AddOption(optName, parameter);
                         i++; // We just consumed the parameter for this option
                     }
                     else { // It is a flag

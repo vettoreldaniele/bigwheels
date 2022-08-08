@@ -52,13 +52,13 @@ Result Query::CreateApiObjects(const grfx::QueryCreateInfo* pCreateInfo)
 
     mQueryType = ToD3D12QueryType(pCreateInfo->type);
 
-    grfx::BufferCreateInfo createInfo  = {};
-    createInfo.size                    = GetCount() * GetQueryTypeSize(desc.Type);
-    createInfo.structuredElementStride = GetQueryTypeSize(desc.Type);
-    createInfo.usageFlags              = grfx::BUFFER_USAGE_TRANSFER_DST;
-    createInfo.memoryUsage             = grfx::MEMORY_USAGE_GPU_TO_CPU;
-    createInfo.initialState            = grfx::RESOURCE_STATE_COPY_DST;
-    createInfo.ownership               = grfx::OWNERSHIP_REFERENCE;
+    grfx::BufferCreateInfo createInfo   = {};
+    createInfo.size                     = GetCount() * GetQueryTypeSize(desc.Type);
+    createInfo.structuredElementStride  = GetQueryTypeSize(desc.Type);
+    createInfo.usageFlags               = grfx::BUFFER_USAGE_TRANSFER_DST;
+    createInfo.memoryUsage              = grfx::MEMORY_USAGE_GPU_TO_CPU;
+    createInfo.initialState             = grfx::RESOURCE_STATE_COPY_DST;
+    createInfo.ownership                = grfx::OWNERSHIP_REFERENCE;
 
     // Create buffer
     Result ppxres = GetDevice()->CreateBuffer(&createInfo, &mBuffer);
@@ -75,7 +75,8 @@ void Query::DestroyApiObjects()
         mHeap.Reset();
     }
 
-    if (mBuffer) {
+    if (mBuffer)
+    {
         mBuffer.Reset();
     }
 }
@@ -106,6 +107,7 @@ typename D3D12ResourcePtr::InterfaceType* Query::GetReadBackBuffer() const
 {
     return ToApi(mBuffer.Get())->GetDxResource();
 }
+
 
 } // namespace dx12
 } // namespace grfx

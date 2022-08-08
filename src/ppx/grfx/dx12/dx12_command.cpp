@@ -105,7 +105,7 @@ Result CommandBuffer::Begin()
     // Command allocators can only be reset when the GPU is
     // done with associated with command lists.
     //
-#if !defined(PPX_DXIIVK)
+#if ! defined(PPX_DXIIVK)
     hr = mCommandAllocator->Reset();
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12CommandAllocator::Reset failed");
@@ -712,9 +712,9 @@ void CommandBuffer::WriteTimestamp(
 }
 
 void CommandBuffer::ResolveQueryData(
-    grfx::Query* pQuery,
-    uint32_t     startIndex,
-    uint32_t     numQueries)
+    grfx::Query*    pQuery,
+    uint32_t        startIndex,
+    uint32_t        numQueries)
 {
     PPX_ASSERT_MSG((startIndex + numQueries) <= pQuery->GetCount(), "invalid query index/number");
     mCommandList->ResolveQueryData(ToApi(pQuery)->GetDxQueryHeap(), ToApi(pQuery)->GetQueryType(), startIndex, numQueries, ToApi(pQuery)->GetReadBackBuffer(), 0);

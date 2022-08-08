@@ -273,7 +273,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
 
             case grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE:
             case grfx::DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: {
-                const dx12::SampledImageView*          pView = static_cast<const dx12::SampledImageView*>(srcWrite.pImageView);
+                const dx12::SampledImageView*            pView = static_cast<const dx12::SampledImageView*>(srcWrite.pImageView);
                 const D3D12_SHADER_RESOURCE_VIEW_DESC& desc  = pView->GetDesc();
 
                 SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeCBVSRVUAV * srcWrite.arrayIndex);
@@ -303,7 +303,7 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
 
             case grfx::DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
             case grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE: {
-                const dx12::StorageImageView*           pView = static_cast<const dx12::StorageImageView*>(srcWrite.pImageView);
+                const dx12::StorageImageView*             pView = static_cast<const dx12::StorageImageView*>(srcWrite.pImageView);
                 const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc  = pView->GetDesc();
 
                 SIZE_T                      ptr    = heapOffset.descriptorHandle.ptr + static_cast<SIZE_T>(handleIncSizeCBVSRVUAV * srcWrite.arrayIndex);

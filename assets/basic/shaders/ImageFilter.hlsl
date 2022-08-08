@@ -25,7 +25,7 @@ float3 noFilter(float2 coordCenter);
 float3 desaturate(float2 coordCenter);
 
 [numthreads(32, 32, 1)] void csmain(uint3 tid
-                                    : SV_DispatchThreadID) {
+                                  : SV_DispatchThreadID) {
     const float2 coordCenter = Param.texel_size * (tid.xy + 0.5);
     float2       d           = Param.texel_size;
 

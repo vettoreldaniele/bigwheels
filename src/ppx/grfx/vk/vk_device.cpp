@@ -116,8 +116,8 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         // VK_EXT_host_query_reset
         mExtensions.push_back(VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME);
 
-        // Descriptor indexing
-        //
+        // Descriptor indexing 
+        // 
         // 2021/11/15 - Added conditional check for descriptor indexing to accomodate SwiftShader
         if (ElementExists(std::string(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME), mFoundExtensions)) {
             mExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
@@ -254,7 +254,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 #else
     VkPhysicalDeviceHostQueryResetFeatures queryResetFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES};
 #endif
-    queryResetFeatures.hostQueryReset = VK_TRUE;
+    queryResetFeatures.hostQueryReset                         = VK_TRUE;
 
     // Get C strings
     std::vector<const char*> extensions = GetCStrings(mExtensions);

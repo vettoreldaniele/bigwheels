@@ -17,7 +17,7 @@ public:
     virtual ~CommandBuffer() {}
 
     const dx11::CommandList& GetCommandList() const { return mCommandList; }
-    dx11::CommandList&       GetCommandList() { return mCommandList; }
+    dx11::CommandList& GetCommandList() { return mCommandList; }
 
     virtual Result Begin() override;
     virtual Result End() override;
@@ -120,9 +120,9 @@ public:
         uint32_t            queryIndex) override;
 
     virtual void ResolveQueryData(
-        grfx::Query* pQuery,
-        uint32_t     startIndex,
-        uint32_t     numQueries) override;
+        grfx::Query*    pQuery,
+        uint32_t        startIndex,
+        uint32_t        numQueries) override;
 
     void ImGuiRender(void (*pFn)(void));
 

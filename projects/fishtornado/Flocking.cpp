@@ -401,11 +401,11 @@ void Flocking::Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     // Position
     {
         pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_GENERAL);
-
+    
         pCmd->BindComputeDescriptorSets(mFlockingPositionPipelineInterface, 1, &frame.positionSet);
         pCmd->BindComputePipeline(mFlockingPositionPipeline);
         pCmd->Dispatch(groupCountX, groupCountY, groupCountZ);
-
+    
         pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_GENERAL, grfx::RESOURCE_STATE_SHADER_RESOURCE);
     }
 }

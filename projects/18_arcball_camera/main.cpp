@@ -162,7 +162,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "VertexColors", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -257,7 +257,7 @@ void ProjApp::Scroll(float dx, float dy)
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

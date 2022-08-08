@@ -21,8 +21,9 @@ Texture2D<float4>   srcTex : register(t3);
 
 [numthreads(1, 1, 1)] void csmain(uint3 tid
                                   : SV_DispatchThreadID) {
-    const float2 coordCenter = Param.texel_size * (tid.xy + 0.5);
 
+    const float2 coordCenter = Param.texel_size * (tid.xy + 0.5);
+    
     // clang-format off
     float2 d = Param.texel_size;
     const float2 samplingDeltas[3][3] = {

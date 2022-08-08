@@ -11,12 +11,12 @@ cbuffer Scene : register(SCENE_CONSTANTS_REGISTER)
 
 StructuredBuffer<Light> Lights : register(LIGHT_DATA_REGISTER);
 
-Texture2D GBufferRT0 : register(GBUFFER_RT0_REGISTER);
-Texture2D GBufferRT1 : register(GBUFFER_RT1_REGISTER);
-Texture2D GBufferRT2 : register(GBUFFER_RT2_REGISTER);
-Texture2D GBufferRT3 : register(GBUFFER_RT3_REGISTER);
-Texture2D IBLTex : register(GBUFFER_ENV_REGISTER);
-Texture2D EnvMapTex : register(GBUFFER_IBL_REGISTER);
+Texture2D    GBufferRT0 : register(GBUFFER_RT0_REGISTER);
+Texture2D    GBufferRT1 : register(GBUFFER_RT1_REGISTER);
+Texture2D    GBufferRT2 : register(GBUFFER_RT2_REGISTER);
+Texture2D    GBufferRT3 : register(GBUFFER_RT3_REGISTER);
+Texture2D    IBLTex     : register(GBUFFER_ENV_REGISTER);
+Texture2D    EnvMapTex  : register(GBUFFER_IBL_REGISTER);
 
 SamplerState ClampedSampler : register(CLAMPED_SAMPLER_REGISTER);
 
@@ -26,16 +26,16 @@ cbuffer GBufferData : register(GBUFFER_CONSTANTS_REGISTER)
     uint enableEnv;
     uint debugAttrIndex;
 };
-#else  // --- D3D12 / Vulkan ----------------------------------------------------
-ConstantBuffer<SceneData> Scene : register(SCENE_CONSTANTS_REGISTER, SCENE_DATA_SPACE);
-StructuredBuffer<Light>   Lights : register(LIGHT_DATA_REGISTER, SCENE_DATA_SPACE);
+#else // --- D3D12 / Vulkan ----------------------------------------------------
+ConstantBuffer<SceneData>    Scene    : register(SCENE_CONSTANTS_REGISTER, SCENE_DATA_SPACE);
+StructuredBuffer<Light>      Lights   : register(LIGHT_DATA_REGISTER,      SCENE_DATA_SPACE);
 
-Texture2D    GBufferRT0 : register(GBUFFER_RT0_REGISTER, GBUFFER_SPACE);
-Texture2D    GBufferRT1 : register(GBUFFER_RT1_REGISTER, GBUFFER_SPACE);
-Texture2D    GBufferRT2 : register(GBUFFER_RT2_REGISTER, GBUFFER_SPACE);
-Texture2D    GBufferRT3 : register(GBUFFER_RT3_REGISTER, GBUFFER_SPACE);
-Texture2D    IBLTex : register(GBUFFER_ENV_REGISTER, GBUFFER_SPACE);
-Texture2D    EnvMapTex : register(GBUFFER_IBL_REGISTER, GBUFFER_SPACE);
+Texture2D    GBufferRT0     : register(GBUFFER_RT0_REGISTER,     GBUFFER_SPACE);
+Texture2D    GBufferRT1     : register(GBUFFER_RT1_REGISTER,     GBUFFER_SPACE);
+Texture2D    GBufferRT2     : register(GBUFFER_RT2_REGISTER,     GBUFFER_SPACE);
+Texture2D    GBufferRT3     : register(GBUFFER_RT3_REGISTER,     GBUFFER_SPACE);
+Texture2D    IBLTex         : register(GBUFFER_ENV_REGISTER,     GBUFFER_SPACE);
+Texture2D    EnvMapTex      : register(GBUFFER_IBL_REGISTER,     GBUFFER_SPACE);
 SamplerState ClampedSampler : register(GBUFFER_SAMPLER_REGISTER, GBUFFER_SPACE);
 
 cbuffer GBufferData : register(GBUFFER_CONSTANTS_REGISTER, GBUFFER_SPACE)
@@ -48,28 +48,26 @@ cbuffer GBufferData : register(GBUFFER_CONSTANTS_REGISTER, GBUFFER_SPACE)
 
 // -------------------------------------------------------------------------------------------------
 
-struct VSOutput
-{
-    float4 Position : SV_POSITION;
-    float2 TexCoord : TEXCOORD;
+struct VSOutput {
+	float4 Position : SV_POSITION;
+	float2 TexCoord : TEXCOORD;
 };
 
-VSOutput vsmain(uint id
-                : SV_VertexID)
+VSOutput vsmain(uint id : SV_VertexID)
 {
-    VSOutput result;
-
+	VSOutput result;
+    
     // Clip space position
-    result.Position.x = (float)(id / 2) * 4.0 - 1.0;
+	result.Position.x = (float)(id / 2) * 4.0 - 1.0;
     result.Position.y = (float)(id % 2) * 4.0 - 1.0;
     result.Position.z = 0.0;
     result.Position.w = 1.0;
-
+    
     // Texture coordinates
-    result.TexCoord.x = (float)(id / 2) * 2.0;
+	result.TexCoord.x = (float)(id / 2) * 2.0;
     result.TexCoord.y = 1.0 - (float)(id % 2) * 2.0;
-
-    return result;
+    
+	return result;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -116,9 +114,9 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
 
 float3 Environment(Texture2D tex, float3 coord, float lod)
 {
-    float2 uv    = CartesianToSphereical(normalize(coord));
-    uv.x         = saturate(uv.x / (2.0 * PI));
-    uv.y         = saturate(uv.y / PI);
+    float2 uv = CartesianToSphereical(normalize(coord));
+    uv.x = saturate(uv.x / (2.0 * PI));
+    uv.y = saturate(uv.y / PI);   
     float3 color = tex.SampleLevel(ClampedSampler, uv, lod).rgb;
     return color;
 }
@@ -129,12 +127,12 @@ float3 PBR(GBuffer gbuffer)
     float3 N  = gbuffer.normal;
     float3 V  = normalize(Scene.eyePosition.xyz - P);
     float3 R  = reflect(-V, N);
-    float  ao = 0.4f;
-
-    float3 albedo    = gbuffer.albedo;
-    float  roughness = gbuffer.roughness;
-    float  metalness = gbuffer.metalness;
-
+    float  ao = 0.4f;    
+    
+	float3 albedo   = gbuffer.albedo;    
+    float roughness = gbuffer.roughness;    
+    float metalness = gbuffer.metalness;
+    
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
     //
@@ -142,12 +140,12 @@ float3 PBR(GBuffer gbuffer)
     //
     float3 F0 = gbuffer.F0;
     F0        = lerp(F0, albedo, metalness);
-
-    float3 Lo = (float3)0.0;
-    for (uint i = 0; i < Scene.lightCount; ++i) {
-        float3 Lp = Lights[i].position;
-        float3 L  = normalize(Lp - P);
-        float3 H  = normalize(V + L);
+    
+    float3 Lo = (float3)0.0;    
+	for (uint i = 0; i < Scene.lightCount; ++i) {    
+        float3 Lp    = Lights[i].position;
+        float3 L     = normalize(Lp - P);
+        float3 H     = normalize(V + L);
 
         // calculate per-light radiance
         //float  distance    = length(lightPositions[i] - WorldPos);
@@ -181,53 +179,50 @@ float3 PBR(GBuffer gbuffer)
 
         // add to outgoing radiance Lo
         Lo += (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
-    }
-
+	}
+    
     // ambient lighting (we now use IBL as the ambient term)
     float3 kS = FresnelSchlick(max(dot(N, V), 0.0), F0);
     float3 kD = 1.0 - kS;
     kD *= 1.0 - metalness;
-
-    float3 irradiance = (float3)1.0;
-    if (enableIBL == 1) {
+    
+    float3 irradiance = (float3)1.0; 
+    if (enableIBL == 1) {    
         float iblStrength = gbuffer.iblStrength;
-        float lod         = roughness * (Scene.iblLevelCount - 1.0);
-        irradiance        = Environment(IBLTex, R, lod) * iblStrength;
+        float lod = roughness * (Scene.iblLevelCount - 1.0);
+        irradiance = Environment(IBLTex, R, lod) * iblStrength;
     }
-
-    float3 diffuse = irradiance * albedo + Scene.ambient;
-    float3 ambient = (kD * diffuse) * ao;
-
+    
+    float3 diffuse    = irradiance * albedo +  Scene.ambient;
+    float3 ambient    = (kD * diffuse) * ao;    
+        
     // Environment reflection
     float3 reflection = (float3)0.0;
     if (enableEnv) {
         float envStrength = gbuffer.envStrength;
-        float lod         = roughness * (Scene.envLevelCount - 1.0);
-        reflection        = Environment(EnvMapTex, R, lod) * envStrength;
-    }
-
+        float lod = roughness * (Scene.envLevelCount - 1.0);
+        reflection = Environment(EnvMapTex, R, lod) * envStrength;
+    }    
+    
     // Final color
     float3 color = ambient + Lo + (kS * reflection * (1.0 - roughness));
-
+    
     // Faux HDR tonemapping
     color = color / (color + float3(1, 1, 1));
-
+    
     return color;
 }
 
-float4 psmain(float4 Position
-              : SV_POSITION, float2 TexCoord
-              : TEXCOORD)
-    : SV_TARGET
+float4 psmain(float4 Position : SV_POSITION, float2 TexCoord : TEXCOORD) : SV_TARGET
 {
-    PackedGBuffer packed = (PackedGBuffer)0;
-    packed.rt0           = GBufferRT0.Sample(ClampedSampler, TexCoord);
-    packed.rt1           = GBufferRT1.Sample(ClampedSampler, TexCoord);
-    packed.rt2           = GBufferRT2.Sample(ClampedSampler, TexCoord);
-    packed.rt3           = GBufferRT3.Sample(ClampedSampler, TexCoord);
-
+    PackedGBuffer packed = (PackedGBuffer) 0;
+    packed.rt0 = GBufferRT0.Sample(ClampedSampler, TexCoord);
+    packed.rt1 = GBufferRT1.Sample(ClampedSampler, TexCoord);
+    packed.rt2 = GBufferRT2.Sample(ClampedSampler, TexCoord);
+    packed.rt3 = GBufferRT3.Sample(ClampedSampler, TexCoord);
+    
     GBuffer gbuffer = UnpackGBuffer(packed);
-
+    
     float3 color = PBR(gbuffer);
 
     return float4(color, 1.0);

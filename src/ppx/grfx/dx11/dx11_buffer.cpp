@@ -80,7 +80,7 @@ Result Buffer::MapMemory(uint64_t offset, void** ppMappedAddress)
     D3D11_MAP mapType = GetMapType();
     if (mapType == InvalidValue<D3D11_MAP>()) {
         PPX_ASSERT_MSG(false, "invalid maptype");
-        return ppx::ERROR_API_FAILURE;
+        return ppx::ERROR_API_FAILURE;        
     }
 
     D3D11_MAPPED_SUBRESOURCE mappedSubres = {};

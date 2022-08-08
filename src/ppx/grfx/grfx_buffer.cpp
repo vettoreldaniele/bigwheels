@@ -40,7 +40,7 @@ Result Buffer::CopyFromSource(uint32_t dataSize, const void* pSrcData)
     }
 
     // Copy
-    std::memcpy(pBufferAddress, pSrcData, dataSize);
+    std::memcpy(pBufferAddress,pSrcData, dataSize);
 
     // Unmap
     UnmapMemory();
@@ -69,6 +69,7 @@ Result Buffer::CopyToDest(uint32_t dataSize, void* pDestData)
 
     return ppx::SUCCESS;
 }
+
 
 } // namespace grfx
 } // namespace ppx

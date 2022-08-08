@@ -15,24 +15,20 @@ cbuffer Transform : register(b0)
 ConstantBuffer<TransformData> Transform : register(b0);
 #endif // defined(PPX_D3D11)
 
-struct VSOutput
-{
-    float4 Position : SV_POSITION;
-    float3 Color : COLOR;
+struct VSOutput {
+	float4 Position : SV_POSITION;
+	float3 Color    : COLOR;
 };
 
-VSOutput vsmain(float4 Position
-                : POSITION, float3 Color
-                : COLOR)
+VSOutput vsmain(float4 Position : POSITION, float3 Color : COLOR)
 {
-    VSOutput result;
-    result.Position = mul(Transform.M, Position);
-    result.Color    = Color;
-    return result;
+	VSOutput result;
+	result.Position = mul(Transform.M, Position);
+	result.Color = Color;
+	return result;
 }
 
-float4 psmain(VSOutput input)
-    : SV_TARGET
+float4 psmain(VSOutput input) : SV_TARGET
 {
-    return float4(input.Color, 1);
+	return float4(input.Color, 1);
 }

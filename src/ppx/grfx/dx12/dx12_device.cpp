@@ -25,13 +25,14 @@ namespace dx12 {
 
 void Device::LoadRootSignatureFunctions()
 {
+
 #if defined(PPX_GGP)
-    mFnD3D12CreateRootSignatureDeserializer          = D3D12CreateRootSignatureDeserializer;
-    mFnD3D12SerializeVersionedRootSignature          = D3D12SerializeVersionedRootSignature;
+    mFnD3D12CreateRootSignatureDeserializer = D3D12CreateRootSignatureDeserializer;
+    mFnD3D12SerializeVersionedRootSignature = D3D12SerializeVersionedRootSignature;
     mFnD3D12CreateVersionedRootSignatureDeserializer = D3D12CreateVersionedRootSignatureDeserializer;
 #else
 
-#if defined(PPX_DXIIVK)
+#if defined (PPX_DXIIVK)
     HMODULE module = ::GetModuleHandle(TEXT("dxiivk.dll"));
 #else
     HMODULE module = ::GetModuleHandle(TEXT("d3d12.dll"));
@@ -150,18 +151,18 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     // Cast to XIDXGIAdapter
     typename DXGIAdapterPtr::InterfaceType* pAdapter = ToApi(pCreateInfo->pGpu)->GetDxAdapter();
 
-    //
-    // 20220423 (hai): DXIL is now in widespread use and not considered an
-    //                 experimental feature anymore - we don't need this block.
-    //                 Keeping it the block here but commented out now in case
-    //                 someone is still working on an older version of Windows.
-    //
-    //                 If you're running Windows apps on Wine:
-    //                   - VKD3D-Proton currently does not implement
-    //                     D3D12EnableExperimentalFeatures so this
-    //                     current function will return an API failure.
-    //
-    /*
+//
+// 20220423 (hai): DXIL is now in widespread use and not considered an
+//                 experimental feature anymore - we don't need this block.
+//                 Keeping it the block here but commented out now in case
+//                 someone is still working on an older version of Windows.
+//
+//                 If you're running Windows apps on Wine:
+//                   - VKD3D-Proton currently does not implement
+//                     D3D12EnableExperimentalFeatures so this
+//                     current function will return an API failure.
+//
+/*
 #if !defined(PPX_DXIIVK)
     //
     // Enable SM 6.0 for DXIL support

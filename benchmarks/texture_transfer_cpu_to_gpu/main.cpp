@@ -227,7 +227,7 @@ void ProjApp::SetupDrawToSwapchain()
 
 void ProjApp::TransferTexture(const std::string fileName)
 {
-    Timer timer;
+    Timer  timer;
     PPX_ASSERT_MSG(timer.Start() == ppx::TIMER_RESULT_SUCCESS, "timer start failed");
 
     // Scoped destroy
@@ -312,7 +312,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     // The benchmark happens inside this call
     TransferTexture(mTextureNames[GetFrameCount() % mTextureNames.size()]);

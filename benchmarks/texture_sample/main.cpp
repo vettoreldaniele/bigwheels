@@ -274,11 +274,11 @@ void ProjApp::Setup()
             }
         }
         grfx::SamplerCreateInfo samplerCreateInfo;
-        grfx::Filter            filter       = mSamplerFilterType == "linear" ? grfx::FILTER_LINEAR : grfx::FILTER_NEAREST;
-        grfx::SamplerMipmapMode mipmapFilter = mSamplerMipmapFilterType == "linear" ? grfx::SAMPLER_MIPMAP_MODE_LINEAR : grfx::SAMPLER_MIPMAP_MODE_NEAREST;
-        samplerCreateInfo.magFilter          = filter;
-        samplerCreateInfo.minFilter          = filter;
-        samplerCreateInfo.mipmapMode         = mipmapFilter;
+        grfx::Filter filter = mSamplerFilterType == "linear" ?  grfx::FILTER_LINEAR : grfx::FILTER_NEAREST;
+        grfx::SamplerMipmapMode mipmapFilter = mSamplerMipmapFilterType == "linear" ?  grfx::SAMPLER_MIPMAP_MODE_LINEAR : grfx::SAMPLER_MIPMAP_MODE_NEAREST;
+        samplerCreateInfo.magFilter = filter;
+        samplerCreateInfo.minFilter = filter;
+        samplerCreateInfo.mipmapMode = mipmapFilter;
         PPX_CHECKED_CALL(GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
     }
 
@@ -361,7 +361,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

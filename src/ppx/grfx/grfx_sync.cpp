@@ -20,3 +20,4 @@ Result Fence::WaitAndReset(uint64_t timeout)
 
 } // namespace grfx
 } // namespace ppx
+

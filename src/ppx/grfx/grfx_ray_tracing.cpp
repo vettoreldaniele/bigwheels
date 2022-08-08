@@ -5,7 +5,9 @@
 namespace ppx {
 namespace grfx {
 
+
 } // namespace grfx
 } // namespace ppx
+
 
 #endif // defined(PPX_ENABLE_RAYTRACING)

@@ -32,8 +32,7 @@ public:
     void SaveResultsToFile();
 
 private:
-    struct Payload
-    {
+    struct Payload {
         uint32_t value;
     };
 
@@ -169,11 +168,11 @@ void ProjApp::SetupComputeShaderPass()
         PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mComputeDescriptorSetLayout, &mComputeDescriptorSet));
 
         grfx::WriteDescriptor write = {};
-        write.binding               = 0;
-        write.type                  = grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        write.bufferOffset          = 0;
-        write.bufferRange           = PPX_WHOLE_SIZE;
-        write.pBuffer               = mStorageBuffer;
+        write.binding      = 0;
+        write.type         = grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        write.bufferOffset = 0;
+        write.bufferRange  = PPX_WHOLE_SIZE;
+        write.pBuffer      = mStorageBuffer;
         PPX_CHECKED_CALL(mComputeDescriptorSet->UpdateDescriptors(1, &write));
     }
 
@@ -206,7 +205,7 @@ void ProjApp::SetupComputeShaderPass()
         Payload data;
         // Set it to a value different from what is written by the shader
         data.value = 12;
-        PPX_CHECKED_CALL(mStorageBuffer->CopyFromSource(sizeof(data), &data));
+        PPX_CHECKED_CALL(mStorageBuffer->CopyFromSource(sizeof(data),&data));
     }
 }
 
@@ -243,10 +242,10 @@ void ProjApp::Render()
     }
     PPX_CHECKED_CALL(frame.cmd->End());
 
-    grfx::SubmitInfo submitInfo   = {};
-    submitInfo.commandBufferCount = 1;
-    submitInfo.ppCommandBuffers   = &frame.cmd;
-    submitInfo.pFence             = frame.renderCompleteFence;
+    grfx::SubmitInfo submitInfo     = {};
+    submitInfo.commandBufferCount   = 1;
+    submitInfo.ppCommandBuffers     = &frame.cmd;
+    submitInfo.pFence               = frame.renderCompleteFence;
 
     PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
 
@@ -265,7 +264,7 @@ void ProjApp::Render()
     PPX_CHECKED_CALL(frame.renderCompleteFence->Wait());
     Payload data;
     data.value = 12;
-    PPX_CHECKED_CALL(mStorageBuffer->CopyToDest(sizeof(data), &data));
+    PPX_CHECKED_CALL(mStorageBuffer->CopyToDest(sizeof(data),&data));
     PPX_LOG_INFO("Data value is " + std::to_string(data.value) + " frame count is " + std::to_string(GetFrameCount()));
 }
 

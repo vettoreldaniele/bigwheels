@@ -48,8 +48,8 @@ private:
         ppx::grfx::SemaphorePtr     renderCompleteSemaphore;
         ppx::grfx::FencePtr         renderCompleteFence;
 #ifdef ENABLE_GPU_QUERIES
-        ppx::grfx::QueryPtr timestampQuery;
-        ppx::grfx::QueryPtr pipelineStatsQuery;
+        ppx::grfx::QueryPtr         timestampQuery;
+        ppx::grfx::QueryPtr         pipelineStatsQuery;
 #endif
     };
 
@@ -99,8 +99,8 @@ private:
     float mCamSwing       = 0;
     float mTargetCamSwing = 0;
 
-    bool                     mDrawGBufferAttr  = false;
-    uint32_t                 mGBufferAttrIndex = 0;
+    bool               mDrawGBufferAttr  = false;
+    uint32_t           mGBufferAttrIndex = 0;
     std::vector<const char*> mGBufferAttrNames = {
         "POSITION",
         "NORMAL",
@@ -113,8 +113,8 @@ private:
         "ENV_STRENGTH",
     };
 
-    uint32_t                 mCurrentIBLIndex = UINT32_MAX;
-    uint32_t                 mTargetIBLIndex  = 0;
+    uint32_t           mCurrentIBLIndex = UINT32_MAX;
+    uint32_t           mTargetIBLIndex  = 0;
     std::vector<const char*> mIBLNames        = {
         "GoldenHour",
         "PaperMill",
@@ -960,7 +960,7 @@ void ProjApp::UpdateEnvDescriptors()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

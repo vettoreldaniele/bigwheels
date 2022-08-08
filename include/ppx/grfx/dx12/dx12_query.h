@@ -25,12 +25,12 @@ public:
 protected:
     virtual Result CreateApiObjects(const grfx::QueryCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
-    uint32_t       GetQueryTypeSize(D3D12_QUERY_HEAP_TYPE type) const;
+    uint32_t GetQueryTypeSize(D3D12_QUERY_HEAP_TYPE type) const;
 
-private:
-    D3D12QueryHeapPtr mHeap;
-    D3D12_QUERY_TYPE  mQueryType;
-    grfx::BufferPtr   mBuffer;
+private :
+    D3D12QueryHeapPtr   mHeap;
+    D3D12_QUERY_TYPE    mQueryType;
+    grfx::BufferPtr     mBuffer;
 };
 
 } // namespace dx12

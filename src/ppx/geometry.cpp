@@ -458,22 +458,22 @@ Result Geometry::Create(
                     PPX_ASSERT_MSG(false, "failed getting triangle indices at edgeIndex=" << edgeIndex);
                     return ppxres;
                 }
-
+            
                 // First vertex
                 WireMeshVertexData vertexData0 = {};
-                ppxres                         = mesh.GetVertexData(vtxIndex0, &vertexData0);
+                ppxres                        = mesh.GetVertexData(vtxIndex0, &vertexData0);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex0=" << vtxIndex0);
                     return ppxres;
                 }
                 // Second vertex
                 WireMeshVertexData vertexData1 = {};
-                ppxres                         = mesh.GetVertexData(vtxIndex1, &vertexData1);
+                ppxres                        = mesh.GetVertexData(vtxIndex1, &vertexData1);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex1=" << vtxIndex1);
                     return ppxres;
                 }
-
+            
                 pGeometry->AppendVertexData(vertexData0);
                 pGeometry->AppendVertexData(vertexData1);
             }
@@ -484,7 +484,7 @@ Result Geometry::Create(
             uint32_t vertexCount = mesh.GetCountPositions();
             for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
                 WireMeshVertexData vertexData = {};
-                ppxres                        = mesh.GetVertexData(vertexIndex, &vertexData);
+                ppxres                       = mesh.GetVertexData(vertexIndex, &vertexData);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vertexIndex=" << vertexIndex);
                     return ppxres;
@@ -516,7 +516,7 @@ Result Geometry::Create(
             uint32_t vertexCount = mesh.GetCountPositions();
             for (uint32_t vertexIndex = 0; vertexIndex < vertexCount; ++vertexIndex) {
                 WireMeshVertexData vertexData = {};
-                ppxres                        = mesh.GetVertexData(vertexIndex, &vertexData);
+                ppxres                       = mesh.GetVertexData(vertexIndex, &vertexData);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vertexIndex=" << vertexIndex);
                     return ppxres;
@@ -534,14 +534,14 @@ Result Geometry::Create(
 
                 // First vertex
                 WireMeshVertexData vertexData0 = {};
-                ppxres                         = mesh.GetVertexData(vtxIndex0, &vertexData0);
+                ppxres                        = mesh.GetVertexData(vtxIndex0, &vertexData0);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex0=" << vtxIndex0);
                     return ppxres;
                 }
                 // Second vertex
                 WireMeshVertexData vertexData1 = {};
-                ppxres                         = mesh.GetVertexData(vtxIndex1, &vertexData1);
+                ppxres                        = mesh.GetVertexData(vtxIndex1, &vertexData1);
                 if (Failed(ppxres)) {
                     PPX_ASSERT_MSG(false, "failed getting vertex data at vtxIndex1=" << vtxIndex1);
                     return ppxres;

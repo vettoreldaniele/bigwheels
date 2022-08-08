@@ -14,6 +14,7 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
+
 class ProjApp
     : public ppx::Application
 {
@@ -111,7 +112,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "TextDraw", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "TextDraw.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "TextDraw.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -143,7 +144,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -199,8 +200,8 @@ void ProjApp::Render()
             //DrawDebugInfo();
 #if defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
             DrawProfilerGrfxApiFunctions();
-#endif // defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS) \
-    //DrawImGui(frame.cmd);
+#endif // defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
+            //DrawImGui(frame.cmd);
         }
         frame.cmd->EndRenderPass();
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);

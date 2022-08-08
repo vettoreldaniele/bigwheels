@@ -6,7 +6,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx11 {
+namespace dx11{
 
 class Instance
     : public grfx::Instance
@@ -15,17 +15,11 @@ public:
     Instance() {}
     virtual ~Instance() {}
 
-#if !defined(PPX_DXVK)
-    typename DXGIDebugPtr::InterfaceType* GetDxgiDebug() const
-    {
-        return mDXGIDebug.Get();
-    }
+#if ! defined(PPX_DXVK)
+    typename DXGIDebugPtr::InterfaceType*   GetDxgiDebug() const { return mDXGIDebug.Get(); }
 #endif // ! defined(PPX_DXVK
 
-    typename DXGIFactoryPtr::InterfaceType* GetDxFactory() const
-    {
-        return mFactory.Get();
-    }
+    typename DXGIFactoryPtr::InterfaceType* GetDxFactory() const { return mFactory.Get(); }
 
 protected:
     virtual Result AllocateObject(grfx::Device** ppDevice) override;
@@ -40,12 +34,12 @@ private:
     Result EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel, bool enableDebug);
 
 private:
-#if !defined(PPX_DXVK)
+#if ! defined(PPX_DXVK)
     DXGIDebugPtr     mDXGIDebug;
     DXGIInfoQueuePtr mDXGIInfoQueue;
 #endif // ! defined(PPX_DXVK
 
-    DXGIFactoryPtr mFactory;
+    DXGIFactoryPtr   mFactory;
 };
 
 } // namespace dx11

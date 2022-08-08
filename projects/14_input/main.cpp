@@ -112,7 +112,7 @@ void ProjApp::MouseUp(int32_t x, int32_t y, uint32_t buttons)
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

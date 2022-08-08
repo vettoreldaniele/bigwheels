@@ -49,7 +49,7 @@ void Queue::DestroyApiObjects()
 Result Queue::WaitIdle()
 {
     dx12::Fence* pFence = ToApi(mWaitIdleFence.Get());
-    UINT64       value  = pFence->GetNextSignalValue();
+    UINT64     value  = pFence->GetNextSignalValue();
     mCommandQueue->Signal(pFence->GetDxFence(), value);
     Result ppxres = pFence->Wait();
     if (Failed(ppxres)) {
@@ -94,8 +94,8 @@ Result Queue::Submit(const grfx::SubmitInfo* pSubmitInfo)
 
     if (!IsNull(pSubmitInfo->pFence)) {
         dx12::Fence* pFence = ToApi(pSubmitInfo->pFence);
-        UINT64       value  = pFence->GetNextSignalValue();
-        HRESULT      hr     = mCommandQueue->Signal(pFence->GetDxFence(), value);
+        UINT64 value = pFence->GetNextSignalValue();
+        HRESULT hr = mCommandQueue->Signal(pFence->GetDxFence(), value);
         if (FAILED(hr)) {
             PPX_ASSERT_MSG(false, "ID3D12CommandQueue::Signal failed");
             return ppx::ERROR_API_FAILURE;

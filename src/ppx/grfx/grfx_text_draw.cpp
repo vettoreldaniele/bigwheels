@@ -45,7 +45,7 @@ Result TextureFont::CreateApiObjects(const grfx::TextureFontCreateInfo* pCreateI
     // Get glyph metrics and max bounds
     utf8::iterator<std::string::iterator> it(characters.begin(), characters.begin(), characters.end());
     utf8::iterator<std::string::iterator> it_end(characters.end(), characters.begin(), characters.end());
-    bool                                  hasSpace = false;
+    bool           hasSpace = false;
     while (it != it_end) {
         const uint32_t codepoint = utf8::next(it, it_end);
         GlyphMetrics   metrics   = {};
@@ -486,11 +486,11 @@ void TextDraw::AddString(
 
     utf8::iterator<std::string::const_iterator> it(string.begin(), string.begin(), string.end());
     utf8::iterator<std::string::const_iterator> it_end(string.end(), string.begin(), string.end());
-    float2                                      baseline = position;
-    float                                       ascent   = mCreateInfo.pFont->GetAscent();
-    float                                       descent  = mCreateInfo.pFont->GetDescent();
-    float                                       lineGap  = mCreateInfo.pFont->GetLineGap();
-    lineSpacing                                          = lineSpacing * (ascent - descent + lineGap);
+    float2         baseline = position;
+    float          ascent   = mCreateInfo.pFont->GetAscent();
+    float          descent  = mCreateInfo.pFont->GetDescent();
+    float          lineGap  = mCreateInfo.pFont->GetLineGap();
+    lineSpacing             = lineSpacing * (ascent - descent + lineGap);
 
     while (it != it_end) {
         uint32_t codepoint = utf8::next(it, it_end);

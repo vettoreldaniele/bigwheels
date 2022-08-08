@@ -8,7 +8,7 @@ namespace dx11 {
 Result ShaderModule::CreateApiObjects(const grfx::ShaderModuleCreateInfo* pCreateInfo)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo->pCode);
-    if (IsNull(pCreateInfo->pCode) || (pCreateInfo->size == 0)) {
+    if (IsNull(pCreateInfo->pCode) || (pCreateInfo->size ==0)) {
         return ppx::ERROR_INVALID_CREATE_ARGUMENT;
     }
 

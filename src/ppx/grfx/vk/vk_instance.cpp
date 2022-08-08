@@ -17,7 +17,7 @@ static VkBool32 VKAPI_PTR DebugUtilsMessengerCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void*                                       pUserData)
 {
-    // Ignore these messages because they're nonsense
+    // Ignore these messages because they're nonsense 
     // clang-format off
     if (
         (pCallbackData->messageIdNumber == 0x3d492883) // vkCreateShaderModule(): The SPIR-V Extension (SPV_GOOGLE_hlsl_functionality1) was declared, but none of the requirements were met to use it. The Vulkan spec states: If pCode declares any of the SPIR-V extensions listed in the SPIR-V Environment appendix, one of the corresponding requirements must be satisfied
@@ -254,12 +254,9 @@ Result Instance::EnumerateAndCreateeGpus()
                     PPX_ASSERT_MSG(false, "Failed creating GPU object using " << deviceProperties.deviceName);
                     return ppxres;
                 }
-                PPX_LOG_INFO("   "
-                             << "graphics queue count : " << tmpGpu->GetGraphicsQueueCount());
-                PPX_LOG_INFO("   "
-                             << "compute  queue count : " << tmpGpu->GetComputeQueueCount());
-                PPX_LOG_INFO("   "
-                             << "transfer queue count : " << tmpGpu->GetTransferQueueCount());
+                PPX_LOG_INFO("   " << "graphics queue count : " << tmpGpu->GetGraphicsQueueCount());
+                PPX_LOG_INFO("   " << "compute  queue count : " << tmpGpu->GetComputeQueueCount());
+                PPX_LOG_INFO("   " << "transfer queue count : " << tmpGpu->GetTransferQueueCount());
             }
         }
     }

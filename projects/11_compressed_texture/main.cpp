@@ -183,7 +183,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Texture", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -306,7 +306,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -321,9 +321,9 @@ void ProjApp::Render()
 
     // Update uniform buffers.
     for (auto& shape : mShapes) {
-        float    t   = GetElapsedSeconds();
-        float4x4 P   = glm::perspective(glm::radians(60.0f), GetWindowAspect(), 0.001f, 10000.0f);
-        float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
+        float    t = GetElapsedSeconds();
+        float4x4 P = glm::perspective(glm::radians(60.0f), GetWindowAspect(), 0.001f, 10000.0f);
+        float4x4 V = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
         float4x4 T   = glm::translate(float3(shape.homeLoc[0], shape.homeLoc[1], -5 + sin(shape.id * t / 2))); // * sin(t / 2)));
         float4x4 R   = glm::rotate(shape.id + t, float3(shape.id * t, 0, 0)) * glm::rotate(shape.id + t / 4, float3(0, shape.id * t, 0)) * glm::rotate(shape.id + t / 4, float3(0, 0, shape.id * t));
         float4x4 M   = T * R;

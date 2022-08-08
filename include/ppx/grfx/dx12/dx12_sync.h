@@ -30,7 +30,7 @@ protected:
 private:
     D3D12FencePtr mFence;
     HANDLE        mFenceEventHandle = nullptr;
-    UINT64        mValue            = 0;
+    UINT64        mValue = 0;
 };
 
 // -------------------------------------------------------------------------------------------------

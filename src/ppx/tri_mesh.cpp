@@ -1084,7 +1084,7 @@ Result TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& option
     //    size_t numBitangents = mesh.mBitangents.size();
     //    PPX_ASSERT_MSG(numPositions == numNormals == numTangents == numBitangents, "misaligned data for tangent calculation");
     //
-    //    for (size_t i = 0; i < numPositions; ++i) {
+//    for (size_t i = 0; i < numPositions; ++i) {
     //        const float3& T = mesh.mTangents[i];
     //        const float3& B = mesh.mBitangents[i];
     //    }
@@ -1099,7 +1099,7 @@ Result TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& option
 
 TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& options)
 {
-    TriMesh mesh;
+    TriMesh     mesh;
     PPX_CHECKED_CALL(CreateFromOBJ(path, options, &mesh));
     return mesh;
 }

@@ -88,7 +88,7 @@ Result Image::Create(const grfx::ImageCreateInfo* pCreateInfo)
     if (Failed(ppxres)) {
         return ppxres;
     }
-
+    
     return ppx::SUCCESS;
 }
 

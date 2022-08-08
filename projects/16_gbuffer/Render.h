@@ -30,7 +30,7 @@
 #define GBUFFER_IBL_REGISTER 21 // DeferredLight only
 
 // s#
-#define GBUFFER_SAMPLER_REGISTER 6 // DeferredLight only
+#define GBUFFER_SAMPLER_REGISTER 6  // DeferredLight only
 
 // GBuffer Attributes
 #define GBUFFER_POSITION     0

@@ -17,12 +17,12 @@ Result RenderPass::CreateRenderPass(const grfx::internal::RenderPassCreateInfo* 
 
     // Determine layout for depth/stencil
     {
-        // These variables are not used for anything meaningful
+        // These variables are not used for anything meaningful 
         // in ToVkBarrierDst so they can be all zeroes.
         //
         VkPhysicalDeviceFeatures features   = {};
-        VkPipelineStageFlags     stageMask  = 0;
-        VkAccessFlags            accessMask = 0;
+        VkPipelineStageFlags     stageMask  = 0; 
+        VkAccessFlags            accessMask = 0; 
 
         Result ppxres = ToVkBarrierDst(pCreateInfo->depthStencilState, features, stageMask, accessMask, depthStencillayout);
         if (Failed(ppxres)) {

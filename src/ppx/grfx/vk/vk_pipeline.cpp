@@ -351,7 +351,7 @@ Result GraphicsPipeline::InitializeDynamicState(
 {
     // NOTE: Since D3D12 doesn't have line width other than 1.0, dynamic
     //       line width is not supported.
-    //
+    // 
     dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
     dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
     //dynamicStates.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
@@ -519,7 +519,7 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
         vkDestroyRenderPass(
             ToApi(GetDevice())->GetVkDevice(),
             renderPass,
-            nullptr);
+            nullptr);        
     }
     // Process result
     if (vkres != VK_SUCCESS) {

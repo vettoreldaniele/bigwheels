@@ -115,7 +115,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "FullScreenTriangle", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         // Create PS
@@ -313,7 +313,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

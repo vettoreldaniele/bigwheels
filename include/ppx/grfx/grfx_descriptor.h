@@ -37,15 +37,15 @@ struct DescriptorBinding
 
 struct WriteDescriptor
 {
-    uint32_t               binding                = PPX_VALUE_IGNORED;
-    uint32_t               arrayIndex             = 0;
-    grfx::DescriptorType   type                   = grfx::DESCRIPTOR_TYPE_UNDEFINED;
-    uint64_t               bufferOffset           = 0;
-    uint64_t               bufferRange            = 0;
-    uint32_t               structuredElementCount = 0;
-    const grfx::Buffer*    pBuffer                = nullptr;
-    const grfx::ImageView* pImageView             = nullptr;
-    const grfx::Sampler*   pSampler               = nullptr;
+    uint32_t               binding                 = PPX_VALUE_IGNORED;
+    uint32_t               arrayIndex              = 0;
+    grfx::DescriptorType   type                    = grfx::DESCRIPTOR_TYPE_UNDEFINED;
+    uint64_t               bufferOffset            = 0;
+    uint64_t               bufferRange             = 0;
+    uint32_t               structuredElementCount  = 0;
+    const grfx::Buffer*    pBuffer                 = nullptr;
+    const grfx::ImageView* pImageView              = nullptr;
+    const grfx::Sampler*   pSampler                = nullptr;
 };
 
 // -------------------------------------------------------------------------------------------------

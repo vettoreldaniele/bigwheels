@@ -16,10 +16,10 @@ cbuffer Flocking : register(RENDER_FLOCKING_DATA_REGISTER)
 Texture2D<float4> PrevPositionTex : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER);
 Texture2D<float4> CurrPositionTex : register(RENDER_CURRENT_POSITION_TEXTURE_REGISTER);
 Texture2D<float4> CurrVelocityTex : register(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER);
-#else  // --- D3D12 / Vulkan ----------------------------------------------------
-ConstantBuffer<SceneData>    Scene : register(RENDER_SCENE_DATA_REGISTER, SCENE_SPACE);
-ConstantBuffer<ModelData>    Model : register(RENDER_MODEL_DATA_REGISTER, MODEL_SPACE);
-ConstantBuffer<FlockingData> Flocking : register(RENDER_FLOCKING_DATA_REGISTER, FLOCKING_SPACE);
+#else // --- D3D12 / Vulkan ----------------------------------------------------
+ConstantBuffer<SceneData>    Scene           : register(RENDER_SCENE_DATA_REGISTER, SCENE_SPACE);
+ConstantBuffer<ModelData>    Model           : register(RENDER_MODEL_DATA_REGISTER, MODEL_SPACE);
+ConstantBuffer<FlockingData> Flocking        : register(RENDER_FLOCKING_DATA_REGISTER, FLOCKING_SPACE);
 Texture2D<float4>            PrevPositionTex : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, FLOCKING_SPACE);
 Texture2D<float4>            CurrPositionTex : register(RENDER_CURRENT_POSITION_TEXTURE_REGISTER, FLOCKING_SPACE);
 Texture2D<float4>            CurrVelocityTex : register(RENDER_CURRENT_VELOCITY_TEXTURE_REGISTER, FLOCKING_SPACE);
@@ -37,50 +37,49 @@ float getSinVal(float z, float randPer)
 
 // -------------------------------------------------------------------------------------------------
 
-float4 vsmain(float4 position
-              : POSITION, uint instanceId
-              : SV_InstanceID)
-    : SV_POSITION
+float4 vsmain(float4 position : POSITION, uint instanceId : SV_InstanceID) : SV_POSITION
 {
     // Texture data
-    uint2  xy      = uint2((instanceId % Flocking.resX), (instanceId / Flocking.resY));
-    float4 prevPos = PrevPositionTex[xy];
-    float4 currPos = CurrPositionTex[xy];
-    float4 currVel = CurrVelocityTex[xy];
-    float  leader  = currPos.a;
+    uint2  xy        = uint2((instanceId % Flocking.resX), (instanceId / Flocking.resY));
+    float4 prevPos   = PrevPositionTex[xy];
+    float4 currPos   = CurrPositionTex[xy];
+    float4 currVel   = CurrVelocityTex[xy];
+    float  leader    = currPos.a;
 
-    float currZ   = position.z;
-    float prevZ   = currZ - 1.0;
+    float currZ = position.z;
+    float prevZ = currZ - 1.0;
     float currVal = getSinVal(currZ * 0.2, leader + float(instanceId));
     float prevVal = getSinVal(prevZ * 0.2, leader + float(instanceId));
 
-    float3   currCenter = float3(currVal, 0.0, currZ);
-    float3   prevCenter = float3(prevVal, 0.0, prevZ);
-    float3   pathDir    = normalize(currCenter - prevCenter);
-    float3   pathUp     = float3(0.0, 1.0, 0.0);
-    float3   pathNormal = normalize(cross(pathUp, pathDir));
-    float3x3 basis      = float3x3(pathNormal, pathUp, pathDir);
+    float3 currCenter = float3(currVal, 0.0, currZ);
+    float3 prevCenter = float3(prevVal, 0.0, prevZ);
+    float3 pathDir    = normalize(currCenter - prevCenter);
+    float3 pathUp     = float3(0.0, 1.0, 0.0);
+    float3 pathNormal = normalize(cross(pathUp, pathDir));
+    float3x3 basis    = float3x3(pathNormal, pathUp, pathDir);
 
     float3 spoke   = float3(position.xy, 0.0);
     float3 vertPos = currCenter + mul(basis, spoke);
 
     // Calculate matrix
-    float3 worldUp = float3(0, 1, 0);
-    //float3   dir     = normalize(currPos.xyz - prevPos.xyz);
-    float3   dir   = normalize(currVel.xyz);
-    float3   right = normalize(cross(dir, worldUp));
-    float3   up    = normalize(cross(right, dir));
-    float3x3 m     = float3x3(right, up, dir);
+    float3   worldUp = float3(0, 1, 0);
+    //float3   dir     = normalize(currPos.xyz - prevPos.xyz); 
+    float3   dir     = normalize(currVel.xyz);
+    float3   right   = normalize(cross(dir, worldUp));
+    float3   up      = normalize(cross(right, dir));
+    float3x3 m       = float3x3(right, up, dir);
 
     // Set final vertex
     vertPos = mul(m, vertPos);
     vertPos.xyz += currPos.xyz;
-
+   
     // NOTE: modelMatrix is an identity matrix for flocking
     //
     float4x4 mvpMatrix = mul(Scene.shadowViewProjectionMatrix, Model.modelMatrix);
-
+    
     float4 result = (float4)0;
-    result        = mul(mvpMatrix, float4(vertPos, 1.0));
+    result = mul(mvpMatrix, float4(vertPos, 1.0));
     return result;
 }
+
+

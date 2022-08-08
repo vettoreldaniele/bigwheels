@@ -94,7 +94,8 @@ void ProjApp::Setup()
         //std::vector<std::string> textureFiles = {"box_panel.jpg", "statue.jpg"};
         for (uint32_t i = 0; i < 2; ++i) {
             grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
-            PPX_CHECKED_CALL(grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/statue.jpg"), &mImage[i], options, i == 1));
+            PPX_CHECKED_CALL(grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/statue.jpg"), 
+                &mImage[i], options, i == 1));
 
             grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage[i]);
             PPX_CHECKED_CALL(GetDevice()->CreateSampledImageView(&viewCreateInfo, &mSampledImageView[i]));
@@ -252,7 +253,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame  = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -275,8 +276,8 @@ void ProjApp::Render()
     };
     {
         InputData uniBuffer;
-        float4x4  M        = glm::translate(float3(-1.05, 0, 0));
-        uniBuffer.M        = P * V * M;
+        float4x4 M   = glm::translate(float3(-1.05, 0, 0));
+        uniBuffer.M  = P * V * M;
         uniBuffer.mipLevel = mLevelLeft;
 
         void* pData = nullptr;
@@ -288,8 +289,8 @@ void ProjApp::Render()
     // Update uniform buffer
     {
         InputData uniBuffer;
-        float4x4  M        = glm::translate(float3(1.05, 0, 0));
-        uniBuffer.M        = P * V * M;
+        float4x4 M  = glm::translate(float3(1.05, 0, 0));
+        uniBuffer.M = P * V * M;
         uniBuffer.mipLevel = mLevelRight;
 
         void* pData = nullptr;
@@ -358,11 +359,11 @@ void ProjApp::DrawGui()
     ImGui::Text("Right generated in:");
     ImGui::SameLine();
     ImGui::TextColored(lightBlue, mRightInGpu ? "GPU" : "CPU");
-
+  
     ImGui::Text("Mip Map Level");
     ImGui::SliderInt("Left", &mLevelLeft, 0, mMaxLevelLeft);
     ImGui::SliderInt("Right", &mLevelRight, 0, mMaxLevelRight);
-
+    
     static const char* currentFilter = mFilterNames[0];
 
     if (ImGui::BeginCombo("Filter", currentFilter)) {
