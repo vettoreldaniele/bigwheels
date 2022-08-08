@@ -15,15 +15,15 @@ cbuffer Transform : register(b0)
 ConstantBuffer<TransformData> Transform : register(b0);
 #endif // defined(PPX_D3D11)
 
-struct VSOutput {
-	float4 Position : SV_POSITION;
+struct VSOutput
+{
+    float4 Position : SV_POSITION;
 };
 
-VSOutput vsmain(float4 Position : POSITION)
+VSOutput vsmain(float4 Position
+                : POSITION)
 {
-	VSOutput result;
-	result.Position = mul(Transform.ModelViewProjectionMatrix, Position);
-	return result;
+    VSOutput result;
+    result.Position = mul(Transform.ModelViewProjectionMatrix, Position);
+    return result;
 }
-
-

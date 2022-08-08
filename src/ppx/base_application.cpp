@@ -22,7 +22,7 @@ uint32_t BaseApplication::GetProcessId() const
 #if defined(PPX_LINUX) || defined(PPX_GGP)
     pid = static_cast<uint32_t>(getpid());
 #elif defined(PPX_MSW)
-    pid = static_cast<uint32_t>(::GetCurrentProcessId());
+    pid                       = static_cast<uint32_t>(::GetCurrentProcessId());
 #endif
     return pid;
 }
@@ -37,7 +37,7 @@ fs::path BaseApplication::GetApplicationPath() const
     path = fs::path(buf);
 #elif defined(PPX_MSW)
     HMODULE this_win32_module = GetModuleHandleA(nullptr);
-    char buf[MAX_PATH];
+    char    buf[MAX_PATH];
     std::memset(buf, 0, MAX_PATH);
     GetModuleFileNameA(this_win32_module, buf, MAX_PATH);
     path = fs::path(buf);
@@ -81,6 +81,5 @@ fs::path BaseApplication::GetAssetPath(const fs::path& subPath) const
     }
     return assetPath;
 }
-
 
 } // namespace ppx

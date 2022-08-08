@@ -49,12 +49,12 @@ float getSinVal(float z)
 // -------------------------------------------------------------------------------------------------
 
 VSOutput vsmain(VSInput input)
-{   
+{
     float3x3 normalMatrix = (float3x3)Model.modelMatrix;
-    
+
     float4 positionWS = mul(Model.modelMatrix, float4(input.position, 1.0));
-    float4 positionVS = mul(Scene.viewMatrix, positionWS);   
-    
+    float4 positionVS = mul(Scene.viewMatrix, positionWS);
+
     VSOutput result    = (VSOutput)0;
     result.position    = mul(Scene.projectionMatrix, positionVS);
     result.positionWS  = positionWS.xyz;
@@ -72,40 +72,39 @@ VSOutput vsmain(VSInput input)
 
 // -------------------------------------------------------------------------------------------------
 
-float4 psmain(VSOutput input) : SV_TARGET
+float4 psmain(VSOutput input)
+    : SV_TARGET
 {
-    float3 P  = input.positionWS.xyz;
-    float3 N  = normalize(input.normal);
-    float3 V  = normalize(Scene.eyePosition.xyz - input.positionWS);
-    
+    float3 P = input.positionWS.xyz;
+    float3 N = normalize(input.normal);
+    float3 V = normalize(Scene.eyePosition.xyz - input.positionWS);
+
     float3   nTS = normalize(input.normalTS);
     float3   tTS = normalize(input.tangentTS);
     float3   bTS = normalize(input.bitangnetTS);
-    float3x3 TBN = float3x3(tTS.x, bTS.x, nTS.x,
-                            tTS.y, bTS.y, nTS.y,
-                            tTS.z, bTS.z, nTS.z);
-    N = (NormalMapTexture.Sample(RepeatSampler, input.texCoord).rgb * 2.0f) - 1.0;
-    N = mul(TBN, N);
-    N = normalize(N);
+    float3x3 TBN = float3x3(tTS.x, bTS.x, nTS.x, tTS.y, bTS.y, nTS.y, tTS.z, bTS.z, nTS.z);
+    N            = (NormalMapTexture.Sample(RepeatSampler, input.texCoord).rgb * 2.0f) - 1.0;
+    N            = mul(TBN, N);
+    N            = normalize(N);
 
-    float3 Lp = Scene.lightPosition; 
-    float3 L =  normalize(Lp - P);
-    
+    float3 Lp = Scene.lightPosition;
+    float3 L  = normalize(Lp - P);
+
     float roughness = RoughnessTexture.Sample(RepeatSampler, input.texCoord).r;
     float hardness  = lerp(1.0, 100.0, 1.0 - saturate(roughness));
-    
-    float  diffuse  = lerp(0.8, 1.0, Lambert(N, L));
-    float  specular = 0.25 * BlinnPhong(N, L, V, roughness);
-    
+
+    float diffuse  = lerp(0.8, 1.0, Lambert(N, L));
+    float specular = 0.25 * BlinnPhong(N, L, V, roughness);
+
     float2 tc       = input.positionWS.xz / 25.0;
     float3 caustics = 1.25 * CalculateCaustics(Scene.time, tc, CausticsTexture, RepeatSampler);
-    
-    float  shadow   = CalculateShadow(input.positionLS, Scene.shadowTextureDim, ShadowTexture, ShadowSampler, Scene.usePCF);
-    
+
+    float shadow = CalculateShadow(input.positionLS, Scene.shadowTextureDim, ShadowTexture, ShadowSampler, Scene.usePCF);
+
     float3 color = AlbedoTexture.Sample(RepeatSampler, input.texCoord).rgb;
-    color = color * ((float3)(diffuse + specular) * shadow + Scene.ambient + caustics);
-    
-    color = lerp(Scene.fogColor, color, input.fogAmount);    
-    
+    color        = color * ((float3)(diffuse + specular) * shadow + Scene.ambient + caustics);
+
+    color = lerp(Scene.fogColor, color, input.fogAmount);
+
     return float4(color, 1);
 }

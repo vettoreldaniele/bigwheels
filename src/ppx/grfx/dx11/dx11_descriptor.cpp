@@ -233,8 +233,8 @@ Result DescriptorSet::UpdateDescriptors(uint32_t writeCount, const grfx::WriteDe
                     return ppx::ERROR_GRFX_INVALID_DESCRIPTOR_TYPE;
                 }
 
-                typename D3D11ShaderResourceViewPtr::InterfaceType* pSRV = nullptr;
-                Result ppxres = ToApi(GetDevice())->GetStructuredBufferSRV(write.pBuffer, write.structuredElementCount, &pSRV);
+                typename D3D11ShaderResourceViewPtr::InterfaceType* pSRV   = nullptr;
+                Result                                              ppxres = ToApi(GetDevice())->GetStructuredBufferSRV(write.pBuffer, write.structuredElementCount, &pSRV);
                 if (Failed(ppxres)) {
                     return ppxres;
                 }

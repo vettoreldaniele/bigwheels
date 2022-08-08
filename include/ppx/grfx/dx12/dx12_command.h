@@ -164,7 +164,7 @@ public:
     virtual ~CommandPool() {}
 
     //typename D3D12CommandAllocatorPtr::InterfaceType* GetDxCommandAllocator() const { return mCommandAllocator.Get(); }
-    D3D12_COMMAND_LIST_TYPE                           GetDxCommandType() const { return mCommandType; }
+    D3D12_COMMAND_LIST_TYPE GetDxCommandType() const { return mCommandType; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::CommandPoolCreateInfo* pCreateInfo) override;
@@ -172,7 +172,7 @@ protected:
 
 private:
     //D3D12CommandAllocatorPtr mCommandAllocator;
-    D3D12_COMMAND_LIST_TYPE  mCommandType = ppx::InvalidValue<D3D12_COMMAND_LIST_TYPE>();
+    D3D12_COMMAND_LIST_TYPE mCommandType = ppx::InvalidValue<D3D12_COMMAND_LIST_TYPE>();
 };
 
 } // namespace dx12

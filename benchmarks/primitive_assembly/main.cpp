@@ -277,7 +277,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame  = mPerFrame[0];
+    PerFrame& frame = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

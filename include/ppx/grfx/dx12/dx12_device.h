@@ -86,8 +86,8 @@ private:
     D3D12DevicePtr             mDevice;
     ObjPtr<D3D12MA::Allocator> mAllocator;
 
-    UINT                        mHandleIncrementSizeCBVSRVUAV = 0;
-    UINT                        mHandleIncrementSizeSampler   = 0;
+    UINT                          mHandleIncrementSizeCBVSRVUAV = 0;
+    UINT                          mHandleIncrementSizeSampler   = 0;
     dx12::DescriptorHandleManager mRTVHandleManager;
     dx12::DescriptorHandleManager mDSVHandleManager;
 

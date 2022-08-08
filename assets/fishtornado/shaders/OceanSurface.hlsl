@@ -72,14 +72,15 @@ VSOutput vsmain(VSInput input)
 
 static const float3 SURFACE_COL = float3(159.0, 224.0, 230.0) / 255.0;
 
-float4 psmain(VSOutput input) : SV_TARGET
+float4 psmain(VSOutput input)
+    : SV_TARGET
 {
     // NOTE: This math makes no attempt to be physical accurate :)
-    // 
+    //
     float3 P  = input.positionWS.xyz;
     float3 V  = normalize(Scene.eyePosition.xyz - input.positionWS);
     float3 Lp = Scene.lightPosition;
-    float3 L =  normalize(Lp - P);
+    float3 L  = normalize(Lp - P);
 
     float  t  = 0.008 * Scene.time;
     float3 N1 = NormalMapTexture.Sample(RepeatSampler, input.texCoord * 0.50 - t * 0.07).rbg * 2.0 - 1.0;
@@ -90,9 +91,9 @@ float4 psmain(VSOutput input) : SV_TARGET
     float specular = Phong(N, L, V, 10.0);
     float diffuse  = saturate(dot(N, L));
     float rim      = pow(1.0 - diffuse, 10.0);
-   
+
     float3 color = (specular * 5.0 + pow(diffuse, 10.0) + rim * 10.0 * SURFACE_COL) * 4.0; //(specular * 0.8 + pow(diffuse, 10.0) + rim * 5.0 * SURFACE_COL) * 2.0;
-    color = lerp(Scene.fogColor, color, input.fogAmount);
+    color        = lerp(Scene.fogColor, color, input.fogAmount);
 
     return float4(color, 1);
 }

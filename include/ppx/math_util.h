@@ -36,7 +36,7 @@ inline float3 SphericalTangent(float theta, float phi)
     return float3(
         sin(theta), // x
         0,          // y
-       -cos(theta)  // z
+        -cos(theta) // z
     );
 }
 

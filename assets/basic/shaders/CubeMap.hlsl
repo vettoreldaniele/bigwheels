@@ -1,4 +1,4 @@
-// 
+//
 // Use DX for Vulkan:
 //   dxc -spirv -fvk-use-dx-layout -T vs_6_0 -E vsmain -Fo CubeMap.vs.spv CubeMap.hlsl
 //   dxc -spirv -fvk-use-dx-layout -T ps_6_0 -E psmain -Fo CubeMap.ps.spv CubeMap.hlsl
@@ -23,26 +23,29 @@ cbuffer Transform : register(b0)
 ConstantBuffer<TransformData> Transform : register(b0);
 #endif // defined(PPX_D3D11)
 
+TextureCube  Tex0 : register(t1);
+SamplerState Sampler0 : register(s2);
 
-TextureCube                   Tex0      : register(t1);
-SamplerState                  Sampler0  : register(s2);
-
-struct VSOutput {
-	float4 Position   : SV_POSITION;
-	float3 PositionWS : POSITIONWS;
-    float3 NormalWS   : NORMALWS;
+struct VSOutput
+{
+    float4 Position : SV_POSITION;
+    float3 PositionWS : POSITIONWS;
+    float3 NormalWS : NORMALWS;
 };
 
-VSOutput vsmain(float4 Position : POSITION, float3 Normal : NORMAL)
+VSOutput vsmain(float4 Position
+                : POSITION, float3 Normal
+                : NORMAL)
 {
-	VSOutput result;
-	result.Position = mul(Transform.MVPMatrix, Position);
+    VSOutput result;
+    result.Position   = mul(Transform.MVPMatrix, Position);
     result.PositionWS = mul(Transform.ModelMatrix, Position).xyz;
-    result.NormalWS = mul(Transform.NormalMatrix, Normal);
-	return result;
+    result.NormalWS   = mul(Transform.NormalMatrix, Normal);
+    return result;
 }
 
-float4 psmain(VSOutput input) : SV_TARGET
+float4 psmain(VSOutput input)
+    : SV_TARGET
 {
     float3 N = normalize(input.NormalWS);
     float3 I = normalize(input.PositionWS - Transform.EyePos);

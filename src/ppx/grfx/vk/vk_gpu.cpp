@@ -45,7 +45,6 @@ uint32_t Gpu::GetQueueFamilyCount() const
 {
     uint32_t count = CountU32(mQueueFamilies);
     return count;
-
 }
 
 uint32_t Gpu::GetGraphicsQueueFamilyIndex() const

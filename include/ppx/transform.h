@@ -56,9 +56,9 @@ protected:
         };
     } mDirty;
 
-    float3           mTranslation    = float3(0, 0, 0);
-    float3           mRotation       = float3(0, 0, 0);
-    float3           mScale          = float3(1, 1, 1);
+    float3           mTranslation   = float3(0, 0, 0);
+    float3           mRotation      = float3(0, 0, 0);
+    float3           mScale         = float3(1, 1, 1);
     RotationOrder    mRotationOrder = RotationOrder::XYZ;
     mutable float4x4 mTranslationMatrix;
     mutable float4x4 mRotationMatrix;

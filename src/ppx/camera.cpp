@@ -8,7 +8,7 @@ namespace ppx {
 Camera::Camera(bool pixelAligned)
     : mPixelAligned(pixelAligned)
 {
-    LookAt(PPX_CAMERA_DEFAULT_EYE_POSITION, PPX_CAMERA_DEFAULT_LOOK_AT, PPX_CAMERA_DEFAULT_WORLD_UP);    
+    LookAt(PPX_CAMERA_DEFAULT_EYE_POSITION, PPX_CAMERA_DEFAULT_LOOK_AT, PPX_CAMERA_DEFAULT_WORLD_UP);
 }
 
 Camera::Camera(float nearClip, float farClip, bool pixelAligned)

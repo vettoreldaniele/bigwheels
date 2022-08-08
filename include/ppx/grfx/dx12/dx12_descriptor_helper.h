@@ -3,7 +3,7 @@
 
 // *** Graphics API Note ***
 //
-// In D3D12 it isn't explicity required to allocate unique CPU handles for 
+// In D3D12 it isn't explicity required to allocate unique CPU handles for
 // descriptors ahead of time. Applications are free to reuse heaps at will
 // and recycle handle offsets. But because we are aligning  D3D12 to Vulkan,
 // certain descriptor types, such as RTV and DSV, need an explicit handle
@@ -91,7 +91,7 @@ public:
     bool   HasHandle(const DescriptorHandle& handle) const;
 
 private:
-    dx12::Device*                             mDevice = nullptr;
+    dx12::Device*                           mDevice = nullptr;
     D3D12_DESCRIPTOR_HEAP_TYPE              mType   = InvalidValue<D3D12_DESCRIPTOR_HEAP_TYPE>();
     std::vector<DescriptorHandleAllocator*> mAllocators;
 };

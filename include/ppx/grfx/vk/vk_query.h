@@ -29,10 +29,10 @@ protected:
     VkQueryType    GetQueryType() const { return mType; }
 
 private:
-    VkQueryPoolPtr      mQueryPool;
-    VkQueryType         mType;
-    grfx::BufferPtr     mBuffer;
-    uint32_t            mMultiplier;
+    VkQueryPoolPtr  mQueryPool;
+    VkQueryType     mType;
+    grfx::BufferPtr mBuffer;
+    uint32_t        mMultiplier;
 };
 
 } // namespace vk

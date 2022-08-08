@@ -26,50 +26,50 @@ void Surface::DestroyApiObjects()
 {
 }
 
-uint32_t Surface::GetMinImageWidth() const 
-{ 
+uint32_t Surface::GetMinImageWidth() const
+{
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 1920; 
+    return 1920;
 #else
-    return 0; 
+    return 0;
 #endif
 }
 
-uint32_t Surface::GetMinImageHeight() const 
-{ 
+uint32_t Surface::GetMinImageHeight() const
+{
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 1080; 
+    return 1080;
 #else
-    return 0; 
+    return 0;
 #endif
 }
 
 uint32_t Surface::GetMinImageCount() const
-{ 
-    return 1; 
+{
+    return 1;
 }
 
-uint32_t Surface::GetMaxImageWidth() const 
-{ 
+uint32_t Surface::GetMaxImageWidth() const
+{
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 3840; 
+    return 3840;
 #else
-    return 65536; 
+    return 65536;
 #endif
 }
 
 uint32_t Surface::GetMaxImageHeight() const
-{ 
+{
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 2160; 
+    return 2160;
 #else
-    return 65536; 
+    return 65536;
 #endif
 }
 
-uint32_t Surface::GetMaxImageCount() const 
-{ 
-    return DXGI_MAX_SWAP_CHAIN_BUFFERS; 
+uint32_t Surface::GetMaxImageCount() const
+{
+    return DXGI_MAX_SWAP_CHAIN_BUFFERS;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         }
 
         //
-        // In Direct3D 11, applications could call GetBuffer( 0, … ) only once. Every call to
+        // In Direct3D 11, applications could call GetBuffer( 0, ï¿½ ) only once. Every call to
         // Present() implicitly changes the resource identity of the returned interface.
         // See: https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/dxgi-1-4-improvements?redirectedfrom=MSDN
         //
@@ -238,7 +238,7 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     }
 
     //// Save queue for later use
-    //mQueue = ToApi(pCreateInfo->pQueue)->GetDxQueue();
+    // mQueue = ToApi(pCreateInfo->pQueue)->GetDxQueue();
 
     return ppx::SUCCESS;
 }
@@ -285,24 +285,24 @@ Result Swapchain::AcquireNextImage(
     //*pImageIndex = static_cast<uint32_t>(mSwapchain->GetCurrentBackBufferIndex());
     //
     //// Signal semaphore
-    //if (!IsNull(pSemaphore)) {
-    //    UINT64  value = ToApi(pSemaphore)->GetNextSignalValue();
-    //    HRESULT hr    = mQueue->Signal(ToApi(pSemaphore)->GetDxFence(), value);
-    //    if (FAILED(hr)) {
-    //        return ppx::ERROR_API_FAILURE;
-    //    }
-    //}
+    // if (!IsNull(pSemaphore)) {
+    //     UINT64  value = ToApi(pSemaphore)->GetNextSignalValue();
+    //     HRESULT hr    = mQueue->Signal(ToApi(pSemaphore)->GetDxFence(), value);
+    //     if (FAILED(hr)) {
+    //         return ppx::ERROR_API_FAILURE;
+    //     }
+    // }
     //
     //// Signal fence
-    //if (!IsNull(pFence)) {
-    //    UINT64  value = ToApi(pFence)->GetNextSignalValue();
-    //    HRESULT hr    = mQueue->Signal(ToApi(pFence)->GetDxFence(), value);
-    //    if (FAILED(hr)) {
-    //        return ppx::ERROR_API_FAILURE;
-    //    }
-    //}
+    // if (!IsNull(pFence)) {
+    //     UINT64  value = ToApi(pFence)->GetNextSignalValue();
+    //     HRESULT hr    = mQueue->Signal(ToApi(pFence)->GetDxFence(), value);
+    //     if (FAILED(hr)) {
+    //         return ppx::ERROR_API_FAILURE;
+    //     }
+    // }
     //
-    //return ppx::SUCCESS;
+    // return ppx::SUCCESS;
 
     *pImageIndex = static_cast<uint32_t>(mPresentCount % mCreateInfo.imageCount);
 
@@ -314,16 +314,16 @@ Result Swapchain::Present(
     uint32_t                      waitSemaphoreCount,
     const grfx::Semaphore* const* ppWaitSemaphores)
 {
-    //for (uint32_t i = 0; i < waitSemaphoreCount; ++i) {
-    //    ID3D12Fence* pDxFence = ToApi(ppWaitSemaphores[i])->GetDxFence();
-    //    UINT64       value    = ToApi(ppWaitSemaphores[i])->GetWaitForValue();
-    //    HRESULT      hr       = mQueue->Wait(pDxFence, value);
-    //    if (FAILED(hr)) {
-    //        PPX_ASSERT_MSG(false, "ID3D12CommandQueue::Wait failed");
-    //        return ppx::ERROR_API_FAILURE;
-    //    }
-    //}
-    
+    // for (uint32_t i = 0; i < waitSemaphoreCount; ++i) {
+    //     ID3D12Fence* pDxFence = ToApi(ppWaitSemaphores[i])->GetDxFence();
+    //     UINT64       value    = ToApi(ppWaitSemaphores[i])->GetWaitForValue();
+    //     HRESULT      hr       = mQueue->Wait(pDxFence, value);
+    //     if (FAILED(hr)) {
+    //         PPX_ASSERT_MSG(false, "ID3D12CommandQueue::Wait failed");
+    //         return ppx::ERROR_API_FAILURE;
+    //     }
+    // }
+
     UINT    flags = 0;
     HRESULT hr    = mSwapchain->Present(mSyncInterval, flags);
     if (FAILED(hr)) {
@@ -332,7 +332,7 @@ Result Swapchain::Present(
     }
 
     ++mPresentCount;
-    
+
     return ppx::SUCCESS;
 }
 

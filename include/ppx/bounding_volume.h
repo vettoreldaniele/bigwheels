@@ -9,7 +9,7 @@ class AABB;
 class OBB;
 
 //! @class AABB
-//! 
+//!
 //! @brief Axis-aligned bounding box
 //!
 class AABB
@@ -118,7 +118,7 @@ private:
 };
 
 //! @class OBB
-//! 
+//!
 //! @brief Oriented bounding box
 //!
 class OBB

@@ -11,7 +11,7 @@ namespace dx12 {
 Result Gpu::CreateApiObjects(const grfx::internal::GpuCreateInfo* pCreateInfo)
 {
     CComPtr<IDXGIAdapter> adapter = static_cast<IDXGIAdapter*>(pCreateInfo->pApiObject);
-    HRESULT              hr      = adapter.QueryInterface(&mGpu);
+    HRESULT               hr      = adapter.QueryInterface(&mGpu);
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }

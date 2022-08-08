@@ -95,7 +95,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     }
     UINT dxgiFactoryFlags = 0;
     if (pCreateInfo->enableDebug) {
-#if ! defined (PPX_DXIIVK)
+#if !defined(PPX_DXIIVK)
         // Get DXGI debug interface
         HRESULT hr = DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebug));
         if (FAILED(hr)) {
@@ -126,7 +126,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     }
 #if defined(PPX_DXIIVK)
     IDXGIFactory7* pFactory = nullptr;
-    HRESULT hr = CreateDXGIFactory2(dxgiFactoryFlags, __uuidof(IDXGIFactory7), reinterpret_cast<void**>(&pFactory));
+    HRESULT        hr       = CreateDXGIFactory2(dxgiFactoryFlags, __uuidof(IDXGIFactory7), reinterpret_cast<void**>(&pFactory));
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }
@@ -158,7 +158,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 
 void Instance::DestroyApiObjects()
 {
-#if ! defined (PPX_DXIIVK)
+#if !defined(PPX_DXIIVK)
     if (mCreateInfo.enableDebug) {
         mDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_ALL));
     }
@@ -168,7 +168,7 @@ void Instance::DestroyApiObjects()
         mFactory.Reset();
     }
 
-#if ! defined (PPX_DXIIVK)
+#if !defined(PPX_DXIIVK)
     if (mD3D12Debug) {
         mD3D12Debug.Reset();
     }

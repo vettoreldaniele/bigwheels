@@ -223,7 +223,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "DiffuseShadow", "vs_5_0", &basicShaderIncludeHandler);
 #else
-        std::vector<char> bytecode     = LoadShader(GetAssetPath("basic/shaders"), "DiffuseShadow.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "DiffuseShadow.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -233,7 +233,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "DiffuseShadow", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "DiffuseShadow.ps");
+        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "DiffuseShadow.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -277,7 +277,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Depth", "vs_5_0", &basicShaderIncludeHandler);
 #else
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "Depth.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "Depth.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -392,7 +392,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "VertexColors", "vs_5_0", &basicShaderIncludeHandler);
 #else
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -402,7 +402,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "VertexColors", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
+        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -454,7 +454,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame  = mPerFrame[0];
+    PerFrame& frame = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

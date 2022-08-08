@@ -1,8 +1,10 @@
-struct VSOutput {
+struct VSOutput
+{
     float4 Position : SV_POSITION;
 };
 
-VSOutput vsmain(float4 Position : POSITION)
+VSOutput vsmain(float4 Position
+                : POSITION)
 {
     VSOutput result;
     result.Position = Position;

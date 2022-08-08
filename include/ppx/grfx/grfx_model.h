@@ -92,7 +92,7 @@ struct ModelCreateInfo
 //! WARNING: Do not use or reference any vertex binding data in \b mCreateInfo
 //!          since both the vertex buffer count and vertex binding information
 //!          can change via SetVertex*() or AddVertex*().
-//! 
+//!
 class Model
     : public grfx::DeviceObject<grfx::ModelCreateInfo>
 {

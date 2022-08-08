@@ -149,7 +149,7 @@ void ProjApp::Setup()
 
         WireMesh wireMesh = WireMesh::CreateCube(float3(2, 2, 2), wireMeshOptions);
         SetupEntity(wireMesh, geometryOptions, &mWireCube);
-        
+
         wireMesh = WireMesh::CreateSphere(1.0f, 16, 8, wireMeshOptions);
         SetupEntity(wireMesh, geometryOptions, &mWireSphere);
 
@@ -173,7 +173,7 @@ void ProjApp::Setup()
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "VertexColors", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
+        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -234,7 +234,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame  = mPerFrame[0];
+    PerFrame& frame = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -269,7 +269,7 @@ void ProjApp::Render()
         T   = glm::translate(float3(-4, -2, 0));
         mat = P * V * T * M;
         mWireCube.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
-        
+
         T   = glm::translate(float3(0, -2, 0));
         mat = P * V * T * M;
         mWireSphere.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
@@ -329,7 +329,7 @@ void ProjApp::Render()
             frame.cmd->BindIndexBuffer(mWireCube.model);
             frame.cmd->BindVertexBuffers(mWireCube.model);
             frame.cmd->DrawIndexed(mWireCube.model->GetIndexCount());
-            
+
             // Wire sphere
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mWireSphere.descriptorSet);
             frame.cmd->BindIndexBuffer(mWireSphere.model);

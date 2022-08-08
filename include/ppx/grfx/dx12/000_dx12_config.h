@@ -7,7 +7,7 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 
-#if ! defined(PPX_DXIIVK)
+#if !defined(PPX_DXIIVK)
 #include <dxgidebug.h>
 #endif // ! defined(PPX_DXIIVK)
 
@@ -32,17 +32,17 @@ namespace ppx {
 namespace grfx {
 namespace dx12 {
 
-using DXGIAdapterPtr              = CComPtr<IDXGIAdapter4>;
-using DXGIFactoryPtr              = CComPtr<IDXGIFactory7>;
-#if ! defined(PPX_DXIIVK)
-using DXGIDebugPtr                = CComPtr<IDXGIDebug1>;
-using DXGIInfoQueuePtr            = CComPtr<IDXGIInfoQueue>;
+using DXGIAdapterPtr = CComPtr<IDXGIAdapter4>;
+using DXGIFactoryPtr = CComPtr<IDXGIFactory7>;
+#if !defined(PPX_DXIIVK)
+using DXGIDebugPtr     = CComPtr<IDXGIDebug1>;
+using DXGIInfoQueuePtr = CComPtr<IDXGIInfoQueue>;
 #endif
-using DXGISwapChainPtr            = CComPtr<IDXGISwapChain4>;
-using D3D12CommandAllocatorPtr    = CComPtr<ID3D12CommandAllocator>;
-using D3D12CommandQueuePtr        = CComPtr<ID3D12CommandQueue>;
-#if ! defined(PPX_DXIIVK)
-using D3D12DebugPtr               = CComPtr<ID3D12Debug>;
+using DXGISwapChainPtr         = CComPtr<IDXGISwapChain4>;
+using D3D12CommandAllocatorPtr = CComPtr<ID3D12CommandAllocator>;
+using D3D12CommandQueuePtr     = CComPtr<ID3D12CommandQueue>;
+#if !defined(PPX_DXIIVK)
+using D3D12DebugPtr = CComPtr<ID3D12Debug>;
 #endif
 using D3D12DescriptorHeapPtr      = CComPtr<ID3D12DescriptorHeap>;
 using D3D12DevicePtr              = CComPtr<ID3D12Device5>;

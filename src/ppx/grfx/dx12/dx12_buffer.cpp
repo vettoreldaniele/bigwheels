@@ -47,7 +47,7 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
     }
 
     dx12::Device* pDevice = ToApi(GetDevice());
-    HRESULT     hr      = pDevice->GetAllocator()->CreateResource(
+    HRESULT       hr      = pDevice->GetAllocator()->CreateResource(
         &allocationDesc,
         &resourceDesc,
         initialResourceState,

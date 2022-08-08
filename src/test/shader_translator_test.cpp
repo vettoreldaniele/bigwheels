@@ -49,10 +49,10 @@ std::vector<char> CreateDXContainer(std::vector<DXPartHeader> partHeaders)
     std::vector<char> blob;
     auto              blobSize = [&blob] { return static_cast<uint32_t>(blob.size()); };
     DXContainerHeader header   = {
-          .headerFourCC = {'D', 'X', 'B', 'C'},
-          .majorVersion = 1,
+        .headerFourCC = {'D', 'X', 'B', 'C'},
+        .majorVersion = 1,
         // .containerSizeInBytes will be updated at the very end.
-          .partCount = static_cast<uint32_t>(partHeaders.size()),
+        .partCount = static_cast<uint32_t>(partHeaders.size()),
     };
 
     // Reserve space for part offsets.

@@ -5,24 +5,23 @@ cbuffer Flocking : register(RENDER_FLOCKING_DATA_REGISTER)
 {
     FlockingData Flocking;
 };
-Texture2D<float4>   InPositionTexture  : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER);  // Previous position
-Texture2D<float4>   InVelocityTexture  : register(RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER);  // Previous velocity
-RWTexture2D<float4> OutVelocityTexture : register(RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER);    // Out position
-#else // --- D3D12 / Vulkan ----------------------------------------------------
-ConstantBuffer<FlockingData> Flocking           : register(RENDER_FLOCKING_DATA_REGISTER, space0);              // Flocking params
-Texture2D<float4>            InPositionTexture  : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, space0);  // Previous position
-Texture2D<float4>            InVelocityTexture  : register(RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER, space0);  // Previous velocity
-RWTexture2D<float4>          OutVelocityTexture : register(RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER, space0);    // Out position
-#endif // -- defined (PPX_D3D11) -----------------------------------------------
+Texture2D<float4>   InPositionTexture : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER); // Previous position
+Texture2D<float4>   InVelocityTexture : register(RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER); // Previous velocity
+RWTexture2D<float4> OutVelocityTexture : register(RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER);  // Out position
+#else                                                                                        // --- D3D12 / Vulkan ----------------------------------------------------
+ConstantBuffer<FlockingData> Flocking : register(RENDER_FLOCKING_DATA_REGISTER, space0);                      // Flocking params
+Texture2D<float4>            InPositionTexture : register(RENDER_PREVIOUS_POSITION_TEXTURE_REGISTER, space0); // Previous position
+Texture2D<float4>            InVelocityTexture : register(RENDER_PREVIOUS_VELOCITY_TEXTURE_REGISTER, space0); // Previous velocity
+RWTexture2D<float4>          OutVelocityTexture : register(RENDER_OUTPUT_VELOCITY_TEXTURE_REGISTER, space0);  // Out position
+#endif                                                                                       // -- defined (PPX_D3D11) -----------------------------------------------
 
 // -------------------------------------------------------------------------------------------------
 
-[numthreads(8, 8, 1)]
-void csmain(uint3 tid : SV_DispatchThreadID)
-{
+[numthreads(8, 8, 1)] void csmain(uint3 tid
+                                  : SV_DispatchThreadID) {
 #if 0    
     OutVelocityTexture[tid.xy] = InVelocityTexture[tid.xy];;
-#else     
+#else
     float4 vPos       = InPositionTexture[tid.xy];
     float3 myPos      = vPos.xyz;
     float  leadership = vPos.a;
@@ -44,11 +43,11 @@ void csmain(uint3 tid : SV_DispatchThreadID)
     float threshDelta1 = 1.0 - Flocking.maxThresh;
 
     // Apply the attraction, alignment, and repulsion forces
-    // 
+    //
     // Tempted to use Texture2D::GetDimensions()?
-    //   - Some micro benchmarking shows it's slow: 
+    //   - Some micro benchmarking shows it's slow:
     //       https://www.gamedev.net/forums/topic/605580-performance-comparison-hlsl-texturegetdimension/
-    // 
+    //
     for (int y = 0; y < Flocking.resY; ++y) {
         for (int x = 0; x < Flocking.resX; ++x) {
             float  s        = abs(x - myX) + abs(y - myY);

@@ -109,8 +109,8 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
     dxDesc.Flags                 = flags;
 
     D3D12CommandQueuePtr::InterfaceType* pCmdQueue = ToApi(pCreateInfo->pQueue)->GetDxQueue();
-    CComPtr<IDXGISwapChain1> dxgiSwapChain;
-    HRESULT                 hr = factory->CreateSwapChainForHwnd(
+    CComPtr<IDXGISwapChain1>             dxgiSwapChain;
+    HRESULT                              hr = factory->CreateSwapChainForHwnd(
         ToApi(pCreateInfo->pQueue)->GetDxQueue(),        // pDevice
         ToApi(pCreateInfo->pSurface)->GetWindowHandle(), // hWnd
         &dxDesc,                                         // pDesc

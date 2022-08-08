@@ -360,7 +360,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame  = mPerFrame[0];
+    PerFrame& frame = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -438,10 +438,10 @@ void ProjApp::Render()
         uint64_t frequency = 0;
         GetGraphicsQueue()->GetTimestampFrequency(&frequency);
         const float      gpuWorkDurationMs = static_cast<float>(mGpuWorkDuration / static_cast<double>(frequency)) * 1000.0f;
-        PerFrameRegister stats           = {};
-        stats.frameNumber                = GetFrameCount();
-        stats.gpuWorkDurationMs          = gpuWorkDurationMs;
-        stats.cpuFrameTimeMs             = GetPrevFrameTime();
+        PerFrameRegister stats             = {};
+        stats.frameNumber                  = GetFrameCount();
+        stats.gpuWorkDurationMs            = gpuWorkDurationMs;
+        stats.cpuFrameTimeMs               = GetPrevFrameTime();
         mFrameRegisters.push_back(stats);
     }
 }

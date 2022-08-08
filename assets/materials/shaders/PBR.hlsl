@@ -1,45 +1,45 @@
 
 #include "Config.hlsli"
 
-#if defined (PPX_D3D11) // -----------------------------------------------------
-cbuffer Scene : register(SCENE_CONSTANTS_REGISTER) 
+#if defined(PPX_D3D11) // -----------------------------------------------------
+cbuffer Scene : register(SCENE_CONSTANTS_REGISTER)
 {
     SceneData Scene;
 };
 
-cbuffer Material : register(MATERIAL_CONSTANTS_REGISTER) 
+cbuffer Material : register(MATERIAL_CONSTANTS_REGISTER)
 {
     MaterialData Material;
 };
 
-cbuffer Model : register(MODEL_CONSTANTS_REGISTER) 
+cbuffer Model : register(MODEL_CONSTANTS_REGISTER)
 {
     ModelData Model;
 };
 
 StructuredBuffer<Light> Lights : register(LIGHT_DATA_REGISTER);
 
-Texture2D    AlbedoTex      : register(ALBEDO_TEXTURE_REGISTER);
-Texture2D    RoughnessTex   : register(ROUGHNESS_TEXTURE_REGISTER);
-Texture2D    MetalnessTex   : register(METALNESS_TEXTURE_REGISTER);
-Texture2D    NormalMapTex   : register(NORMAL_MAP_TEXTURE_REGISTER);
-Texture2D    IBLTex         : register(IBL_MAP_TEXTURE_REGISTER);
-Texture2D    EnvMapTex      : register(ENV_MAP_TEXTURE_REGISTER);
+Texture2D    AlbedoTex : register(ALBEDO_TEXTURE_REGISTER);
+Texture2D    RoughnessTex : register(ROUGHNESS_TEXTURE_REGISTER);
+Texture2D    MetalnessTex : register(METALNESS_TEXTURE_REGISTER);
+Texture2D    NormalMapTex : register(NORMAL_MAP_TEXTURE_REGISTER);
+Texture2D    IBLTex : register(IBL_MAP_TEXTURE_REGISTER);
+Texture2D    EnvMapTex : register(ENV_MAP_TEXTURE_REGISTER);
 SamplerState ClampedSampler : register(CLAMPED_SAMPLER_REGISTER);
-#else // --- D3D12 / Vulkan ----------------------------------------------------
-ConstantBuffer<SceneData>    Scene    : register(SCENE_CONSTANTS_REGISTER,    SCENE_DATA_SPACE);
+#else  // --- D3D12 / Vulkan ----------------------------------------------------
+ConstantBuffer<SceneData>    Scene : register(SCENE_CONSTANTS_REGISTER, SCENE_DATA_SPACE);
 ConstantBuffer<MaterialData> Material : register(MATERIAL_CONSTANTS_REGISTER, MATERIAL_DATA_SPACE);
-ConstantBuffer<ModelData>    Model    : register(MODEL_CONSTANTS_REGISTER,    MODEL_DATA_SPACE);
+ConstantBuffer<ModelData>    Model : register(MODEL_CONSTANTS_REGISTER, MODEL_DATA_SPACE);
 
 StructuredBuffer<Light> Lights : register(LIGHT_DATA_REGISTER, SCENE_DATA_SPACE);
 
-Texture2D    AlbedoTex      : register(ALBEDO_TEXTURE_REGISTER,     MATERIAL_RESOURCES_SPACE);
-Texture2D    RoughnessTex   : register(ROUGHNESS_TEXTURE_REGISTER,  MATERIAL_RESOURCES_SPACE);
-Texture2D    MetalnessTex   : register(METALNESS_TEXTURE_REGISTER,  MATERIAL_RESOURCES_SPACE);
-Texture2D    NormalMapTex   : register(NORMAL_MAP_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
-Texture2D    IBLTex         : register(IBL_MAP_TEXTURE_REGISTER,    MATERIAL_RESOURCES_SPACE);
-Texture2D    EnvMapTex      : register(ENV_MAP_TEXTURE_REGISTER,    MATERIAL_RESOURCES_SPACE);
-SamplerState ClampedSampler : register(CLAMPED_SAMPLER_REGISTER,    MATERIAL_RESOURCES_SPACE);
+Texture2D    AlbedoTex : register(ALBEDO_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
+Texture2D    RoughnessTex : register(ROUGHNESS_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
+Texture2D    MetalnessTex : register(METALNESS_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
+Texture2D    NormalMapTex : register(NORMAL_MAP_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
+Texture2D    IBLTex : register(IBL_MAP_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
+Texture2D    EnvMapTex : register(ENV_MAP_TEXTURE_REGISTER, MATERIAL_RESOURCES_SPACE);
+SamplerState ClampedSampler : register(CLAMPED_SAMPLER_REGISTER, MATERIAL_RESOURCES_SPACE);
 #endif // -- defined (PPX_D3D11) -----------------------------------------------
 
 float DistributionGGX(float3 N, float3 H, float roughness)
@@ -84,55 +84,54 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
 
 float3 Environment(Texture2D tex, float3 coord, float lod)
 {
-    float2 uv = CartesianToSphereical(normalize(coord));
-    uv.x = saturate(uv.x / (2.0 * PI));
-    uv.y = saturate(uv.y / PI);   
+    float2 uv    = CartesianToSphereical(normalize(coord));
+    uv.x         = saturate(uv.x / (2.0 * PI));
+    uv.y         = saturate(uv.y / PI);
     float3 color = tex.SampleLevel(ClampedSampler, uv, lod).rgb;
     return color;
 }
 
-float4 psmain(VSOutput input) : SV_TARGET
+float4 psmain(VSOutput input)
+    : SV_TARGET
 {
-    float3 N  = normalize(input.normal);  
+    float3 N  = normalize(input.normal);
     float3 V  = normalize(Scene.eyePosition.xyz - input.positionWS);
-    float  ao = 0.4f;    
-    
-	float3 albedo = Material.albedo;
-	if (Material.albedoSelect == 1) {
-		albedo = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
-	}
-    
+    float  ao = 0.4f;
+
+    float3 albedo = Material.albedo;
+    if (Material.albedoSelect == 1) {
+        albedo = AlbedoTex.Sample(ClampedSampler, input.texCoord).rgb;
+    }
+
     float roughness = Material.roughness;
     if (Material.roughnessSelect == 1) {
         roughness = RoughnessTex.Sample(ClampedSampler, input.texCoord).r;
     }
-    
+
     float metalness = Material.metalness;
     if (Material.metalnessSelect == 1) {
         metalness = MetalnessTex.Sample(ClampedSampler, input.texCoord).r;
     }
-    
+
     if (Material.normalSelect == 1) {
         float3   nTS = normalize(input.normalTS);
         float3   tTS = normalize(input.tangentTS);
         float3   bTS = normalize(input.bitangnetTS);
-        float3x3 TBN = float3x3(tTS.x, bTS.x, nTS.x,
-                                tTS.y, bTS.y, nTS.y,
-                                tTS.z, bTS.z, nTS.z);
-        
+        float3x3 TBN = float3x3(tTS.x, bTS.x, nTS.x, tTS.y, bTS.y, nTS.y, tTS.z, bTS.z, nTS.z);
+
         // Read normal map value in tangent space
         float3 normal = (NormalMapTex.Sample(ClampedSampler, input.texCoord).rgb * 2.0f) - 1.0;
 
         // Transform from tangent space to world space
         N = mul(TBN, normal);
-        
+
         // Normalize the transformed normal
-        N = normalize(N);        
+        N = normalize(N);
     }
-    
+
     float3 P = input.positionWS;
     float3 R = reflect(-V, N);
-    
+
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
     //
@@ -140,12 +139,12 @@ float4 psmain(VSOutput input) : SV_TARGET
     //
     float3 F0 = Material.F0;
     F0        = lerp(F0, albedo, metalness);
-    
-    float3 Lo = (float3)0.0;    
-	for (uint i = 0; i < Scene.lightCount; ++i) {    
-        float3 Lp    = Lights[i].position;
-        float3 L     = normalize(Lp - P);
-        float3 H     = normalize(V + L);
+
+    float3 Lo = (float3)0.0;
+    for (uint i = 0; i < Scene.lightCount; ++i) {
+        float3 Lp = Lights[i].position;
+        float3 L  = normalize(Lp - P);
+        float3 H  = normalize(V + L);
 
         // calculate per-light radiance
         //float  distance    = length(lightPositions[i] - WorldPos);
@@ -179,34 +178,34 @@ float4 psmain(VSOutput input) : SV_TARGET
 
         // add to outgoing radiance Lo
         Lo += (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
-	}
-    
+    }
+
     // ambient lighting (we now use IBL as the ambient term)
     float3 kS = FresnelSchlick(max(dot(N, V), 0.0), F0);
     float3 kD = 1.0 - kS;
     kD *= 1.0 - metalness;
-    
-    float3 irradiance = (float3)1.0; 
+
+    float3 irradiance = (float3)1.0;
     if (Material.iblSelect == 1) {
-        float lod = roughness * (Scene.iblLevelCount - 1.0);
+        float lod  = roughness * (Scene.iblLevelCount - 1.0);
         irradiance = Environment(IBLTex, R, lod) * Material.iblStrength;
     }
-    
-    float3 diffuse    = irradiance * albedo +  Scene.ambient;
-    float3 ambient    = (kD * diffuse) * ao;    
-        
+
+    float3 diffuse = irradiance * albedo + Scene.ambient;
+    float3 ambient = (kD * diffuse) * ao;
+
     // Environment reflection
     float3 reflection = (float3)0.0;
     if (Material.envSelect) {
-        float lod = roughness * (Scene.envLevelCount - 1.0);
+        float lod  = roughness * (Scene.envLevelCount - 1.0);
         reflection = Environment(EnvMapTex, R, lod) * Material.envStrength;
-    }    
-    
+    }
+
     // Final color
     float3 color = ambient + Lo + (kS * reflection * (1.0 - roughness));
-    
+
     // Faux HDR tonemapping
     color = color / (color + float3(1, 1, 1));
-    
+
     return float4(color, 1);
 }

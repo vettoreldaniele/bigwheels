@@ -53,7 +53,6 @@ T* DataPtr(std::vector<T>& container)
     return ptr;
 }
 
-
 template <typename T>
 const T* DataPtr(const std::vector<T>& container)
 {
@@ -134,7 +133,6 @@ typename std::vector<T>::const_iterator FindIf(const std::vector<T>& container, 
         predicate);
     return it;
 }
-
 
 template <typename T>
 bool ElementExists(const T& elem, const std::vector<T>& container)
