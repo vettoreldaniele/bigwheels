@@ -2,7 +2,7 @@ name: Code formatting check
 
 on:
   pull_request:
-  
+
 permissions: read-all
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Setup clang-format
         run: |
-          sudo apt-get install -yqq clang-format
+          sudo apt-get install -yqq clang-format-12
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -22,8 +22,8 @@ jobs:
           git checkout ${GITHUB_SHA}
       - name: Run clang-format
         run: |
-          git diff origin/${{ github.base_ref }} -U0 --no-color -- '**/*.cpp' '**/*.cc' '**/*.h' '**/*.hh' '**/*.hlsl' \
-            | clang-format-diff-11 -p1 >not-formatted.diff 2>&1
+          git diff origin/${{ github.base_ref }} -U0 --no-color -- '**/*.cpp' '**/*.cc' '**/*.h' '**/*.hh' '**/*.hpp' \
+            | clang-format-diff-12 -p1 >not-formatted.diff 2>&1
       - name: Check formatting
         run: |
           if ! grep -q '[^[:space:]]' not-formatted.diff ; then
