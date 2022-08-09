@@ -29,9 +29,10 @@ public:
     virtual ~ObjPtrBase() {}
 
 protected:
-     void Set(void** ppObj, ObjPtrRefBase* pObjRef) const {
+    void Set(void** ppObj, ObjPtrRefBase* pObjRef) const
+    {
         pObjRef->Set(ppObj);
-     }
+    }
 };
 
 //! @class ObjPtrRef
@@ -39,7 +40,7 @@ protected:
 //!
 template <typename ObjectT>
 class ObjPtrRef
-  : public ObjPtrRefBase
+    : public ObjPtrRefBase
 {
 public:
     ObjPtrRef(ObjectT** ptrRef)
@@ -47,13 +48,13 @@ public:
 
     ~ObjPtrRef() {}
 
-    operator void**() const 
+    operator void**() const
     {
         void** addr = reinterpret_cast<void**>(mPtrRef);
         return addr;
     }
 
-    operator ObjectT**() 
+    operator ObjectT**()
     {
         return mPtrRef;
     }
@@ -73,7 +74,8 @@ public:
     //// clang-format on
 
 private:
-    virtual void Set(void** ppObj) override {
+    virtual void Set(void** ppObj) override
+    {
         *mPtrRef = reinterpret_cast<ObjectT*>(*ppObj);
     }
     // clang-format on
@@ -87,7 +89,7 @@ private:
 //!
 template <typename ObjectT>
 class ObjPtr
-  : public ObjPtrBase
+    : public ObjPtrBase
 {
 public:
     using object_type = ObjectT;
@@ -96,9 +98,10 @@ public:
     using InterfaceType = ObjectT;
 #endif // (defined(PPX_DXVK) || defined(PPX_DXIIVK)) && !defined(PPX_MSW)
 
-
     ObjPtr(ObjectT* ptr = nullptr)
-        : mPtr(ptr) {}
+        : mPtr(ptr)
+    {
+    }
 
     ~ObjPtr() {}
 
@@ -135,7 +138,8 @@ public:
 
 #if (defined(PPX_DXVK) || defined(PPX_DXIIVK)) && !defined(PPX_MSW)
     template <typename T>
-    HRESULT As(ObjPtrRef<T> obj) const {
+    HRESULT As(ObjPtrRef<T> obj) const
+    {
         ObjectT* ptr = mPtr;
         Set(reinterpret_cast<void**>(&ptr), &obj);
         return S_OK;

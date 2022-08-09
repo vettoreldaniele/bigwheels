@@ -24,9 +24,9 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
     //
     mCreateInfo.imageCount = CountU32(mColorImages);
     if (mCreateInfo.imageCount != pCreateInfo->imageCount) {
-        PPX_LOG_INFO("Swapchain actual image count is different from what was requested\n" 
-            << "   actual    : " << mCreateInfo.imageCount << "\n"
-            << "   requested : " << pCreateInfo->imageCount);
+        PPX_LOG_INFO("Swapchain actual image count is different from what was requested\n"
+                     << "   actual    : " << mCreateInfo.imageCount << "\n"
+                     << "   requested : " << pCreateInfo->imageCount);
     }
 
     //
@@ -97,8 +97,10 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
     }
 
     PPX_LOG_INFO("Swapchain created");
-    PPX_LOG_INFO("   " << "resolution  : " << pCreateInfo->width << "x" << pCreateInfo->height);
-    PPX_LOG_INFO("   " << "image count : " << mCreateInfo.imageCount);
+    PPX_LOG_INFO("   "
+                 << "resolution  : " << pCreateInfo->width << "x" << pCreateInfo->height);
+    PPX_LOG_INFO("   "
+                 << "image count : " << mCreateInfo.imageCount);
 
     return ppx::SUCCESS;
 }

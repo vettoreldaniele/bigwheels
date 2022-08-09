@@ -5,9 +5,7 @@
 
 namespace ppx {
 namespace grfx {
-namespace dx11{
-
-
+namespace dx11 {
 
 } // namespace dx11
 } // namespace grfx

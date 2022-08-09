@@ -64,8 +64,8 @@ private:
     std::vector<ppx::grfx::SampledImageViewPtr> mSampledImageViews;
 
     // Stats
-    uint64_t                 mGpuWorkDuration    = 0;
-    std::string              mCSVFileName;
+    uint64_t    mGpuWorkDuration = 0;
+    std::string mCSVFileName;
     struct PerFrameRegister
     {
         uint64_t frameNumber;
@@ -288,7 +288,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame  = mPerFrame[0];
+    PerFrame& frame = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

@@ -25,15 +25,15 @@ public:
     virtual Result GetData(void* pDstData, uint64_t dstDataSize) override;
 
 protected:
-    virtual Result   CreateApiObjects(const grfx::QueryCreateInfo* pCreateInfo) override;
-    virtual void     DestroyApiObjects() override;
-    D3D11_QUERY      GetQueryType() const { return mQueryType; }
+    virtual Result CreateApiObjects(const grfx::QueryCreateInfo* pCreateInfo) override;
+    virtual void   DestroyApiObjects() override;
+    D3D11_QUERY    GetQueryType() const { return mQueryType; }
 
 private:
-    D3D11QueryHeap    mHeap;
-    D3D11_QUERY       mQueryType;
-    uint32_t          mResolveDataStartIndex;
-    uint32_t          mResolveDataNumQueries;
+    D3D11QueryHeap mHeap;
+    D3D11_QUERY    mQueryType;
+    uint32_t       mResolveDataStartIndex;
+    uint32_t       mResolveDataNumQueries;
 };
 
 } // namespace dx11

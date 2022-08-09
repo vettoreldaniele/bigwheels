@@ -22,7 +22,7 @@ protected:
     virtual Result AllocateObject(grfx::Gpu** ppGpu) override;
     virtual Result AllocateObject(grfx::Surface** ppSurface) override;
 
-protected:   
+protected:
     virtual Result CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 

@@ -18,8 +18,7 @@ public:
     virtual void Render() override;
 
 private:
-
-    Result TryAllocateRange(uint32_t rangeStart, uint32_t rangeEnd, uint32_t usageFlags);
+    Result                          TryAllocateRange(uint32_t rangeStart, uint32_t rangeEnd, uint32_t usageFlags);
     ppx::grfx::PipelineInterfacePtr mPipelineInterface;
     ppx::grfx::GraphicsPipelinePtr  mPipeline;
     ppx::grfx::BufferPtr            mVertexBuffer;
@@ -44,67 +43,60 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 
 static void YayOrNay(uint32_t first, uint32_t last, const char* status)
 {
-    if (first == last)
-    {
+    if (first == last) {
         fprintf(stderr, "Size %d %s.\n", first, status);
     }
-    else
-    {
+    else {
         fprintf(stderr, "Sizes %d through %d %s.\n", first, last, status);
     }
-
 }
 
 static void PrintRange(bool state, uint32_t first, uint32_t last)
 {
-    if (state)
-    {
+    if (state) {
         YayOrNay(first, last, "succeeded");
     }
-    else
-    {
+    else {
         YayOrNay(first, last, "failed");
     }
 }
 
 Result ProjApp::TryAllocateRange(uint32_t rangeStart, uint32_t rangeEnd, uint32_t usageFlags)
 {
-    bool state;
+    bool     state;
     uint32_t first;
     uint32_t last;
-    for (uint32_t i = rangeStart; i <= rangeEnd; i *= 2)
-    {
-        grfx::BufferCreateInfo bufferCreateInfo       = {};
-        bufferCreateInfo.size                         = i;
-        bufferCreateInfo.usageFlags.flags             = usageFlags;
-        bufferCreateInfo.memoryUsage                  = grfx::MEMORY_USAGE_CPU_TO_GPU;
+    for (uint32_t i = rangeStart; i <= rangeEnd; i *= 2) {
+        grfx::BufferCreateInfo bufferCreateInfo = {};
+        bufferCreateInfo.size                   = i;
+        bufferCreateInfo.usageFlags.flags       = usageFlags;
+        bufferCreateInfo.memoryUsage            = grfx::MEMORY_USAGE_CPU_TO_GPU;
         //        bufferCreateInfo.initialState                 = grfx::RESOURCE_STATE_UNIFORM_BUFFER;
         // We allocate a buffer of size i and see if it succeeds. If there's
         // a change, we print the range of unchanging success/failure runs
         // that came before.
-        ppx::grfx::BufferPtr            buffer;
-        Result ppxres = GetDevice()->CreateBuffer(&bufferCreateInfo, &buffer);
-        bool didSucceed = (ppxres == ppx::SUCCESS) ? true : false;
-        if (i == rangeStart)
-        {
+        ppx::grfx::BufferPtr buffer;
+        Result               ppxres     = GetDevice()->CreateBuffer(&bufferCreateInfo, &buffer);
+        bool                 didSucceed = (ppxres == ppx::SUCCESS) ? true : false;
+        if (i == rangeStart) {
             state = didSucceed;
             first = i;
             continue;
         }
-        if (state != didSucceed)
-        {
+        if (state != didSucceed) {
             PrintRange(state, first, last);
             first = i;
         }
         state = didSucceed;
-        last = i;
+        last  = i;
         GetDevice()->DestroyBuffer(buffer);
     }
     PrintRange(state, first, last);
     return ppx::SUCCESS;
 }
 
-struct Range {
+struct Range
+{
     uint32_t start;
     uint32_t end;
 };
@@ -113,13 +105,13 @@ void ProjApp::Setup()
 {
     grfx::BufferUsageFlags usageFlags;
 
-    Range range = { 4, 256 * 1024 * 1024 };  // 4, 256MB
+    Range range = {4, 256 * 1024 * 1024}; // 4, 256MB
     fprintf(stderr, "Trying uniform buffer allocations in [%d %d] in powers of 2.\n", range.start, range.end);
     usageFlags.bits.uniformBuffer = 1;
     TryAllocateRange(range.start, range.end, usageFlags);
 
     range.start = 4;
-    range.end = 256;
+    range.end   = 256;
 
     usageFlags.flags = 0;
     fprintf(stderr, "Trying storage texel buffer allocations in [%d %d] in powers of 2.\n", range.start, range.end);

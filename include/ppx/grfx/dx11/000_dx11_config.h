@@ -6,7 +6,7 @@
 
 #include <d3d11_4.h>
 #include <dxgi1_6.h>
-#if ! defined(PPX_DXVK)
+#if !defined(PPX_DXVK)
 #include <d3dcompiler.h>
 #include <dxgidebug.h>
 #else
@@ -18,7 +18,7 @@
 using Microsoft::WRL::ComPtr;
 #else
 template <typename T>
-using ComPtr = ObjPtr<T>;
+using ComPtr                      = ObjPtr<T>;
 #endif
 
 #if defined(PPX_ENABLE_LOG_OBJECT_CREATION)

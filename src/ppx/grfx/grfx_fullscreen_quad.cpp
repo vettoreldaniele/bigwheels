@@ -63,7 +63,7 @@ void FullscreenQuad::DestroyApiObjects()
     if (mPipelineInterface) {
         GetDevice()->DestroyPipelineInterface(mPipelineInterface);
         mPipelineInterface.Reset();
-    }      
+    }
 }
 
 } // namespace grfx

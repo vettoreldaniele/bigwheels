@@ -56,7 +56,7 @@ Result ImGuiImpl::Init(ppx::Application* pApp)
     HMONITOR monitor      = MonitorFromWindow(activeWindow, MONITOR_DEFAULTTONEAREST);
 
     DEVICE_SCALE_FACTOR scale = SCALE_100_PERCENT;
-    HRESULT hr = GetScaleFactorForMonitor(monitor, &scale);
+    HRESULT             hr    = GetScaleFactorForMonitor(monitor, &scale);
     if (FAILED(hr)) {
         return ppx::ERROR_FAILED;
     }
@@ -136,7 +136,7 @@ void ImGuiImpl::NewFrame()
 {
     Application* pApp = Application::Get();
 
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO& io      = ImGui::GetIO();
     io.DisplaySize.x = static_cast<float>(pApp->GetWindowWidth());
     io.DisplaySize.y = static_cast<float>(pApp->GetWindowHeight());
     NewFrameApi();
@@ -157,8 +157,8 @@ Result ImGuiImplDx11::InitApiObjects(ppx::Application* pApp)
     SetColorStyle();
 
     // Setup DX11 binding
-    const grfx::dx11::Device* pDevice =  grfx::dx11::ToApi(pApp->GetDevice());
-    bool result = ImGui_ImplDX11_Init(pDevice->GetDxDevice(), pDevice->GetDxDeviceContext());
+    const grfx::dx11::Device* pDevice = grfx::dx11::ToApi(pApp->GetDevice());
+    bool                      result  = ImGui_ImplDX11_Init(pDevice->GetDxDevice(), pDevice->GetDxDeviceContext());
     if (!result) {
         return ppx::ERROR_IMGUI_INITIALIZATION_FAILED;
     }
@@ -213,13 +213,13 @@ Result ImGuiImplDx12::InitApiObjects(ppx::Application* pApp)
         desc.Type                       = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
         // Make the heap big enough to handle the USE_DXIIVK_WORK_AROUND case, in both native and dxiivk
-        desc.NumDescriptors             = 1 + pApp->GetNumFramesInFlight(); // Texture + CBVs * #IFF
+        desc.NumDescriptors = 1 + pApp->GetNumFramesInFlight(); // Texture + CBVs * #IFF
 
-        desc.Flags                      = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        desc.NodeMask                   = 0;
+        desc.Flags    = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        desc.NodeMask = 0;
 
         grfx::dx12::D3D12DevicePtr device = grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice();
-        HRESULT                  hr     = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
+        HRESULT                    hr     = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mHeapCBVSRVUAV));
         if (FAILED(hr)) {
             PPX_ASSERT_MSG(false, "ID3D12Device::CreateDescriptorHeap(CBVSRVUAV) failed");
             return ppx::ERROR_API_FAILURE;
@@ -271,8 +271,6 @@ void ImGuiImplDx12::Render(grfx::CommandBuffer* pCommandBuffer)
 }
 
 #endif // defined(PPX_D3D12)
-
-
 
 // -------------------------------------------------------------------------------------------------
 // ImGuiImplVk

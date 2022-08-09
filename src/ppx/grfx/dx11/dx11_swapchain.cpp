@@ -26,50 +26,50 @@ void Surface::DestroyApiObjects()
 {
 }
 
-uint32_t Surface::GetMinImageWidth() const 
-{ 
+uint32_t Surface::GetMinImageWidth() const
+{
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 1920; 
+    return 1920;
 #else
-    return 0; 
+    return 0;
 #endif
 }
 
-uint32_t Surface::GetMinImageHeight() const 
-{ 
+uint32_t Surface::GetMinImageHeight() const
+{
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 1080; 
+    return 1080;
 #else
-    return 0; 
+    return 0;
 #endif
 }
 
 uint32_t Surface::GetMinImageCount() const
-{ 
-    return 1; 
+{
+    return 1;
 }
 
-uint32_t Surface::GetMaxImageWidth() const 
-{ 
+uint32_t Surface::GetMaxImageWidth() const
+{
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 3840; 
+    return 3840;
 #else
-    return 65536; 
+    return 65536;
 #endif
 }
 
 uint32_t Surface::GetMaxImageHeight() const
-{ 
+{
 #if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 2160; 
+    return 2160;
 #else
-    return 65536; 
+    return 65536;
 #endif
 }
 
-uint32_t Surface::GetMaxImageCount() const 
-{ 
-    return DXGI_MAX_SWAP_CHAIN_BUFFERS; 
+uint32_t Surface::GetMaxImageCount() const
+{
+    return DXGI_MAX_SWAP_CHAIN_BUFFERS;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -323,7 +323,7 @@ Result Swapchain::Present(
     //        return ppx::ERROR_API_FAILURE;
     //    }
     //}
-    
+
     UINT    flags = 0;
     HRESULT hr    = mSwapchain->Present(mSyncInterval, flags);
     if (FAILED(hr)) {
@@ -332,7 +332,7 @@ Result Swapchain::Present(
     }
 
     ++mPresentCount;
-    
+
     return ppx::SUCCESS;
 }
 

@@ -33,12 +33,12 @@ public:
         uint32_t    firstQuery,
         uint32_t    queryCount) const;
 
-    uint32_t GetGraphicsQueueFamilyIndex() const { return mGraphicsQueueFamilyIndex; }
-    uint32_t GetComputeQueueFamilyIndex() const { return mComputeQueueFamilyIndex; }
-    uint32_t GetTransferQueueFamilyIndex() const { return mTransferQueueFamilyIndex; }
+    uint32_t                GetGraphicsQueueFamilyIndex() const { return mGraphicsQueueFamilyIndex; }
+    uint32_t                GetComputeQueueFamilyIndex() const { return mComputeQueueFamilyIndex; }
+    uint32_t                GetTransferQueueFamilyIndex() const { return mTransferQueueFamilyIndex; }
     std::array<uint32_t, 3> GetAllQueueFamilyIndices() const
     {
-        return { mGraphicsQueueFamilyIndex, mComputeQueueFamilyIndex, mTransferQueueFamilyIndex };
+        return {mGraphicsQueueFamilyIndex, mComputeQueueFamilyIndex, mTransferQueueFamilyIndex};
     }
 
 protected:

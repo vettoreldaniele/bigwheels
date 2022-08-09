@@ -269,7 +269,7 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
     std::vector<D3D12_ROOT_PARAMETER1> parameters;
     for (uint32_t setIndex = 0; setIndex < pCreateInfo->setCount; ++setIndex) {
         uint32_t                                    set      = pCreateInfo->sets[setIndex].set;
-        const dx12::DescriptorSetLayout*              pLayout  = ToApi(pCreateInfo->sets[setIndex].pLayout);
+        const dx12::DescriptorSetLayout*            pLayout  = ToApi(pCreateInfo->sets[setIndex].pLayout);
         const std::vector<grfx::DescriptorBinding>& bindings = pLayout->GetBindings();
 
         for (size_t bindingIndex = 0; bindingIndex < bindings.size(); ++bindingIndex) {
@@ -374,7 +374,7 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
 
     CComPtr<ID3DBlob> sigBlob   = nullptr;
     CComPtr<ID3DBlob> errorMsgs = nullptr;
-    HRESULT          hr        = pDevice->SerializeVersionedRootSignature(
+    HRESULT           hr        = pDevice->SerializeVersionedRootSignature(
         &desc,
         &sigBlob,
         &errorMsgs);

@@ -58,9 +58,9 @@ CpuInfo GetX86CpuInfo()
     char brandString[49] = {0};
     cpu_features::FillX86BrandString(brandString);
 
-    CpuInfo cpuInfo             = {};
-    cpuInfo.mBrandString        = string_util::TrimCopy(brandString);
-    cpuInfo.mVendorString       = string_util::TrimCopy(info.vendor);
+    CpuInfo cpuInfo                  = {};
+    cpuInfo.mBrandString             = string_util::TrimCopy(brandString);
+    cpuInfo.mVendorString            = string_util::TrimCopy(info.vendor);
     cpuInfo.mMicroarchitectureString = string_util::TrimCopy(GetX86LongMicroarchitectureName(march));
 
     cpuInfo.mFeatures.sse                 = static_cast<bool>(info.features.sse);

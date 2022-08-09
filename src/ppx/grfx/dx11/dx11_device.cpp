@@ -79,8 +79,8 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     // When creating a device from an existing adapter (i.e. pAdapter is non-NULL), DriverType must be D3D_DRIVER_TYPE_UNKNOWN.
     //
 #if defined(PPX_DXVK)
-    ID3D11Device*        pDevice        = nullptr;
-    ID3D11DeviceContext* pDeviceContext = nullptr;
+    ID3D11Device*        pDevice               = nullptr;
+    ID3D11DeviceContext* pDeviceContext        = nullptr;
     D3D_FEATURE_LEVEL    supportedFeatureLevel = InvalidValue<D3D_FEATURE_LEVEL>();
     //
     HRESULT hr = D3D11CreateDevice(

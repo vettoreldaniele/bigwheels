@@ -492,7 +492,7 @@ void CommandBuffer::CopyImageToBuffer(
 
 void CommandBuffer::BeginQuery(
     const grfx::Query* pQuery,
-    uint32_t               queryIndex)
+    uint32_t           queryIndex)
 {
     PPX_ASSERT_NULL_ARG(pQuery);
     PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
@@ -506,7 +506,7 @@ void CommandBuffer::BeginQuery(
 
 void CommandBuffer::EndQuery(
     const grfx::Query* pQuery,
-    uint32_t               queryIndex)
+    uint32_t           queryIndex)
 {
     PPX_ASSERT_NULL_ARG(pQuery);
     PPX_ASSERT_MSG(queryIndex <= pQuery->GetCount(), "invalid query index");
@@ -534,9 +534,9 @@ void CommandBuffer::WriteTimestamp(
 }
 
 void CommandBuffer::ResolveQueryData(
-    grfx::Query*    pQuery,
-    uint32_t        startIndex,
-    uint32_t        numQueries)
+    grfx::Query* pQuery,
+    uint32_t     startIndex,
+    uint32_t     numQueries)
 {
     PPX_ASSERT_MSG((startIndex + numQueries) <= pQuery->GetCount(), "invalid query index/number");
     ToApi(pQuery)->SetResolveDataStartIndex(startIndex);

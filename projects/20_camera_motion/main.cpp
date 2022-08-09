@@ -71,14 +71,14 @@ public:
     bool       IsFloor() const { return Kind() == EntityKind::FLOOR; }
     bool       IsObject() const { return Kind() == EntityKind::OBJECT; }
 
-    grfx::DescriptorSet** DescriptorSetPtr() { return &descriptorSet; }
+    grfx::DescriptorSet**        DescriptorSetPtr() { return &descriptorSet; }
     const grfx::DescriptorSetPtr DescriptorSet() const { return descriptorSet; }
 
     const grfx::GraphicsPipelinePtr Pipeline() const { return pipeline; }
     grfx::GraphicsPipeline**        PipelinePtr() { return &pipeline; }
 
-    const grfx::ModelPtr&  Model() const { return model; }
-    grfx::Model**          ModelPtr() { return &model; }
+    const grfx::ModelPtr& Model() const { return model; }
+    grfx::Model**         ModelPtr() { return &model; }
 
     const grfx::BufferPtr& UniformBuffer() const { return uniformBuffer; }
     grfx::Buffer**         UniformBufferPtr() { return &uniformBuffer; }
@@ -348,7 +348,7 @@ void ProjApp::SetupEntities()
             WireMesh        wireMesh        = WireMesh::CreatePlane(WIRE_MESH_PLANE_POSITIVE_Y, float2(kGridWidth, kGridDepth), 100, 100, wireMeshOptions);
             dimension                       = float3(kGridWidth, 0, kGridDepth);
             location                        = float3(0, 0, 0);
-            auto &entity = mEntities.emplace_back(location, dimension, Entity::EntityKind::FLOOR);
+            auto& entity                    = mEntities.emplace_back(location, dimension, Entity::EntityKind::FLOOR);
             SetupEntity(wireMesh, geometryOptions, &entity);
         }
         else {
@@ -410,7 +410,7 @@ void ProjApp::SetupPipelines()
 #if defined(PORTO_D3DCOMPILE)
     bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "VertexColors", "ps_5_0", &basicShaderIncludeHandler);
 #else
-    bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
+    bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
 #endif
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -459,7 +459,7 @@ void ProjApp::SetupPipelines()
 
 void ProjApp::SetupPerFrameData(void)
 {
-    PerFrame frame  = {};
+    PerFrame frame = {};
 
     PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
 
@@ -698,7 +698,7 @@ void ProjApp::DrawCameraInfo()
 
 void ProjApp::Render()
 {
-    PerFrame& frame  = mPerFrame[0];
+    PerFrame& frame = mPerFrame[0];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

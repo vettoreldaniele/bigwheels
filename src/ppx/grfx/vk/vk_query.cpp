@@ -9,8 +9,7 @@ namespace grfx {
 namespace vk {
 
 Query::Query()
-    : mType(VK_QUERY_TYPE_MAX_ENUM)
-    , mMultiplier(1)
+    : mType(VK_QUERY_TYPE_MAX_ENUM), mMultiplier(1)
 {
 }
 
@@ -42,7 +41,7 @@ Result Query::CreateApiObjects(const grfx::QueryCreateInfo* pCreateInfo)
     vkci.queryCount            = pCreateInfo->count;
     vkci.pipelineStatistics    = 0;
 
-    mType = vkci.queryType;
+    mType       = vkci.queryType;
     mMultiplier = 1;
 
     if (vkci.queryType == VK_QUERY_TYPE_PIPELINE_STATISTICS) {

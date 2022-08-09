@@ -100,7 +100,7 @@ ppx::Result Entity::CreatePipelines(ppx::grfx::DescriptorSetLayout* pSceneDataLa
             pApp->GetAssetPath("gbuffer/shaders"));
         std::vector<char> bytecode = grfx::dx::CompileShader(pApp->GetAssetPath("gbuffer/shaders"), "VertexShader", "vs_5_0", &gbufferShaderIncludeHandler);
 #else
-        std::vector<char>     bytecode = pApp->LoadShader(pApp->GetAssetPath("gbuffer/shaders"), "VertexShader.vs");
+        std::vector<char> bytecode = pApp->LoadShader(pApp->GetAssetPath("gbuffer/shaders"), "VertexShader.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -110,7 +110,7 @@ ppx::Result Entity::CreatePipelines(ppx::grfx::DescriptorSetLayout* pSceneDataLa
 #if defined(PORTO_D3DCOMPILE)
         bytecode = grfx::dx::CompileShader(pApp->GetAssetPath("gbuffer/shaders"), "DeferredRender", "ps_5_0", &gbufferShaderIncludeHandler);
 #else
-        bytecode = pApp->LoadShader(pApp->GetAssetPath("gbuffer/shaders"), "DeferredRender.ps");
+        bytecode                   = pApp->LoadShader(pApp->GetAssetPath("gbuffer/shaders"), "DeferredRender.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};

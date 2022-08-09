@@ -26,13 +26,13 @@ Result Instance::EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel, bool ena
         }
         // Store adapters that support the minimum feature level
         UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-        if (enableDebug) { 
+        if (enableDebug) {
             flags |= D3D11_CREATE_DEVICE_DEBUG;
         }
         //
         // When creating a device from an existing adapter (i.e. pAdapter is non-NULL), DriverType must be D3D_DRIVER_TYPE_UNKNOWN.
         //
-        hr         = D3D11CreateDevice(adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags, &featureLevel, 1, D3D11_SDK_VERSION, nullptr, nullptr, nullptr);
+        hr = D3D11CreateDevice(adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, flags, &featureLevel, 1, D3D11_SDK_VERSION, nullptr, nullptr, nullptr);
         if (SUCCEEDED(hr)) {
             adapters.push_back(adapter);
         }
@@ -90,7 +90,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     }
 
     UINT dxgiFactoryFlags = 0;
-#if ! defined(PPX_DXVK)
+#if !defined(PPX_DXVK)
     if (pCreateInfo->enableDebug) {
         // Get DXGI debug interface
         HRESULT hr = DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebug));
@@ -114,7 +114,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 
 #if defined(PPX_DXVK)
     IDXGIFactory7* pFactory = nullptr;
-    HRESULT hr = CreateDXGIFactory2(dxgiFactoryFlags, __uuidof(IDXGIFactory7), reinterpret_cast<void**>(&pFactory));
+    HRESULT        hr       = CreateDXGIFactory2(dxgiFactoryFlags, __uuidof(IDXGIFactory7), reinterpret_cast<void**>(&pFactory));
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }
@@ -146,7 +146,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 
 void Instance::DestroyApiObjects()
 {
-#if ! defined(PPX_DXVK)
+#if !defined(PPX_DXVK)
     if (mCreateInfo.enableDebug) {
         mDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_ALL));
     }
@@ -156,7 +156,7 @@ void Instance::DestroyApiObjects()
         mFactory.Reset();
     }
 
-#if ! defined(PPX_DXVK)
+#if !defined(PPX_DXVK)
     if (mDXGIInfoQueue) {
         mDXGIInfoQueue.Reset();
     }

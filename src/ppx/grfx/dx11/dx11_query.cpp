@@ -8,9 +8,7 @@ namespace grfx {
 namespace dx11 {
 
 Query::Query()
-    : mQueryType(InvalidValue<D3D11_QUERY>())
-    , mResolveDataStartIndex(0)
-    , mResolveDataNumQueries(0)
+    : mQueryType(InvalidValue<D3D11_QUERY>()), mResolveDataStartIndex(0), mResolveDataNumQueries(0)
 {
 }
 

@@ -129,7 +129,7 @@ void ProjApp::SaveResultsToFile()
 void ProjApp::Setup()
 {
     auto cl_options = GetExtraOptions();
-    
+
     // Name of the CSV output file.
     mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
@@ -144,7 +144,7 @@ void ProjApp::Setup()
         PPX_LOG_WARN("The filter-size must be 3, 5 or 7, defaulting to: " + std::to_string(filter_size));
     }
     mShaderFile = "ComputeFilter" + std::to_string(filter_size);
-    
+
     // Create descriptor pool (for both pipelines)
     {
         grfx::DescriptorPoolCreateInfo createInfo = {};

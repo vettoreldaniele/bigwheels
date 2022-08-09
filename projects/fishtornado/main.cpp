@@ -3,6 +3,6 @@
 int main(int argc, char** argv)
 {
     FishTornadoApp app;
-    int res = app.Run(argc, argv);
+    int            res = app.Run(argc, argv);
     return res;
 }

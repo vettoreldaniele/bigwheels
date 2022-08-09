@@ -617,14 +617,15 @@ Result Application::InitializePlatform()
     // clang-format on
 
     if (mSettings.enableDisplay) {
-      // Initializ glfw
-      int res = glfwInit();
-      if (res != GLFW_TRUE) {
-          PPX_ASSERT_MSG(false, "glfwInit failed");
-          return ppx::ERROR_GLFW_INIT_FAILED;
-      }
-    } else {
-      PPX_LOG_INFO("Display not enabled: skipping initialization of glfw");
+        // Initializ glfw
+        int res = glfwInit();
+        if (res != GLFW_TRUE) {
+            PPX_ASSERT_MSG(false, "glfwInit failed");
+            return ppx::ERROR_GLFW_INIT_FAILED;
+        }
+    }
+    else {
+        PPX_LOG_INFO("Display not enabled: skipping initialization of glfw");
     }
 
 #if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXIIVK) || defined(PPX_DXVK_SPV))
@@ -873,8 +874,8 @@ void Application::ShutdownGrfx()
 Result Application::CreatePlatformWindow()
 {
     if (!mSettings.enableDisplay) {
-      PPX_LOG_INFO("Display not enabled: skipping creation of platform window");
-      return ppx::SUCCESS;
+        PPX_LOG_INFO("Display not enabled: skipping creation of platform window");
+        return ppx::SUCCESS;
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -1116,7 +1117,8 @@ bool Application::IsRunning() const
         int  value     = glfwWindowShouldClose(static_cast<GLFWwindow*>(mWindow));
         bool isRunning = (value == 0);
         return isRunning;
-    } else {
+    }
+    else {
         return mRunningWithoutDisplay;
     }
 }
@@ -1169,7 +1171,8 @@ int Application::Run(int argc, char** argv)
     // If command line provided a maximum number of frames to draw
     if (mStandardOptions.frame_count != -1) {
         mMaxFrame = mStandardOptions.frame_count;
-    } else if (!mSettings.enableDisplay) {
+    }
+    else if (!mSettings.enableDisplay) {
         mMaxFrame = 1;
         PPX_LOG_INFO("Display not enabled: frame count is " + std::to_string(mMaxFrame));
     }
@@ -1218,9 +1221,10 @@ int Application::Run(int argc, char** argv)
                     static_cast<int>(mSettings.window.height));
             }
         }
-    } else {
-      PPX_LOG_INFO("Display not enabled: skipping creation of platform window");
-      PPX_LOG_INFO("Display not enabled: skipping creation of surface");
+    }
+    else {
+        PPX_LOG_INFO("Display not enabled: skipping creation of platform window");
+        PPX_LOG_INFO("Display not enabled: skipping creation of surface");
     }
 
     // Setup ImGui
@@ -1251,8 +1255,8 @@ int Application::Run(int argc, char** argv)
         mFrameStartTime = static_cast<float>(mTimer.MillisSinceStart());
 
         if (mSettings.enableDisplay) {
-          // Poll events
-          glfwPollEvents();
+            // Poll events
+            glfwPollEvents();
         }
 
         // Start new Imgui frame
@@ -1319,7 +1323,8 @@ void Application::Quit()
 {
     if (mSettings.enableDisplay) {
         glfwSetWindowShouldClose(static_cast<GLFWwindow*>(mWindow), 1);
-    } else {
+    }
+    else {
         mRunningWithoutDisplay = false;
     }
 }
