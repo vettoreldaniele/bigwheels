@@ -17,6 +17,8 @@ struct StandardOptions
     // Flags
     bool help;
     bool list_gpus;
+    bool use_software_renderer;
+
     // Options
     int                 gpu_index;
     std::pair<int, int> resolution;

@@ -651,6 +651,7 @@ Result Application::InitializeGrfxDevice()
         ci.enableSwapchain          = mSettings.enableDisplay;
         ci.applicationName          = mSettings.appName;
         ci.engineName               = mSettings.appName;
+        ci.useSoftwareRenderer      = mStandardOptions.use_software_renderer;
 
         Result ppxres = grfx::CreateInstance(&ci, &mInstance);
         if (Failed(ppxres)) {
@@ -666,7 +667,7 @@ Result Application::InitializeGrfxDevice()
         }
 
         uint32_t gpuIndex = 0;
-        if (mStandardOptions.gpu_index != -1) {
+        if (!mStandardOptions.use_software_renderer && mStandardOptions.gpu_index != -1) {
             gpuIndex = mStandardOptions.gpu_index;
         }
 

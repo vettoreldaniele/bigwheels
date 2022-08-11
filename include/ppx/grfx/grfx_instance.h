@@ -10,15 +10,16 @@ namespace grfx {
 
 struct InstanceCreateInfo
 {
-    grfx::Api                api             = grfx::API_UNDEFINED; // Direct3D or Vulkan
-    bool                     createDevices   = false;               // Create grfx::Device objects with default options
-    bool                     enableDebug     = false;               // Enable graphics API debug layers
-    bool                     enableSwapchain = true;                // Enable support for swapchain
-    std::string              applicationName;                       // [OPTIONAL] Application name
-    std::string              engineName;                            // [OPTIONAL] Engine name
-    bool                     forceDxDiscreteAllocations = false;    // [OPTIONAL] Forces D3D12 to make discrete allocations for resources
-    std::vector<std::string> vulkanLayers;                          // [OPTIONAL] Additional instance layers
-    std::vector<std::string> vulkanExtensions;                      // [OPTIONAL] Additional instance extensions
+    grfx::Api                api                 = grfx::API_UNDEFINED; // Direct3D or Vulkan.
+    bool                     createDevices       = false;               // Create grfx::Device objects with default options.
+    bool                     enableDebug         = false;               // Enable graphics API debug layers.
+    bool                     enableSwapchain     = true;                // Enable support for swapchain.
+    bool                     useSoftwareRenderer = false;               // Use a software renderer instead of a hardware device (WARP on DirectX).
+    std::string              applicationName;                           // [OPTIONAL] Application name.
+    std::string              engineName;                                // [OPTIONAL] Engine name.
+    bool                     forceDxDiscreteAllocations = false;        // [OPTIONAL] Forces D3D12 to make discrete allocations for resources.
+    std::vector<std::string> vulkanLayers;                              // [OPTIONAL] Additional instance layers.
+    std::vector<std::string> vulkanExtensions;                          // [OPTIONAL] Additional instance extensions.
 };
 
 class Instance

@@ -228,6 +228,8 @@ Result Instance::CreateDebugUtils(const grfx::InstanceCreateInfo* pCreateInfo)
 
 Result Instance::EnumerateAndCreateeGpus()
 {
+    PPX_ASSERT_MSG(!mCreateInfo.useSoftwareRenderer, "A software renderer was requested but it is not available in Vulkan.");
+
     uint32_t count = 0;
     VkResult vkres = vkEnumeratePhysicalDevices(mInstance, &count, nullptr);
     PPX_ASSERT_MSG((vkres == VK_SUCCESS), "vkEnumeratePhysicalDevices(0) failed");

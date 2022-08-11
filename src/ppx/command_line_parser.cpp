@@ -18,7 +18,7 @@ StandardOptions::StandardOptions()
 
 void StandardOptions::SetDefault()
 {
-    help = list_gpus = false;
+    help = list_gpus = use_software_renderer = false;
     gpu_index = frame_count = resolution.first = resolution.second = -1;
 }
 // -------------------------------------------------------------------------------------------------
@@ -58,6 +58,9 @@ void CommandLineParser::Parse(int argc, char* argv[])
             }
             else if (MatchesOption(arg, "list-gpus")) {
                 mOpts.list_gpus = true;
+            }
+            else if (MatchesOption(arg, "use-software-renderer")) {
+                mOpts.use_software_renderer = true;
             }
             else if (MatchesOption(arg, "gpu")) {
                 if ((i + 1) < args.size()) {

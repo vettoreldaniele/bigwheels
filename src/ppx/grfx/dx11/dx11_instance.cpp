@@ -18,10 +18,12 @@ Result Instance::EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel, bool ena
         if (hr == DXGI_ERROR_NOT_FOUND) {
             break;
         }
-        // Filter for only hardware adapters
+        // Filter for only hardware adapters, unless
+        // a software renderer is requested.
         DXGI_ADAPTER_DESC1 desc;
         hr = adapter->GetDesc1(&desc);
-        if (FAILED(hr) || (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)) {
+        bool is_software_adapter = desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE;
+        if (FAILED(hr) || (mCreateInfo.useSoftwareRenderer != is_software_adapter)) {
             continue;
         }
         // Store adapters that support the minimum feature level
