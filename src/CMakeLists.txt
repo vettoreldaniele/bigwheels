@@ -145,10 +145,8 @@ list(
     ${INC_DIR}/ppx/generate_mip_shader_VK.h
     ${INC_DIR}/ppx/geometry.h
     ${INC_DIR}/ppx/graphics_util.h
-    ${INC_DIR}/ppx/headless_application.h
     ${INC_DIR}/ppx/imgui_impl.h
     ${INC_DIR}/ppx/log.h
-    ${INC_DIR}/ppx/math_util.h
     ${INC_DIR}/ppx/mipmap.h
     ${INC_DIR}/ppx/obj_ptr.h
     ${INC_DIR}/ppx/platform.h
@@ -176,10 +174,8 @@ list(
     ${SRC_DIR}/ppx/font.cpp
     ${SRC_DIR}/ppx/geometry.cpp
     ${SRC_DIR}/ppx/graphics_util.cpp
-    ${SRC_DIR}/ppx/headless_application.cpp
     ${SRC_DIR}/ppx/imgui_impl.cpp
     ${SRC_DIR}/ppx/log.cpp
-    ${SRC_DIR}/ppx/math_util.cpp
     ${SRC_DIR}/ppx/mipmap.cpp
     ${SRC_DIR}/ppx/platform.cpp
     ${SRC_DIR}/ppx/profiler.cpp
@@ -248,21 +244,6 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_text_draw.cpp
     ${SRC_DIR}/ppx/grfx/grfx_texture.cpp
     ${SRC_DIR}/ppx/grfx/grfx_util.cpp
-)
-
-list(
-    APPEND PPX_IO_HEADER_FILES
-    ${INC_DIR}/ppx/io/000_io_config.h
-    ${INC_DIR}/ppx/io/file.h
-    ${INC_DIR}/ppx/io/image_loader.h
-    ${INC_DIR}/ppx/io/obj_loader.h
-)
-
-list(
-    APPEND PPX_IO_SOURCE_FILES
-    ${SRC_DIR}/ppx/io/file.cpp
-    ${SRC_DIR}/ppx/io/image_loader.cpp
-    ${SRC_DIR}/ppx/io/obj_loader.cpp
 )
 
 if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
@@ -446,8 +427,6 @@ source_group("ppx-grfx-dx12\\header"  FILES ${PPX_GRFX_DX12_HEADER_FILES})
 source_group("ppx-grfx-dx12\\source"  FILES ${PPX_GRFX_DX12_SOURCE_FILES})
 source_group("ppx-grfx-vk\\header"    FILES ${PPX_GRFX_VK_HEADER_FILES})
 source_group("ppx-grfx-vk\\source"    FILES ${PPX_GRFX_VK_SOURCE_FILES})
-source_group("ppx-io\\header"         FILES ${PPX_IO_HEADER_FILES})
-source_group("ppx-io\\source"         FILES ${PPX_IO_SOURCE_FILES})
 source_group("third_party\\contrib"   FILES ${CONTRIB_FILES})
 source_group("third_party\\imgui"     FILES ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
 source_group("third_party\\xxHash"    FILES ${XXHASH_FILES})
@@ -470,8 +449,6 @@ add_library(
     ${PPX_GRFX_DX12_SOURCE_FILES}
     ${PPX_GRFX_VK_HEADER_FILES}
     ${PPX_GRFX_VK_SOURCE_FILES}
-    ${PPX_IO_HEADER_FILES}
-    ${PPX_IO_SOURCE_FILES}
     ${CONTRIB_FILES}
     ${IMGUI_HEADER_FILES}
     ${IMGUI_SOURCE_FILES}

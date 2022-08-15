@@ -50,7 +50,6 @@ list(APPEND CPP_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/Flocking.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Flocking.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Material.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Material.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Ocean.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Ocean.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ShaderConfig.h
