@@ -125,7 +125,22 @@ void CommandBuffer::TransitionImageLayout(
         PPX_ASSERT_MSG(false, "queue family transfer requires both pSrcQueue and pDstQueue to be NOT NULL");
     }
 
-    if (beforeState == afterState) {
+    uint32_t srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    uint32_t dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    if (!IsNull(pSrcQueue)) {
+        srcQueueFamilyIndex = ToApi(pSrcQueue)->GetQueueFamilyIndex();
+    }
+
+    if (!IsNull(pDstQueue)) {
+        dstQueueFamilyIndex = ToApi(pDstQueue)->GetQueueFamilyIndex();
+    }
+
+    if (srcQueueFamilyIndex == dstQueueFamilyIndex) {
+        srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    }
+
+    if (beforeState == afterState && srcQueueFamilyIndex == dstQueueFamilyIndex) {
         return;
     }
 
@@ -139,28 +154,13 @@ void CommandBuffer::TransitionImageLayout(
 
     const vk::Image* pApiImage = ToApi(pImage);
 
-    VkPipelineStageFlags srcStageMask        = InvalidValue<VkPipelineStageFlags>();
-    VkPipelineStageFlags dstStageMask        = InvalidValue<VkPipelineStageFlags>();
-    VkAccessFlags        srcAccessMask       = InvalidValue<VkAccessFlags>();
-    VkAccessFlags        dstAccessMask       = InvalidValue<VkAccessFlags>();
-    VkImageLayout        oldLayout           = InvalidValue<VkImageLayout>();
-    VkImageLayout        newLayout           = InvalidValue<VkImageLayout>();
-    uint32_t             srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    uint32_t             dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    VkDependencyFlags    dependencyFlags     = 0;
-
-    if (!IsNull(pSrcQueue)) {
-        srcQueueFamilyIndex = ToApi(pSrcQueue)->GetQueueFamilyIndex();
-    }
-
-    if (!IsNull(pDstQueue)) {
-        dstQueueFamilyIndex = ToApi(pDstQueue)->GetQueueFamilyIndex();
-    }
-
-    if (srcQueueFamilyIndex == dstQueueFamilyIndex) {
-        srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    }
+    VkPipelineStageFlags srcStageMask    = InvalidValue<VkPipelineStageFlags>();
+    VkPipelineStageFlags dstStageMask    = InvalidValue<VkPipelineStageFlags>();
+    VkAccessFlags        srcAccessMask   = InvalidValue<VkAccessFlags>();
+    VkAccessFlags        dstAccessMask   = InvalidValue<VkAccessFlags>();
+    VkImageLayout        oldLayout       = InvalidValue<VkImageLayout>();
+    VkImageLayout        newLayout       = InvalidValue<VkImageLayout>();
+    VkDependencyFlags    dependencyFlags = 0;
 
     vk::Device* pDevice = ToApi(GetDevice());
 
@@ -224,20 +224,8 @@ void CommandBuffer::BufferResourceBarrier(
         PPX_ASSERT_MSG(false, "queue family transfer requires both pSrcQueue and pDstQueue to be NOT NULL");
     }
 
-    if (beforeState == afterState) {
-        return;
-    }
-
-    VkPipelineStageFlags srcStageMask        = InvalidValue<VkPipelineStageFlags>();
-    VkPipelineStageFlags dstStageMask        = InvalidValue<VkPipelineStageFlags>();
-    VkAccessFlags        srcAccessMask       = InvalidValue<VkAccessFlags>();
-    VkAccessFlags        dstAccessMask       = InvalidValue<VkAccessFlags>();
-    VkImageLayout        oldLayout           = InvalidValue<VkImageLayout>();
-    VkImageLayout        newLayout           = InvalidValue<VkImageLayout>();
-    uint32_t             srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    uint32_t             dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    VkDependencyFlags    dependencyFlags     = 0;
-
+    uint32_t srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    uint32_t dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     if (!IsNull(pSrcQueue)) {
         srcQueueFamilyIndex = ToApi(pSrcQueue)->GetQueueFamilyIndex();
     }
@@ -250,6 +238,18 @@ void CommandBuffer::BufferResourceBarrier(
         srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     }
+
+    if (beforeState == afterState && srcQueueFamilyIndex == dstQueueFamilyIndex) {
+        return;
+    }
+
+    VkPipelineStageFlags srcStageMask    = InvalidValue<VkPipelineStageFlags>();
+    VkPipelineStageFlags dstStageMask    = InvalidValue<VkPipelineStageFlags>();
+    VkAccessFlags        srcAccessMask   = InvalidValue<VkAccessFlags>();
+    VkAccessFlags        dstAccessMask   = InvalidValue<VkAccessFlags>();
+    VkImageLayout        oldLayout       = InvalidValue<VkImageLayout>();
+    VkImageLayout        newLayout       = InvalidValue<VkImageLayout>();
+    VkDependencyFlags    dependencyFlags = 0;
 
     vk::Device* pDevice = ToApi(GetDevice());
 
