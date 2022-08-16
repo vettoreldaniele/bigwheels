@@ -7,7 +7,7 @@ permissions: read-all
 
 jobs:
   windows-build:
-    name: Windows build
+    name: Build and run unit tests on Windows
     runs-on: "windows-2019"
     steps:
       - name: Setup Vulkan SDK
@@ -27,5 +27,9 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_TESTS=OFF ..
+          cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_TESTS=ON ..
           cmake --build . --target ALL_BUILD --config Release -- /nologo /verbosity:minimal /maxcpucount
+      - name: Run unit tests
+        run: |
+          cd build
+          cmake --build . --target RUN_TESTS --config Release -- /nologo /verbosity:minimal /maxcpucount

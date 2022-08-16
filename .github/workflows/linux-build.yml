@@ -7,7 +7,7 @@ permissions: read-all
 
 jobs:
   linux-build:
-    name: Linux build
+    name: Build and run unit tests on Linux
     runs-on: "ubuntu-20.04"
     steps:
       - name: Setup necessary packages
@@ -31,5 +31,9 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+          cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DBUILD_TESTS=ON
           make -j $(nproc)
+      - name: Run unit tests
+        run: |
+          cd build
+          ctest -j $(nproc)
