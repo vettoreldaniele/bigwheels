@@ -110,7 +110,7 @@ void ProjApp::Setup()
     auto cl_options = GetExtraOptions();
 
     // Name of the CSV output file.
-    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    mCSVFileName = cl_options.GetExtraOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);

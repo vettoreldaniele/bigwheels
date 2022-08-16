@@ -130,37 +130,37 @@ void ProjApp::Setup()
     auto cl_options = GetExtraOptions();
 
     // Number of layers to draw. The layers cover the entire screen but have different depth.
-    mNumLayers = cl_options.GetOptionValueOrDefault<uint32_t>("num-layers", 4);
+    mNumLayers = cl_options.GetExtraOptionValueOrDefault<uint32_t>("num-layers", 4);
     if (mNumLayers == 0) {
         mNumLayers = 4;
         PPX_LOG_WARN("Number of layers must be greater or equal to 1, defaulting to: " + std::to_string(mNumLayers));
     }
 
     // Name of the CSV output file.
-    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    mCSVFileName = cl_options.GetExtraOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);
     }
 
     // Sampler filter operation.
-    mSamplerFilterType = cl_options.GetOptionValueOrDefault<std::string>("filter-type", "linear");
+    mSamplerFilterType = cl_options.GetExtraOptionValueOrDefault<std::string>("filter-type", "linear");
     if (mSamplerFilterType != "linear" && mSamplerFilterType != "nearest") {
         mSamplerFilterType = "linear";
         PPX_LOG_WARN("Invalid sampler filter type (must be `linear` or `nearest`), defaulting to: " + mSamplerFilterType);
     }
 
     // Whether to draw layers in front-to-back order or back-to-front.
-    mDrawFrontToBack = cl_options.GetOptionValueOrDefault<bool>("draw-front-to-back", true);
+    mDrawFrontToBack = cl_options.GetExtraOptionValueOrDefault<bool>("draw-front-to-back", true);
 
     // Whether to use the shader that enables explicit early-z in the pixel shader.
-    mUseExplicitEarlyZShader = cl_options.GetOptionValueOrDefault<bool>("use-explicit-early-z", false);
+    mUseExplicitEarlyZShader = cl_options.GetExtraOptionValueOrDefault<bool>("use-explicit-early-z", false);
 
     // Whether to use depth read-write in the pipeline.
-    mEnableDepth = cl_options.GetOptionValueOrDefault<bool>("enable-depth", true);
+    mEnableDepth = cl_options.GetExtraOptionValueOrDefault<bool>("enable-depth", true);
 
     // Which blending mode to use when drawing layers.
-    mBlendMode = cl_options.GetOptionValueOrDefault<std::string>("blend-mode", "none");
+    mBlendMode = cl_options.GetExtraOptionValueOrDefault<std::string>("blend-mode", "none");
     if (blendModeStringToBlendMode.find(mBlendMode) == blendModeStringToBlendMode.end()) {
         mBlendMode = "none";
         PPX_LOG_WARN("Invalid blend mode (must be `none`, `additive`, `alpha`, `over`, `under` or `premult_alpha`), defaulting to: " + mBlendMode);

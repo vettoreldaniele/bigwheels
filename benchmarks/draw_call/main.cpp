@@ -104,17 +104,17 @@ void ProjApp::Setup()
     auto cl_options = GetExtraOptions();
 
     // Number of triangles to draw.
-    mNumTriangles = cl_options.GetOptionValueOrDefault<uint32_t>("num-triangles", 10000);
+    mNumTriangles = cl_options.GetExtraOptionValueOrDefault<uint32_t>("num-triangles", 10000);
     if (mNumTriangles == 0) {
         mNumTriangles = 10000;
         PPX_LOG_WARN("Number of triangles must be greater than zero, defaulting to: " + std::to_string(mNumTriangles));
     }
 
     // Whether to make an instanced call for all triangles or use separate draw calls.
-    mUseInstancedDraw = cl_options.GetOptionValueOrDefault<bool>("instanced-draw", false);
+    mUseInstancedDraw = cl_options.GetExtraOptionValueOrDefault<bool>("instanced-draw", false);
 
     // Name of the CSV output file
-    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    mCSVFileName = cl_options.GetExtraOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);

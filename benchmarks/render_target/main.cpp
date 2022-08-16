@@ -117,14 +117,14 @@ void ProjApp::Setup()
     auto cl_options = GetExtraOptions();
 
     // Name of the CSV output file.
-    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    mCSVFileName = cl_options.GetExtraOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);
     }
 
     // Render target(s) resolution
-    std::string resolution = cl_options.GetOptionValueOrDefault<std::string>("render-target-resolution", "1080p");
+    std::string resolution = cl_options.GetExtraOptionValueOrDefault<std::string>("render-target-resolution", "1080p");
     if (resolution != "1080p" && resolution != "4K") {
         resolution = "1080p";
         PPX_LOG_WARN("Render Target resolution must be either \"1080p\" or \"4K\", defaulting to: " + resolution);
@@ -132,7 +132,7 @@ void ProjApp::Setup()
     mRenderTargetSize = (resolution == "1080p") ? uint2(1920, 1080) : uint2(3840, 2160);
 
     // Number of render targets to use
-    mRenderTargetCount = cl_options.GetOptionValueOrDefault<uint32_t>("render-target-count", 1);
+    mRenderTargetCount = cl_options.GetExtraOptionValueOrDefault<uint32_t>("render-target-count", 1);
     if (mRenderTargetCount != 1 && mRenderTargetCount != 4) {
         mRenderTargetCount = 1;
         PPX_LOG_WARN("Render Target count must be either 1 or 4, defaulting to: " + mRenderTargetCount);

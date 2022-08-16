@@ -159,10 +159,10 @@ void ProjApp::Setup()
     auto cl_options = GetExtraOptions();
 
     // Whether async compute is used or not.
-    mAsyncComputeEnabled = cl_options.GetOptionValueOrDefault<bool>("enable-async-compute", true);
+    mAsyncComputeEnabled = cl_options.GetExtraOptionValueOrDefault<bool>("enable-async-compute", true);
 
     // Whether to use queue family transfers in Vulkan (not required in DX12).
-    mUseQueueFamilyTransfers = cl_options.GetOptionValueOrDefault<bool>("use-queue-family-transfers", true);
+    mUseQueueFamilyTransfers = cl_options.GetExtraOptionValueOrDefault<bool>("use-queue-family-transfers", true);
 
     mCamera = PerspCamera(60.0f, GetWindowAspect());
 

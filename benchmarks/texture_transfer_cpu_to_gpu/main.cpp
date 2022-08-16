@@ -131,8 +131,8 @@ void ProjApp::SetupTestParameters()
     const CliOptions& cl_options = GetExtraOptions();
 
     uint32_t imageIndex = 0;
-    if (cl_options.HasOption("use-image")) {
-        imageIndex = cl_options.GetOptionValueOrDefault<uint32_t>("use-image", 0);
+    if (cl_options.HasExtraOption("use-image")) {
+        imageIndex = cl_options.GetExtraOptionValueOrDefault<uint32_t>("use-image", 0);
         if (imageIndex == 0 || imageIndex > mTextureNames.size()) {
             PPX_LOG_WARN("Invalid --use-image index, value must be between [1," + std::to_string(mTextureNames.size()) + "]");
         }
@@ -144,7 +144,7 @@ void ProjApp::SetupTestParameters()
     }
 
     // Name of the CSV output file
-    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    mCSVFileName = cl_options.GetExtraOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);

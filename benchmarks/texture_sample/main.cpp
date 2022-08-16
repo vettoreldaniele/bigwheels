@@ -123,26 +123,26 @@ void ProjApp::Setup()
     auto cl_options = GetExtraOptions();
 
     // Number of images (textures) to load in the pixel shader. Can be either 1 or 4.
-    mNumImages = cl_options.GetOptionValueOrDefault<uint32_t>("num-images", 1);
+    mNumImages = cl_options.GetExtraOptionValueOrDefault<uint32_t>("num-images", 1);
     if (mNumImages != 1 && mNumImages != 4) {
         PPX_LOG_WARN("Number of images must be either 1 or 4, defaulting to: 1");
         mNumImages = 1;
     }
 
     // Name of the CSV output file.
-    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    mCSVFileName = cl_options.GetExtraOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);
     }
 
     // Sampler filter operations (both normal and for mipmap).
-    mSamplerFilterType = cl_options.GetOptionValueOrDefault<std::string>("filter-type", "linear");
+    mSamplerFilterType = cl_options.GetExtraOptionValueOrDefault<std::string>("filter-type", "linear");
     if (mSamplerFilterType != "linear" && mSamplerFilterType != "nearest") {
         mSamplerFilterType = "linear";
         PPX_LOG_WARN("Invalid sampler filter type (must be `linear` or `nearest`), defaulting to: " + mSamplerFilterType);
     }
-    mSamplerMipmapFilterType = cl_options.GetOptionValueOrDefault<std::string>("mipmap-filter-type", "linear");
+    mSamplerMipmapFilterType = cl_options.GetExtraOptionValueOrDefault<std::string>("mipmap-filter-type", "linear");
     if (mSamplerMipmapFilterType != "linear" && mSamplerMipmapFilterType != "nearest") {
         mSamplerMipmapFilterType = "linear";
         PPX_LOG_WARN("Invalid sampler mipmap filter type (must be `linear` or `nearest`), defaulting to: " + mSamplerMipmapFilterType);
@@ -150,7 +150,7 @@ void ProjApp::Setup()
 
     // Forced mip level to use for all frames (instead of cycling through all mip levels, one per frame).
     // This value is validated once the image is created and the mip level count is known.
-    mForcedMipLevel = cl_options.GetOptionValueOrDefault<int32_t>("force-mip-level", -1);
+    mForcedMipLevel = cl_options.GetExtraOptionValueOrDefault<int32_t>("force-mip-level", -1);
 
     // Per frame data
     {

@@ -131,14 +131,14 @@ void ProjApp::Setup()
     auto cl_options = GetExtraOptions();
 
     // Name of the CSV output file.
-    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    mCSVFileName = cl_options.GetExtraOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);
     }
 
     // Filter size
-    uint32_t filter_size = cl_options.GetOptionValueOrDefault<uint32_t>("filter-size", 3);
+    uint32_t filter_size = cl_options.GetExtraOptionValueOrDefault<uint32_t>("filter-size", 3);
     if (filter_size != 3 && filter_size != 5 && filter_size != 7) {
         filter_size = 3;
         PPX_LOG_WARN("The filter-size must be 3, 5 or 7, defaulting to: " + std::to_string(filter_size));

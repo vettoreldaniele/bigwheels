@@ -117,17 +117,17 @@ void ProjApp::SetupTestParameters()
     auto cl_options = GetExtraOptions();
 
     // Number of triangles to draw
-    mNumTriangles = cl_options.GetOptionValueOrDefault<uint32_t>("triangles", 1000000);
+    mNumTriangles = cl_options.GetExtraOptionValueOrDefault<uint32_t>("triangles", 1000000);
 
     // Name of the CSV output file
-    mCSVFileName = cl_options.GetOptionValueOrDefault<std::string>("stats-file", "stats.csv");
+    mCSVFileName = cl_options.GetExtraOptionValueOrDefault<std::string>("stats-file", "stats.csv");
     if (mCSVFileName.empty()) {
         mCSVFileName = "stats.csv";
         PPX_LOG_WARN("Invalid name for CSV log file, defaulting to: " + mCSVFileName);
     }
 
     // Whether to use pipeline statistics queries.
-    mUsePipelineQuery = cl_options.GetOptionValueOrDefault<bool>("use-pipeline-query", false);
+    mUsePipelineQuery = cl_options.GetExtraOptionValueOrDefault<bool>("use-pipeline-query", false);
 
 #if defined(PPX_DXIIVK)
     if (mUsePipelineQuery) {
