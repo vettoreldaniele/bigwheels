@@ -35,5 +35,6 @@ list(
     APPEND TEST_SOURCES
     shader_translator_test.cpp
     string_util_test.cpp
+    transform_test.cpp
 )
 package_add_test(ppx_tests ${TEST_SOURCES})

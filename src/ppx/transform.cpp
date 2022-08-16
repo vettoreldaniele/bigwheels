@@ -88,6 +88,8 @@ const float4x4& Transform::GetConcatenatedMatrix() const
         const float4x4& T   = GetTranslationMatrix();
         const float4x4& R   = GetRotationMatrix();
         const float4x4& S   = GetScaleMatrix();
+        // Matrices are column-major in GLM, so
+        // we do not need to reverse the order.
         mConcatenatedMatrix = T * R * S;
         mDirty.concatenated = false;
     }

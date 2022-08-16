@@ -8,7 +8,7 @@ namespace ppx {
 class Transform
 {
 public:
-    enum RotationOrder
+    enum class RotationOrder
     {
         XYZ,
         XZY,
