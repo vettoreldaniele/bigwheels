@@ -1133,19 +1133,13 @@ int Application::Run(int argc, char** argv)
         return false;
     }
 
-    // Copy args
-    for (int i = 0; i < argc; ++i) {
-        mCommandLineArgs.push_back(argv[i]);
-    }
-    // Parse args
-    mCommandLineParser.Parse(argc, argv);
-    mStandardOptions = mCommandLineParser.GetOptions();
-
-    if (!mCommandLineParser.IsOK()) {
-        PPX_LOG_ERROR(mCommandLineParser.GetErrorMsgs());
+    // Parse args.
+    if (auto error = mCommandLineParser.Parse(argc, const_cast<const char**>(argv))) {
+        PPX_LOG_ERROR(error->errorMsg);
         PPX_ASSERT_MSG(false, "Unable to parse command line arguments");
         return EXIT_FAILURE;
     }
+    mStandardOptions = mCommandLineParser.GetOptions().GetStandardOptions();
 
     if (mStandardOptions.help) {
         PPX_LOG_INFO(mCommandLineParser.GetUsageMsg());
@@ -1330,15 +1324,6 @@ void Application::Quit()
     }
 }
 
-std::vector<const char*> Application::GetCommandLineArgs() const
-{
-    std::vector<const char*> args;
-    for (size_t i = 0; i < mCommandLineArgs.size(); ++i) {
-        args.push_back(mCommandLineArgs[i].c_str());
-    }
-    return args;
-}
-
 const StandardOptions Application::GetStandardOptions() const
 {
     return mStandardOptions;
@@ -1346,7 +1331,7 @@ const StandardOptions Application::GetStandardOptions() const
 
 const CliOptions& Application::GetExtraOptions() const
 {
-    return mCommandLineParser.GetExtraOptions();
+    return mCommandLineParser.GetOptions();
 }
 
 grfx::Rect Application::GetScissor() const

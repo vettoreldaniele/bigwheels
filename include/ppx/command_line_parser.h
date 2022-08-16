@@ -7,6 +7,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <type_traits>
+#include <optional>
 
 namespace ppx {
 // -------------------------------------------------------------------------------------------------
@@ -15,17 +16,16 @@ namespace ppx {
 struct StandardOptions
 {
     // Flags
-    bool help;
-    bool list_gpus;
-    bool use_software_renderer;
+    bool help                  = false;
+    bool list_gpus             = false;
+    bool use_software_renderer = false;
 
     // Options
-    int                 gpu_index;
-    std::pair<int, int> resolution;
-    int                 frame_count;
+    int                 gpu_index   = -1;
+    std::pair<int, int> resolution  = {-1, -1};
+    int                 frame_count = -1;
 
-    StandardOptions();
-    void SetDefault();
+    bool operator==(const StandardOptions&) const = default;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ struct CliOptions
             : name(name), value(value) {}
 
         const std::string& GetName() const { return name; }
+        const bool         HasValue() const { return !value.empty(); }
 
         // Get the option value after converting it into the desired integral,
         // floating-point, or boolean type. If the value fails to be converted,
@@ -86,30 +87,40 @@ struct CliOptions
     };
 
 public:
-    void AddOption(const std::string& name, const std::string& value)
+    const StandardOptions& GetStandardOptions() const
     {
-        options.insert(std::make_pair(name, Option(name, value)));
+        return standardOptions;
     }
 
-    bool HasOption(const std::string& option) const
+    bool HasExtraOption(const std::string& option) const
     {
-        return options.find(option) != options.end();
+        return extraOptions.find(option) != extraOptions.end();
     }
+
+    size_t GetNumExtraOptions() const { return extraOptions.size(); }
 
     // Get the option value after converting it into the desired integral,
     // floating-point, or boolean type. If the option does not exist or the
     // value fails to be converted, return the specified default value.
     template <typename T>
-    T GetOptionValueOrDefault(const std::string& option, const T& defaultValue) const
+    T GetExtraOptionValueOrDefault(const std::string& option, const T& defaultValue) const
     {
-        if (!HasOption(option)) {
+        if (!HasExtraOption(option)) {
             return defaultValue;
         }
-        return options.at(option).GetValueOrDefault<T>(defaultValue);
+        return extraOptions.at(option).GetValueOrDefault<T>(defaultValue);
     }
 
 private:
-    std::unordered_map<std::string, Option> options;
+    void AddExtraOption(const Option& opt)
+    {
+        extraOptions.insert(std::make_pair(opt.GetName(), opt));
+    }
+
+    std::unordered_map<std::string, Option> extraOptions;
+    StandardOptions                         standardOptions;
+
+    friend class CommandLineParser;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -118,38 +129,30 @@ private:
 class CommandLineParser
 {
 public:
-    CommandLineParser();
-    CommandLineParser(int argc, char* argv[]);
-    void              Parse(int argc, char* argv[]);
-    StandardOptions   GetOptions() const;
-    const CliOptions& GetExtraOptions() const;
-    std::string       GetErrorMsgs() const;
-    std::string       GetUsageMsg() const;
-    bool              IsOK() const;
+    struct ParsingError
+    {
+        ParsingError(const std::string& error)
+            : errorMsg(error) {}
+        std::string errorMsg;
+    };
+
+    // Parse the given arguments into options. Return false if parsing
+    // succeeded. Otherwise, return true if an error occurred,
+    // and write the error to `out_error`.
+    std::optional<ParsingError> Parse(int argc, const char* argv[]);
+    const CliOptions&           GetOptions() const { return mOpts; }
+    std::string                 GetUsageMsg() const { return mUsageMsg; }
 
 private:
-    StandardOptions   mOpts;
-    CliOptions        mExtraOptions;
-    bool              mStateOk;
-    std::stringstream mErorrMsgs;
+    CliOptions        mOpts;
     const std::string mUsageMsg = R"(
---help                        Prints this help and exits
---list-gpus                   Prints a list of the available GPUs on the current system with their id  and exits (See --gpu).
---gpu <index>                 Select the gpu with the given index. To determine valid index use --list-gpus
---resolution <Width>x<Height> Specify the main window resolution in pixels. Width and Height must be two positive integers
---frame-count <N>             The app exits after sucessfully rendering N frames
+--help                        Prints this help message and exits.
+--list-gpus                   Prints a list of the available GPUs on the current system with their index and exits (see --gpu).
+--gpu <index>                 Select the gpu with the given index. To determine the set of valid indices use --list-gpus.
+--resolution <Width>x<Height> Specify the main window resolution in pixels. Width and Height must be two positive integers greater or equal to 1.
+--frame-count <N>             Shutdown the application after successfully rendering N frames.
+--use-software-renderer       Use a software renderer instead of a hardware device, if available.
 )";
-    bool              ExtractGpuIndex(const std::string& str);
-    bool              ExtractResolution(const std::string& str);
-    bool              ExtractFrameCount(const std::string& str);
-    // string related methods
-    int         ParseInt(const std::string& str);
-    bool        MatchesOption(const std::string& str, const std::string& pattern) const;
-    bool        OptionOrFlag(const std::string& s) const;
-    void        LTrim(std::string& s) const;
-    void        RTrim(std::string& s) const;
-    void        Trim(std::string& s) const;
-    std::string TrimCopy(std::string s) const;
 };
 } // namespace ppx
 

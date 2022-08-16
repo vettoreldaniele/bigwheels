@@ -378,7 +378,6 @@ private:
     void ScrollCallback(float dx12, float dy);
 
 private:
-    std::vector<std::string>   mCommandLineArgs;
     CommandLineParser          mCommandLineParser;
     StandardOptions            mStandardOptions;
     uint64_t                   mMaxFrame;
