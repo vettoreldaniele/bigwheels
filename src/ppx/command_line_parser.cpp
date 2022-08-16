@@ -99,9 +99,6 @@ std::optional<CommandLineParser::ParsingError> CommandLineParser::Parse(int argc
         }
         else {
             // Non-standard option.
-            if (!opt.HasValue()) {
-                return std::string("Non-standard command-line options require a parameter");
-            }
             mOpts.AddExtraOption(opt);
         }
     }

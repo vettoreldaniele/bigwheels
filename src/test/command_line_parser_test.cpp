@@ -49,15 +49,17 @@ TEST(CommandLineParserTest, ExtraOptionsSuccessfullyParsed)
 {
     CommandLineParser parser;
     StandardOptions   defaultOptions;
-    const char*       args[] = {"/path/to/executable", "--extra-option-bool", "true", "--extra-option-int", "123", "--extra-option-str", "option string value"};
-    EXPECT_FALSE(parser.Parse(7, args));
+    const char*       args[] = {"/path/to/executable", "--extra-option-bool", "true", "--extra-option-int", "123", "--extra-option-no-param", "--extra-option-str", "option string value"};
+    EXPECT_FALSE(parser.Parse(8, args));
 
     auto opts = parser.GetOptions();
     EXPECT_EQ(opts.GetStandardOptions(), defaultOptions);
-    EXPECT_EQ(opts.GetNumExtraOptions(), 3);
+    EXPECT_EQ(opts.GetNumExtraOptions(), 4);
     EXPECT_EQ(opts.GetExtraOptionValueOrDefault("--extra-option-bool", false), true);
     EXPECT_EQ(opts.GetExtraOptionValueOrDefault("--extra-option-int", 0), 123);
     EXPECT_EQ(opts.GetExtraOptionValueOrDefault<std::string>("--extra-option-str", ""), "option string value");
+    EXPECT_EQ(opts.GetExtraOptionValueOrDefault<std::string>("--extra-option-no-param", ""), "");
+    EXPECT_TRUE(opts.HasExtraOption("--extra-option-no-param"));
 }
 
 TEST(CommandLineParserTest, StandardOptionsParsingErrorMissingParameter)
@@ -88,16 +90,6 @@ TEST(CommandLineParserTest, StandardOptionsParsingErrorInvalidParameterResolutio
     EXPECT_TRUE(error.has_value());
 
     EXPECT_THAT(error->errorMsg, HasSubstr("must be in <Width>x<Height> format"));
-}
-
-TEST(CommandLineParserTest, ExtraOptionsParsingErrorMissingParameter)
-{
-    CommandLineParser parser;
-    const char*       args[] = {"/path/to/executable", "--extra-option"};
-    auto              error  = parser.Parse(2, args);
-    EXPECT_TRUE(error.has_value());
-
-    EXPECT_THAT(error->errorMsg, HasSubstr("require a parameter"));
 }
 
 } // namespace
