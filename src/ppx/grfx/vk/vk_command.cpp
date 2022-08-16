@@ -164,8 +164,11 @@ void CommandBuffer::TransitionImageLayout(
 
     vk::Device* pDevice = ToApi(GetDevice());
 
+    grfx::CommandType commandType = GetCommandType();
+
     Result ppxres = ToVkBarrierSrc(
         beforeState,
+        commandType,
         pDevice->GetDeviceFeatures(),
         srcStageMask,
         srcAccessMask,
@@ -174,6 +177,7 @@ void CommandBuffer::TransitionImageLayout(
 
     ppxres = ToVkBarrierDst(
         afterState,
+        commandType,
         pDevice->GetDeviceFeatures(),
         dstStageMask,
         dstAccessMask,
@@ -249,8 +253,11 @@ void CommandBuffer::BufferResourceBarrier(
 
     vk::Device* pDevice = ToApi(GetDevice());
 
+    grfx::CommandType commandType = GetCommandType();
+
     Result ppxres = ToVkBarrierSrc(
         beforeState,
+        commandType,
         pDevice->GetDeviceFeatures(),
         srcStageMask,
         srcAccessMask,
@@ -259,6 +266,7 @@ void CommandBuffer::BufferResourceBarrier(
 
     ppxres = ToVkBarrierDst(
         afterState,
+        commandType,
         pDevice->GetDeviceFeatures(),
         dstStageMask,
         dstAccessMask,

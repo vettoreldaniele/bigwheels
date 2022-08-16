@@ -118,6 +118,29 @@ struct RenderPassBeginInfo
 
 // -------------------------------------------------------------------------------------------------
 
+//! @struct CommandPoolCreateInfo
+//!
+//!
+struct CommandPoolCreateInfo
+{
+    const grfx::Queue* pQueue = nullptr;
+};
+
+//! @class CommandPool
+//!
+//!
+class CommandPool
+    : public grfx::DeviceObject<grfx::CommandPoolCreateInfo>
+{
+public:
+    CommandPool() {}
+    virtual ~CommandPool() {}
+
+    grfx::CommandType GetCommandType() const;
+};
+
+// -------------------------------------------------------------------------------------------------
+
 namespace internal {
 
 //! @struct CommandBufferCreateInfo
@@ -166,6 +189,8 @@ public:
 
     void BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo);
     void EndRenderPass();
+
+    grfx::CommandType GetCommandType() { return mCreateInfo.pPool->GetCommandType(); }
 
     //! @fn TransitionImageLayout
     //!
@@ -350,29 +375,7 @@ private:
     virtual void BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginInfo) = 0;
     virtual void EndRenderPassImpl()                                              = 0;
 
-private:
     const grfx::RenderPass* mCurrentRenderPass = nullptr;
-};
-
-// -------------------------------------------------------------------------------------------------
-
-//! @struct CommandPoolCreateInfo
-//!
-//!
-struct CommandPoolCreateInfo
-{
-    const grfx::Queue* pQueue = nullptr;
-};
-
-//! @class CommandPool
-//!
-//!
-class CommandPool
-    : public grfx::DeviceObject<grfx::CommandPoolCreateInfo>
-{
-public:
-    CommandPool() {}
-    virtual ~CommandPool() {}
 };
 
 } // namespace grfx

@@ -49,12 +49,14 @@ VkVertexInputRate          ToVkVertexInputRate(grfx::VertexInputRate value);
 
 Result ToVkBarrierSrc(
     ResourceState                   state,
+    grfx::CommandType               commandType,
     const VkPhysicalDeviceFeatures& features,
     VkPipelineStageFlags&           stageMask,
     VkAccessFlags&                  accessMask,
     VkImageLayout&                  layout);
 Result ToVkBarrierDst(
     ResourceState                   state,
+    grfx::CommandType               commandType,
     const VkPhysicalDeviceFeatures& features,
     VkPipelineStageFlags&           stageMask,
     VkAccessFlags&                  accessMask,

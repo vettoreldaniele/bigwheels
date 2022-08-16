@@ -114,13 +114,20 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
     mImageAspect = DetermineAspectMask(mVkFormat);
 
     if ((pCreateInfo->initialState != grfx::RESOURCE_STATE_UNDEFINED) && IsNull(pCreateInfo->pApiObject)) {
-        vk::Device*          pDevice       = ToApi(GetDevice());
+        vk::Device* pDevice = ToApi(GetDevice());
+
+        grfx::QueuePtr grfxQueue = GetDevice()->GetAnyAvailableQueue();
+        if (!grfxQueue) {
+            return ppx::ERROR_FAILED;
+        }
+
+        // Determine pipeline stage and layout from the initial state
         VkPipelineStageFlags pipelineStage = 0;
         VkAccessFlags        accessMask    = 0;
         VkImageLayout        layout        = VK_IMAGE_LAYOUT_UNDEFINED;
-        // Determine pipeline stage and layout from the initial state
-        Result ppxres = ToVkBarrierDst(
+        Result               ppxres        = ToVkBarrierDst(
             pCreateInfo->initialState,
+            grfxQueue->GetCommandType(),
             pDevice->GetDeviceFeatures(),
             pipelineStage,
             accessMask,
@@ -128,11 +135,6 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         if (Failed(ppxres)) {
             PPX_ASSERT_MSG(false, "couldn't determine pipeline stage and layout from initial state");
             return ppxres;
-        }
-
-        grfx::QueuePtr grfxQueue = GetDevice()->GetAnyAvailableQueue();
-        if (!grfxQueue) {
-            return ppx::ERROR_FAILED;
         }
 
         vk::Queue* pQueue = ToApi(grfxQueue.Get());

@@ -1,5 +1,6 @@
 #include "ppx/grfx/grfx_command.h"
 #include "ppx/grfx/grfx_buffer.h"
+#include "ppx/grfx/grfx_queue.h"
 #include "ppx/grfx/grfx_draw_pass.h"
 #include "ppx/grfx/grfx_fullscreen_quad.h"
 #include "ppx/grfx/grfx_image.h"
@@ -8,6 +9,11 @@
 
 namespace ppx {
 namespace grfx {
+
+CommandType CommandPool::GetCommandType() const
+{
+    return mCreateInfo.pQueue->GetCommandType();
+}
 
 void CommandBuffer::BeginRenderPass(const grfx::RenderPassBeginInfo* pBeginInfo)
 {

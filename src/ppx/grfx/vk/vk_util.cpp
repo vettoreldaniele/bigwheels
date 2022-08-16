@@ -774,26 +774,29 @@ VkVertexInputRate ToVkVertexInputRate(grfx::VertexInputRate value)
 
 static Result ToVkBarrier(
     ResourceState                   state,
+    grfx::CommandType               commandType,
     const VkPhysicalDeviceFeatures& features,
     bool                            isSource,
     VkPipelineStageFlags&           stageMask,
     VkAccessFlags&                  accessMask,
     VkImageLayout&                  layout)
 {
-    VkPipelineStageFlags PIPELINE_STAGE_ALL_SHADER_STAGES =
-        VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
-        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    VkPipelineStageFlags PIPELINE_STAGE_ALL_SHADER_STAGES = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    if (commandType == grfx::CommandType::COMMAND_TYPE_GRAPHICS) {
+        PIPELINE_STAGE_ALL_SHADER_STAGES |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+                                            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    }
 
-    VkPipelineStageFlags PIPELINE_STAGE_NON_PIXEL_SHADER_STAGES =
-        VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    VkPipelineStageFlags PIPELINE_STAGE_NON_PIXEL_SHADER_STAGES = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+    if (commandType == grfx::CommandType::COMMAND_TYPE_GRAPHICS) {
+        PIPELINE_STAGE_NON_PIXEL_SHADER_STAGES |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+    }
 
-    if (features.geometryShader) {
+    if (commandType == grfx::CommandType::COMMAND_TYPE_GRAPHICS && features.geometryShader) {
         PIPELINE_STAGE_ALL_SHADER_STAGES |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
         PIPELINE_STAGE_NON_PIXEL_SHADER_STAGES |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
     }
-    if (features.tessellationShader) {
+    if (commandType == grfx::CommandType::COMMAND_TYPE_GRAPHICS && features.tessellationShader) {
         PIPELINE_STAGE_ALL_SHADER_STAGES |=
             VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
             VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
@@ -944,22 +947,24 @@ static Result ToVkBarrier(
 
 Result ToVkBarrierSrc(
     ResourceState                   state,
+    grfx::CommandType               commandType,
     const VkPhysicalDeviceFeatures& features,
     VkPipelineStageFlags&           stageMask,
     VkAccessFlags&                  accessMask,
     VkImageLayout&                  layout)
 {
-    return ToVkBarrier(state, features, true, stageMask, accessMask, layout);
+    return ToVkBarrier(state, commandType, features, true, stageMask, accessMask, layout);
 }
 
 Result ToVkBarrierDst(
     ResourceState                   state,
+    grfx::CommandType               commandType,
     const VkPhysicalDeviceFeatures& features,
     VkPipelineStageFlags&           stageMask,
     VkAccessFlags&                  accessMask,
     VkImageLayout&                  layout)
 {
-    return ToVkBarrier(state, features, false, stageMask, accessMask, layout);
+    return ToVkBarrier(state, commandType, features, false, stageMask, accessMask, layout);
 }
 
 VkImageAspectFlags DetermineAspectMask(VkFormat format)
