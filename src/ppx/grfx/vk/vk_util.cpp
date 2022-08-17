@@ -902,7 +902,7 @@ static Result ToVkBarrier(
         case grfx::RESOURCE_STATE_COPY_SRC: {
             stageMask  = VK_PIPELINE_STAGE_TRANSFER_BIT;
             accessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            layout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            layout     = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         } break;
 
         case grfx::RESOURCE_STATE_COPY_DST: {
@@ -914,7 +914,7 @@ static Result ToVkBarrier(
         case grfx::RESOURCE_STATE_RESOLVE_SRC: {
             stageMask  = VK_PIPELINE_STAGE_TRANSFER_BIT;
             accessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            layout     = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            layout     = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         } break;
 
         case grfx::RESOURCE_STATE_RESOLVE_DST: {
