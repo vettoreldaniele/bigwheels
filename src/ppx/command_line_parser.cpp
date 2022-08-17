@@ -35,34 +35,35 @@ std::optional<CommandLineParser::ParsingError> CommandLineParser::Parse(int argc
     std::vector<std::string>        args(argv + 1, argv + argc);
     std::vector<CliOptions::Option> options;
     for (size_t i = 0; i < args.size(); ++i) {
-        std::string arg = ppx::string_util::TrimCopy(args[i]);
-        if (!IsOptionOrFlag(arg)) {
-            return "Invalid command-line option " + arg;
+        std::string name = ppx::string_util::TrimCopy(args[i]);
+        if (!IsOptionOrFlag(name)) {
+            return "Invalid command-line option " + name;
         }
+        name = name.substr(2);
 
         std::string parameter = (i + 1 < args.size()) ? ppx::string_util::TrimCopy(args[i + 1]) : "";
         if (!IsOptionOrFlag(parameter)) {
             // We found an option with a parameter.
-            options.emplace_back(arg, parameter);
+            options.emplace_back(name, parameter);
             ++i;
         }
         else {
-            options.emplace_back(arg, "");
+            options.emplace_back(name, "");
         }
     }
 
     for (const auto& opt : options) {
         // Process standard options.
-        if (opt.GetName() == "--help") {
+        if (opt.GetName() == "help") {
             mOpts.standardOptions.help = true;
         }
-        else if (opt.GetName() == "--list-gpus") {
+        else if (opt.GetName() == "list-gpus") {
             mOpts.standardOptions.list_gpus = true;
         }
-        else if (opt.GetName() == "--use-software-renderer") {
+        else if (opt.GetName() == "use-software-renderer") {
             mOpts.standardOptions.use_software_renderer = true;
         }
-        else if (opt.GetName() == "--gpu") {
+        else if (opt.GetName() == "gpu") {
             if (!opt.HasValue()) {
                 return std::string("Command-line option --gpu requires a parameter");
             }
@@ -71,7 +72,7 @@ std::optional<CommandLineParser::ParsingError> CommandLineParser::Parse(int argc
                 return std::string("Command-line option --gpu requires a positive integer as the parameter");
             }
         }
-        else if (opt.GetName() == "--resolution") {
+        else if (opt.GetName() == "resolution") {
             if (!opt.HasValue()) {
                 return std::string("Command-line option --resolution requires a parameter");
             }
@@ -91,7 +92,7 @@ std::optional<CommandLineParser::ParsingError> CommandLineParser::Parse(int argc
 
             mOpts.standardOptions.resolution = {width, height};
         }
-        else if (opt.GetName() == "--frame-count") {
+        else if (opt.GetName() == "frame-count") {
             if (!opt.HasValue()) {
                 return std::string("Command-line option --frame-count requires a parameter");
             }

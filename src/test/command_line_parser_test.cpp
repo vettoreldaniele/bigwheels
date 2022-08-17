@@ -55,11 +55,11 @@ TEST(CommandLineParserTest, ExtraOptionsSuccessfullyParsed)
     auto opts = parser.GetOptions();
     EXPECT_EQ(opts.GetStandardOptions(), defaultOptions);
     EXPECT_EQ(opts.GetNumExtraOptions(), 4);
-    EXPECT_EQ(opts.GetExtraOptionValueOrDefault("--extra-option-bool", false), true);
-    EXPECT_EQ(opts.GetExtraOptionValueOrDefault("--extra-option-int", 0), 123);
-    EXPECT_EQ(opts.GetExtraOptionValueOrDefault<std::string>("--extra-option-str", ""), "option string value");
-    EXPECT_EQ(opts.GetExtraOptionValueOrDefault<std::string>("--extra-option-no-param", ""), "");
-    EXPECT_TRUE(opts.HasExtraOption("--extra-option-no-param"));
+    EXPECT_EQ(opts.GetExtraOptionValueOrDefault("extra-option-bool", false), true);
+    EXPECT_EQ(opts.GetExtraOptionValueOrDefault("extra-option-int", 0), 123);
+    EXPECT_EQ(opts.GetExtraOptionValueOrDefault<std::string>("extra-option-str", ""), "option string value");
+    EXPECT_EQ(opts.GetExtraOptionValueOrDefault<std::string>("extra-option-no-param", ""), "");
+    EXPECT_TRUE(opts.HasExtraOption("extra-option-no-param"));
 }
 
 TEST(CommandLineParserTest, StandardOptionsParsingErrorMissingParameter)
