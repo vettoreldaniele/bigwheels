@@ -127,7 +127,7 @@ void ProjApp::SetupTestParameters()
     }
 
     // Whether to use pipeline statistics queries.
-    mUsePipelineQuery = cl_options.GetExtraOptionValueOrDefault<bool>("use-pipeline-query", false);
+    mUsePipelineQuery = cl_options.HasExtraOption("use-pipeline-query");
 
 #if defined(PPX_DXIIVK)
     if (mUsePipelineQuery) {

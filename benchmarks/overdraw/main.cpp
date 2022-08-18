@@ -154,7 +154,7 @@ void ProjApp::Setup()
     mDrawFrontToBack = cl_options.GetExtraOptionValueOrDefault<bool>("draw-front-to-back", true);
 
     // Whether to use the shader that enables explicit early-z in the pixel shader.
-    mUseExplicitEarlyZShader = cl_options.GetExtraOptionValueOrDefault<bool>("use-explicit-early-z", false);
+    mUseExplicitEarlyZShader = cl_options.HasExtraOption("use-explicit-early-z");
 
     // Whether to use depth read-write in the pipeline.
     mEnableDepth = cl_options.GetExtraOptionValueOrDefault<bool>("enable-depth", true);
