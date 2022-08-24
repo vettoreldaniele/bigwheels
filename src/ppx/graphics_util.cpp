@@ -605,7 +605,7 @@ Result CreateImageFromCompressedImage(
     grfx::Format format      = ToGrfxFormat(image.format());
     uint32_t     imageWidth  = static_cast<uint32_t>(image.extent(0)[0]);
     uint32_t     imageHeight = static_cast<uint32_t>(image.extent(0)[1]);
-    uint32_t     rowStride   = imageWidth * grfx::FormatSize(format);
+    uint32_t     rowStride   = imageWidth * grfx::GetFormatDescription(format)->bytesPerTexel;
 
     // Row stride alignment to handle DX's requirement
     uint32_t rowStrideAlignement = grfx::IsDx12(pQueue->GetDevice()->GetApi()) ? PPX_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT : 1;
@@ -1003,7 +1003,7 @@ SubImage CalcSubimageCrossHorizontalLeft(
         } break;
     }
 
-    uint32_t pixelStride  = grfx::FormatSize(format);
+    uint32_t pixelStride  = grfx::GetFormatDescription(format)->bytesPerTexel;
     uint32_t pixelOffsetX = cellX * cellPixelsX * pixelStride;
     uint32_t pixelOffsetY = cellY * cellPixelsY * imageWidth * pixelStride;
 

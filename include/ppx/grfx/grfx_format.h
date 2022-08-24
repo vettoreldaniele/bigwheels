@@ -135,18 +135,109 @@ enum Format
     FORMAT_BC6H_SFLOAT,
     FORMAT_BC7_UNORM,
     FORMAT_BC7_SRGB,
+
+    FORMAT_COUNT,
 };
 
 enum FormatAspectBit
 {
-    FORMAT_ASPECT_UNDEFINED     = 0x0,
-    FORMAT_ASPECT_RENDER_TARGET = 0x1,
-    FORMAT_ASPECT_DEPTH         = 0x2,
-    FORMAT_ASPECT_STENCIL       = 0x4,
+    FORMAT_ASPECT_UNDEFINED = 0x0,
+    FORMAT_ASPECT_COLOR     = 0x1,
+    FORMAT_ASPECT_DEPTH     = 0x2,
+    FORMAT_ASPECT_STENCIL   = 0x4,
+
+    FORMAT_ASPECT_DEPTH_STENCIL = FORMAT_ASPECT_DEPTH | FORMAT_ASPECT_STENCIL,
 };
 
-uint32_t FormatSize(grfx::Format format);
-uint32_t FormatAspect(grfx::Format format);
+enum FormatComponentBit
+{
+    FORMAT_COMPONENT_UNDEFINED = 0x0,
+    FORMAT_COMPONENT_RED       = 0x1,
+    FORMAT_COMPONENT_GREEN     = 0x2,
+    FORMAT_COMPONENT_BLUE      = 0x4,
+    FORMAT_COMPONENT_ALPHA     = 0x8,
+    FORMAT_COMPONENT_DEPTH     = 0x10,
+    FORMAT_COMPONENT_STENCIL   = 0x20,
+
+    FORMAT_COMPONENT_RED_GREEN            = FORMAT_COMPONENT_RED | FORMAT_COMPONENT_GREEN,
+    FORMAT_COMPONENT_RED_GREEN_BLUE       = FORMAT_COMPONENT_RED | FORMAT_COMPONENT_GREEN | FORMAT_COMPONENT_BLUE,
+    FORMAT_COMPONENT_RED_GREEN_BLUE_ALPHA = FORMAT_COMPONENT_RED | FORMAT_COMPONENT_GREEN | FORMAT_COMPONENT_BLUE | FORMAT_COMPONENT_ALPHA,
+    FORMAT_COMPONENT_DEPTH_STENCIL        = FORMAT_COMPONENT_DEPTH | FORMAT_COMPONENT_STENCIL,
+};
+
+enum FormatDataType
+{
+    FORMAT_DATA_TYPE_UNDEFINED = 0x0,
+    FORMAT_DATA_TYPE_UNORM     = 0x1,
+    FORMAT_DATA_TYPE_SNORM     = 0x2,
+    FORMAT_DATA_TYPE_UINT      = 0x4,
+    FORMAT_DATA_TYPE_SINT      = 0x8,
+    FORMAT_DATA_TYPE_FLOAT     = 0x10,
+    FORMAT_DATA_TYPE_SRGB      = 0x20,
+};
+
+enum FormatLayout
+{
+    FORMAT_LAYOUT_UNDEFINED  = 0x0,
+    FORMAT_LAYOUT_LINEAR     = 0x1,
+    FORMAT_LAYOUT_PACKED     = 0x2,
+    FORMAT_LAYOUT_COMPRESSED = 0x4,
+};
+
+struct FormatComponentOffset
+{
+    union
+    {
+        struct
+        {
+            int32_t red   : 8;
+            int32_t green : 8;
+            int32_t blue  : 8;
+            int32_t alpha : 8;
+        };
+        struct
+        {
+            int32_t depth   : 8;
+            int32_t stencil : 8;
+        };
+    };
+};
+
+struct FormatDesc
+{
+    // The texel data type, e.g. UNORM, SNORM, UINT, etc.
+    FormatDataType dataType;
+
+    // The format aspect, i.e. color, depth, stencil, or depth-stencil.
+    FormatAspectBit aspect;
+
+    // The number of bytes per texel.
+    // For compressed formats, this field is the size required to
+    // calculate the row pitch correctly.
+    uint8_t bytesPerTexel;
+
+    // The number of bytes per component (channel).
+    // In case of combined depth-stencil formats, this is the size of the depth
+    // component only.
+    // In case of packed or compressed formats, this field is invalid
+    // and will be set to -1.
+    int8_t bytesPerComponent;
+
+    //The layout of the format (linear, packed, or compressed).
+    FormatLayout layout;
+
+    // The components (channels) represented by the format,
+    // e.g. RGBA, depth-stencil, or a subset of those.
+    FormatComponentBit componentBits;
+
+    // The offset, in bytes, of each component within the texel.
+    // In case of packed or compressed formats, this field is invalid
+    // and the offsets will be set to -1.
+    FormatComponentOffset componentOffset;
+};
+
+//! @brief Gets a description of the given /b format.
+const FormatDesc* GetFormatDescription(grfx::Format format);
 
 } // namespace grfx
 } // namespace ppx

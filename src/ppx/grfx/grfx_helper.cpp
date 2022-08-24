@@ -70,7 +70,7 @@ void VertexBinding::AppendAttribute(const grfx::VertexAttribute& attribute)
         size_t i0 = i1 - 1;
         if (mAttributes[i1].offset == PPX_APPEND_OFFSET_ALIGNED) {
             uint32_t prevOffset    = mAttributes[i0].offset;
-            uint32_t prevSize      = grfx::FormatSize(mAttributes[i0].format);
+            uint32_t prevSize      = grfx::GetFormatDescription(mAttributes[i0].format)->bytesPerTexel;
             mAttributes[i1].offset = prevOffset + prevSize;
         }
     }
@@ -84,7 +84,7 @@ void VertexBinding::AppendAttribute(const grfx::VertexAttribute& attribute)
     // Calculate stride
     mStride = 0;
     for (auto& elem : mAttributes) {
-        uint32_t size = grfx::FormatSize(elem.format);
+        uint32_t size = grfx::GetFormatDescription(elem.format)->bytesPerTexel;
         mStride += size;
     }
 }
