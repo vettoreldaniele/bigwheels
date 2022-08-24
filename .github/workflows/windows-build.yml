@@ -3,6 +3,11 @@ name: Windows build
 on:
   pull_request:
 
+# Cancel previous runs if a more recent commit is pushed.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
 permissions: read-all
 
 jobs:
