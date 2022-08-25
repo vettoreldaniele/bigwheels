@@ -34,7 +34,7 @@ Result Buffer::CreateApiObjects(const grfx::BufferCreateInfo* pCreateInfo)
     D3D12MA::ALLOCATION_DESC allocationDesc = {};
     allocationDesc.HeapType                 = mHeapType;
 
-    D3D12_RESOURCE_STATES initialResourceState = ToD3D12ResourceStates(pCreateInfo->initialState);
+    D3D12_RESOURCE_STATES initialResourceState = ToD3D12ResourceStates(pCreateInfo->initialState, grfx::COMMAND_TYPE_GRAPHICS);
     // Using D3D12_HEAP_TYPE_UPLOAD requires D3D12_RESOURCE_STATE_GENERIC_READ
     //
     if (mHeapType == D3D12_HEAP_TYPE_UPLOAD) {

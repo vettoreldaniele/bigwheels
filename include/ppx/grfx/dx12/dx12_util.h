@@ -43,7 +43,7 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE  ToD3D12PrimitiveTopology(grfx::PrimitiveTopology 
 D3D12_QUERY_TYPE               ToD3D12QueryType(grfx::QueryType value);
 D3D12_QUERY_HEAP_TYPE          ToD3D12QueryHeapType(grfx::QueryType value);
 D3D12_DESCRIPTOR_RANGE_TYPE    ToD3D12RangeType(grfx::DescriptorType value);
-D3D12_RESOURCE_STATES          ToD3D12ResourceStates(grfx::ResourceState value);
+D3D12_RESOURCE_STATES          ToD3D12ResourceStates(grfx::ResourceState value, grfx::CommandType commandType);
 D3D12_RTV_DIMENSION            ToD3D12RTVDimension(grfx::ImageViewType value);
 D3D12_SHADER_COMPONENT_MAPPING ToD3D12ShaderComponentMapping(grfx::ComponentSwizzle value, D3D12_SHADER_COMPONENT_MAPPING identity);
 D3D12_SHADER_VISIBILITY        ToD3D12ShaderVisibliity(grfx::ShaderStageBits value);

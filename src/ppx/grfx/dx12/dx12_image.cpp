@@ -55,7 +55,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
         D3D12MA::ALLOCATION_DESC allocationDesc = {};
         allocationDesc.HeapType                 = ToD3D12HeapType(pCreateInfo->memoryUsage);
 
-        D3D12_RESOURCE_STATES initialResourceState = ToD3D12ResourceStates(pCreateInfo->initialState);
+        D3D12_RESOURCE_STATES initialResourceState = ToD3D12ResourceStates(pCreateInfo->initialState, grfx::COMMAND_TYPE_GRAPHICS);
 
         // Optimized clear values
         bool              useClearValue = (flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) || (flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);

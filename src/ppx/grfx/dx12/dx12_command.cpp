@@ -259,6 +259,8 @@ void CommandBuffer::TransitionImageLayout(
         arrayLayerCount = pImage->GetArrayLayerCount();
     }
 
+    grfx::CommandType commandType = GetCommandType();
+
     std::vector<D3D12_RESOURCE_BARRIER> barriers;
     if (allSubresources) {
         D3D12_RESOURCE_BARRIER barrier = {};
@@ -266,8 +268,8 @@ void CommandBuffer::TransitionImageLayout(
         barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
         barrier.Transition.pResource   = ToApi(pImage)->GetDxResource();
         barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-        barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState);
-        barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState);
+        barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState, commandType);
+        barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState, commandType);
 
         barriers.push_back(barrier);
     }
@@ -289,8 +291,8 @@ void CommandBuffer::TransitionImageLayout(
                 barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
                 barrier.Transition.pResource   = ToApi(pImage)->GetDxResource();
                 barrier.Transition.Subresource = static_cast<UINT>(targetSubResource);
-                barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState);
-                barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState);
+                barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState, commandType);
+                barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState, commandType);
 
                 barriers.push_back(barrier);
             }
@@ -321,13 +323,16 @@ void CommandBuffer::BufferResourceBarrier(
     if (beforeState == afterState) {
         return;
     }
+
+    grfx::CommandType commandType = GetCommandType();
+
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
     barrier.Transition.pResource   = ToApi(pBuffer)->GetDxResource();
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState);
-    barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState);
+    barrier.Transition.StateBefore = ToD3D12ResourceStates(beforeState, commandType);
+    barrier.Transition.StateAfter  = ToD3D12ResourceStates(afterState, commandType);
     mCommandList->ResourceBarrier(1, &barrier);
 }
 

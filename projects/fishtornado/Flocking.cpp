@@ -270,7 +270,7 @@ void Flocking::Setup(uint32_t numFramesInFlight)
         PPX_CHECKED_CALL(frame.modelConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
         PPX_CHECKED_CALL(frame.flockingConstants.Create(device, PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
 
-        grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
+        grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().InitialState(grfx::RESOURCE_STATE_SHADER_RESOURCE).AdditionalUsage(grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
         PPX_CHECKED_CALL(grfx_util::CreateTextureFromBitmap(queue, &positionData, &frame.positionTexture, textureOptions));
         PPX_CHECKED_CALL(grfx_util::CreateTextureFromBitmap(queue, &velocityData, &frame.velocityTexture, textureOptions));
 
@@ -376,16 +376,26 @@ void Flocking::CopyConstantsToGpu(uint32_t frameIndex, grfx::CommandBuffer* pCmd
     }
 }
 
+void Flocking::BeginCompute(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute)
+{
+    PerFrame& frame = mPerFrame[frameIndex];
+
+    // Acquire from graphics queue to compute queue.
+    if (asyncCompute && frame.renderedWithAsyncCompute) {
+        FishTornadoApp* pApp = FishTornadoApp::GetThisApp();
+
+        pCmd->TransitionImageLayout(frame.velocityTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE, pApp->GetGraphicsQueue(), pApp->GetComputeQueue());
+        pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE, pApp->GetGraphicsQueue(), pApp->GetComputeQueue());
+    }
+}
+
 void Flocking::Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 {
-    uint32_t prevFrameIndex = PreviousFrameIndex(frameIndex, FishTornadoApp::GetThisApp()->GetNumFramesInFlight());
-
     uint32_t groupCountX = mResX / NUM_THREADS_X;
     uint32_t groupCountY = mResY / NUM_THREADS_Y;
     uint32_t groupCountZ = 1;
 
-    PerFrame& frame     = mPerFrame[frameIndex];
-    PerFrame& prevFrame = mPerFrame[prevFrameIndex];
+    PerFrame& frame = mPerFrame[frameIndex];
 
     // Velocity
     {
@@ -407,6 +417,28 @@ void Flocking::Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
         pCmd->Dispatch(groupCountX, groupCountY, groupCountZ);
 
         pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_GENERAL, grfx::RESOURCE_STATE_SHADER_RESOURCE);
+    }
+}
+
+void Flocking::EndCompute(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute)
+{
+    // Release from compute queue to graphics queue.
+    if (asyncCompute) {
+        FishTornadoApp* pApp  = FishTornadoApp::GetThisApp();
+        PerFrame&       frame = mPerFrame[frameIndex];
+        pCmd->TransitionImageLayout(frame.velocityTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE, pApp->GetComputeQueue(), pApp->GetGraphicsQueue());
+        pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE, pApp->GetComputeQueue(), pApp->GetGraphicsQueue());
+    }
+}
+
+void Flocking::BeginGraphics(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute)
+{
+    // Acquire from compute queue to graphics queue.
+    if (asyncCompute) {
+        FishTornadoApp* pApp  = FishTornadoApp::GetThisApp();
+        PerFrame&       frame = mPerFrame[frameIndex];
+        pCmd->TransitionImageLayout(frame.velocityTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE, pApp->GetComputeQueue(), pApp->GetGraphicsQueue());
+        pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE, pApp->GetComputeQueue(), pApp->GetGraphicsQueue());
     }
 }
 
@@ -452,4 +484,21 @@ void Flocking::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
     pCmd->BindIndexBuffer(mModel);
     pCmd->BindVertexBuffers(mModel);
     pCmd->DrawIndexed(mModel->GetIndexCount(), mResX * mResY);
+}
+
+void Flocking::EndGraphics(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute)
+{
+    PerFrame& frame = mPerFrame[frameIndex];
+
+    // Release from graphics queue to compute queue.
+    if (asyncCompute) {
+        FishTornadoApp* pApp = FishTornadoApp::GetThisApp();
+
+        pCmd->TransitionImageLayout(frame.velocityTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE, pApp->GetGraphicsQueue(), pApp->GetComputeQueue());
+        pCmd->TransitionImageLayout(frame.positionTexture, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_SHADER_RESOURCE, pApp->GetGraphicsQueue(), pApp->GetComputeQueue());
+        frame.renderedWithAsyncCompute = true;
+    }
+    else {
+        frame.renderedWithAsyncCompute = false;
+    }
 }

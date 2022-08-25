@@ -135,7 +135,7 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
     settings.grfx.api                   = kApi;
     settings.enableImGui                = true;
     settings.grfx.numFramesInFlight     = 2;
-    settings.grfx.enableDebug           = false;
+    settings.grfx.enableDebug           = true;
     settings.grfx.swapchain.imageCount  = 3;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
 #if defined(USE_DXIL)
@@ -147,6 +147,8 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXIL_SPV)
     settings.grfx.enableDXILSPV = true;
 #endif
+
+    settings.grfx.device.computeQueueCount = 1;
 }
 
 void FishTornadoApp::SetupDescriptorPool()
@@ -253,17 +255,31 @@ void FishTornadoApp::SetupPerFrame()
         PerFrame& frame = mPerFrame[i];
 
         PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.gpuStartTimestampCmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.gpuEndTimestampCmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.copyConstantsCmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.grfxFlockingCmd));
+        PPX_CHECKED_CALL(GetComputeQueue()->CreateCommandBuffer(&frame.asyncFlockingCmd));
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.shadowCmd));
 
-        grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+        grfx::SemaphoreCreateInfo semaCreateInfo  = {};
+        grfx::FenceCreateInfo     fenceCreateInfo = {};
 
-        grfx::FenceCreateInfo fenceCreateInfo = {};
-        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
-
+        // Work sync objects
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.gpuStartTimestampSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.copyConstantsSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.flockingCompleteSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.shadowCompleteSemaphore));
         PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
 
+        // Image acquired sync objects
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
+
+        // Frame complete sync objects
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.frameCompleteSemaphore));
         fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.frameCompleteFence));
 
         // Scene constants buffer
         PPX_CHECKED_CALL(frame.sceneConstants.Create(GetDevice(), 3 * PPX_MINIMUM_CONSTANT_BUFFER_SIZE));
@@ -308,8 +324,9 @@ void FishTornadoApp::SetupPerFrame()
         // Timestamp query
         grfx::QueryCreateInfo queryCreateInfo = {};
         queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
-        queryCreateInfo.count                 = 2;
-        PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
+        queryCreateInfo.count                 = 1;
+        PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.startTimestampQuery));
+        PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.endTimestampQuery));
 
         if (GetDevice()->PipelineStatsAvailable()) {
             // Pipeline statistics query pool
@@ -462,53 +479,26 @@ void FishTornadoApp::UpdateScene(uint32_t frameIndex)
     pSceneData->usePCF                     = static_cast<uint32_t>(mUsePCF);
 }
 
-void FishTornadoApp::Render()
+void FishTornadoApp::RenderSceneUsingSingleCommandBuffer(
+    uint32_t            frameIndex,
+    PerFrame&           frame,
+    uint32_t            prevFrameIndex,
+    PerFrame&           prevFrame,
+    grfx::SwapchainPtr& swapchain,
+    uint32_t            imageIndex)
 {
-    uint32_t           frameIndex     = GetInFlightFrameIndex();
-    PerFrame&          frame          = mPerFrame[frameIndex];
-    uint32_t           prevFrameIndex = GetPreviousInFlightFrameIndex();
-    PerFrame&          prevFrame      = mPerFrame[prevFrameIndex];
-    grfx::SwapchainPtr swapchain      = GetSwapchain();
-
-    UpdateTime();
-
-    UpdateScene(frameIndex);
-    mShark.Update(frameIndex);
-    mFlocking.Update(frameIndex);
-    mOcean.Update(frameIndex);
-
-    uint32_t imageIndex = UINT32_MAX;
-    PPX_CHECKED_CALL(swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
-
-    // Wait for and reset image acquired fence
-    PPX_CHECKED_CALL(frame.imageAcquiredFence->WaitAndReset());
-
-    // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(frame.renderCompleteFence->WaitAndReset());
-
-    // Read query results
-    if (GetFrameCount() > 0) {
-#if defined(ENABLE_GPU_QUERIES)
-        uint64_t data[2] = {0};
-        PPX_CHECKED_CALL(prevFrame.timestampQuery->GetData(data, 2 * sizeof(uint64_t)));
-        mTotalGpuFrameTime = (data[1] - data[0]);
-        if (GetDevice()->PipelineStatsAvailable()) {
-            PPX_CHECKED_CALL(prevFrame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
-        }
-#endif
-    }
-
     // Build command buffer
     PPX_CHECKED_CALL(frame.cmd->Begin());
     {
 #if defined(ENABLE_GPU_QUERIES)
-        frame.timestampQuery->Reset(0, 2);
+        frame.startTimestampQuery->Reset(0, 1);
+        frame.endTimestampQuery->Reset(0, 1);
         if (GetDevice()->PipelineStatsAvailable()) {
             frame.pipelineStatsQuery->Reset(0, 1);
         }
 
         // Write start timestamp
-        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+        frame.cmd->WriteTimestamp(frame.startTimestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
 #endif
 
         mShark.CopyConstantsToGpu(frameIndex, frame.cmd);
@@ -533,9 +523,12 @@ void FishTornadoApp::Render()
         // -----------------------------------------------------------------------------------------
 
         // Compute flocking
+        mFlocking.BeginCompute(frameIndex, frame.cmd, false);
         mFlocking.Compute(frameIndex, frame.cmd);
+        mFlocking.EndCompute(frameIndex, frame.cmd, false);
 
         // -----------------------------------------------------------------------------------------
+        mFlocking.BeginGraphics(frameIndex, frame.cmd, false);
 
         // Shadow mapping
         frame.cmd->TransitionImageLayout(frame.shadowDrawPass, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE);
@@ -594,17 +587,20 @@ void FishTornadoApp::Render()
 
 #if defined(ENABLE_GPU_QUERIES)
         // Write end timestamp
-        frame.cmd->WriteTimestamp(frame.timestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 1);
+        frame.cmd->WriteTimestamp(frame.endTimestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
 #endif
     }
 
 #if defined(ENABLE_GPU_QUERIES)
     // Resolve queries
-    frame.cmd->ResolveQueryData(frame.timestampQuery, 0, 2);
+    frame.cmd->ResolveQueryData(frame.startTimestampQuery, 0, 1);
+    frame.cmd->ResolveQueryData(frame.endTimestampQuery, 0, 1);
     if (GetDevice()->PipelineStatsAvailable()) {
         frame.cmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
     }
 #endif
+
+    mFlocking.EndGraphics(frameIndex, frame.cmd, false);
 
     PPX_CHECKED_CALL(frame.cmd->End());
 
@@ -614,12 +610,308 @@ void FishTornadoApp::Render()
     submitInfo.waitSemaphoreCount   = 1;
     submitInfo.ppWaitSemaphores     = &frame.imageAcquiredSemaphore;
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
-    submitInfo.pFence               = frame.renderCompleteFence;
+    submitInfo.ppSignalSemaphores   = &frame.frameCompleteSemaphore;
+    submitInfo.pFence               = frame.frameCompleteFence;
 
     PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
+}
 
-    PPX_CHECKED_CALL(swapchain->Present(imageIndex, 1, &frame.renderCompleteSemaphore));
+void FishTornadoApp::RenderSceneUsingMultipleCommandBuffers(
+    uint32_t            frameIndex,
+    PerFrame&           frame,
+    uint32_t            prevFrameIndex,
+    PerFrame&           prevFrame,
+    grfx::SwapchainPtr& swapchain,
+    uint32_t            imageIndex)
+{
+#if defined(ENABLE_GPU_QUERIES)
+    frame.startTimestampQuery->Reset(0, 1);
+    frame.endTimestampQuery->Reset(0, 1);
+    if (GetDevice()->PipelineStatsAvailable()) {
+        frame.pipelineStatsQuery->Reset(0, 1);
+    }
+
+    PPX_CHECKED_CALL(frame.gpuStartTimestampCmd->Begin());
+    // Write start timestamp
+    frame.gpuStartTimestampCmd->WriteTimestamp(frame.startTimestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+    PPX_CHECKED_CALL(frame.gpuStartTimestampCmd->End());
+
+    // Submit GPU write start timestamp
+    {
+        grfx::SubmitInfo submitInfo     = {};
+        submitInfo.commandBufferCount   = 1;
+        submitInfo.ppCommandBuffers     = &frame.gpuStartTimestampCmd;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.ppSignalSemaphores   = &frame.gpuStartTimestampSemaphore;
+
+        PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
+    }
+#endif
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Copy constants
+    PPX_CHECKED_CALL(frame.copyConstantsCmd->Begin());
+    {
+        mShark.CopyConstantsToGpu(frameIndex, frame.copyConstantsCmd);
+        mFlocking.CopyConstantsToGpu(frameIndex, frame.copyConstantsCmd);
+        mOcean.CopyConstantsToGpu(frameIndex, frame.copyConstantsCmd);
+
+        // Scene constants
+        {
+            frame.copyConstantsCmd->BufferResourceBarrier(frame.sceneConstants.GetGpuBuffer(), grfx::RESOURCE_STATE_CONSTANT_BUFFER, grfx::RESOURCE_STATE_COPY_DST);
+
+            grfx::BufferToBufferCopyInfo copyInfo = {};
+            copyInfo.size                         = frame.sceneConstants.GetSize();
+
+            frame.copyConstantsCmd->CopyBufferToBuffer(
+                &copyInfo,
+                frame.sceneConstants.GetCpuBuffer(),
+                frame.sceneConstants.GetGpuBuffer());
+
+            frame.copyConstantsCmd->BufferResourceBarrier(frame.sceneConstants.GetGpuBuffer(), grfx::RESOURCE_STATE_COPY_DST, grfx::RESOURCE_STATE_CONSTANT_BUFFER);
+        }
+    }
+    PPX_CHECKED_CALL(frame.copyConstantsCmd->End());
+
+    // Submit GPU write start timestamp
+    {
+        grfx::SubmitInfo submitInfo   = {};
+        submitInfo.commandBufferCount = 1;
+        submitInfo.ppCommandBuffers   = &frame.copyConstantsCmd;
+#if defined(ENABLE_GPU_QUERIES)
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.ppWaitSemaphores   = &frame.gpuStartTimestampSemaphore;
+#endif
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.ppSignalSemaphores   = &frame.copyConstantsSemaphore;
+
+        PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    grfx::CommandBuffer* pFlockingCmd = frame.grfxFlockingCmd;
+    if (mUseAsyncCompute) {
+        pFlockingCmd = frame.asyncFlockingCmd;
+    }
+
+    // Compute flocking
+    PPX_CHECKED_CALL(pFlockingCmd->Begin());
+    {
+        mFlocking.BeginCompute(frameIndex, pFlockingCmd, mUseAsyncCompute);
+        mFlocking.Compute(frameIndex, pFlockingCmd);
+        mFlocking.EndCompute(frameIndex, pFlockingCmd, mUseAsyncCompute);
+    }
+    PPX_CHECKED_CALL(pFlockingCmd->End());
+
+    // Submit flocking
+    {
+        grfx::SubmitInfo submitInfo     = {};
+        submitInfo.commandBufferCount   = 1;
+        submitInfo.ppCommandBuffers     = &pFlockingCmd;
+        submitInfo.waitSemaphoreCount   = 1;
+        submitInfo.ppWaitSemaphores     = &frame.copyConstantsSemaphore;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.ppSignalSemaphores   = &frame.flockingCompleteSemaphore;
+
+        if (mUseAsyncCompute) {
+            PPX_CHECKED_CALL(GetComputeQueue()->Submit(&submitInfo));
+        }
+        else {
+            PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Shadow mapping
+    PPX_CHECKED_CALL(frame.shadowCmd->Begin());
+    {
+        mFlocking.BeginGraphics(frameIndex, frame.shadowCmd, mUseAsyncCompute);
+        frame.shadowCmd->TransitionImageLayout(frame.shadowDrawPass, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE);
+        frame.shadowCmd->BeginRenderPass(frame.shadowDrawPass);
+        {
+            frame.shadowCmd->SetScissors(frame.shadowDrawPass->GetScissor());
+            frame.shadowCmd->SetViewports(frame.shadowDrawPass->GetViewport());
+
+            mShark.DrawShadow(frameIndex, frame.shadowCmd);
+            mFlocking.DrawShadow(frameIndex, frame.shadowCmd);
+        }
+        frame.shadowCmd->EndRenderPass();
+        frame.shadowCmd->TransitionImageLayout(frame.shadowDrawPass, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_UNDEFINED, grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE, grfx::RESOURCE_STATE_SHADER_RESOURCE);
+    }
+    PPX_CHECKED_CALL(frame.shadowCmd->End());
+
+    // Submit shadow
+    {
+        grfx::SubmitInfo submitInfo     = {};
+        submitInfo.commandBufferCount   = 1;
+        submitInfo.ppCommandBuffers     = &frame.shadowCmd;
+        submitInfo.waitSemaphoreCount   = 1;
+        submitInfo.ppWaitSemaphores     = &frame.flockingCompleteSemaphore;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.ppSignalSemaphores   = &frame.shadowCompleteSemaphore;
+
+        PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+    // Render
+    PPX_CHECKED_CALL(frame.cmd->Begin());
+    {
+        grfx::RenderPassPtr renderPass = swapchain->GetRenderPass(imageIndex);
+        PPX_ASSERT_MSG(!renderPass.IsNull(), "render pass object is null");
+
+        grfx::RenderPassBeginInfo beginInfo = {};
+        beginInfo.pRenderPass               = renderPass;
+        beginInfo.renderArea                = renderPass->GetRenderArea();
+        beginInfo.RTVClearCount             = 1;
+        beginInfo.RTVClearValues[0]         = {{kFogColor.r, kFogColor.g, kFogColor.b, 1.0f}};
+
+        frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
+        frame.cmd->BeginRenderPass(&beginInfo);
+        {
+            frame.cmd->SetScissors(renderPass->GetScissor());
+            frame.cmd->SetViewports(renderPass->GetViewport());
+
+            mShark.DrawForward(frameIndex, frame.cmd);
+#if defined(ENABLE_GPU_QUERIES)
+            if (GetDevice()->PipelineStatsAvailable()) {
+                frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
+            }
+#endif
+            mFlocking.DrawForward(frameIndex, frame.cmd);
+#if defined(ENABLE_GPU_QUERIES)
+            if (GetDevice()->PipelineStatsAvailable()) {
+                frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
+            }
+#endif
+
+            mOcean.DrawForward(frameIndex, frame.cmd);
+
+            // Draw ImGui
+            DrawDebugInfo([this]() { this->DrawGui(); });
+#if defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
+            DrawProfilerGrfxApiFunctions();
+#endif // defined(PPX_ENABLE_PROFILE_GRFX_API_FUNCTIONS)
+            DrawImGui(frame.cmd);
+        }
+        frame.cmd->EndRenderPass();
+        frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_PRESENT);
+
+        mFlocking.EndGraphics(frameIndex, frame.cmd, mUseAsyncCompute);
+    }
+    PPX_CHECKED_CALL(frame.cmd->End());
+
+    // Submit render work
+    {
+        const grfx::Semaphore* ppWaitSemaphores[2] = {frame.imageAcquiredSemaphore, frame.shadowCompleteSemaphore};
+        uint32_t               waitSemaphoreCount  = 2;
+
+        grfx::SubmitInfo submitInfo     = {};
+        submitInfo.commandBufferCount   = 1;
+        submitInfo.ppCommandBuffers     = &frame.cmd;
+        submitInfo.waitSemaphoreCount   = waitSemaphoreCount;
+        submitInfo.ppWaitSemaphores     = ppWaitSemaphores;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
+
+        PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
+#if defined(ENABLE_GPU_QUERIES)
+    PPX_CHECKED_CALL(frame.gpuEndTimestampCmd->Begin());
+    {
+        // Write end timestamp
+        frame.gpuEndTimestampCmd->WriteTimestamp(frame.endTimestampQuery, grfx::PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0);
+        // Resolve queries
+        frame.gpuEndTimestampCmd->ResolveQueryData(frame.startTimestampQuery, 0, 1);
+        frame.gpuEndTimestampCmd->ResolveQueryData(frame.endTimestampQuery, 0, 1);
+        if (GetDevice()->PipelineStatsAvailable()) {
+            frame.gpuEndTimestampCmd->ResolveQueryData(frame.pipelineStatsQuery, 0, 1);
+        }
+    }
+    PPX_CHECKED_CALL(frame.gpuEndTimestampCmd->End());
+
+    // Submit GPU write end timestamp
+    {
+        grfx::SubmitInfo submitInfo     = {};
+        submitInfo.commandBufferCount   = 1;
+        submitInfo.ppCommandBuffers     = &frame.gpuEndTimestampCmd;
+        submitInfo.waitSemaphoreCount   = 1;
+        submitInfo.ppWaitSemaphores     = &frame.renderCompleteSemaphore;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.ppSignalSemaphores   = &frame.frameCompleteSemaphore;
+        submitInfo.pFence               = frame.frameCompleteFence;
+
+        PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
+    }
+#else
+    // Submit a wait for render complete and a signal for frame complete
+    {
+        grfx::SubmitInfo submitInfo     = {};
+        submitInfo.waitSemaphoreCount   = 1;
+        submitInfo.ppWaitSemaphores     = &frame.renderCompleteSemaphore;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.ppSignalSemaphores   = &frame.frameCompleteSemaphore;
+        submitInfo.pFence               = frame.frameCompleteFence;
+
+        PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
+    }
+#endif
+}
+
+void FishTornadoApp::Render()
+{
+    uint32_t           frameIndex     = GetInFlightFrameIndex();
+    PerFrame&          frame          = mPerFrame[frameIndex];
+    uint32_t           prevFrameIndex = GetPreviousInFlightFrameIndex();
+    PerFrame&          prevFrame      = mPerFrame[prevFrameIndex];
+    grfx::SwapchainPtr swapchain      = GetSwapchain();
+
+    UpdateTime();
+
+    UpdateScene(frameIndex);
+    mShark.Update(frameIndex);
+    mFlocking.Update(frameIndex);
+    mOcean.Update(frameIndex);
+
+    uint32_t imageIndex = UINT32_MAX;
+    PPX_CHECKED_CALL(swapchain->AcquireNextImage(UINT64_MAX, frame.imageAcquiredSemaphore, frame.imageAcquiredFence, &imageIndex));
+
+    // Wait for and reset image acquired fence
+    PPX_CHECKED_CALL(frame.imageAcquiredFence->WaitAndReset());
+
+    // Wait for and reset render complete fence
+    PPX_CHECKED_CALL(frame.frameCompleteFence->WaitAndReset());
+
+    // Read query results
+    if (GetFrameCount() > 0) {
+#if defined(ENABLE_GPU_QUERIES)
+        uint64_t data[2] = {0, 0};
+        PPX_CHECKED_CALL(prevFrame.startTimestampQuery->GetData(&data[0], 1 * sizeof(uint64_t)));
+        PPX_CHECKED_CALL(prevFrame.endTimestampQuery->GetData(&data[1], 1 * sizeof(uint64_t)));
+        mTotalGpuFrameTime = (data[1] - data[0]);
+        if (GetDevice()->PipelineStatsAvailable()) {
+            PPX_CHECKED_CALL(prevFrame.pipelineStatsQuery->GetData(&mPipelineStatistics, sizeof(grfx::PipelineStatistics)));
+        }
+#endif
+    }
+
+    if (grfx::IsDx11(GetDevice()->GetApi()) || mForceSingleCommandBuffer) {
+        RenderSceneUsingSingleCommandBuffer(frameIndex, frame, prevFrameIndex, prevFrame, swapchain, imageIndex);
+    }
+    else {
+        RenderSceneUsingMultipleCommandBuffers(frameIndex, frame, prevFrameIndex, prevFrame, swapchain, imageIndex);
+    }
+
+    mLastFrameWasAsyncCompute = mUseAsyncCompute;
+
+    PPX_CHECKED_CALL(swapchain->Present(imageIndex, 1, &frame.frameCompleteSemaphore));
 }
 
 void FishTornadoApp::DrawGui()
@@ -677,4 +969,20 @@ void FishTornadoApp::DrawGui()
     ImGui::Separator();
 
     ImGui::Checkbox("Use PCF Shadows", &mUsePCF);
+
+    if (mUseAsyncCompute) {
+        ImGui::BeginDisabled();
+    }
+    ImGui::Checkbox("Use Single CommandBuffer", &mForceSingleCommandBuffer);
+    if (mUseAsyncCompute) {
+        ImGui::EndDisabled();
+    }
+
+    if (mForceSingleCommandBuffer || grfx::IsDx11(GetDevice()->GetApi())) {
+        ImGui::BeginDisabled();
+    }
+    ImGui::Checkbox("Use Async Compute", &mUseAsyncCompute);
+    if (mForceSingleCommandBuffer || grfx::IsDx11(GetDevice()->GetApi())) {
+        ImGui::EndDisabled();
+    }
 }

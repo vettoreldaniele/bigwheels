@@ -264,7 +264,7 @@ D3D12_DESCRIPTOR_RANGE_TYPE ToD3D12RangeType(grfx::DescriptorType value)
     return ppx::InvalidValue<D3D12_DESCRIPTOR_RANGE_TYPE>();
 }
 
-D3D12_RESOURCE_STATES ToD3D12ResourceStates(grfx::ResourceState value)
+D3D12_RESOURCE_STATES ToD3D12ResourceStates(grfx::ResourceState value, grfx::CommandType commandType)
 {
     // clang-format off
     switch (value) {
@@ -276,7 +276,13 @@ D3D12_RESOURCE_STATES ToD3D12ResourceStates(grfx::ResourceState value)
         case grfx::RESOURCE_STATE_INDEX_BUFFER              : return D3D12_RESOURCE_STATE_INDEX_BUFFER; break;
         case grfx::RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE : return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; break;
         case grfx::RESOURCE_STATE_PIXEL_SHADER_RESOURCE     : return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE; break;
-        case grfx::RESOURCE_STATE_SHADER_RESOURCE           : return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE| D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE; break;
+        case grfx::RESOURCE_STATE_SHADER_RESOURCE           : {
+                if (commandType == grfx::COMMAND_TYPE_GRAPHICS) {
+                    return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE| D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+                }
+                return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+            }
+            break;
         case grfx::RESOURCE_STATE_DEPTH_STENCIL_READ        : return D3D12_RESOURCE_STATE_DEPTH_READ; break;
         case grfx::RESOURCE_STATE_DEPTH_STENCIL_WRITE       : return D3D12_RESOURCE_STATE_DEPTH_WRITE; break;
         case grfx::RESOURCE_STATE_RENDER_TARGET             : return D3D12_RESOURCE_STATE_RENDER_TARGET; break;

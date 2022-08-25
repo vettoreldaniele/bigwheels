@@ -18,10 +18,16 @@ public:
     void Shutdown();
     void Update(uint32_t frameIndex);
     void CopyConstantsToGpu(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
+
+    void BeginCompute(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute);
     void Compute(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
+    void EndCompute(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute);
+
+    void BeginGraphics(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute);
     void DrawDebug(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
     void DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
     void DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd);
+    void EndGraphics(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute);
 
 private:
     void SetupSetLayouts();
@@ -40,6 +46,8 @@ private:
         grfx::DescriptorSetPtr positionSet;
         grfx::DescriptorSetPtr velocitySet;
         grfx::DescriptorSetPtr renderSet;
+
+        bool renderedWithAsyncCompute = false;
     };
 
     uint32_t mResX;

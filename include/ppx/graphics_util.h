@@ -103,11 +103,13 @@ public:
 
     // clang-format off
     TextureOptions& AdditionalUsage(grfx::ImageUsageFlags flags) { mAdditionalUsage = flags; return *this; }
+    TextureOptions& InitialState(grfx::ResourceState state) { mInitialState = state; return *this; }
     TextureOptions& MipLevelCount(uint32_t levelCount) { mMipLevelCount = levelCount; return *this; }
     // clang-format on
 
 private:
     grfx::ImageUsageFlags mAdditionalUsage = grfx::ImageUsageFlags();
+    grfx::ResourceState   mInitialState    = grfx::ResourceState::RESOURCE_STATE_SHADER_RESOURCE;
     uint32_t              mMipLevelCount   = 1;
 
     friend Result CreateTextureFromBitmap(

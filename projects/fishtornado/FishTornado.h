@@ -59,34 +59,33 @@ public:
     virtual void Scroll(float dx, float dy) override;
     virtual void Render() override;
 
-private:
-    void SetupDescriptorPool();
-    void SetupSetLayouts();
-    void SetupPipelineInterfaces();
-    void SetupTextures();
-    void SetupSamplers();
-    void SetupPerFrame();
-    void SetupCaustics();
-    void SetupDebug();
-    void SetupScene();
-    void UploadCaustics();
-    void UpdateTime();
-    void UpdateScene(uint32_t frameIndex);
-    void DrawGui();
+    bool WasLastFrameAsync() { return mLastFrameWasAsyncCompute; }
 
 private:
     struct PerFrame
     {
         grfx::CommandBufferPtr cmd;
+        grfx::CommandBufferPtr gpuStartTimestampCmd;
+        grfx::CommandBufferPtr gpuEndTimestampCmd;
+        grfx::CommandBufferPtr copyConstantsCmd;
+        grfx::CommandBufferPtr grfxFlockingCmd;
+        grfx::CommandBufferPtr asyncFlockingCmd;
+        grfx::CommandBufferPtr shadowCmd;
+        grfx::SemaphorePtr     gpuStartTimestampSemaphore;
+        grfx::SemaphorePtr     copyConstantsSemaphore;
+        grfx::SemaphorePtr     flockingCompleteSemaphore;
+        grfx::SemaphorePtr     shadowCompleteSemaphore;
+        grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::SemaphorePtr     imageAcquiredSemaphore;
         grfx::FencePtr         imageAcquiredFence;
-        grfx::SemaphorePtr     renderCompleteSemaphore;
-        grfx::FencePtr         renderCompleteFence;
+        grfx::SemaphorePtr     frameCompleteSemaphore;
+        grfx::FencePtr         frameCompleteFence;
         ConstantBuffer         sceneConstants;
         grfx::DrawPassPtr      shadowDrawPass;
         grfx::DescriptorSetPtr sceneSet;
         grfx::DescriptorSetPtr sceneShadowSet; // See note in SetupSetLayouts()
-        grfx::QueryPtr         timestampQuery;
+        grfx::QueryPtr         startTimestampQuery;
+        grfx::QueryPtr         endTimestampQuery;
         grfx::QueryPtr         pipelineStatsQuery;
     };
 
@@ -109,9 +108,41 @@ private:
     Flocking                     mFlocking;
     Ocean                        mOcean;
     Shark                        mShark;
-    bool                         mUsePCF             = true;
-    uint64_t                     mTotalGpuFrameTime  = 0;
-    grfx::PipelineStatistics     mPipelineStatistics = {};
+    bool                         mUsePCF                   = true;
+    uint64_t                     mTotalGpuFrameTime        = 0;
+    grfx::PipelineStatistics     mPipelineStatistics       = {};
+    bool                         mForceSingleCommandBuffer = false;
+    bool                         mUseAsyncCompute          = false;
+    bool                         mLastFrameWasAsyncCompute = false;
+
+private:
+    void SetupDescriptorPool();
+    void SetupSetLayouts();
+    void SetupPipelineInterfaces();
+    void SetupTextures();
+    void SetupSamplers();
+    void SetupPerFrame();
+    void SetupCaustics();
+    void SetupDebug();
+    void SetupScene();
+    void UploadCaustics();
+    void UpdateTime();
+    void UpdateScene(uint32_t frameIndex);
+    void RenderSceneUsingSingleCommandBuffer(
+        uint32_t            frameIndex,
+        PerFrame&           frame,
+        uint32_t            prevFrameIndex,
+        PerFrame&           prevFrame,
+        grfx::SwapchainPtr& swapchain,
+        uint32_t            imageIndex);
+    void RenderSceneUsingMultipleCommandBuffers(
+        uint32_t            frameIndex,
+        PerFrame&           frame,
+        uint32_t            prevFrameIndex,
+        PerFrame&           prevFrame,
+        grfx::SwapchainPtr& swapchain,
+        uint32_t            imageIndex);
+    void DrawGui();
 };
 
 #endif // FISHTORNADO_H

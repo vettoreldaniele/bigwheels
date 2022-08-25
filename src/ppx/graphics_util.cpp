@@ -835,7 +835,7 @@ Result CreateTextureFromBitmap(
         ci.usageFlags.bits.transferDst = true;
         ci.usageFlags.bits.sampled     = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
-        ci.initialState                = grfx::RESOURCE_STATE_SHADER_RESOURCE;
+        ci.initialState                = options.mInitialState;
         ci.RTVClearValue               = {0, 0, 0, 0};
         ci.DSVClearValue               = {1.0f, 0xFF};
         ci.sampledImageViewType        = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
@@ -869,8 +869,8 @@ Result CreateTextureFromBitmap(
             targetTexture,
             mipLevel,
             0,
-            grfx::RESOURCE_STATE_SHADER_RESOURCE,
-            grfx::RESOURCE_STATE_SHADER_RESOURCE);
+            options.mInitialState,
+            options.mInitialState);
         if (Failed(ppxres)) {
             return ppxres;
         }
