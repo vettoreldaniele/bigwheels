@@ -27,6 +27,7 @@ public:
     virtual Result WaitIdle() override;
 
     virtual bool PipelineStatsAvailable() const override;
+    virtual bool DynamicRenderingSupported() const override;
 
     void ResetQueryPoolEXT(
         VkQueryPool queryPool,
@@ -85,6 +86,7 @@ private:
     bool                     mHasTimelineSemaphore      = false;
     bool                     mHasExtendedDynamicState   = false;
     bool                     mHasUnrestrictedDepthRange = false;
+    bool                     mHasDynamicRendering       = false;
     PFN_vkResetQueryPoolEXT  mFnResetQueryPoolEXT       = nullptr;
     uint32_t                 mGraphicsQueueFamilyIndex  = 0;
     uint32_t                 mComputeQueueFamilyIndex   = 0;

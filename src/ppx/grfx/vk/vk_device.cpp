@@ -140,6 +140,12 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         mExtensions.push_back(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
     }
 
+    // Dynamic rendering - if present
+    if (ElementExists(std::string(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME), mFoundExtensions)) {
+        mExtensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+        mHasDynamicRendering = true;
+    }
+
     // Add additional extensions and uniquify
     AppendElements(pCreateInfo->vulkanExtensions, mExtensions);
     Unique(mExtensions);
@@ -255,6 +261,18 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     VkPhysicalDeviceHostQueryResetFeatures queryResetFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES};
 #endif
     queryResetFeatures.hostQueryReset = VK_TRUE;
+
+    // VkPhysicalDeviceDynamicRenderingFeatures
+
+    if (mHasDynamicRendering) {
+#ifndef VK_API_VERSION_1_3
+        VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES};
+#else
+        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR};
+#endif
+        dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
+        queryResetFeatures.pNext                  = &dynamicRenderingFeatures;
+    }
 
     // Get C strings
     std::vector<const char*> extensions = GetCStrings(mExtensions);
@@ -595,6 +613,11 @@ Result Device::WaitIdle()
 bool Device::PipelineStatsAvailable() const
 {
     return mDeviceFeatures.pipelineStatisticsQuery;
+}
+
+bool Device::DynamicRenderingSupported() const
+{
+    return mHasDynamicRendering;
 }
 
 void Device::ResetQueryPoolEXT(

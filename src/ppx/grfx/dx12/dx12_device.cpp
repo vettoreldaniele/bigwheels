@@ -242,6 +242,22 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
         }
     }
 
+    // Check for Dynamic Rendering capabilities: render passes in DX12 lingo
+    {
+        D3D12_FEATURE_DATA_D3D12_OPTIONS5 featureSupport{};
+
+        hr = mDevice->CheckFeatureSupport(
+            D3D12_FEATURE_D3D12_OPTIONS5,
+            &featureSupport,
+            sizeof(featureSupport));
+
+        if (FAILED(hr)) {
+            PPX_ASSERT_MSG(false, "ID3D12Device::CheckFeatureSupport failed");
+            return ppx::ERROR_API_FAILURE;
+        }
+
+        mRenderPassTier = featureSupport.RenderPassesTier;
+    }
     // Create D3D12MA allocator
     {
         D3D12MA::ALLOCATOR_FLAGS flags = D3D12MA::ALLOCATOR_FLAG_NONE;
@@ -647,6 +663,11 @@ Result Device::WaitIdle()
 bool Device::PipelineStatsAvailable() const
 {
     return true;
+}
+
+bool Device::DynamicRenderingSupported() const
+{
+    return mRenderPassTier > D3D12_RENDER_PASS_TIER_0;
 }
 
 } // namespace dx12

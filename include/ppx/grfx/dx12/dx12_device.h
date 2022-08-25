@@ -48,6 +48,7 @@ public:
     virtual Result WaitIdle() override;
 
     virtual bool PipelineStatsAvailable() const override;
+    virtual bool DynamicRenderingSupported() const override;
 
 protected:
     virtual Result AllocateObject(grfx::Buffer** ppObject) override;
@@ -98,6 +99,8 @@ private:
     std::vector<grfx::BufferPtr> mQueryResolveBuffers;
     uint32_t                     mQueryResolveThreadCount = 0;
     std::mutex                   mQueryResolveMutex;
+
+    D3D12_RENDER_PASS_TIER mRenderPassTier;
 };
 
 } // namespace dx12

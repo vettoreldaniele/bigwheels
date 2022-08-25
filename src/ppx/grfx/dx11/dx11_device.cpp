@@ -387,6 +387,11 @@ bool Device::PipelineStatsAvailable() const
     return true;
 }
 
+bool Device::DynamicRenderingSupported() const
+{
+    return false;
+}
+
 Result Device::GetStructuredBufferSRV(
     const grfx::Buffer*                                  pBuffer,
     UINT                                                 numElements,

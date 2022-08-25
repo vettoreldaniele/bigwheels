@@ -21,6 +21,7 @@ public:
     virtual Result WaitIdle() override;
 
     virtual bool PipelineStatsAvailable() const override;
+    virtual bool DynamicRenderingSupported() const override;
 
     Result GetStructuredBufferSRV(
         const grfx::Buffer*                                  pBuffer,
