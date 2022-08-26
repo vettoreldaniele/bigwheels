@@ -482,12 +482,47 @@ void CommandBuffer::CopyBufferToImage(
     mCommandList.CopyBufferToImage(&copyArgs);
 }
 
-void CommandBuffer::CopyImageToBuffer(
+grfx::ImageToBufferOutputPitch CommandBuffer::CopyImageToBuffer(
     const grfx::ImageToBufferCopyInfo* pCopyInfo,
     grfx::Image*                       pSrcImage,
     grfx::Buffer*                      pDstBuffer)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    PPX_ASSERT_MSG(pCopyInfo->srcImage.arrayLayerCount == 1, "D3D11 does not support image-to-buffer copies of more than a layer at a time");
+
+    const grfx::FormatDesc* srcDesc = grfx::GetFormatDescription(pSrcImage->GetFormat());
+
+    dx11::args::CopyImageToBuffer copyArgs = {};
+    copyArgs.srcImage.arrayLayer           = pCopyInfo->srcImage.arrayLayer;
+    copyArgs.srcImage.mipLevel             = pCopyInfo->srcImage.mipLevel;
+    copyArgs.srcImage.offset.x             = pCopyInfo->srcImage.offset.x;
+    copyArgs.srcImage.offset.y             = pCopyInfo->srcImage.offset.y;
+    copyArgs.srcImage.offset.z             = pCopyInfo->srcImage.offset.z;
+    copyArgs.extent.x                      = pCopyInfo->extent.x;
+    copyArgs.extent.y                      = pCopyInfo->extent.y;
+    copyArgs.extent.z                      = pCopyInfo->extent.z;
+    copyArgs.isDepthStencilCopy            = pSrcImage->GetUsageFlags().bits.depthStencilAttachment;
+    copyArgs.srcMipLevels                  = pSrcImage->GetMipLevelCount();
+    copyArgs.srcBytesPerTexel              = srcDesc->bytesPerTexel;
+    copyArgs.srcTextureDimension           = ToD3D11TextureResourceDimension(pSrcImage->GetType());
+    copyArgs.pSrcResource                  = ToApi(pSrcImage)->GetDxResource();
+    copyArgs.pDstResource                  = ToApi(pDstBuffer)->GetDxBuffer();
+    if (pSrcImage->GetType() == grfx::IMAGE_TYPE_1D) {
+        ToApi(pSrcImage)->GetDxTexture1D()->GetDesc(&copyArgs.srcTextureDesc.texture1D);
+    }
+    if (pSrcImage->GetType() == grfx::IMAGE_TYPE_2D) {
+        ToApi(pSrcImage)->GetDxTexture2D()->GetDesc(&copyArgs.srcTextureDesc.texture2D);
+    }
+    else {
+        ToApi(pSrcImage)->GetDxTexture3D()->GetDesc(&copyArgs.srcTextureDesc.texture3D);
+    }
+    ToApi(pDstBuffer)->GetDxBuffer()->GetDesc(&copyArgs.dstBufferDesc);
+
+    mCommandList.CopyImageToBuffer(&copyArgs);
+
+    // We'll always tightly pack the texels.
+    grfx::ImageToBufferOutputPitch outPitch;
+    outPitch.rowPitch = srcDesc->bytesPerTexel * pCopyInfo->extent.x;
+    return outPitch;
 }
 
 void CommandBuffer::CopyImageToImage(

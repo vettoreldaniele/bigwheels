@@ -660,12 +660,82 @@ void CommandBuffer::CopyBufferToImage(
     }
 }
 
-void CommandBuffer::CopyImageToBuffer(
+grfx::ImageToBufferOutputPitch CommandBuffer::CopyImageToBuffer(
     const grfx::ImageToBufferCopyInfo* pCopyInfo,
     grfx::Image*                       pSrcImage,
     grfx::Buffer*                      pDstBuffer)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    D3D12DevicePtr      device      = ToApi(GetDevice())->GetDxDevice();
+    D3D12_RESOURCE_DESC resouceDesc = ToApi(pSrcImage)->GetDxResource()->GetDesc();
+
+    const grfx::FormatDesc* srcDesc = grfx::GetFormatDescription(pSrcImage->GetFormat());
+
+    // For depth-stencil images, each plane must be copied separately.
+    uint32_t numPlanesToCopy = srcDesc->aspect == grfx::FORMAT_ASPECT_DEPTH_STENCIL ? 2 : 1;
+
+    UINT64   currentOffset = 0;
+    uint32_t rowPitch      = 0;
+    for (uint32_t l = 0; l < pCopyInfo->srcImage.arrayLayerCount; ++l) {
+        for (uint32_t p = 0; p < numPlanesToCopy; ++p) {
+            D3D12_TEXTURE_COPY_LOCATION srcLoc = {};
+            srcLoc.pResource                   = ToApi(pSrcImage)->GetDxResource();
+            srcLoc.Type                        = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+            srcLoc.SubresourceIndex            = ToSubresourceIndex(pCopyInfo->srcImage.mipLevel, pCopyInfo->srcImage.arrayLayer + l, p, pSrcImage->GetMipLevelCount(), pSrcImage->GetArrayLayerCount());
+
+            D3D12_TEXTURE_COPY_LOCATION dstLoc = {};
+            dstLoc.pResource                   = ToApi(pDstBuffer)->GetDxResource();
+            dstLoc.Type                        = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+
+            UINT   numRows        = 0;
+            UINT64 rowSizeInBytes = 0;
+            UINT64 totalBytes     = 0;
+            device->GetCopyableFootprints(
+                &resouceDesc,
+                srcLoc.SubresourceIndex,
+                1,
+                currentOffset,
+                &dstLoc.PlacedFootprint,
+                &numRows,
+                &rowSizeInBytes,
+                &totalBytes);
+
+            // Depth-stencil textures can only be copied in full.
+            if (pSrcImage->GetUsageFlags().bits.depthStencilAttachment) {
+                mCommandList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+            }
+            else {
+                // Fix the footprint in case we are copying a portion of the image only.
+                dstLoc.PlacedFootprint.Footprint.Width  = pCopyInfo->extent.x;
+                dstLoc.PlacedFootprint.Footprint.Height = std::max(1u, pCopyInfo->extent.y);
+                dstLoc.PlacedFootprint.Footprint.Depth  = std::max(1u, pCopyInfo->extent.z);
+
+                UINT bytesPerTexel                        = srcDesc->bytesPerTexel;
+                UINT bytesPerRow                          = bytesPerTexel * pCopyInfo->extent.x;
+                dstLoc.PlacedFootprint.Footprint.RowPitch = RoundUp<UINT>(bytesPerRow, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+
+                D3D12_BOX srcBox = {0, 0, 0, 1, 1, 1};
+                srcBox.left      = pCopyInfo->srcImage.offset.x;
+                srcBox.right     = pCopyInfo->srcImage.offset.x + pCopyInfo->extent.x;
+                if (pSrcImage->GetType() != IMAGE_TYPE_1D) { // Can only be set for 2D and 3D textures.
+                    srcBox.top    = pCopyInfo->srcImage.offset.y;
+                    srcBox.bottom = pCopyInfo->srcImage.offset.y + pCopyInfo->extent.y;
+                }
+                if (pSrcImage->GetType() == IMAGE_TYPE_3D) { // Can only be set for 3D textures.
+                    srcBox.front = pCopyInfo->srcImage.offset.z;
+                    srcBox.back  = pCopyInfo->srcImage.offset.z + pCopyInfo->extent.z;
+                }
+
+                mCommandList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, &srcBox);
+            }
+
+            currentOffset += static_cast<UINT64>(dstLoc.PlacedFootprint.Footprint.RowPitch) * dstLoc.PlacedFootprint.Footprint.Height;
+            rowPitch = dstLoc.PlacedFootprint.Footprint.RowPitch;
+        }
+    }
+
+    grfx::ImageToBufferOutputPitch outPitch;
+    outPitch.rowPitch = rowPitch;
+    return outPitch;
 }
 
 void CommandBuffer::CopyImageToImage(

@@ -84,21 +84,29 @@ struct ImageToBufferCopyInfo
     {
         uint32_t mipLevel        = 0;
         uint32_t arrayLayer      = 0; // Must be 0 for 3D images
-        uint32_t arrayLayerCount = 0; // Must be 1 for 3D images
-        uint32_t x               = 0; // [pixels]
-        uint32_t y               = 0; // [pixels]
-        uint32_t z               = 0; // [pixels]
-        uint32_t width           = 0; // [pixels]
-        uint32_t height          = 0; // [pixels]
-        uint32_t depth           = 0; // [pixels]
+        uint32_t arrayLayerCount = 1; // Must be 1 for 3D images
+        struct
+        {
+            uint32_t x = 0; // [pixels]
+            uint32_t y = 0; // [pixels]
+            uint32_t z = 0; // [pixels]
+        } offset;
     } srcImage;
 
     struct
     {
-        uint64_t offset          = 0;
-        uint32_t footprintWidth  = 0; // [pixels] Use 0 for tight packing
-        uint32_t footprintHeight = 0; // [pixels] Use 0 for tight packing
-    } dstBuffer;
+        uint32_t x = 0; // [pixels]
+        uint32_t y = 0; // [pixels]
+        uint32_t z = 0; // [pixels]
+    } extent;
+};
+
+//! @struct ImageToBufferOutputPitch
+//!
+//!
+struct ImageToBufferOutputPitch
+{
+    uint32_t rowPitch = 0;
 };
 
 //! @struct ImageToImageCopyInfo
@@ -321,7 +329,12 @@ public:
         grfx::Buffer*                      pSrcBuffer,
         grfx::Image*                       pDstImage) = 0;
 
-    virtual void CopyImageToBuffer(
+    //! @brief Copies an image to a buffer.
+    //! @param pCopyInfo The specifications of the image region to copy.
+    //! @param pSrcImage The source image.
+    //! @param pDstBuffer The destination buffer.
+    //! @return The image row pitch as written to the destination buffer.
+    virtual grfx::ImageToBufferOutputPitch CopyImageToBuffer(
         const grfx::ImageToBufferCopyInfo* pCopyInfo,
         grfx::Image*                       pSrcImage,
         grfx::Buffer*                      pDstBuffer) = 0;

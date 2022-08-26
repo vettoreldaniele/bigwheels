@@ -99,10 +99,10 @@ public:
         grfx::Buffer*                      pSrcBuffer,
         grfx::Image*                       pDstImage) override;
 
-    virtual void CopyImageToBuffer(
+    virtual grfx::ImageToBufferOutputPitch CopyImageToBuffer(
         const grfx::ImageToBufferCopyInfo* pCopyInfo,
         grfx::Image*                       pSrcImage,
-        grfx::Buffer*                      pDstBuffer) override;
+        grfx::Buffer*                      pDstBufferh) override;
 
     virtual void CopyImageToImage(
         const grfx::ImageToImageCopyInfo* pCopyInfo,

@@ -729,6 +729,13 @@ void CommandList::CopyBufferToImage(const args::CopyBufferToImage* pCopyArgs)
     std::memcpy(&action.args.copyBufferToImage, pCopyArgs, sizeof(args::CopyBufferToImage));
 }
 
+void CommandList::CopyImageToBuffer(const args::CopyImageToBuffer* pCopyArgs)
+{
+    Action& action = NewAction(CMD_COPY_IMAGE_TO_BUFFER);
+
+    std::memcpy(&action.args.copyImageToBuffer, pCopyArgs, sizeof(args::CopyImageToBuffer));
+}
+
 void CommandList::CopyImageToImage(const args::CopyImageToImage* pCopyArgs)
 {
     Action& action = NewAction(CMD_COPY_IMAGE_TO_IMAGE);
@@ -1184,6 +1191,143 @@ static void ExecuteCopyBufferToImage(
     pDeviceContext->Unmap(args.pSrcResource, 0);
 }
 
+static void ExecuteCopyImageToBuffer(
+    typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
+    const args::CopyImageToBuffer&                 args)
+{
+    // In D3D11, we can't simply perform a GPU copy between an image and
+    // a buffer. We must first map the image on the CPU, copy tightly-packed
+    // texels to a staging CPU buffer, and finally copy it to the destination
+    // buffer.
+    // However, if the source image or the destination buffer are not
+    // CPU-mappable, we must create staging resources.
+    // To avoid considering all cases, we always employ the same strategy:
+    //     1) Create a CPU-mappable staging image.
+    //     2) Create a CPU-mappable staging buffer.
+    //     3) Copy source image into staging image.
+    //     4) Copy staging image into staging buffer.
+    //     5) Copy staging buffer into destination buffer.
+
+    ID3D11Device* device;
+    pDeviceContext->GetDevice(&device);
+
+    // 1) Create a CPU-mappable staging image.
+    ID3D11Resource* stagingSrcResource = nullptr;
+    if (args.srcTextureDimension == D3D11_RESOURCE_DIMENSION_TEXTURE1D) {
+        ID3D11Texture1D*     stagingTexture;
+        D3D11_TEXTURE1D_DESC desc = args.srcTextureDesc.texture1D;
+        desc.Width                = args.extent.x;
+        desc.BindFlags            = 0;
+        desc.Usage                = D3D11_USAGE_STAGING;
+        desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
+        device->CreateTexture1D(&desc, nullptr, &stagingTexture);
+        stagingSrcResource = stagingTexture;
+    }
+    else if (args.srcTextureDimension == D3D11_RESOURCE_DIMENSION_TEXTURE2D) {
+        ID3D11Texture2D*     stagingTexture;
+        D3D11_TEXTURE2D_DESC desc = args.srcTextureDesc.texture2D;
+        desc.Width                = args.extent.x;
+        desc.Height               = args.extent.y;
+        desc.BindFlags            = 0;
+        desc.Usage                = D3D11_USAGE_STAGING;
+        desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
+        HRESULT hr                = device->CreateTexture2D(&desc, nullptr, &stagingTexture);
+        stagingSrcResource        = stagingTexture;
+    }
+    else {
+        ID3D11Texture3D*     stagingTexture;
+        D3D11_TEXTURE3D_DESC desc = args.srcTextureDesc.texture3D;
+        desc.Width                = args.extent.x;
+        desc.Height               = args.extent.y;
+        desc.Depth                = args.extent.z;
+        desc.BindFlags            = 0;
+        desc.Usage                = D3D11_USAGE_STAGING;
+        desc.CPUAccessFlags       = D3D11_CPU_ACCESS_READ;
+        device->CreateTexture3D(&desc, nullptr, &stagingTexture);
+        stagingSrcResource = stagingTexture;
+    }
+    PPX_ASSERT_MSG(stagingSrcResource != nullptr, "Failed to create staging image for image-to-buffer copy");
+
+    // 2) Create a CPU-mappable staging buffer.
+    ID3D11Resource* stagingDstResource = nullptr;
+    {
+        ID3D11Buffer*     stagingBuffer;
+        D3D11_BUFFER_DESC desc = args.dstBufferDesc;
+        desc.BindFlags         = 0;
+        desc.Usage             = D3D11_USAGE_STAGING;
+        desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+        device->CreateBuffer(&desc, nullptr, &stagingBuffer);
+        stagingDstResource = stagingBuffer;
+    }
+    PPX_ASSERT_MSG(stagingDstResource != nullptr, "Failed to create staging buffer for image-to-buffer copy");
+
+    // 3) Copy source image into staging image.
+    UINT srcSubresourceIndex = ToSubresourceIndex(args.srcImage.mipLevel, args.srcImage.arrayLayer, args.srcMipLevels);
+
+    // Depth-stencil textures can only be copied in full.
+    if (args.isDepthStencilCopy) {
+        pDeviceContext->CopySubresourceRegion(stagingSrcResource, 0, 0, 0, 0, args.pSrcResource, srcSubresourceIndex, nullptr);
+    }
+    else {
+        D3D11_BOX srcBox = {0, 0, 0, 1, 1, 1};
+        srcBox.left      = args.srcImage.offset.x;
+        srcBox.right     = args.srcImage.offset.x + args.extent.x;
+        if (args.srcTextureDimension != D3D11_RESOURCE_DIMENSION_TEXTURE1D) { // Can only be set for 2D and 3D textures.
+            srcBox.top    = args.srcImage.offset.y;
+            srcBox.bottom = args.srcImage.offset.y + args.extent.y;
+        }
+        if (args.srcTextureDimension == D3D11_RESOURCE_DIMENSION_TEXTURE3D) { // Can only be set for 3D textures.
+            srcBox.front = args.srcImage.offset.z;
+            srcBox.back  = args.srcImage.offset.z + args.extent.z;
+        }
+        pDeviceContext->CopySubresourceRegion(
+            stagingSrcResource,
+            0,
+            0,
+            0,
+            0,
+            args.pSrcResource,
+            srcSubresourceIndex,
+            &srcBox);
+    }
+
+    // 4) Copy staging image into staging buffer.
+    D3D11_MAPPED_SUBRESOURCE mappedSrc = {};
+    HRESULT                  hr        = pDeviceContext->Map(stagingSrcResource, srcSubresourceIndex, D3D11_MAP_READ, 0, &mappedSrc);
+    if (FAILED(hr)) {
+        PPX_ASSERT_MSG(false, "could not map staging source image memory");
+    }
+
+    D3D11_MAPPED_SUBRESOURCE mappedDst = {};
+    hr                                 = pDeviceContext->Map(stagingDstResource, 0, D3D11_MAP_WRITE, 0, &mappedDst);
+    if (FAILED(hr)) {
+        PPX_ASSERT_MSG(false, "could not map staging destination buffer memory");
+    }
+
+    // Tigthly pack the texels.
+    size_t bytesPerRow = static_cast<size_t>(args.srcBytesPerTexel) * args.extent.x;
+
+    char* dst = (char*)mappedDst.pData;
+    for (size_t d = 0; d < std::max(1u, args.extent.z); ++d) {
+        char* src = ((char*)mappedSrc.pData) + d * mappedSrc.DepthPitch;
+        for (size_t y = 0; y < std::max(1u, args.extent.y); ++y) {
+            memcpy(dst, src, bytesPerRow);
+            src += mappedSrc.RowPitch;
+            dst += bytesPerRow;
+        }
+    }
+
+    pDeviceContext->Unmap(stagingSrcResource, srcSubresourceIndex);
+    pDeviceContext->Unmap(stagingDstResource, 0);
+
+    // 5) Copy staging buffer into destination buffer.
+    pDeviceContext->CopyResource(args.pDstResource, stagingDstResource);
+
+    // Release staging resources.
+    stagingSrcResource->Release();
+    stagingDstResource->Release();
+}
+
 static void ExecuteCopyImageToImage(
     typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
     const args::CopyImageToImage&                  args)
@@ -1400,6 +1544,10 @@ void CommandList::Execute(typename D3D11DeviceContextPtr::InterfaceType* pDevice
 
             case CMD_COPY_BUFFER_TO_IMAGE: {
                 ExecuteCopyBufferToImage(pDeviceContext, action.args.copyBufferToImage);
+            } break;
+
+            case CMD_COPY_IMAGE_TO_BUFFER: {
+                ExecuteCopyImageToBuffer(pDeviceContext, action.args.copyImageToBuffer);
             } break;
 
             case CMD_COPY_IMAGE_TO_IMAGE: {

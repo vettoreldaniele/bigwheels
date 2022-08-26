@@ -36,7 +36,7 @@ Result Image::CreateApiObjects(const grfx::ImageCreateInfo* pCreateInfo)
             vkci.mipLevels         = pCreateInfo->mipLevelCount;
             vkci.arrayLayers       = pCreateInfo->arrayLayerCount;
             vkci.samples           = ToVkSampleCount(pCreateInfo->sampleCount);
-            vkci.tiling            = VK_IMAGE_TILING_OPTIMAL;
+            vkci.tiling            = pCreateInfo->memoryUsage == grfx::MEMORY_USAGE_GPU_TO_CPU ? VK_IMAGE_TILING_LINEAR : VK_IMAGE_TILING_OPTIMAL;
             vkci.usage             = ToVkImageUsageFlags(pCreateInfo->usageFlags);
             vkci.initialLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
             if (pCreateInfo->concurrentMultiQueueUsage) {

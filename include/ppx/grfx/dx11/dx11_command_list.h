@@ -22,6 +22,7 @@ enum Cmd
     CMD_DRAW_INDEXED,
     CMD_COPY_BUFFER_TO_BUFFER,
     CMD_COPY_BUFFER_TO_IMAGE,
+    CMD_COPY_IMAGE_TO_BUFFER,
     CMD_COPY_IMAGE_TO_IMAGE,
     CMD_BEGIN_QUERY,
     CMD_END_QUERY,
@@ -492,6 +493,42 @@ struct CopyBufferToImage
     ID3D11Resource* pDstResource = nullptr;
 };
 
+struct CopyImageToBuffer
+{
+    struct
+    {
+        uint32_t mipLevel   = 0;
+        uint32_t arrayLayer = 0; // Must be 0 for 3D images
+        struct
+        {
+            uint32_t x = 0; // [pixels]
+            uint32_t y = 0; // [pixels]
+            uint32_t z = 0; // [pixels]
+        } offset;
+    } srcImage;
+
+    struct
+    {
+        uint32_t x = 0; // [pixels]
+        uint32_t y = 0; // [pixels]
+        uint32_t z = 0; // [pixels]
+    } extent;
+
+    bool     isDepthStencilCopy = false;
+    uint32_t srcMipLevels       = 0;
+    uint32_t srcBytesPerTexel   = 0;
+    union
+    {
+        D3D11_TEXTURE1D_DESC texture1D;
+        D3D11_TEXTURE2D_DESC texture2D;
+        D3D11_TEXTURE3D_DESC texture3D;
+    } srcTextureDesc;
+    D3D11_RESOURCE_DIMENSION srcTextureDimension = D3D11_RESOURCE_DIMENSION_UNKNOWN;
+    ID3D11Resource*          pSrcResource        = nullptr;
+    D3D11_BUFFER_DESC        dstBufferDesc;
+    ID3D11Resource*          pDstResource = nullptr;
+};
+
 struct CopyImageToImage
 {
     struct
@@ -578,6 +615,7 @@ struct Action
             args::DrawIndexed        drawIndexed;
             args::CopyBufferToBuffer copyBufferToBuffer;
             args::CopyBufferToImage  copyBufferToImage;
+            args::CopyImageToBuffer  copyImageToBuffer;
             args::CopyImageToImage   copyImageToImage;
             args::BeginQuery         beginQuery;
             args::EndQuery           endQuery;
@@ -752,6 +790,8 @@ public:
     void CopyBufferToBuffer(const args::CopyBufferToBuffer* pCopyArgs);
 
     void CopyBufferToImage(const args::CopyBufferToImage* pCopyArgs);
+
+    void CopyImageToBuffer(const args::CopyImageToBuffer* pCopyArgs);
 
     void CopyImageToImage(const args::CopyImageToImage* pCopyArgs);
 

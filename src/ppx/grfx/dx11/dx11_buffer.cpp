@@ -68,7 +68,12 @@ D3D11_MAP Buffer::GetMapType() const
         mapType = D3D11_MAP_WRITE_DISCARD;
     }
     else if (mUsage == D3D11_USAGE_STAGING) {
-        mapType = D3D11_MAP_READ_WRITE;
+        if (mCreateInfo.memoryUsage == grfx::MEMORY_USAGE_GPU_TO_CPU) {
+            mapType = D3D11_MAP_READ;
+        }
+        else {
+            mapType = D3D11_MAP_READ_WRITE;
+        }
     }
     return mapType;
 }

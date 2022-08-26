@@ -548,12 +548,67 @@ void CommandBuffer::CopyBufferToImage(
         &region);
 }
 
-void CommandBuffer::CopyImageToBuffer(
+grfx::ImageToBufferOutputPitch CommandBuffer::CopyImageToBuffer(
     const grfx::ImageToBufferCopyInfo* pCopyInfo,
     grfx::Image*                       pSrcImage,
     grfx::Buffer*                      pDstBuffer)
 {
-    PPX_ASSERT_MSG(false, "not implemented");
+    std::vector<VkBufferImageCopy> regions;
+
+    VkBufferImageCopy region               = {};
+    region.bufferOffset                    = 0;
+    region.bufferRowLength                 = 0; // Tightly-packed texels.
+    region.bufferImageHeight               = 0; // Tightly-packed texels.
+    region.imageSubresource.mipLevel       = pCopyInfo->srcImage.mipLevel;
+    region.imageSubresource.baseArrayLayer = pCopyInfo->srcImage.arrayLayer;
+    region.imageSubresource.layerCount     = pCopyInfo->srcImage.arrayLayerCount;
+    region.imageOffset.x                   = pCopyInfo->srcImage.offset.x;
+    region.imageOffset.y                   = pCopyInfo->srcImage.offset.y;
+    region.imageOffset.z                   = pCopyInfo->srcImage.offset.z;
+    region.imageExtent                     = {0, 1, 1};
+    region.imageExtent.width               = pCopyInfo->extent.x;
+    if (pSrcImage->GetType() != IMAGE_TYPE_1D) { // Can only be set for 2D and 3D textures.
+        region.imageExtent.height = pCopyInfo->extent.y;
+    }
+    if (pSrcImage->GetType() == IMAGE_TYPE_3D) { // Can only be set for 3D textures.
+        region.imageExtent.depth = pCopyInfo->extent.z;
+    }
+
+    const grfx::FormatDesc* srcDesc = grfx::GetFormatDescription(pSrcImage->GetFormat());
+
+    // For depth-stencil images, each component must be copied separately.
+    if (srcDesc->aspect == grfx::FORMAT_ASPECT_DEPTH_STENCIL) {
+        // First copy depth.
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        regions.push_back(region);
+
+        // Compute the total size of the depth part to offset the stencil part.
+        // We always copy tightly-packed texels, so we don't have to worry
+        // about tiling.
+        size_t depthTexelBytes = srcDesc->bytesPerTexel - 1; // Stencil is always 1 byte.
+        size_t depthTotalBytes = depthTexelBytes * pCopyInfo->extent.x * pCopyInfo->extent.y;
+
+        // Then copy stencil.
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+        region.bufferOffset                = depthTotalBytes;
+        regions.push_back(region);
+    }
+    else {
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        regions.push_back(region);
+    }
+
+    vkCmdCopyImageToBuffer(
+        mCommandBuffer,
+        ToApi(pSrcImage)->GetVkImage(),
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        ToApi(pDstBuffer)->GetVkBuffer(),
+        static_cast<uint32_t>(regions.size()),
+        regions.data());
+
+    grfx::ImageToBufferOutputPitch outPitch;
+    outPitch.rowPitch = srcDesc->bytesPerTexel * pCopyInfo->extent.x;
+    return outPitch;
 }
 
 void CommandBuffer::CopyImageToImage(
