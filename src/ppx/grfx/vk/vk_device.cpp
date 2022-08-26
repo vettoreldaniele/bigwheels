@@ -140,8 +140,13 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         mExtensions.push_back(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME);
     }
 
-    // Dynamic rendering - if present
-    if (ElementExists(std::string(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME), mFoundExtensions)) {
+    // Dynamic rendering - if present. It also requires
+    // VK_KHR_depth_stencil_resolve and VK_KHR_create_renderpass2.
+    if (ElementExists(std::string(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME), mFoundExtensions) &&
+        ElementExists(std::string(VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME), mFoundExtensions) &&
+        ElementExists(std::string(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME), mFoundExtensions)) {
+        mExtensions.push_back(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME);
+        mExtensions.push_back(VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME);
         mExtensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         mHasDynamicRendering = true;
     }
