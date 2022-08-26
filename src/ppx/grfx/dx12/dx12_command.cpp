@@ -34,7 +34,7 @@ Result CommandBuffer::CreateApiObjects(const grfx::internal::CommandBufferCreate
     PPX_LOG_OBJECT_CREATION(D3D12GraphicsCommandList, mCommandList.Get());
 
     //// Store command allocator for reset
-    //mCommandAllocator = ToApi(pCreateInfo->pPool)->GetDxCommandAllocator();
+    // mCommandAllocator = ToApi(pCreateInfo->pPool)->GetDxCommandAllocator();
     hr = ToApi(GetDevice())->GetDxDevice()->CreateCommandAllocator(type, IID_PPV_ARGS(&mCommandAllocator));
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandAllocator failed");
@@ -199,7 +199,7 @@ void CommandBuffer::BeginRenderPassImpl(const grfx::RenderPassBeginInfo* pBeginI
     }
 
     // Clear depth/stencil if load op is clear
-    //if (hasDepthStencil && (pRenderPass->GetDepthStencilView()->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR)) {
+    // if (hasDepthStencil && (pRenderPass->GetDepthStencilView()->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR)) {
     if (hasDepthStencil) {
         D3D12_CLEAR_FLAGS flags = static_cast<D3D12_CLEAR_FLAGS>(0);
         if (pRenderPass->GetDepthStencilView()->GetDepthLoadOp() == grfx::ATTACHMENT_LOAD_OP_CLEAR) {
@@ -668,6 +668,53 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
+void CommandBuffer::CopyImageToImage(
+    const grfx::ImageToImageCopyInfo* pCopyInfo,
+    grfx::Image*                      pSrcImage,
+    grfx::Image*                      pDstImage)
+{
+    bool isSourceDepthStencil = grfx::GetFormatDescription(pSrcImage->GetFormat())->aspect == grfx::FORMAT_ASPECT_DEPTH_STENCIL;
+    bool isDestDepthStencil   = grfx::GetFormatDescription(pDstImage->GetFormat())->aspect == grfx::FORMAT_ASPECT_DEPTH_STENCIL;
+    PPX_ASSERT_MSG(isSourceDepthStencil == isDestDepthStencil, "both images in an image copy must be depth-stencil if one is depth-stencil");
+
+    // For depth-stencil images, each plane must be copied separately.
+    uint32_t numPlanesToCopy = isSourceDepthStencil ? 2 : 1;
+
+    for (uint32_t l = 0; l < pCopyInfo->srcImage.arrayLayerCount; ++l) {
+        for (uint32_t p = 0; p < numPlanesToCopy; ++p) {
+            D3D12_TEXTURE_COPY_LOCATION srcLoc = {};
+            srcLoc.pResource                   = ToApi(pSrcImage)->GetDxResource();
+            srcLoc.Type                        = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+            srcLoc.SubresourceIndex            = ToSubresourceIndex(pCopyInfo->srcImage.mipLevel, pCopyInfo->srcImage.arrayLayer + l, p, pSrcImage->GetMipLevelCount(), pSrcImage->GetArrayLayerCount());
+
+            D3D12_TEXTURE_COPY_LOCATION dstLoc = {};
+            dstLoc.pResource                   = ToApi(pDstImage)->GetDxResource();
+            dstLoc.Type                        = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+            dstLoc.SubresourceIndex            = ToSubresourceIndex(pCopyInfo->dstImage.mipLevel, pCopyInfo->dstImage.arrayLayer + l, p, pDstImage->GetMipLevelCount(), pDstImage->GetArrayLayerCount());
+
+            // Depth-stencil textures can only be copied in full.
+            if (isSourceDepthStencil) {
+                mCommandList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+            }
+            else {
+                D3D12_BOX srcBox = {0, 0, 0, 1, 1, 1};
+                srcBox.left      = pCopyInfo->srcImage.offset.x;
+                srcBox.right     = pCopyInfo->srcImage.offset.x + pCopyInfo->extent.x;
+                if (pSrcImage->GetType() != IMAGE_TYPE_1D) { // Can only be set for 2D and 3D textures.
+                    srcBox.top    = pCopyInfo->srcImage.offset.y;
+                    srcBox.bottom = pCopyInfo->srcImage.offset.y + pCopyInfo->extent.y;
+                }
+                if (pSrcImage->GetType() == IMAGE_TYPE_3D) { // Can only be set for 3D textures.
+                    srcBox.front = pCopyInfo->srcImage.offset.z;
+                    srcBox.back  = pCopyInfo->srcImage.offset.z + pCopyInfo->extent.z;
+                }
+
+                mCommandList->CopyTextureRegion(&dstLoc, pCopyInfo->dstImage.offset.x, pCopyInfo->dstImage.offset.y, pCopyInfo->dstImage.offset.z, &srcLoc, &srcBox);
+            }
+        }
+    }
+}
+
 void CommandBuffer::BeginQuery(
     const grfx::Query* pQuery,
     uint32_t           queryIndex)
@@ -743,21 +790,21 @@ Result CommandPool::CreateApiObjects(const grfx::CommandPoolCreateInfo* pCreateI
         return ppx::ERROR_INVALID_CREATE_ARGUMENT;
     }
 
-    //HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateCommandAllocator(mCommandType, IID_PPV_ARGS(&mCommandAllocator));
-    //if (FAILED(hr)) {
-    //    PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandAllocator failed");
-    //    return ppx::ERROR_API_FAILURE;
-    //}
-    //PPX_LOG_OBJECT_CREATION(D3D12CommandAllocator, mCommandAllocator.Get());
+    // HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateCommandAllocator(mCommandType, IID_PPV_ARGS(&mCommandAllocator));
+    // if (FAILED(hr)) {
+    //     PPX_ASSERT_MSG(false, "ID3D12Device::CreateCommandAllocator failed");
+    //     return ppx::ERROR_API_FAILURE;
+    // }
+    // PPX_LOG_OBJECT_CREATION(D3D12CommandAllocator, mCommandAllocator.Get());
 
     return ppx::SUCCESS;
 }
 
 void CommandPool::DestroyApiObjects()
 {
-    //if (mCommandAllocator) {
-    //    mCommandAllocator.Reset();
-    //}
+    // if (mCommandAllocator) {
+    //     mCommandAllocator.Reset();
+    // }
 }
 
 } // namespace dx12

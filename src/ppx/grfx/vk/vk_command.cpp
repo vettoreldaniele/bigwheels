@@ -556,6 +556,57 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
+void CommandBuffer::CopyImageToImage(
+    const grfx::ImageToImageCopyInfo* pCopyInfo,
+    grfx::Image*                      pSrcImage,
+    grfx::Image*                      pDstImage)
+{
+    bool isSourceDepthStencil = grfx::GetFormatDescription(pSrcImage->GetFormat())->aspect == grfx::FORMAT_ASPECT_DEPTH_STENCIL;
+    bool isDestDepthStencil   = grfx::GetFormatDescription(pDstImage->GetFormat())->aspect == grfx::FORMAT_ASPECT_DEPTH_STENCIL;
+    PPX_ASSERT_MSG(isSourceDepthStencil == isDestDepthStencil, "both images in an image copy must be depth-stencil if one is depth-stencil");
+
+    VkImageSubresourceLayers srcSubresource = {};
+    srcSubresource.aspectMask               = DetermineAspectMask(ToApi(pSrcImage)->GetVkFormat());
+    srcSubresource.baseArrayLayer           = pCopyInfo->srcImage.arrayLayer;
+    srcSubresource.layerCount               = pCopyInfo->srcImage.arrayLayerCount;
+    srcSubresource.mipLevel                 = pCopyInfo->srcImage.mipLevel;
+
+    VkImageSubresourceLayers dstSubresource = {};
+    dstSubresource.aspectMask               = DetermineAspectMask(ToApi(pDstImage)->GetVkFormat());
+    dstSubresource.baseArrayLayer           = pCopyInfo->dstImage.arrayLayer;
+    dstSubresource.layerCount               = pCopyInfo->dstImage.arrayLayerCount;
+    dstSubresource.mipLevel                 = pCopyInfo->dstImage.mipLevel;
+
+    VkImageCopy region = {};
+    region.srcOffset   = {
+        static_cast<int32_t>(pCopyInfo->srcImage.offset.x),
+        static_cast<int32_t>(pCopyInfo->srcImage.offset.y),
+        static_cast<int32_t>(pCopyInfo->srcImage.offset.z)};
+    region.srcSubresource = srcSubresource;
+    region.dstOffset      = {
+        static_cast<int32_t>(pCopyInfo->dstImage.offset.x),
+        static_cast<int32_t>(pCopyInfo->dstImage.offset.y),
+        static_cast<int32_t>(pCopyInfo->dstImage.offset.z)};
+    region.dstSubresource = dstSubresource;
+    region.extent         = {0, 1, 1};
+    region.extent.width   = pCopyInfo->extent.x;
+    if (pSrcImage->GetType() != IMAGE_TYPE_1D) { // Can only be set for 2D and 3D textures.
+        region.extent.height = pCopyInfo->extent.y;
+    }
+    if (pSrcImage->GetType() == IMAGE_TYPE_3D) { // Can only be set for 3D textures.
+        region.extent.height = pCopyInfo->extent.z;
+    }
+
+    vkCmdCopyImage(
+        mCommandBuffer,
+        ToApi(pSrcImage)->GetVkImage(),
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        ToApi(pDstImage)->GetVkImage(),
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region);
+}
+
 void CommandBuffer::BeginQuery(
     const grfx::Query* pQuery,
     uint32_t           queryIndex)

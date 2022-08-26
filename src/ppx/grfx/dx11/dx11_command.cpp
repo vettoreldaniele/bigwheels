@@ -490,6 +490,41 @@ void CommandBuffer::CopyImageToBuffer(
     PPX_ASSERT_MSG(false, "not implemented");
 }
 
+void CommandBuffer::CopyImageToImage(
+    const grfx::ImageToImageCopyInfo* pCopyInfo,
+    grfx::Image*                      pSrcImage,
+    grfx::Image*                      pDstImage)
+{
+    bool isSourceDepthStencil = grfx::GetFormatDescription(pSrcImage->GetFormat())->aspect == grfx::FORMAT_ASPECT_DEPTH_STENCIL;
+    bool isDestDepthStencil   = grfx::GetFormatDescription(pDstImage->GetFormat())->aspect == grfx::FORMAT_ASPECT_DEPTH_STENCIL;
+    PPX_ASSERT_MSG(isSourceDepthStencil == isDestDepthStencil, "both images in an image copy must be depth-stencil if one is depth-stencil");
+
+    dx11::args::CopyImageToImage copyArgs = {};
+    copyArgs.srcImage.arrayLayer          = pCopyInfo->srcImage.arrayLayer;
+    copyArgs.srcImage.arrayLayerCount     = pCopyInfo->srcImage.arrayLayerCount;
+    copyArgs.srcImage.mipLevel            = pCopyInfo->srcImage.mipLevel;
+    copyArgs.srcImage.offset.x            = pCopyInfo->srcImage.offset.x;
+    copyArgs.srcImage.offset.y            = pCopyInfo->srcImage.offset.y;
+    copyArgs.srcImage.offset.z            = pCopyInfo->srcImage.offset.z;
+    copyArgs.dstImage.arrayLayer          = pCopyInfo->dstImage.arrayLayer;
+    copyArgs.dstImage.arrayLayerCount     = pCopyInfo->dstImage.arrayLayerCount;
+    copyArgs.dstImage.mipLevel            = pCopyInfo->dstImage.mipLevel;
+    copyArgs.dstImage.offset.x            = pCopyInfo->dstImage.offset.x;
+    copyArgs.dstImage.offset.y            = pCopyInfo->dstImage.offset.y;
+    copyArgs.dstImage.offset.z            = pCopyInfo->dstImage.offset.z;
+    copyArgs.extent.x                     = pCopyInfo->extent.x;
+    copyArgs.extent.y                     = pCopyInfo->extent.y;
+    copyArgs.extent.z                     = pCopyInfo->extent.z;
+    copyArgs.isDepthStencilCopy           = isSourceDepthStencil;
+    copyArgs.srcMipLevels                 = pSrcImage->GetMipLevelCount();
+    copyArgs.dstMipLevels                 = pDstImage->GetMipLevelCount();
+    copyArgs.srcTextureDimension          = ToD3D11TextureResourceDimension(pSrcImage->GetType());
+    copyArgs.pSrcResource                 = ToApi(pSrcImage)->GetDxResource();
+    copyArgs.pDstResource                 = ToApi(pDstImage)->GetDxResource();
+
+    mCommandList.CopyImageToImage(&copyArgs);
+}
+
 void CommandBuffer::BeginQuery(
     const grfx::Query* pQuery,
     uint32_t           queryIndex)

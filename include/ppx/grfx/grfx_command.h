@@ -101,6 +101,45 @@ struct ImageToBufferCopyInfo
     } dstBuffer;
 };
 
+//! @struct ImageToImageCopyInfo
+//!
+//!
+struct ImageToImageCopyInfo
+{
+    struct
+    {
+        uint32_t mipLevel        = 0;
+        uint32_t arrayLayer      = 0; // Must be 0 for 3D images
+        uint32_t arrayLayerCount = 1; // Must be 1 for 3D images
+        struct
+        {
+            uint32_t x = 0; // [pixels]
+            uint32_t y = 0; // [pixels]
+            uint32_t z = 0; // [pixels]
+        } offset;
+    } srcImage;
+
+    struct
+    {
+        uint32_t mipLevel        = 0;
+        uint32_t arrayLayer      = 0; // Must be 0 for 3D images
+        uint32_t arrayLayerCount = 1; // Must be 1 for 3D images
+        struct
+        {
+            uint32_t x = 0; // [pixels]
+            uint32_t y = 0; // [pixels]
+            uint32_t z = 0; // [pixels]
+        } offset;
+    } dstImage;
+
+    struct
+    {
+        uint32_t x = 0; // [pixels]
+        uint32_t y = 0; // [pixels]
+        uint32_t z = 0; // [pixels]
+    } extent;
+};
+
 // -------------------------------------------------------------------------------------------------
 
 struct RenderPassBeginInfo
@@ -286,6 +325,11 @@ public:
         const grfx::ImageToBufferCopyInfo* pCopyInfo,
         grfx::Image*                       pSrcImage,
         grfx::Buffer*                      pDstBuffer) = 0;
+
+    virtual void CopyImageToImage(
+        const grfx::ImageToImageCopyInfo* pCopyInfo,
+        grfx::Image*                      pSrcImage,
+        grfx::Image*                      pDstImage) = 0;
 
     virtual void BeginQuery(
         const grfx::Query* pQuery,

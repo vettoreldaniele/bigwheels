@@ -22,6 +22,7 @@ enum Cmd
     CMD_DRAW_INDEXED,
     CMD_COPY_BUFFER_TO_BUFFER,
     CMD_COPY_BUFFER_TO_IMAGE,
+    CMD_COPY_IMAGE_TO_IMAGE,
     CMD_BEGIN_QUERY,
     CMD_END_QUERY,
     CMD_WRITE_TIMESTAMP,
@@ -491,6 +492,49 @@ struct CopyBufferToImage
     ID3D11Resource* pDstResource = nullptr;
 };
 
+struct CopyImageToImage
+{
+    struct
+    {
+        uint32_t mipLevel        = 0;
+        uint32_t arrayLayer      = 0; // Must be 0 for 3D images
+        uint32_t arrayLayerCount = 0; // Must be 1 for 3D images
+        struct
+        {
+            uint32_t x = 0; // [pixels]
+            uint32_t y = 0; // [pixels]
+            uint32_t z = 0; // [pixels]
+        } offset;
+    } srcImage;
+
+    struct
+    {
+        uint32_t mipLevel        = 0;
+        uint32_t arrayLayer      = 0; // Must be 0 for 3D images
+        uint32_t arrayLayerCount = 0; // Must be 1 for 3D images
+        struct
+        {
+            uint32_t x = 0; // [pixels]
+            uint32_t y = 0; // [pixels]
+            uint32_t z = 0; // [pixels]
+        } offset;
+    } dstImage;
+
+    struct
+    {
+        uint32_t x = 0; // [pixels]
+        uint32_t y = 0; // [pixels]
+        uint32_t z = 0; // [pixels]
+    } extent;
+
+    bool                     isDepthStencilCopy  = false;
+    uint32_t                 srcMipLevels        = 0;
+    uint32_t                 dstMipLevels        = 0;
+    D3D11_RESOURCE_DIMENSION srcTextureDimension = D3D11_RESOURCE_DIMENSION_UNKNOWN;
+    ID3D11Resource*          pSrcResource        = nullptr;
+    ID3D11Resource*          pDstResource        = nullptr;
+};
+
 struct BeginQuery
 {
     ID3D11Query* pQuery;
@@ -534,6 +578,7 @@ struct Action
             args::DrawIndexed        drawIndexed;
             args::CopyBufferToBuffer copyBufferToBuffer;
             args::CopyBufferToImage  copyBufferToImage;
+            args::CopyImageToImage   copyImageToImage;
             args::BeginQuery         beginQuery;
             args::EndQuery           endQuery;
             args::WriteTimestamp     writeTimestamp;
@@ -707,6 +752,8 @@ public:
     void CopyBufferToBuffer(const args::CopyBufferToBuffer* pCopyArgs);
 
     void CopyBufferToImage(const args::CopyBufferToImage* pCopyArgs);
+
+    void CopyImageToImage(const args::CopyImageToImage* pCopyArgs);
 
     void BeginQuery(const args::BeginQuery* pBeginQuery);
     void EndQuery(const args::EndQuery* pEndQuery);

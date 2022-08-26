@@ -54,6 +54,8 @@ D3D12_RESOURCE_DIMENSION       ToD3D12TextureResourceDimension(grfx::ImageType v
 D3D12_UAV_DIMENSION            ToD3D12UAVDimension(grfx::ImageViewType value, uint32_t arrayLayerCount);
 UINT8                          ToD3D12WriteMask(uint32_t value);
 
+UINT ToSubresourceIndex(uint32_t mipSlice, uint32_t arraySlice, uint32_t planeSlice, uint32_t mipLevels, uint32_t arraySize);
+
 } // namespace dx12
 } // namespace grfx
 } // namespace ppx

@@ -729,6 +729,13 @@ void CommandList::CopyBufferToImage(const args::CopyBufferToImage* pCopyArgs)
     std::memcpy(&action.args.copyBufferToImage, pCopyArgs, sizeof(args::CopyBufferToImage));
 }
 
+void CommandList::CopyImageToImage(const args::CopyImageToImage* pCopyArgs)
+{
+    Action& action = NewAction(CMD_COPY_IMAGE_TO_IMAGE);
+
+    std::memcpy(&action.args.copyImageToImage, pCopyArgs, sizeof(args::CopyImageToImage));
+}
+
 void CommandList::BeginQuery(const args::BeginQuery* pBeginQuery)
 {
     Action& action = NewAction(CMD_BEGIN_QUERY);
@@ -1177,6 +1184,36 @@ static void ExecuteCopyBufferToImage(
     pDeviceContext->Unmap(args.pSrcResource, 0);
 }
 
+static void ExecuteCopyImageToImage(
+    typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
+    const args::CopyImageToImage&                  args)
+{
+    for (uint32_t l = 0; l < args.srcImage.arrayLayerCount; ++l) {
+        UINT srcSubresourceIndex = ToSubresourceIndex(args.srcImage.mipLevel, args.srcImage.arrayLayer + l, args.srcMipLevels);
+        UINT dstSubresourceIndex = ToSubresourceIndex(args.dstImage.mipLevel, args.dstImage.arrayLayer + l, args.dstMipLevels);
+
+        // Depth-stencil textures can only be copied in full.
+        if (args.isDepthStencilCopy) {
+            pDeviceContext->CopySubresourceRegion(args.pDstResource, dstSubresourceIndex, 0, 0, 0, args.pSrcResource, srcSubresourceIndex, nullptr);
+        }
+        else {
+            D3D11_BOX srcBox = {0, 0, 0, 1, 1, 1};
+            srcBox.left      = args.srcImage.offset.x;
+            srcBox.right     = args.srcImage.offset.x + args.extent.x;
+            if (args.srcTextureDimension != D3D11_RESOURCE_DIMENSION_TEXTURE1D) { // Can only be set for 2D and 3D textures.
+                srcBox.top    = args.srcImage.offset.y;
+                srcBox.bottom = args.srcImage.offset.y + args.extent.y;
+            }
+            if (args.srcTextureDimension == D3D11_RESOURCE_DIMENSION_TEXTURE3D) { // Can only be set for 3D textures.
+                srcBox.front = args.srcImage.offset.z;
+                srcBox.back  = args.srcImage.offset.z + args.extent.z;
+            }
+
+            pDeviceContext->CopySubresourceRegion(args.pDstResource, dstSubresourceIndex, args.dstImage.offset.x, args.dstImage.offset.y, args.dstImage.offset.z, args.pSrcResource, srcSubresourceIndex, &srcBox);
+        }
+    }
+}
+
 static void ExecuteBeginQuery(
     typename D3D11DeviceContextPtr::InterfaceType* pDeviceContext,
     const args::BeginQuery&                        args)
@@ -1363,6 +1400,10 @@ void CommandList::Execute(typename D3D11DeviceContextPtr::InterfaceType* pDevice
 
             case CMD_COPY_BUFFER_TO_IMAGE: {
                 ExecuteCopyBufferToImage(pDeviceContext, action.args.copyBufferToImage);
+            } break;
+
+            case CMD_COPY_IMAGE_TO_IMAGE: {
+                ExecuteCopyImageToImage(pDeviceContext, action.args.copyImageToImage);
             } break;
 
             case CMD_BEGIN_QUERY: {

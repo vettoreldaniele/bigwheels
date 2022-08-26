@@ -35,6 +35,8 @@ D3D11_UAV_DIMENSION        ToD3D11UAVDimension(grfx::ImageViewType value, uint32
 D3D11_USAGE                ToD3D11Usage(grfx::MemoryUsage value, bool dynamic = false);
 UINT8                      ToD3D11WriteMask(uint32_t value);
 
+UINT ToSubresourceIndex(uint32_t mipSlice, uint32_t arraySlice, uint32_t mipLevels);
+
 } // namespace dx11
 } // namespace grfx
 } // namespace ppx

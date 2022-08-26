@@ -449,6 +449,11 @@ UINT8 ToD3D12WriteMask(uint32_t value)
     return mask;
 }
 
+UINT ToSubresourceIndex(uint32_t mipSlice, uint32_t arraySlice, uint32_t planeSlice, uint32_t mipLevels, uint32_t arraySize)
+{
+    return static_cast<UINT>(mipSlice + (arraySlice * mipLevels) + (planeSlice * mipLevels * arraySize));
+}
+
 } // namespace dx12
 } // namespace grfx
 } // namespace ppx

@@ -106,6 +106,11 @@ public:
         grfx::Image*                       pSrcImage,
         grfx::Buffer*                      pDstBuffer) override;
 
+    virtual void CopyImageToImage(
+        const grfx::ImageToImageCopyInfo* pCopyInfo,
+        grfx::Image*                      pSrcImage,
+        grfx::Image*                      pDstImage) override;
+
     virtual void BeginQuery(
         const grfx::Query* pQuery,
         uint32_t           queryIndex) override;
