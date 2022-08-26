@@ -143,6 +143,9 @@ enum Result
 
     ERROR_FONT_PARSE_FAILED   = -4000,
     ERROR_INVALID_UTF8_STRING = -4001,
+
+    ERROR_PPM_EXPORT_FORMAT_NOT_SUPPORTED = -5000,
+    ERROR_PPM_EXPORT_INVALID_SIZE         = -5001,
 };
 
 inline const char* ToString(ppx::Result value)

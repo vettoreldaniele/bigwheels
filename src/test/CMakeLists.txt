@@ -35,6 +35,7 @@ list(
     APPEND TEST_SOURCES
     command_line_parser_test.cpp
     format_test.cpp
+    ppm_export_test.cpp
     shader_translator_test.cpp
     string_util_test.cpp
     transform_test.cpp

@@ -151,6 +151,7 @@ list(
     ${INC_DIR}/ppx/obj_ptr.h
     ${INC_DIR}/ppx/platform.h
     ${INC_DIR}/ppx/ppx.h
+    ${INC_DIR}/ppx/ppm_export.h
     ${INC_DIR}/ppx/profiler.h
     ${INC_DIR}/ppx/random.h
     ${INC_DIR}/ppx/shader_translator.h
@@ -178,6 +179,7 @@ list(
     ${SRC_DIR}/ppx/log.cpp
     ${SRC_DIR}/ppx/mipmap.cpp
     ${SRC_DIR}/ppx/platform.cpp
+    ${SRC_DIR}/ppx/ppm_export.cpp
     ${SRC_DIR}/ppx/profiler.cpp
     ${SRC_DIR}/ppx/shader_translator.cpp
     ${SRC_DIR}/ppx/string_util.cpp
