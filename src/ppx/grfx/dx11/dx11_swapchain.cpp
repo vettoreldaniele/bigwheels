@@ -306,6 +306,7 @@ Result Swapchain::AcquireNextImage(
 
     *pImageIndex = static_cast<uint32_t>(mPresentCount % mCreateInfo.imageCount);
 
+    currentImageIndex = *pImageIndex;
     return ppx::SUCCESS;
 }
 

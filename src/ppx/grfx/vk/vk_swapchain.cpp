@@ -438,6 +438,7 @@ Result Swapchain::AcquireNextImage(
         PPX_LOG_WARN("vkAcquireNextImageKHR returned: " << ToString(vkres));
     }
 
+    currentImageIndex = *pImageIndex;
     return ppx::SUCCESS;
 }
 

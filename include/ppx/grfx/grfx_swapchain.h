@@ -122,6 +122,8 @@ public:
         uint32_t                      waitSemaphoreCount,
         const grfx::Semaphore* const* ppWaitSemaphores) = 0;
 
+    uint32_t GetCurrentImageIndex() const { return currentImageIndex; }
+
 protected:
     virtual Result Create(const grfx::SwapchainCreateInfo* pCreateInfo) override;
     virtual void   Destroy() override;
@@ -133,6 +135,10 @@ protected:
     std::vector<grfx::ImagePtr>      mColorImages;
     std::vector<grfx::RenderPassPtr> mClearRenderPasses;
     std::vector<grfx::RenderPassPtr> mLoadRenderPasses;
+
+    // Keeps track of the image index returned by the
+    // last AcquireNextImage call.
+    uint32_t currentImageIndex = 0;
 };
 
 } // namespace grfx

@@ -254,6 +254,7 @@ Result Swapchain::AcquireNextImage(
         }
     }
 
+    currentImageIndex = *pImageIndex;
     return ppx::SUCCESS;
 }
 

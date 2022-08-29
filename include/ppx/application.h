@@ -270,6 +270,8 @@ protected:
     virtual void DispatchScroll(float dx12, float dy);
     virtual void DispatchRender();
 
+    void TakeScreenshot();
+
     void DrawImGui(grfx::CommandBuffer* pCommandBuffer);
     void DrawDebugInfo(std::function<void(void)> drawAdditionalFn = []() {});
     void DrawProfilerGrfxApiFunctions();
