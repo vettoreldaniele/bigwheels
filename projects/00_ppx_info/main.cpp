@@ -23,6 +23,9 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    ppx::Log::Initialize(LOG_MODE_CONSOLE);
+    PPX_LOG_INFO("Graphics instance and devices created successfully.");
+
     grfx::DestroyInstance(instance);
 
     return 0;

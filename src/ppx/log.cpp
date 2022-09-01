@@ -143,10 +143,15 @@ void Log::Write(const char* msg)
 {
     // Console
     if ((mModes & LOG_MODE_CONSOLE) != 0) {
-#if defined(PPX_LINUX) || defined(PPX_GGP)
+#if defined(PPX_MSW)
+        if (IsDebuggerPresent()) {
+            OutputDebugStringA(msg);
+        }
+        else {
+            std::cout << msg;
+        }
+#else
         std::cout << msg;
-#elif defined(PPX_MSW)
-        OutputDebugStringA(msg);
 #endif
     }
     // File
@@ -172,7 +177,11 @@ void Log::Flush()
 
     // Signal flush for console
     if ((mModes & LOG_MODE_CONSOLE) != 0) {
-#if defined(PPX_LINUX) || defined(PPX_GGP)
+#if defined(PPX_MSW)
+        if (!IsDebuggerPresent()) {
+            std::cout << std::flush;
+        }
+#else
         std::cout << std::flush;
 #endif
     }
