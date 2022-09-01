@@ -213,9 +213,6 @@ Result Swapchain::AcquireNextImage(
     // Wait on swapchain
     {
         DWORD millis = UINT32_MAX;
-#if defined(PPX_DXIIVK)
-        //DWORD result = WaitForSingleObjectExPORTO(mFrameLatencyWaitableObject, millis, TRUE);
-#else
         DWORD result = WaitForSingleObjectEx(mFrameLatencyWaitableObject, millis, TRUE);
 
         // Confirmed timeout
@@ -230,7 +227,6 @@ Result Swapchain::AcquireNextImage(
         if (result != WAIT_OBJECT_0) {
             return ppx::ERROR_WAIT_FAILED;
         }
-#endif
     }
 
     // Get next buffer index

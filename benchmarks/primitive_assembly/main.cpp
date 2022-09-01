@@ -128,12 +128,6 @@ void ProjApp::SetupTestParameters()
 
     // Whether to use pipeline statistics queries.
     mUsePipelineQuery = cl_options.HasExtraOption("use-pipeline-query");
-
-#if defined(PPX_DXIIVK)
-    if (mUsePipelineQuery) {
-        PPX_ASSERT_MSG(false, "Pipeline statistics queries are not supported in DX12 VK");
-    }
-#endif
 }
 
 void ProjApp::Setup()

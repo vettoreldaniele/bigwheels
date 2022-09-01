@@ -6,13 +6,7 @@
 #include "ppx/grfx/dx/d3dcompile_util.h"
 #endif
 
-// *** NOTE ***
-//
-// Pipeline queries do not work on DXIIVK yet.
-//
-#if !defined(PPX_DXIIVK)
 #define ENABLE_GPU_QUERIES
-#endif
 
 using namespace ppx;
 

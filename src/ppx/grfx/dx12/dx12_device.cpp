@@ -15,10 +15,6 @@
 
 #include "ppx/grfx/grfx_scope.h"
 
-#if defined(PPX_DXIIVK) && !defined(PPX_GGP)
-PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO = nullptr;
-PFN_CREATE_EVENT_PORTO              CreateEventPORTO           = nullptr;
-#endif // defined(PPX_DXIIVK)
 namespace ppx {
 namespace grfx {
 namespace dx12 {
@@ -31,11 +27,7 @@ void Device::LoadRootSignatureFunctions()
     mFnD3D12CreateVersionedRootSignatureDeserializer = D3D12CreateVersionedRootSignatureDeserializer;
 #else
 
-#if defined(PPX_DXIIVK)
-    HMODULE module = ::GetModuleHandle(TEXT("dxiivk.dll"));
-#else
     HMODULE module = ::GetModuleHandle(TEXT("d3d12.dll"));
-#endif
 
     // Load root signature version 1.1 functions
     {
@@ -52,11 +44,6 @@ void Device::LoadRootSignatureFunctions()
             "D3D12CreateVersionedRootSignatureDeserializer");
     }
 #endif
-
-#if defined(PPX_DXIIVK) && !defined(PPX_GGP)
-    CreateEventPORTO           = (PFN_CREATE_EVENT_PORTO)GetProcAddress(module, "CreateEventPORTO");
-    WaitForSingleObjectExPORTO = (PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO)GetProcAddress(module, "WaitForSingleObjectExPORTO");
-#endif // defined(PPX_DXIIVK)
 }
 
 Result Device::CreateQueues(const grfx::DeviceCreateInfo* pCreateInfo)
@@ -162,7 +149,6 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     //                     current function will return an API failure.
     //
     /*
-#if !defined(PPX_DXIIVK)
     //
     // Enable SM 6.0 for DXIL support
     //
@@ -214,7 +200,6 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
         PPX_LOG_INFO("D3D12 SM 6.0+ support enabled (DXIL)")
     }
-#endif // ! defined(PPX_DXIIVK)
 */
 
     // Create real D3D12 device

@@ -6,9 +6,9 @@
 #include <map>
 #include <unordered_map>
 
-#if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXIIVK) || defined(PPX_DXVK_SPV))
+#if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
 #include "porto/porto.h"
-#endif // defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXIIVK) || defined(PPX_DXVK_SPV))
+#endif // defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
 
 #if defined(PPX_LINUX_XCB)
 #include <X11/Xlib-xcb.h>
@@ -629,10 +629,10 @@ Result Application::InitializePlatform()
         PPX_LOG_INFO("Display not enabled: skipping initialization of glfw");
     }
 
-#if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXIIVK) || defined(PPX_DXVK_SPV))
+#if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
     PortoConfig config = PortoCreateConfig();
     PortoInit(&config);
-#endif // defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXIIVK) || defined(PPX_DXVK_SPV))
+#endif // defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
 
     return ppx::SUCCESS;
 }
@@ -716,7 +716,7 @@ Result Application::InitializeGrfxSurface()
         grfx::SurfaceCreateInfo ci = {};
         ci.pGpu                    = mDevice->GetGpu();
 #if defined(PPX_GGP)
-#if (defined(PPX_DXVK) || defined(PPX_DXIIVK))
+#if defined(PPX_DXVK)
         ci.hwnd = PortoCreateHWNDFromStreamDescriptor(kGgpPrimaryStreamDescriptor);
 #endif
 #elif defined(PPX_LINUX_XCB)
@@ -942,21 +942,13 @@ void Application::DispatchConfig()
                 ss << " (DXIL)";
             }
             else {
-#if defined(PPX_DXIIVK)
-                ss << " (SPIR-V)";
-#else
                 ss << " (DXBC)";
-#endif
             }
         } break;
     }
 
 #if defined(PPX_DXVK)
     ss << " (DXVK)";
-#endif
-
-#if defined(PPX_DXIIVK)
-    ss << " (DXIIVK)";
 #endif
 
 #if defined(PPX_DXVK_SPV)
@@ -1452,11 +1444,7 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
                 filePath = (filePath / "dxil" / baseName).append_extension(".dxil");
             }
             else {
-#if (PPX_DXIIVK)
-                filePath = (filePath / "spv" / baseName).append_extension(".spv");
-#else
                 filePath = (filePath / "dxbc51" / baseName).append_extension(".dxbc51");
-#endif
             }
         } break;
 

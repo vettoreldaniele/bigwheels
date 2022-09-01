@@ -113,7 +113,7 @@ if (PPX_D3D11)
     )
 endif()
 
-if (PPX_D3D12 OR PPX_DXIIVK)
+if (PPX_D3D12)
     list(APPEND IMGUI_SOURCE_FILES
         ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx12.h
         ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx12.cpp
@@ -248,7 +248,7 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_util.cpp
 )
 
-if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK OR PPX_DXIIVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
+if (PPX_D3D11 OR PPX_D3D12 OR PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     list(
         APPEND PPX_GRFX_DX_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx/dx_util.h
@@ -317,7 +317,7 @@ if (PPX_D3D11 OR PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     )
 endif()
 
-if (PPX_D3D12 OR PPX_DXIIVK)
+if (PPX_D3D12)
     list(
         APPEND PPX_GRFX_DX12_HEADER_FILES
         ${INC_DIR}/ppx/grfx/dx12/000_dx12_config.h
@@ -486,7 +486,7 @@ target_include_directories(
 )
 
 # Include D3D12 directories if D3D12 is enabled
-if (PPX_D3D12 OR PPX_DXIIVK)
+if (PPX_D3D12)
     target_include_directories(
         ${PROJECT_NAME}
         PRIVATE ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src
@@ -502,7 +502,7 @@ if (PPX_VULKAN OR PPX_DXIL_SPV)
     )
 endif()
 
-if (PPX_DXVK OR PPX_DXIIVK)
+if (PPX_DXVK)
     if (PPX_GGP)
        target_include_directories(
            ${PROJECT_NAME}
@@ -545,7 +545,7 @@ endif()
 # ------------------------------------------------------------------------------
 # Compile options
 # ------------------------------------------------------------------------------
-if (PPX_DXVK OR PPX_DXIIVK)
+if (PPX_DXVK)
     if (PPX_GGP)
         target_compile_options(
         ${PROJECT_NAME}
@@ -640,13 +640,6 @@ if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
     )
 endif()
 
-if (PPX_DXIIVK)
-    target_compile_definitions(
-        ${PROJECT_NAME}
-        PUBLIC  PPX_DXIIVK PPX_D3D12
-    )
-endif()
-
 if (PPX_DXVK_SPV_D3DCOMPILE)
     target_compile_definitions(
         ${PROJECT_NAME}
@@ -728,18 +721,6 @@ if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
 
     target_link_libraries(${PROJECT_NAME}
         PUBLIC dxvk
-    )
-endif()
-
-if (PPX_DXIIVK)
-    if (PPX_GGP)
-        target_link_libraries(${PROJECT_NAME}
-            PUBLIC porto
-        )
-    endif()
-
-    target_link_libraries(${PROJECT_NAME}
-        PUBLIC dxiivk
     )
 endif()
 

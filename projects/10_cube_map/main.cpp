@@ -14,13 +14,7 @@ const grfx::Api kApi = grfx::API_DX_12_0;
 const grfx::Api kApi = grfx::API_VK_1_1;
 #endif
 
-// *** NOTE ***
-//
-// Pipeline queries do not work on DXIIVK yet.
-//
-#if !defined(PPX_DXIIVK)
 #define ENABLE_GPU_QUERIES
-#endif
 
 class ProjApp
     : public ppx::Application

@@ -6,10 +6,7 @@
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
-
-#if !defined(PPX_DXIIVK)
 #include <dxgidebug.h>
-#endif // ! defined(PPX_DXIIVK)
 
 //#if defined(PPX_MSW)
 //#include <wrl/client.h>
@@ -32,18 +29,14 @@ namespace ppx {
 namespace grfx {
 namespace dx12 {
 
-using DXGIAdapterPtr = CComPtr<IDXGIAdapter4>;
-using DXGIFactoryPtr = CComPtr<IDXGIFactory7>;
-#if !defined(PPX_DXIIVK)
-using DXGIDebugPtr     = CComPtr<IDXGIDebug1>;
-using DXGIInfoQueuePtr = CComPtr<IDXGIInfoQueue>;
-#endif
-using DXGISwapChainPtr         = CComPtr<IDXGISwapChain4>;
-using D3D12CommandAllocatorPtr = CComPtr<ID3D12CommandAllocator>;
-using D3D12CommandQueuePtr     = CComPtr<ID3D12CommandQueue>;
-#if !defined(PPX_DXIIVK)
-using D3D12DebugPtr = CComPtr<ID3D12Debug>;
-#endif
+using DXGIAdapterPtr              = CComPtr<IDXGIAdapter4>;
+using DXGIFactoryPtr              = CComPtr<IDXGIFactory7>;
+using DXGIDebugPtr                = CComPtr<IDXGIDebug1>;
+using DXGIInfoQueuePtr            = CComPtr<IDXGIInfoQueue>;
+using DXGISwapChainPtr            = CComPtr<IDXGISwapChain4>;
+using D3D12CommandAllocatorPtr    = CComPtr<ID3D12CommandAllocator>;
+using D3D12CommandQueuePtr        = CComPtr<ID3D12CommandQueue>;
+using D3D12DebugPtr               = CComPtr<ID3D12Debug>;
 using D3D12DescriptorHeapPtr      = CComPtr<ID3D12DescriptorHeap>;
 using D3D12DevicePtr              = CComPtr<ID3D12Device5>;
 using D3D12FencePtr               = CComPtr<ID3D12Fence1>;
@@ -290,21 +283,5 @@ const typename ApiObjectLookUp<GrfxTypeT>::ApiType* ToApi(const ObjPtr<GrfxTypeT
 } // namespace dx12
 } // namespace grfx
 } // namespace ppx
-
-#if defined(PPX_DXIIVK) && !defined(PPX_GGP)
-typedef DWORD(WINAPI* PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO)(
-    HANDLE hHandle,
-    DWORD  dwMilliseconds,
-    BOOL   bAlertable);
-
-typedef HANDLE(WINAPI* PFN_CREATE_EVENT_PORTO)(
-    LPSECURITY_ATTRIBUTES lpEventAttributes,
-    BOOL                  bManualReset,
-    BOOL                  bInitialState,
-    LPCSTR                lpName);
-
-extern PFN_WAIT_FOR_SINGLE_OBJECT_EX_PORTO WaitForSingleObjectExPORTO;
-extern PFN_CREATE_EVENT_PORTO              CreateEventPORTO;
-#endif // defined(PPX_DXIIVK)
 
 #endif // ppx_grfx_dx12_config_h

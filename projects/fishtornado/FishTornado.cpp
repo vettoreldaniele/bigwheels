@@ -4,13 +4,7 @@
 #define kShadowRes          1024
 #define kCausticsImageCount 32
 
-// *** NOTE ***
-//
-// Pipeline queries do not work on DXIIVK yet.
-//
-#if !defined(PPX_DXIIVK)
 #define ENABLE_GPU_QUERIES
-#endif
 
 static const float3 kFogColor   = float3(15.0f, 86.0f, 107.0f) / 255.0f;
 static const float3 kFloorColor = float3(145.0f, 189.0f, 155.0f) / 255.0f;

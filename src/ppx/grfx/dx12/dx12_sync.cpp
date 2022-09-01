@@ -29,10 +29,7 @@ Result Fence::CreateApiObjects(const grfx::FenceCreateInfo* pCreateInfo)
 
 void Fence::DestroyApiObjects()
 {
-#if defined(PPX_DXIIVK)
-#else
     CloseHandle(mFenceEventHandle);
-#endif
 
     if (mFence) {
         mFence.Reset();

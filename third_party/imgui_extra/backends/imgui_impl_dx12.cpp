@@ -31,10 +31,9 @@
 #include "imgui.h"
 #include "imgui_impl_dx12.h"
 
-// 20220423 (hai): Changed USE_DXIIVK_WORK_AROUND to USE_SHADER_BINARIES.
-//                 Removed GGP platform note.
+// 20220423 (hai): Removed GGP platform note.
 // 20220423 (hai): Wine's implemenation of D3DCompile currently
-//                 produces DXBC from the IMGui shaders that VKD3D-Proton 
+//                 produces DXBC from the IMGui shaders that VKD3D-Proton
 //                 cannot translate without crashing. Setting the default
 //                 behavior to use USE_SHADER_BINARIES.
 //
@@ -1259,9 +1258,7 @@ static void ImGui_ImplDX12_CreateFontsTexture()
         cmdList->Release();
         cmdAlloc->Release();
         cmdQueue->Release();
-#if ! defined(PPX_DXIIVK)
         CloseHandle(event);
-#endif
         fence->Release();
         uploadBuffer->Release();
 
@@ -1300,12 +1297,8 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
         descRangeCBV.RegisterSpace = 0;
         descRangeCBV.OffsetInDescriptorsFromTableStart = 0;
 
-        D3D12_DESCRIPTOR_RANGE descRangeSRV = {};
-#if defined(PPX_DXIIVK)
-        descRangeSRV.RangeType = static_cast<D3D12_DESCRIPTOR_RANGE_TYPE>(DXVK_D3D12_DESCRIPTOR_RANGE_TYPE_SRV_TEXTURE);
-#else
-        descRangeSRV.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-#endif
+        D3D12_DESCRIPTOR_RANGE descRangeSRV            = {};
+        descRangeSRV.RangeType                         = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
         descRangeSRV.NumDescriptors = 1;
         descRangeSRV.BaseShaderRegister = 1;
         descRangeSRV.RegisterSpace = 0;
@@ -1411,36 +1404,17 @@ bool    ImGui_ImplDX12_CreateDeviceObjects()
     psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
 #if defined(USE_SHADER_BINARIES)
-#if defined(PPX_DXIIVK)
-    // SPIR-V
-#if defined(ENABLE_HLSL_BINDING_SEMANTICS)
-    psoDesc.VS = {__hlsl_shader_vs_spv_hlsl_binding_semantics, sizeof(__hlsl_shader_vs_spv_hlsl_binding_semantics)};
-    psoDesc.PS = {__hlsl_shader_ps_spv_hlsl_binding_semantics, sizeof(__hlsl_shader_ps_spv_hlsl_binding_semantics)};
-#else
-    psoDesc.VS = {__hlsl_shader_vs_spv, sizeof(__hlsl_shader_vs_spv)};
-    psoDesc.PS = {__hlsl_shader_ps_spv, sizeof(__hlsl_shader_ps_spv)};
-#endif
-
-    // Create the input layout
-    static D3D12_INPUT_ELEMENT_DESC local_layout[] =
-    {
-        { "POSITION",  0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD0", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, uv),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "COLOR0",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-#else
     // DXBC
     psoDesc.VS = {__hlsl_shader_vs_dxbc, sizeof(__hlsl_shader_vs_dxbc)};
     psoDesc.PS = {__hlsl_shader_ps_dxbc, sizeof(__hlsl_shader_ps_dxbc)};
 
     // Create the input layout
     static D3D12_INPUT_ELEMENT_DESC local_layout[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)IM_OFFSETOF(ImDrawVert, uv),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    };
-#endif
+        {
+            {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (UINT)IM_OFFSETOF(ImDrawVert, pos), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, (UINT)IM_OFFSETOF(ImDrawVert, uv), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            {"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)IM_OFFSETOF(ImDrawVert, col), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        };
 
     psoDesc.InputLayout = { local_layout, 3 };
 #else

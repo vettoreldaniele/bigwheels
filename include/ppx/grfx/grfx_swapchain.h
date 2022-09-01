@@ -28,7 +28,7 @@ struct SurfaceCreateInfo
     // clang-format off
     grfx::Gpu*            pGpu = nullptr;
 #if defined(PPX_GGP)
-  #if (defined(PPX_DXVK) || defined(PPX_DXIIVK))
+  #if defined(PPX_DXVK)
     HINSTANCE             hinstance;
     HWND                  hwnd;
   #endif

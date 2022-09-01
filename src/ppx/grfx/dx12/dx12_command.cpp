@@ -105,16 +105,14 @@ Result CommandBuffer::Begin()
     // Command allocators can only be reset when the GPU is
     // done with associated with command lists.
     //
-#if !defined(PPX_DXIIVK)
     hr = mCommandAllocator->Reset();
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12CommandAllocator::Reset failed");
         return ppx::ERROR_API_FAILURE;
     }
-#endif // ! defined(PPX_DXIIVK)
 
     // Normally a command list can be reset immediately after submission
-    // if it gets associated with a different command allocoator.
+    // if it gets associated with a different command allocator.
     // But since we're trying to align with Vulkan, just keep the
     // command allocator and command list paired.
     //

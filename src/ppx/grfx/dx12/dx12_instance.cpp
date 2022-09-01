@@ -97,7 +97,6 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     }
     UINT dxgiFactoryFlags = 0;
     if (pCreateInfo->enableDebug) {
-#if !defined(PPX_DXIIVK)
         // Get DXGI debug interface
         HRESULT hr = DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebug));
         if (FAILED(hr)) {
@@ -123,18 +122,9 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
         }
         // Enable additional debug layers
         mD3D12Debug->EnableDebugLayer();
-#endif // ! defined (PPX_DXIIVK)
         dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
     }
-#if defined(PPX_DXIIVK)
-    IDXGIFactory7* pFactory = nullptr;
-    HRESULT        hr       = CreateDXGIFactory2(dxgiFactoryFlags, __uuidof(IDXGIFactory7), reinterpret_cast<void**>(&pFactory));
-    if (FAILED(hr)) {
-        return ppx::ERROR_API_FAILURE;
-    }
-    mFactory = pFactory;
-    PPX_LOG_OBJECT_CREATION(DXGIFactory, pFactory);
-#else
+
     CComPtr<IDXGIFactory4> dxgiFactory;
     // Create factory using IDXGIFactory4
     HRESULT hr = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&dxgiFactory));
@@ -148,7 +138,6 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }
-#endif // defined(PPX_DXIIVK)
 
     Result ppxres = EnumerateAndCreateGpus(featureLevel);
     if (Failed(ppxres)) {
@@ -160,17 +149,14 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 
 void Instance::DestroyApiObjects()
 {
-#if !defined(PPX_DXIIVK)
     if (mCreateInfo.enableDebug) {
         mDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_ALL));
     }
-#endif // ! defined (PPX_DXIIVK)
 
     if (mFactory) {
         mFactory.Reset();
     }
 
-#if !defined(PPX_DXIIVK)
     if (mD3D12Debug) {
         mD3D12Debug.Reset();
     }
@@ -182,7 +168,6 @@ void Instance::DestroyApiObjects()
     if (mDXGIDebug) {
         mDXGIDebug.Reset();
     }
-#endif // ! defined (PPX_DXIIVK)
 }
 
 Result Instance::AllocateObject(grfx::Device** ppDevice)
