@@ -14,4 +14,6 @@ list(APPEND HLSL_FILES
     ${VSPS_HLSL_FILES}
 )
 
-add_vk_benchmark(${PROJECT_NAME}   TRUE "${HLSL_FILES}")
+add_samples(SAMPLE_NAME ${PROJECT_NAME}
+			ADDITIONAL_FILES ${HLSL_FILES}
+            TARGET_APIS "vk")

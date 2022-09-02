@@ -1,4 +1,3 @@
-
 message("Adding shader compile functions for HLSL shaders")
 
 set(PPX_FXC_DX11_FLAGS   "/DPPX_D3D11=1")

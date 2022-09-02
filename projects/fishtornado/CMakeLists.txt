@@ -66,11 +66,5 @@ list(APPEND ADDITIONAL_FILES
     ${CPP_FILES}
 )
 
-add_vk_sample(${PROJECT_NAME}   TRUE "${ADDITIONAL_FILES}")
-add_dx11_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
-add_dx12_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
-add_dxil_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
-add_dxvk_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
-add_dxvk_spv_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
-add_dxvk_spv_d3dcompile_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
-add_dxil_spv_sample(${PROJECT_NAME} TRUE "${ADDITIONAL_FILES}")
+add_samples_for_all_apis(SAMPLE_NAME ${PROJECT_NAME}
+						 ADDITIONAL_FILES ${ADDITIONAL_FILES})

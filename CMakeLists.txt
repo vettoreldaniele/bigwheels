@@ -6,7 +6,7 @@ project(BigWheels)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
-# Detect Linux
+# Detect Linux.
 if(UNIX AND NOT APPLE)
     set(LINUX TRUE)
 endif()
@@ -14,13 +14,13 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # ------------------------------------------------------------------------------
-# Options
+# Options.
 # ------------------------------------------------------------------------------
 option(PPX_BUILD_PROJECTS "Build sample projets" ON)
 set(PPX_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "Build artifact output directory. Allows for multiple build directories. (Default: current source directory.)")
 
 # ------------------------------------------------------------------------------
-# Configure target platform
+# Configure target platform.
 # ------------------------------------------------------------------------------
 
 if (NOT (PPX_GPP OR PPX_LINUX OR PPX_MSW))
@@ -38,7 +38,7 @@ if (NOT (PPX_GPP OR PPX_LINUX OR PPX_MSW))
 endif()
 
 # ------------------------------------------------------------------------------
-# Configure graphics API
+# Configure graphics API(s).
 # ------------------------------------------------------------------------------
 
 if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK) AND (NOT DEFINED PPX_DXVK_SPV) AND (NOT DEFINED PPX_DXVK_SPV_D3DCOMPILE) AND (NOT DEFINED PPX_DXIL_SPV) AND (NOT DEFINED PPX_VULKAN))
@@ -103,21 +103,22 @@ message("Graphics API DXIL SPV : ${PPX_DXIL_SPV_MSG}")
 message("Graphics API Vulkan   : ${PPX_VULKAN_MSG}")
 
 # ------------------------------------------------------------------------------
-# HLSL binding semantics support
+# HLSL binding semantics support.
 # ------------------------------------------------------------------------------
 if(ENABLE_HLSL_BINDING_SEMANTICS)
     add_compile_definitions("ENABLE_HLSL_BINDING_SEMANTICS")
 endif()
 
 # ------------------------------------------------------------------------------
-# Add shader compile functions - needs to come after platform and API config
+# Add CMake modules for shader compilation and sample creation.
+# Needs to come after platform and API config.
 # ------------------------------------------------------------------------------
 
-set(GLOBAL_COUNT 0 CACHE INTERNAL "")
 include(ShaderCompile)
+include(GraphicsSample)
 
 # ------------------------------------------------------------------------------
-# Configure C++ flags
+# Configure C++ flags.
 # ------------------------------------------------------------------------------
 
 if(MSVC)
@@ -130,7 +131,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 
 # ------------------------------------------------------------------------------
-# Configure PPX directories
+# Configure PPX directories.
 # ------------------------------------------------------------------------------
 
 set(PPX_DIR             "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -138,7 +139,7 @@ set(PPX_THIRD_PARTY_DIR "${PPX_DIR}/third_party")
 set(PPX_TESTS_DIR       "${PPX_DIR}/tests")
 
 # ------------------------------------------------------------------------------
-# Configure output directories
+# Configure output directories.
 # ------------------------------------------------------------------------------
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PPX_OUTPUT_DIR}/lib")
@@ -157,10 +158,10 @@ if(NOT (PPX_OUTPUT_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
 endif()
 
 # ------------------------------------------------------------------------------
-# Configure GLFW
+# Configure GLFW.
 # ------------------------------------------------------------------------------
 
-# GLFW is required for OpenGL context
+# GLFW is required for OpenGL context.
 set(GLFW_BUILD_EXAMPLES FALSE CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS    FALSE CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS     FALSE CACHE BOOL "" FORCE)
@@ -168,13 +169,13 @@ set(GLFW_VULKAN_STATIC  FALSE CACHE BOOL "" FORCE)
 add_subdirectory(${PPX_THIRD_PARTY_DIR}/glfw)
 
 # ------------------------------------------------------------------------------
-# Add cpu_features
+# Add cpu_features.
 # ------------------------------------------------------------------------------
 
 add_subdirectory(${PPX_THIRD_PARTY_DIR}/cpu_features)
 
 # ------------------------------------------------------------------------------
-# Add PPX library
+# Add PPX library.
 # ------------------------------------------------------------------------------
 
 if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
@@ -192,7 +193,7 @@ endif()
 add_subdirectory(src)
 
 # ------------------------------------------------------------------------------
-# Add projects
+# Add projects.
 # ------------------------------------------------------------------------------
 
 if (PPX_BUILD_PROJECTS)
@@ -202,7 +203,7 @@ endif()
 
 
 # ------------------------------------------------------------------------------
-# Add benchmarks
+# Add benchmarks.
 # ------------------------------------------------------------------------------
 
 if (PPX_BUILD_BENCHMARKS)
@@ -211,7 +212,7 @@ if (PPX_BUILD_BENCHMARKS)
 endif()
 
 # ------------------------------------------------------------------------------
-# Enable testing support for CMake
+# Enable testing support for CMake.
 # ------------------------------------------------------------------------------
 option(BUILD_TESTS "Build tests" ON)
 if (BUILD_TESTS)

@@ -8,4 +8,6 @@ list(APPEND HLSL_FILES
 
 CompileShadersVSPS("${HLSL_FILES}" "${PPX_DIR}/assets/benchmarks/shaders" "${PPX_DIR}")
 
-add_vk_benchmark(${PROJECT_NAME}   TRUE "${HLSL_FILES}")
+add_samples(SAMPLE_NAME ${PROJECT_NAME}
+			ADDITIONAL_FILES ${HLSL_FILES}
+            TARGET_APIS "vk")
