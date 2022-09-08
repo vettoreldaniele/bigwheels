@@ -55,11 +55,8 @@ CpuInfo GetX86CpuInfo()
     cpu_features::X86Microarchitecture march     = cpu_features::GetX86Microarchitecture(&info);
     cpu_features::CacheInfo            cacheInfo = cpu_features::GetX86CacheInfo();
 
-    char brandString[49] = {0};
-    cpu_features::FillX86BrandString(brandString);
-
     CpuInfo cpuInfo                  = {};
-    cpuInfo.mBrandString             = string_util::TrimCopy(brandString);
+    cpuInfo.mBrandString             = string_util::TrimCopy(info.brand_string);
     cpuInfo.mVendorString            = string_util::TrimCopy(info.vendor);
     cpuInfo.mMicroarchitectureString = string_util::TrimCopy(GetX86LongMicroarchitectureName(march));
 

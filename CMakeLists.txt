@@ -171,9 +171,12 @@ add_subdirectory(${PPX_THIRD_PARTY_DIR}/glfw)
 # ------------------------------------------------------------------------------
 # Add cpu_features.
 # ------------------------------------------------------------------------------
+function(add_cpu_features)
+    set(BUILD_TESTING OFF)
+    add_subdirectory(${PPX_THIRD_PARTY_DIR}/cpu_features)
+endfunction()
 
-add_subdirectory(${PPX_THIRD_PARTY_DIR}/cpu_features)
-
+add_cpu_features()
 # ------------------------------------------------------------------------------
 # Add PPX library.
 # ------------------------------------------------------------------------------

@@ -357,7 +357,7 @@ if (PPX_D3D12)
         ${SRC_DIR}/ppx/grfx/dx12/dx12_swapchain.cpp
         ${SRC_DIR}/ppx/grfx/dx12/dx12_sync.cpp
         ${SRC_DIR}/ppx/grfx/dx12/dx12_util.cpp
-        ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src/D3D12MemAlloc.h
+        ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/include/D3D12MemAlloc.h
         ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src/D3D12MemAlloc.cpp
     )
 endif()
@@ -403,7 +403,7 @@ if (PPX_VULKAN OR PPX_DXIL_SPV)
         ${SRC_DIR}/ppx/grfx/vk/vk_swapchain.cpp
         ${SRC_DIR}/ppx/grfx/vk/vk_sync.cpp
         ${SRC_DIR}/ppx/grfx/vk/vk_util.cpp
-        ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src/vk_mem_alloc.h
+        ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/include/vk_mem_alloc.h
     )
 endif()
 
@@ -489,6 +489,7 @@ target_include_directories(
 if (PPX_D3D12)
     target_include_directories(
         ${PROJECT_NAME}
+        PRIVATE ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/include
         PRIVATE ${PPX_THIRD_PARTY_DIR}/D3D12MemoryAllocator/src
     )
 endif()
@@ -497,6 +498,7 @@ endif()
 if (PPX_VULKAN OR PPX_DXIL_SPV)
     target_include_directories(
         ${PROJECT_NAME}
+        PRIVATE ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/include
         PRIVATE ${PPX_THIRD_PARTY_DIR}/VulkanMemoryAllocator/src
         PUBLIC  ${VULKAN_INCLUDE_DIR}
     )
