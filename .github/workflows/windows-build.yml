@@ -33,7 +33,12 @@ jobs:
           mkdir build
           cd build
           cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_TESTS=ON ..
-          cmake --build . --target ALL_BUILD --config Release -- /nologo /verbosity:minimal /maxcpucount
+
+          # We only build DX12 projects since there is no benefit in building
+          # the targets for other APIs unless we're running them.
+          # We also build all shaders targets, irrespective of the API, to
+          # ensure shader compilation succeeds.
+          cmake --build . --target all-shaders all-dx12 build-tests --config Release -- /nologo /verbosity:minimal /maxcpucount
       - name: Run unit tests
         run: |
           cd build

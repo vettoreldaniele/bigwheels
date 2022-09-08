@@ -15,5 +15,5 @@ CompileShaders(
 add_samples(
     SAMPLE_NAME ${PROJECT_NAME}
     ADDITIONAL_FILES ${HLSL_FILES}
-    TARGET_APIS "vk"
+    TARGET_APIS "vk" "dx12"
 )
