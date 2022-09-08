@@ -6,8 +6,15 @@ list(APPEND HLSL_FILES
     "${PPX_DIR}/assets/benchmarks/shaders/PassThroughPos.hlsl"
 )
 
-CompileShadersVSPS("${HLSL_FILES}" "${PPX_DIR}/assets/benchmarks/shaders" "${PPX_DIR}")
+CompileShaders(
+    VS_HLSL_FILES ${HLSL_FILES}
+    PS_HLSL_FILES ${HLSL_FILES}
+    OUTPUT_DIR "${PPX_DIR}/assets/benchmarks/shaders"
+    WORKING_DIR ${PPX_DIR}
+)
 
-add_samples(SAMPLE_NAME ${PROJECT_NAME}
-			ADDITIONAL_FILES ${HLSL_FILES}
-            TARGET_APIS "vk")
+add_samples(
+    SAMPLE_NAME ${PROJECT_NAME}
+    ADDITIONAL_FILES ${HLSL_FILES}
+    TARGET_APIS "vk"
+)

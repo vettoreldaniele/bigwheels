@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 project(fishtornado)
 
-
-
 # ------------------------------------------------------------------------------
 # Fish Tornado shaders
 # ------------------------------------------------------------------------------
@@ -32,11 +30,13 @@ list(APPEND CS_HLSL_FILES
     "${PPX_DIR}/assets/fishtornado/shaders/FlockingVelocity.hlsl"
 )
 
-CompileShadersVSPS("${VSPS_HLSL_FILES}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
-
-CompileShadersVS("${VS_HLSL_FILES}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
-
-CompileShadersCS("${CS_HLSL_FILES}" "${PPX_DIR}/assets/fishtornado/shaders" "${PPX_DIR}")
+CompileShaders(
+    VS_HLSL_FILES ${VSPS_HLSL_FILES} ${VS_HLSL_FILES}
+    PS_HLSL_FILES ${VSPS_HLSL_FILES}
+    CS_HLSL_FILES ${CS_HLSL_FILES}
+    OUTPUT_DIR "${PPX_DIR}/assets/fishtornado/shaders"
+    WORKING_DIR ${PPX_DIR}
+)
 
 # ------------------------------------------------------------------------------
 # C/C++
@@ -66,5 +66,7 @@ list(APPEND ADDITIONAL_FILES
     ${CPP_FILES}
 )
 
-add_samples_for_all_apis(SAMPLE_NAME ${PROJECT_NAME}
-						 ADDITIONAL_FILES ${ADDITIONAL_FILES})
+add_samples_for_all_apis(
+    SAMPLE_NAME ${PROJECT_NAME}
+    ADDITIONAL_FILES ${ADDITIONAL_FILES}
+)

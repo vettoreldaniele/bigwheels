@@ -37,6 +37,14 @@ list(APPEND CS_HLSL_FILES
 	"${SHADER_DIR}/vorticity.hlsl"
 )
 
+CompileShaders(
+    VS_HLSL_FILES ${VS_HLSL_FILES}
+    PS_HLSL_FILES ${PS_HLSL_FILES}
+    CS_HLSL_FILES ${CS_HLSL_FILES}
+    OUTPUT_DIR "${PPX_DIR}/assets/fluid_simulation/shaders"
+    WORKING_DIR ${PPX_DIR}
+)
+
 list(APPEND ADDITIONAL_FILES
 	${VS_HLSL_FILES}
 	${PS_HLSL_FILES}
@@ -44,9 +52,7 @@ list(APPEND ADDITIONAL_FILES
 	${SHADER_DIR}/config.hlsli
 )
 
-CompileShadersVS("${VS_HLSL_FILES}" "${PPX_DIR}/assets/fluid_simulation/shaders" "${PPX_DIR}")
-CompileShadersPS("${PS_HLSL_FILES}" "${PPX_DIR}/assets/fluid_simulation/shaders" "${PPX_DIR}")
-CompileShadersCS("${CS_HLSL_FILES}" "${PPX_DIR}/assets/fluid_simulation/shaders" "${PPX_DIR}")
-
-add_samples_for_all_apis(SAMPLE_NAME ${PROJECT_NAME}
-						 ADDITIONAL_FILES ${ADDITIONAL_FILES})
+add_samples_for_all_apis(
+    SAMPLE_NAME ${PROJECT_NAME}
+    ADDITIONAL_FILES ${ADDITIONAL_FILES}
+)

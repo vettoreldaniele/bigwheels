@@ -4,37 +4,25 @@ project(16_gbuffer)
 
 set(SHADER_DIR "${PPX_DIR}/assets/gbuffer/shaders")
 
-# --------------------------------------------------------------------------------------------------
-# Vertex/Pixel Shader(s)
-# --------------------------------------------------------------------------------------------------
-
 list(APPEND VSPS_HLSL_FILES
     ${SHADER_DIR}/DrawGBufferAttribute.hlsl
     ${SHADER_DIR}/DeferredLight.hlsl
 )
 
-CompileShadersVSPS("${VSPS_HLSL_FILES}" "${SHADER_DIR}" "${PPX_DIR}")
-
-# --------------------------------------------------------------------------------------------------
-# Vertex Shader(s)
-# --------------------------------------------------------------------------------------------------
-
 list(APPEND VS_HLSL_FILES
     ${SHADER_DIR}/VertexShader.hlsl
 )
-
-CompileShadersVS("${VS_HLSL_FILES}" "${SHADER_DIR}" "${PPX_DIR}")
-
-# --------------------------------------------------------------------------------------------------
-# Pixel Shader(s)
-# --------------------------------------------------------------------------------------------------
 
 list(APPEND PS_HLSL_FILES
     ${SHADER_DIR}/DeferredRender.hlsl
 )
 
-CompileShadersPS("${PS_HLSL_FILES}" "${SHADER_DIR}" "${PPX_DIR}")
-
+CompileShaders(
+    VS_HLSL_FILES ${VSPS_HLSL_FILES} ${VS_HLSL_FILES}
+    PS_HLSL_FILES ${VSPS_HLSL_FILES} ${PS_HLSL_FILES}
+    OUTPUT_DIR ${SHADER_DIR}
+    WORKING_DIR ${PPX_DIR}
+)
 
 list(APPEND ADDITIONAL_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/Entity.h
@@ -50,5 +38,7 @@ list(APPEND ADDITIONAL_FILES
     ${SHADER_DIR}/GBuffer.hlsli
 )
 
-add_samples_for_all_apis(SAMPLE_NAME ${PROJECT_NAME}
-						 ADDITIONAL_FILES ${ADDITIONAL_FILES})
+add_samples_for_all_apis(
+    SAMPLE_NAME ${PROJECT_NAME}
+    ADDITIONAL_FILES ${ADDITIONAL_FILES}
+)

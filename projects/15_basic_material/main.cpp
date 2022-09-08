@@ -417,10 +417,10 @@ void ProjApp::SetupLightingResources()
         grfx::ShaderModulePtr VS;
 #if defined(PORTO_D3DCOMPILE)
         grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
-            GetAssetPath("basic/shaders"));
-        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Texture", "vs_5_0", &basicShaderIncludeHandler);
+            GetAssetPath("materials/shaders"));
+        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("materials/shaders"), "Texture", "vs_5_0", &basicShaderIncludeHandler);
 #else
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char> bytecode = LoadShader(GetAssetPath("materials/shaders"), "Texture.vs");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -428,9 +428,9 @@ void ProjApp::SetupLightingResources()
 
         grfx::ShaderModulePtr PS;
 #if defined(PORTO_D3DCOMPILE)
-        bytecode = grfx::dx::CompileShader(GetAssetPath("basic/shaders"), "Texture", "ps_5_0", &basicShaderIncludeHandler);
+        bytecode = grfx::dx::CompileShader(GetAssetPath("materials/shaders"), "Texture", "ps_5_0", &basicShaderIncludeHandler);
 #else
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode                   = LoadShader(GetAssetPath("materials/shaders"), "Texture.ps");
 #endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
