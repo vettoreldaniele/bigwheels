@@ -7,15 +7,6 @@ set(PPX_FXC_DX11_FLAGS   "/DPPX_D3D11=1")
 set(PPX_FXC_DX12_FLAGS   "/DPPX_D3D12=1")
 set(PPX_DXC_DXIL_FLAGS   "-DPPX_DX12=1")
 set(PPX_DXC_VULKAN_FLAGS "-DPPX_VULKAN=1")
-list(APPEND PPX_DXC_DXVK_FLAGS
-    "-fvk-use-dx-layout" 
-    "-fvk-use-dx-position-w"
-    "-fvk-auto-shift-bindings" 
-    "-fvk-b-shift" "160" "0" 
-    "-fvk-s-shift" "176" "0" 
-    "-fvk-t-shift" "192" "0"
-    "-fvk-u-shift" "960" "0"
-    "-DPPX_D3D11=1")
 
 # If DXC_PATH isn't passed in, look for DXC included in the Vulkan SDK.
 if (DEFINED ENV{VULKAN_SDK} AND NOT DXC_PATH)
@@ -180,7 +171,7 @@ function(_CompileShaders)
     if (PPX_VULKAN)
         list(APPEND compile_targets "spv")
     endif()
-    if (PPX_D3D11 OR PPX_DXVK)
+    if (PPX_D3D11)
         list(APPEND compile_targets "dxbc50")
     endif()
     if (PPX_D3D12)
@@ -188,9 +179,6 @@ function(_CompileShaders)
     endif()
     if (PPX_D3D12 OR PPX_DXIL_SPV)
         list(APPEND compile_targets "dxil")
-    endif()
-    if (PPX_DXVK_SPV)
-        list(APPEND compile_targets "dxvk_spv")
     endif()
     if (PPX_DXIL_SPV)
         list(APPEND compile_targets "dxil_spv")
@@ -251,16 +239,6 @@ function(_CompileShaders)
                         SHADER_MODEL "6_0"
                         COMPILER_FLAGS ${PPX_DXC_VULKAN_FLAGS} 
                     )          
-               elseif (compile_target STREQUAL "dxvk_spv")
-                    set(out_file ${ARG_OUTPUT_DIR}/dxvk_spv/${base_name}.${shader_stage}.spv)
-                    _CompileToSPV(
-                        HLSL_FILE ${HLSL_PATH}
-                        OUTPUT_FILE ${out_file}
-                        WORKING_DIR ${ARG_WORKING_DIR}
-                        SHADER_STAGE ${shader_stage}
-                        SHADER_MODEL "6_0"
-                        COMPILER_FLAGS ${PPX_DXC_DXVK_FLAGS}
-                    )
                endif()
                 
                list(APPEND shader_outputs ${out_file})

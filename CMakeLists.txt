@@ -41,7 +41,7 @@ endif()
 # Configure graphics API(s).
 # ------------------------------------------------------------------------------
 
-if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXVK) AND (NOT DEFINED PPX_DXVK_SPV) AND (NOT DEFINED PPX_DXVK_SPV_D3DCOMPILE) AND (NOT DEFINED PPX_DXIL_SPV) AND (NOT DEFINED PPX_VULKAN))
+if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXIL_SPV) AND (NOT DEFINED PPX_VULKAN))
     message("No PPX graphics API(s) specified - configuring based on current host")
     if (GGP)
         set(PPX_VULKAN TRUE)
@@ -56,8 +56,6 @@ endif()
 
 set(PPX_D3D11_MSG    FALSE)
 set(PPX_D3D12_MSG    FALSE)
-set(PPX_DXVK_MSG     FALSE)
-set(PPX_DXVK_SPV_MSG FALSE)
 set(PPX_DXIL_SPV_MSG FALSE)
 set(PPX_VULKAN_MSG   FALSE)
 
@@ -68,20 +66,6 @@ endif()
 # D3D12
 if (PPX_D3D12)
     set(PPX_D3D12_MSG TRUE)
-endif()
-# DXVK
-if (PPX_DXVK)
-    #if(NOT GGP)
-    #    message(FATAL_ERROR "PPX_DXVK requires GGP")
-    #endif()
-    set(PPX_DXVK_MSG TRUE)
-endif()
-# DXVK_SPV
-if (PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
-    if(NOT GGP)
-        message(FATAL_ERROR "PPX_DXVK_SPV requires GGP")
-    endif()
-    set(PPX_DXVK_SPV_MSG TRUE)
 endif()
 # DXIL_SPV
 if (PPX_DXIL_SPV)
@@ -97,8 +81,6 @@ endif()
 
 message("Graphics API D3D11    : ${PPX_D3D11_MSG}")
 message("Graphics API D3D12    : ${PPX_D3D12_MSG}")
-message("Graphics API DXVK     : ${PPX_DXVK_MSG}")
-message("Graphics API DXVK SPV : ${PPX_DXVK_SPV_MSG}")
 message("Graphics API DXIL SPV : ${PPX_DXIL_SPV_MSG}")
 message("Graphics API Vulkan   : ${PPX_VULKAN_MSG}")
 
@@ -177,21 +159,10 @@ function(add_cpu_features)
 endfunction()
 
 add_cpu_features()
+
 # ------------------------------------------------------------------------------
 # Add PPX library.
 # ------------------------------------------------------------------------------
-
-if (PPX_DXVK OR PPX_DXVK_SPV OR PPX_DXVK_SPV_D3DCOMPILE)
-    if (PPX_DXVK)
-        set(ENABLE_DXVK   ON CACHE BOOL "" FORCE)
-    endif()
-    set(LIBPORTO_DISABLE_SAMPLES ON)
-    add_subdirectory(${PPX_THIRD_PARTY_DIR}/libporto)
-    target_compile_definitions(
-        porto
-        PUBLIC  LIBPORTO_EXPERIMENTAL_ENABLE_SPIRV_SHADERS
-    )
-endif()
 
 add_subdirectory(src)
 

@@ -28,20 +28,12 @@ void Surface::DestroyApiObjects()
 
 uint32_t Surface::GetMinImageWidth() const
 {
-#if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 1920;
-#else
     return 0;
-#endif
 }
 
 uint32_t Surface::GetMinImageHeight() const
 {
-#if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 1080;
-#else
     return 0;
-#endif
 }
 
 uint32_t Surface::GetMinImageCount() const
@@ -51,20 +43,12 @@ uint32_t Surface::GetMinImageCount() const
 
 uint32_t Surface::GetMaxImageWidth() const
 {
-#if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 3840;
-#else
     return 65536;
-#endif
 }
 
 uint32_t Surface::GetMaxImageHeight() const
 {
-#if defined(PPX_GGP) && defined(PPX_DXVK)
-    return 2160;
-#else
     return 65536;
-#endif
 }
 
 uint32_t Surface::GetMaxImageCount() const
@@ -172,10 +156,6 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         return ppx::ERROR_API_FAILURE;
     }
 
-#if defined(PPX_DXVK)
-    // Force sync interval to zero for now
-    mSyncInterval = 0;
-#else
     mFrameLatencyWaitableObject = mSwapchain->GetFrameLatencyWaitableObject();
     if (IsNull(mFrameLatencyWaitableObject)) {
         PPX_ASSERT_MSG(false, "IDXGISwapChain2::GetFrameLatencyWaitableObject failed");
@@ -187,7 +167,6 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         PPX_ASSERT_MSG(false, "IDXGISwapChain2::SetMaximumFrameLatency failed");
         return ppx::ERROR_API_FAILURE;
     }
-#endif // !defined(PPX_DXVK)
 
     // Create images
     {

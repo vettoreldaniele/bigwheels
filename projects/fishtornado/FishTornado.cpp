@@ -37,15 +37,8 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
     grfx::PipelineInterface* pPipelineInterface)
 {
     grfx::ShaderModulePtr VS, PS;
-#if defined(PORTO_D3DCOMPILE)
-    auto vsExtensionOffset = vsBaseName.rfind(".vs");
-    PPX_CHECKED_CALL(CompileHlslShader(baseDir, vsBaseName.substr(0, vsExtensionOffset), "vs_5_0", &VS));
-    auto psExtensionOffset = psBaseName.rfind(".ps");
-    PPX_CHECKED_CALL(CompileHlslShader(baseDir, psBaseName.substr(0, psExtensionOffset), "ps_5_0", &PS));
-#else
     PPX_CHECKED_CALL(CreateShader(baseDir, vsBaseName, &VS));
     PPX_CHECKED_CALL(CreateShader(baseDir, psBaseName, &PS));
-#endif
 
     const grfx::VertexInputRate inputRate = grfx::VERTEX_INPUT_RATE_VERTEX;
     grfx::VertexDescription     vertexDescription;
@@ -93,12 +86,7 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
     grfx::PipelineInterface* pPipelineInterface)
 {
     grfx::ShaderModulePtr VS;
-#if defined(PORTO_D3DCOMPILE)
-    auto vsExtensionOffset = vsBaseName.rfind(".vs");
-    PPX_CHECKED_CALL(CompileHlslShader(baseDir, vsBaseName.substr(0, vsExtensionOffset), "vs_5_0", &VS));
-#else
     PPX_CHECKED_CALL(CreateShader(baseDir, vsBaseName, &VS));
-#endif
 
     grfx::GraphicsPipelineCreateInfo2 gpCreateInfo = {};
     gpCreateInfo.VS                                = {VS.Get(), "vsmain"};
@@ -134,9 +122,6 @@ void FishTornadoApp::Config(ppx::ApplicationSettings& settings)
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
-#endif
-#if defined(USE_DXVK_SPV)
-    settings.grfx.enableDXVKSPV = true;
 #endif
 #if defined(USE_DXIL_SPV)
     settings.grfx.enableDXILSPV = true;
@@ -382,7 +367,7 @@ void FishTornadoApp::UploadCaustics()
 
 void FishTornadoApp::SetupDebug()
 {
-#if !(defined(PPX_DXVK) && defined(PPX_D3D12))
+#if !defined(PPX_D3D12)
     // Debug draw
     {
         mDebugDrawPipeline = CreateForwardPipeline(GetAssetPath("fishtornado/shaders"), "DebugDraw.vs", "DebugDraw.ps");

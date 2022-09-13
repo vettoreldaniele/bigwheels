@@ -2,10 +2,6 @@
 #include "ppx/camera.h"
 #include "ppx/graphics_util.h"
 
-#if defined(PORTO_D3DCOMPILE)
-#include "ppx/grfx/dx/d3dcompile_util.h"
-#endif
-
 #define ENABLE_GPU_QUERIES
 
 using namespace ppx;
@@ -283,9 +279,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
-#if defined(USE_DXVK_SPV)
-    settings.grfx.enableDXVKSPV = true;
-#endif
 #if defined(USE_DXIL_SPV)
     settings.grfx.enableDXILSPV = true;
 #endif
@@ -415,23 +408,13 @@ void ProjApp::SetupLightingResources()
     // Pipeline
     {
         grfx::ShaderModulePtr VS;
-#if defined(PORTO_D3DCOMPILE)
-        grfx::dx::ShaderIncludeHandler basicShaderIncludeHandler(
-            GetAssetPath("materials/shaders"));
-        std::vector<char> bytecode = grfx::dx::CompileShader(GetAssetPath("materials/shaders"), "Texture", "vs_5_0", &basicShaderIncludeHandler);
-#else
-        std::vector<char> bytecode = LoadShader(GetAssetPath("materials/shaders"), "Texture.vs");
-#endif
+        std::vector<char>     bytecode = LoadShader(GetAssetPath("materials/shaders"), "Texture.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-#if defined(PORTO_D3DCOMPILE)
-        bytecode = grfx::dx::CompileShader(GetAssetPath("materials/shaders"), "Texture", "ps_5_0", &basicShaderIncludeHandler);
-#else
         bytecode                   = LoadShader(GetAssetPath("materials/shaders"), "Texture.ps");
-#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -850,14 +833,8 @@ void ProjApp::Setup()
         gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
 
         grfx::ShaderModulePtr VS;
-#if defined(PORTO_D3DCOMPILE)
-        grfx::dx::ShaderIncludeHandler materialShaderIncludeHandler(
-            GetAssetPath("materials/shaders"));
-        std::vector<char> bytecode = grfx::dx::CompileShader(
-            GetAssetPath("materials/shaders"), "VertexShader", "vs_5_0", &materialShaderIncludeHandler);
-#else
+
         std::vector<char> bytecode = LoadShader(GetAssetPath("materials/shaders"), "VertexShader.vs");
-#endif
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
@@ -865,11 +842,8 @@ void ProjApp::Setup()
         // Gouraud
         {
             grfx::ShaderModulePtr PS;
-#if defined(PORTO_D3DCOMPILE)
-            bytecode = grfx::dx::CompileShader(GetAssetPath("materials/shaders"), "Gouraud", "ps_5_0", &materialShaderIncludeHandler);
-#else
+
             bytecode = LoadShader(GetAssetPath("materials/shaders"), "Gouraud.ps");
-#endif
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -886,11 +860,8 @@ void ProjApp::Setup()
         // Phong
         {
             grfx::ShaderModulePtr PS;
-#if defined(PORTO_D3DCOMPILE)
-            bytecode = grfx::dx::CompileShader(GetAssetPath("materials/shaders"), "Phong", "ps_5_0", &materialShaderIncludeHandler);
-#else
+
             bytecode = LoadShader(GetAssetPath("materials/shaders"), "Phong.ps");
-#endif
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -907,11 +878,8 @@ void ProjApp::Setup()
         // BlinnPhong
         {
             grfx::ShaderModulePtr PS;
-#if defined(PORTO_D3DCOMPILE)
-            bytecode = grfx::dx::CompileShader(GetAssetPath("materials/shaders"), "BlinnPhong", "ps_5_0", &materialShaderIncludeHandler);
-#else
+
             bytecode = LoadShader(GetAssetPath("materials/shaders"), "BlinnPhong.ps");
-#endif
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -928,11 +896,8 @@ void ProjApp::Setup()
         // PBR
         {
             grfx::ShaderModulePtr PS;
-#if defined(PORTO_D3DCOMPILE)
-            bytecode = grfx::dx::CompileShader(GetAssetPath("materials/shaders"), "PBR", "ps_5_0", &materialShaderIncludeHandler);
-#else
+
             bytecode = LoadShader(GetAssetPath("materials/shaders"), "PBR.ps");
-#endif
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

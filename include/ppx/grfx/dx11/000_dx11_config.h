@@ -6,12 +6,8 @@
 
 #include <d3d11_4.h>
 #include <dxgi1_6.h>
-#if !defined(PPX_DXVK)
 #include <d3dcompiler.h>
 #include <dxgidebug.h>
-#else
-#include <d3d11shader.h>
-#endif //! defined(PPX_DXVK)
 
 #if defined(PPX_MSW)
 #include <wrl/client.h>
@@ -32,27 +28,6 @@ namespace ppx {
 namespace grfx {
 namespace dx11 {
 
-#if defined(PPX_DXVK)
-using DXGIAdapterPtr              = ComPtr<IDXGIAdapter4>;
-using DXGIFactoryPtr              = ComPtr<IDXGIFactory7>;
-using DXGISwapChainPtr            = ComPtr<IDXGISwapChain4>;
-using D3D11BlendStatePtr          = ComPtr<ID3D11BlendState1>;
-using D3D11BufferPtr              = ComPtr<ID3D11Buffer>;
-using D3D11DepthStencilStatePtr   = ComPtr<ID3D11DepthStencilState>;
-using D3D11DepthStencilViewPtr    = ComPtr<ID3D11DepthStencilView>;
-using D3D11DevicePtr              = ComPtr<ID3D11Device5>;
-using D3D11DeviceContextPtr       = ComPtr<ID3D11DeviceContext3>;
-using D3D11InputLayoutPtr         = ComPtr<ID3D11InputLayout>;
-using D3D11RasterizerStatePtr     = ComPtr<ID3D11RasterizerState2>;
-using D3D11RenderTargetViewPtr    = ComPtr<ID3D11RenderTargetView1>;
-using D3D11ResourcePtr            = ComPtr<ID3D11Resource>;
-using D3D11SamplerStatePtr        = ComPtr<ID3D11SamplerState>;
-using D3D11ShaderResourceViewPtr  = ComPtr<ID3D11ShaderResourceView1>;
-using D3D11Texture1DPtr           = ComPtr<ID3D11Texture1D>;
-using D3D11Texture2DPtr           = ComPtr<ID3D11Texture2D1>;
-using D3D11Texture3DPtr           = ComPtr<ID3D11Texture3D1>;
-using D3D11UnorderedAccessViewPtr = ComPtr<ID3D11UnorderedAccessView1>;
-#else
 using DXGIAdapterPtr              = ComPtr<IDXGIAdapter4>;
 using DXGIDebugPtr                = ComPtr<IDXGIDebug1>;
 using DXGIInfoQueuePtr            = ComPtr<IDXGIInfoQueue>;
@@ -74,8 +49,6 @@ using D3D11Texture1DPtr           = ComPtr<ID3D11Texture1D>;
 using D3D11Texture2DPtr           = ComPtr<ID3D11Texture2D1>;
 using D3D11Texture3DPtr           = ComPtr<ID3D11Texture3D1>;
 using D3D11UnorderedAccessViewPtr = ComPtr<ID3D11UnorderedAccessView1>;
-#endif // defined(PPX_DXVK)
-
 using D3D11ComputeShaderPtr  = ComPtr<ID3D11ComputeShader>;
 using D3D11DomainShaderPtr   = ComPtr<ID3D11DomainShader>;
 using D3D11GeometryShaderPtr = ComPtr<ID3D11GeometryShader>;

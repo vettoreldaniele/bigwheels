@@ -122,39 +122,6 @@ function(add_dxil_spv_sample)
     endif()
 endfunction()
 
-function(add_dxvk_sample)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
-    if (PPX_DXVK)
-        _add_sample_internal(SAMPLE_NAME ${ARG_SAMPLE_NAME}
-                   API_TAG "dxvk" 
-                   SHADER_FORMAT "dxbc50"
-                   API_DEFINES "USE_DX11"
-                   ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
-    endif()
-endfunction()
-
-function(add_dxvk_spv_sample)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
-    if (PPX_DXVK_SPV)
-        _add_sample_internal(SAMPLE_NAME ${ARG_SAMPLE_NAME}
-                   API_TAG "dxvk_spv" 
-                   SHADER_FORMAT "dxvk-spv"
-                   API_DEFINES "USE_DX11" "USE_DXVK_SPV"
-                   ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
-    endif()
-endfunction()
-
-function(add_dxvk_spv_d3dcompile_sample)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
-    if (PPX_DXVK_SPV_D3DCOMPILE)
-        _add_sample_internal(SAMPLE_NAME ${ARG_SAMPLE_NAME}
-                   API_TAG "dxvk_spv_d3dcompile" 
-                   SHADER_FORMAT ""
-                   API_DEFINES "USE_DX11" "USE_DXVK_SPV"
-                   ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
-    endif()
-endfunction()
-
 function(add_samples)
     set(multiValueArgs TARGET_APIS ADDITIONAL_FILES)
     cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "${multiValueArgs}")
@@ -170,12 +137,6 @@ function(add_samples)
             add_dxil_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
         elseif(target_api STREQUAL "dxil_spv")
             add_dxil_spv_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
-        elseif(target_api STREQUAL "dxvk")
-            add_dxvk_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
-        elseif(target_api STREQUAL "dxvk_spv")
-            add_dxvk_spv_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
-        elseif(target_api STREQUAL "dxvk_spv_d3dcompile")
-            add_dxvk_spv_d3dcompile_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
         else()
             message(FATAL_ERROR "Invalid target API \"${target_api}\"" )
         endif()
@@ -186,7 +147,7 @@ function(add_samples_for_all_apis)
     cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
     add_samples(
         SAMPLE_NAME ${ARG_SAMPLE_NAME}
-        TARGET_APIS "dx12" "dx11" "vk" "dxil" "dxil_spv" "dxvk" "dxvk_spv" "dxvk_spv_d3dcompile"
+        TARGET_APIS "dx12" "dx11" "vk" "dxil" "dxil_spv"
         ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES}
     )
 endfunction()

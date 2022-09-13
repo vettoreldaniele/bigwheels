@@ -6,10 +6,6 @@
 #include <map>
 #include <unordered_map>
 
-#if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
-#include "porto/porto.h"
-#endif // defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
-
 #if defined(PPX_LINUX_XCB)
 #include <X11/Xlib-xcb.h>
 #elif defined(PPX_LINUX_XLIB)
@@ -629,11 +625,6 @@ Result Application::InitializePlatform()
         PPX_LOG_INFO("Display not enabled: skipping initialization of glfw");
     }
 
-#if defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
-    PortoConfig config = PortoCreateConfig();
-    PortoInit(&config);
-#endif // defined(PPX_GGP) && (defined(PPX_DXVK) || defined(PPX_DXVK_SPV))
-
     return ppx::SUCCESS;
 }
 
@@ -715,11 +706,7 @@ Result Application::InitializeGrfxSurface()
     {
         grfx::SurfaceCreateInfo ci = {};
         ci.pGpu                    = mDevice->GetGpu();
-#if defined(PPX_GGP)
-#if defined(PPX_DXVK)
-        ci.hwnd = PortoCreateHWNDFromStreamDescriptor(kGgpPrimaryStreamDescriptor);
-#endif
-#elif defined(PPX_LINUX_XCB)
+#if defined(PPX_LINUX_XCB)
         ci.connection = XGetXCBConnection(glfwGetX11Display());
         ci.window     = glfwGetX11Window(static_cast<GLFWwindow*>(mWindow));
 #elif defined(PPX_LINUX_XLIB)
@@ -946,14 +933,6 @@ void Application::DispatchConfig()
             }
         } break;
     }
-
-#if defined(PPX_DXVK)
-    ss << " (DXVK)";
-#endif
-
-#if defined(PPX_DXVK_SPV)
-    ss << " (DXVK_SPV)";
-#endif
 
     mDecoratedApiName = ss.str();
 }
@@ -1430,12 +1409,8 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
 
         case grfx::API_DX_11_0:
         case grfx::API_DX_11_1: {
-            if (mSettings.grfx.enableDXVKSPV) {
-                filePath = (filePath / "dxvk_spv" / baseName).append_extension(".spv");
-            }
-            else {
                 filePath = (filePath / "dxbc50" / baseName).append_extension(".dxbc50");
-            }
+
         } break;
 
         case grfx::API_DX_12_0:
@@ -1486,24 +1461,7 @@ Result Application::CreateShader(const fs::path& baseDir, const std::string& bas
     return ppx::SUCCESS;
 }
 
-#if defined(PORTO_D3DCOMPILE)
-Result Application::CompileHlslShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, grfx::ShaderModule** ppShaderModule) const
-{
-    grfx::dx::ShaderIncludeHandler shaderIncludeHandler(baseDir);
-    std::vector<char>              bytecode = grfx::dx::CompileShader(baseDir, baseName, shaderModel, &shaderIncludeHandler);
-    if (bytecode.empty()) {
-        return ppx::ERROR_GRFX_INVALID_SHADER_BYTE_CODE;
-    }
 
-    grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
-    Result                       ppxres           = GetDevice()->CreateShaderModule(&shaderCreateInfo, ppShaderModule);
-    if (Failed(ppxres)) {
-        return ppxres;
-    }
-
-    return ppx::SUCCESS;
-}
-#endif
 
 float Application::GetElapsedSeconds() const
 {

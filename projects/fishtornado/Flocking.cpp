@@ -201,12 +201,8 @@ void Flocking::SetupPipelines()
     // Flocking position
     {
         grfx::ShaderModulePtr CS;
-#if defined(PORTO_D3DCOMPILE)
-        PPX_CHECKED_CALL(pApp->CompileHlslShader(pApp->GetAssetPath("fishtornado/shaders"), "FlockingPosition", "cs_5_0", &CS));
-#else
-        PPX_CHECKED_CALL(pApp->CreateShader(pApp->GetAssetPath("fishtornado/shaders"), "FlockingPosition.cs", &CS));
-#endif
 
+        PPX_CHECKED_CALL(pApp->CreateShader(pApp->GetAssetPath("fishtornado/shaders"), "FlockingPosition.cs", &CS));
         grfx::ComputePipelineCreateInfo createInfo = {};
         createInfo.CS                              = {CS, "csmain"};
         createInfo.pPipelineInterface              = mFlockingPositionPipelineInterface;
@@ -218,12 +214,8 @@ void Flocking::SetupPipelines()
     // Flocking velocity
     {
         grfx::ShaderModulePtr CS;
-#if defined(PORTO_D3DCOMPILE)
-        PPX_CHECKED_CALL(pApp->CompileHlslShader(pApp->GetAssetPath("fishtornado/shaders"), "FlockingVelocity", "cs_5_0", &CS));
-#else
-        PPX_CHECKED_CALL(pApp->CreateShader(pApp->GetAssetPath("fishtornado/shaders"), "FlockingVelocity.cs", &CS));
-#endif
 
+        PPX_CHECKED_CALL(pApp->CreateShader(pApp->GetAssetPath("fishtornado/shaders"), "FlockingVelocity.cs", &CS));
         grfx::ComputePipelineCreateInfo createInfo = {};
         createInfo.CS                              = {CS, "csmain"};
         createInfo.pPipelineInterface              = mFlockingVelocityPipelineInterface;

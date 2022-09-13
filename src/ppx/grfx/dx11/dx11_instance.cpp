@@ -92,7 +92,6 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     }
 
     UINT dxgiFactoryFlags = 0;
-#if !defined(PPX_DXVK)
     if (pCreateInfo->enableDebug) {
         // Get DXGI debug interface
         HRESULT hr = DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebug));
@@ -112,17 +111,7 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
         mDXGIInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true);
         mDXGIInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true);
     }
-#endif // !defined(PPX_DXVK)
 
-#if defined(PPX_DXVK)
-    IDXGIFactory7* pFactory = nullptr;
-    HRESULT        hr       = CreateDXGIFactory2(dxgiFactoryFlags, __uuidof(IDXGIFactory7), reinterpret_cast<void**>(&pFactory));
-    if (FAILED(hr)) {
-        return ppx::ERROR_API_FAILURE;
-    }
-    mFactory = pFactory;
-    PPX_LOG_OBJECT_CREATION(DXGIFactory, pFactory);
-#else
     ComPtr<IDXGIFactory4> dxgiFactory;
     // Create factory using IDXGIFactory4
     HRESULT hr = CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&dxgiFactory));
@@ -136,7 +125,6 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
     if (FAILED(hr)) {
         return ppx::ERROR_API_FAILURE;
     }
-#endif
 
     Result ppxres = EnumerateAndCreateGpus(featureLevel, pCreateInfo->enableDebug);
     if (Failed(ppxres)) {
@@ -148,17 +136,14 @@ Result Instance::CreateApiObjects(const grfx::InstanceCreateInfo* pCreateInfo)
 
 void Instance::DestroyApiObjects()
 {
-#if !defined(PPX_DXVK)
     if (mCreateInfo.enableDebug) {
         mDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_ALL));
     }
-#endif // !defined(PPX_DXVK)
 
     if (mFactory) {
         mFactory.Reset();
     }
 
-#if !defined(PPX_DXVK)
     if (mDXGIInfoQueue) {
         mDXGIInfoQueue.Reset();
     }
@@ -166,7 +151,6 @@ void Instance::DestroyApiObjects()
     if (mDXGIDebug) {
         mDXGIDebug.Reset();
     }
-#endif // !defined(PPX_DXVK)
 }
 
 Result Instance::AllocateObject(grfx::Device** ppDevice)

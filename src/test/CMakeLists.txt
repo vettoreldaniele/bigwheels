@@ -1,10 +1,7 @@
 # For Windows: prevent overriding the parent project's compiler/linker settings.
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/third_party/libporto)
-    # libporto already brings along googletest. Do not add it twice.
-    add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/googletest third_party/googletest)
-endif()
+add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/googletest third_party/googletest)
 
 # Macro to create a test executable given the test name and
 # the list of test code sources.
