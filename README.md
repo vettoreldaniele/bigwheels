@@ -38,6 +38,7 @@ BigWheels is a cross-platform, API agnostic framework to build graphics applicat
      * Navi GPUs
         * Radeon 5700
         * Radeon 5700 XT
+        * Radeon 6700 XT
    * NVIDIA
      * 20x0 GPUs
      * 16x0 GPus
