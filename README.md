@@ -29,7 +29,7 @@ BigWheels is a cross-platform, API agnostic framework to build graphics applicat
      * Recent Vulkan SDK
        * 1.2.154.1 or later
      * Recent version of Windows SDK
-	   * 10.0.22000 or later
+       * 10.0.22000 or later
  * Hardware
    * AMD
      * Vega GPUs
@@ -231,12 +231,12 @@ make -j <# CPUs to use>
 ```
 The .so and JSON for the ICD are located in `build-make/Linux`.
 
-## Location of ICD
+## Using the SwiftShader ICD
 
-The DLL/.so and JSON can be copied to a different location. Remember to set/export the `VK_ICD_FILENAMES` environment variable before running any of the BigWheels samples.
+The DLL/.so library and JSON manifest can be copied to a different location. Remember to set/export the `VK_ICD_FILENAMES` environment variable before running any of the BigWheels samples.
 
 ### Windows
-Add `VK_ICD_FILENAMES=/absolute/path/to/vk_swiftshader_icd.json` as an entry to `Configuration Properties -> Debugging -> Environment` in the project's property pages
+Add `VK_ICD_FILENAMES=C:\absolute\path\to\vk_swiftshader_icd.json` as an entry to `Configuration Properties -> Debugging -> Environment` in the project's property pages.
 
 ### Linux
 ```
