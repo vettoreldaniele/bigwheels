@@ -142,7 +142,7 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
 
     // Dynamic rendering - if present. It also requires
     // VK_KHR_depth_stencil_resolve and VK_KHR_create_renderpass2.
-#if defined(VK_KHR_DYNAMIC_RENDERING)
+#if defined(VK_KHR_dynamic_rendering)
     if (ElementExists(std::string(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME), mFoundExtensions) &&
         ElementExists(std::string(VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME), mFoundExtensions) &&
         ElementExists(std::string(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME), mFoundExtensions)) {
@@ -271,7 +271,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
     // VkPhysicalDeviceDynamicRenderingFeatures
 
-#if defined(VK_KHR_DYNAMIC_RENDERING)
+#if defined(VK_KHR_dynamic_rendering)
     if (mHasDynamicRendering) {
 #ifndef VK_API_VERSION_1_3
         VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES};
