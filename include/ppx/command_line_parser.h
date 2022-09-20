@@ -24,6 +24,7 @@ struct StandardOptions
     int                 gpu_index   = -1;
     std::pair<int, int> resolution  = {-1, -1};
     int                 frame_count = -1;
+    uint32_t            stats_frame_window = 300;
 
     int         screenshot_frame_number                  = -1;
     std::string screenshot_out_dir                       = "";
@@ -153,6 +154,8 @@ private:
 --gpu <index>                 Select the gpu with the given index. To determine the set of valid indices use --list-gpus.
 --resolution <Width>x<Height> Specify the main window resolution in pixels. Width and Height must be two positive integers greater or equal to 1.
 --frame-count <N>             Shutdown the application after successfully rendering N frames.
+--stats-frame-window <N>      Calculate frame statistics over the last N frames only. 
+                              Set to 0 to use all frames since the beginning of the application.
 --screenshot-frame-number <N> Take a screenshot of frame number N and save it in PPM format, in the directory specified by --screenshot-out-dir.
                               The file name will be "screenshot_frameN".
 --screenshot-out-dir <path>   The path to the directory where the screenshot will be saved in (see --screenshot-frame-number).

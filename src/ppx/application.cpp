@@ -4,6 +4,7 @@
 #include "backends/imgui_impl_glfw.h"
 
 #include <map>
+#include <numeric>
 #include <unordered_map>
 
 #if defined(PPX_LINUX_XCB)
@@ -1307,10 +1308,24 @@ int Application::Run(int argc, char** argv)
 
         // Frame end
         mFrameCount        = mFrameCount + 1;
-        mAverageFPS        = static_cast<float>(mFrameCount / mTimer.SecondsSinceStart());
         mFrameEndTime      = static_cast<float>(mTimer.MillisSinceStart());
         mPreviousFrameTime = mFrameEndTime - mFrameStartTime;
-        mAverageFrameTime  = static_cast<float>(mTimer.MillisSinceStart() / mFrameCount);
+
+        // Keep a rolling window of frame times to calculate stats,
+        // if requested.
+        if (mStandardOptions.stats_frame_window > 0) {
+            mFrameTimesMs.push_back(mPreviousFrameTime);
+            if (mFrameTimesMs.size() > mStandardOptions.stats_frame_window) {
+                mFrameTimesMs.pop_front();
+            }
+            float sum         = std::accumulate(mFrameTimesMs.begin(), mFrameTimesMs.end(), 0.0);
+            mAverageFPS       = mFrameTimesMs.size() / (sum);
+            mAverageFrameTime = sum / mFrameTimesMs.size();
+        }
+        else {
+            mAverageFPS       = static_cast<float>(mFrameCount / mTimer.SecondsSinceStart());
+            mAverageFrameTime = static_cast<float>(mTimer.MillisSinceStart() / mFrameCount);
+        }
 
         // Pace frames - if needed
         if (mSettings.grfx.pacedFrameRate > 0) {
@@ -1409,7 +1424,7 @@ std::vector<char> Application::LoadShader(const fs::path& baseDir, const std::st
 
         case grfx::API_DX_11_0:
         case grfx::API_DX_11_1: {
-                filePath = (filePath / "dxbc50" / baseName).append_extension(".dxbc50");
+            filePath = (filePath / "dxbc50" / baseName).append_extension(".dxbc50");
 
         } break;
 
@@ -1460,8 +1475,6 @@ Result Application::CreateShader(const fs::path& baseDir, const std::string& bas
 
     return ppx::SUCCESS;
 }
-
-
 
 float Application::GetElapsedSeconds() const
 {

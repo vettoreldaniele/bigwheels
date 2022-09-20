@@ -7,6 +7,8 @@
 #include "ppx/imgui_impl.h"
 #include "ppx/timer.h"
 
+#include <deque>
+
 // clang-format off
 #if ! defined(GLFW_INCLUDE_NONE)
 #   define GLFW_INCLUDE_NONE
@@ -384,6 +386,7 @@ private:
     float    mPreviousFrameTime = 0;
     float    mAverageFrameTime  = 0;
     double   mFirstFrameTime    = 0;
+    std::deque<float> mFrameTimesMs;
 };
 
 const char* GetKeyCodeString(KeyCode code);

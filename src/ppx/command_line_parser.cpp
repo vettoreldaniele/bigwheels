@@ -98,6 +98,12 @@ std::optional<CommandLineParser::ParsingError> CommandLineParser::Parse(int argc
             }
             mOpts.standardOptions.frame_count = opt.GetValueOrDefault<int>(-1);
         }
+        else if (opt.GetName() == "stats-frame-window") {
+            if (!opt.HasValue()) {
+                return std::string("Command-line option --stats-frame-window requires a parameter");
+            }
+            mOpts.standardOptions.stats_frame_window = opt.GetValueOrDefault<uint32_t>(300);
+        }
         else if (opt.GetName() == "screenshot-frame-number") {
             if (!opt.HasValue()) {
                 return std::string("Command-line option --screenshot-frame-number requires a parameter");
