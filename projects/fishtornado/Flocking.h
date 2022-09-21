@@ -1,7 +1,7 @@
 #ifndef FLOCKING_H
 #define FLOCKING_H
 
-#include "ppx/grfx/grfx_model.h"
+#include "ppx/grfx/grfx_mesh.h"
 using namespace ppx;
 
 #include "Buffer.h"
@@ -71,7 +71,7 @@ private:
     std::vector<PerFrame>        mPerFrame;
     ConstantBuffer               mMaterialConstants;
     grfx::DescriptorSetPtr       mMaterialSet;
-    grfx::ModelPtr               mModel;
+    grfx::MeshPtr                mMesh;
     grfx::TexturePtr             mAlbedoTexture;
     grfx::TexturePtr             mRoughnessTexture;
     grfx::TexturePtr             mNormalMapTexture;

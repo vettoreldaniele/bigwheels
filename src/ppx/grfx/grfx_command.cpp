@@ -4,8 +4,9 @@
 #include "ppx/grfx/grfx_draw_pass.h"
 #include "ppx/grfx/grfx_fullscreen_quad.h"
 #include "ppx/grfx/grfx_image.h"
-#include "ppx/grfx/grfx_model.h"
+#include "ppx/grfx/grfx_mesh.h"
 #include "ppx/grfx/grfx_render_pass.h"
+#include "ppx/grfx/grfx_texture.h"
 
 namespace ppx {
 namespace grfx {
@@ -190,11 +191,11 @@ void CommandBuffer::BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType
     BindIndexBuffer(&view);
 }
 
-void CommandBuffer::BindIndexBuffer(const grfx::Model* pModel, uint64_t offset)
+void CommandBuffer::BindIndexBuffer(const grfx::Mesh* pMesh, uint64_t offset)
 {
-    PPX_ASSERT_NULL_ARG(pModel);
+    PPX_ASSERT_NULL_ARG(pMesh);
 
-    BindIndexBuffer(pModel->GetIndexBuffer(), pModel->GetIndexType(), offset);
+    BindIndexBuffer(pMesh->GetIndexBuffer(), pMesh->GetIndexType(), offset);
 }
 
 void CommandBuffer::BindVertexBuffers(
@@ -219,17 +220,17 @@ void CommandBuffer::BindVertexBuffers(
     BindVertexBuffers(bufferCount, views);
 }
 
-void CommandBuffer::BindVertexBuffers(const grfx::Model* pModel, const uint64_t* pOffsets)
+void CommandBuffer::BindVertexBuffers(const grfx::Mesh* pMesh, const uint64_t* pOffsets)
 {
-    PPX_ASSERT_NULL_ARG(pModel);
+    PPX_ASSERT_NULL_ARG(pMesh);
 
     const grfx::Buffer* buffers[PPX_MAX_VERTEX_BINDINGS] = {nullptr};
     uint32_t            strides[PPX_MAX_VERTEX_BINDINGS] = {0};
 
-    uint32_t bufferCount = pModel->GetVertexBufferCount();
+    uint32_t bufferCount = pMesh->GetVertexBufferCount();
     for (uint32_t i = 0; i < bufferCount; ++i) {
-        buffers[i] = pModel->GetVertexBuffer(i);
-        strides[i] = pModel->GetVertexBinding(i)->GetStride();
+        buffers[i] = pMesh->GetVertexBuffer(i);
+        strides[i] = pMesh->GetVertexBufferDescription(i)->stride;
     }
 
     BindVertexBuffers(bufferCount, buffers, strides, pOffsets);

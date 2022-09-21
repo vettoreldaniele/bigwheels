@@ -1,7 +1,7 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#include "ppx/grfx/grfx_model.h"
+#include "ppx/grfx/grfx_mesh.h"
 #include "ppx/grfx/grfx_pipeline.h"
 #include "ppx/transform.h"
 
@@ -9,8 +9,8 @@
 
 struct EntityCreateInfo
 {
-    ppx::grfx::Model* pModel    = nullptr;
-    const Material*   pMaterial = nullptr;
+    ppx::grfx::Mesh* pMesh     = nullptr;
+    const Material*  pMaterial = nullptr;
 };
 
 class Entity
@@ -33,7 +33,7 @@ public:
 
 private:
     ppx::Transform              mTransform;
-    ppx::grfx::ModelPtr         mModel;
+    ppx::grfx::MeshPtr          mMesh;
     const Material*             mMaterial = nullptr;
     ppx::grfx::BufferPtr        mCpuModelConstants;
     ppx::grfx::BufferPtr        mGpuModelConstants;

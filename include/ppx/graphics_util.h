@@ -330,37 +330,37 @@ Result CreateCubeMapFromFile(
 
 // -------------------------------------------------------------------------------------------------
 
-//! @fn CreateModelFromGeometry
+//! @fn CreateMeshFromGeometry
 //!
 //!
-Result CreateModelFromGeometry(
+Result CreateMeshFromGeometry(
     grfx::Queue*    pQueue,
     const Geometry* pGeometry,
-    grfx::Model**   ppModel);
+    grfx::Mesh**    ppMesh);
 
-//! @fn CreateModelFromTriMesh
+//! @fn CreateMeshFromTriMesh
 //!
 //!
-Result CreateModelFromTriMesh(
+Result CreateMeshFromTriMesh(
     grfx::Queue*   pQueue,
-    const TriMesh* pMesh,
-    grfx::Model**  ppModel);
+    const TriMesh* pTriMesh,
+    grfx::Mesh**   ppMesh);
 
-//! @fn CreateModelFromWireMesh
+//! @fn CreateMeshFromWireMesh
 //!
 //!
-Result CreateModelFromWireMesh(
+Result CreateMeshFromWireMesh(
     grfx::Queue*    pQueue,
-    const WireMesh* pMesh,
-    grfx::Model**   ppModel);
+    const WireMesh* pWireMesh,
+    grfx::Mesh**    ppMesh);
 
 //! @fn CreateModelFromFile
 //!
 //!
-Result CreateModelFromFile(
+Result CreateMeshFromFile(
     grfx::Queue*          pQueue,
     const fs::path&       path,
-    grfx::Model**         ppModel,
+    grfx::Mesh**          ppMesh,
     const TriMeshOptions& options = TriMeshOptions());
 
 // -------------------------------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 #include "ppx/grfx/grfx_draw_pass.h"
 #include "ppx/grfx/grfx_fullscreen_quad.h"
 #include "ppx/grfx/grfx_image.h"
-#include "ppx/grfx/grfx_model.h"
+#include "ppx/grfx/grfx_mesh.h"
 #include "ppx/grfx/grfx_pipeline.h"
 #include "ppx/grfx/grfx_queue.h"
 #include "ppx/grfx/grfx_query.h"
@@ -91,8 +91,8 @@ public:
     Result CreateImage(const grfx::ImageCreateInfo* pCreateInfo, grfx::Image** ppImage);
     void   DestroyImage(const grfx::Image* pImage);
 
-    Result CreateModel(const grfx::ModelCreateInfo* pCreateInfo, grfx::Model** ppModel);
-    void   DestroyModel(const grfx::Model* pModel);
+    Result CreateMesh(const grfx::MeshCreateInfo* pCreateInfo, grfx::Mesh** ppMesh);
+    void   DestroyMesh(const grfx::Mesh* pMesh);
 
     Result CreatePipelineInterface(const grfx::PipelineInterfaceCreateInfo* pCreateInfo, grfx::PipelineInterface** ppPipelineInterface);
     void   DestroyPipelineInterface(const grfx::PipelineInterface* pPipelineInterface);
@@ -198,7 +198,7 @@ protected:
 
     virtual Result AllocateObject(grfx::DrawPass** ppObject);
     virtual Result AllocateObject(grfx::FullscreenQuad** ppObject);
-    virtual Result AllocateObject(grfx::Model** ppObject);
+    virtual Result AllocateObject(grfx::Mesh** ppObject);
     virtual Result AllocateObject(grfx::TextDraw** ppObject);
     virtual Result AllocateObject(grfx::Texture** ppObject);
     virtual Result AllocateObject(grfx::TextureFont** ppObject);
@@ -236,7 +236,7 @@ protected:
     std::vector<grfx::FullscreenQuadPtr>      mFullscreenQuads;
     std::vector<grfx::GraphicsPipelinePtr>    mGraphicsPipelines;
     std::vector<grfx::ImagePtr>               mImages;
-    std::vector<grfx::ModelPtr>               mModels;
+    std::vector<grfx::MeshPtr>                mMeshes;
     std::vector<grfx::PipelineInterfacePtr>   mPipelineInterfaces;
     std::vector<grfx::QueryPtr>               mQuerys;
     std::vector<grfx::RenderPassPtr>          mRenderPasses;

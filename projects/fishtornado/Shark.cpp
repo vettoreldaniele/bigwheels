@@ -36,7 +36,7 @@ void Shark::Setup(uint32_t numFramesInFlight)
     mShadowPipeline  = pApp->CreateShadowPipeline(pApp->GetAssetPath("fishtornado/shaders"), "SharkShadow.vs");
 
     TriMeshOptions options = TriMeshOptions().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/shark/shark.obj"), &mModel, options));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromFile(queue, pApp->GetAssetPath("fishtornado/models/shark/shark.obj"), &mMesh, options));
 
     grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
     PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/shark/sharkDiffuse.png"), &mAlbedoTexture, textureOptions));
@@ -125,9 +125,9 @@ void Shark::DrawDebug(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
     pCmd->BindGraphicsPipeline(pipeline);
 
-    pCmd->BindIndexBuffer(mModel);
-    pCmd->BindVertexBuffers(mModel);
-    pCmd->DrawIndexed(mModel->GetIndexCount());
+    pCmd->BindIndexBuffer(mMesh);
+    pCmd->BindVertexBuffers(mMesh);
+    pCmd->DrawIndexed(mMesh->GetIndexCount());
 }
 
 void Shark::DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
@@ -142,9 +142,9 @@ void Shark::DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
     pCmd->BindGraphicsPipeline(mShadowPipeline);
 
-    pCmd->BindIndexBuffer(mModel);
-    pCmd->BindVertexBuffers(mModel);
-    pCmd->DrawIndexed(mModel->GetIndexCount());
+    pCmd->BindIndexBuffer(mMesh);
+    pCmd->BindVertexBuffers(mMesh);
+    pCmd->DrawIndexed(mMesh->GetIndexCount());
 }
 
 void Shark::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
@@ -160,7 +160,7 @@ void Shark::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
     pCmd->BindGraphicsPipeline(mForwardPipeline);
 
-    pCmd->BindIndexBuffer(mModel);
-    pCmd->BindVertexBuffers(mModel);
-    pCmd->DrawIndexed(mModel->GetIndexCount());
+    pCmd->BindIndexBuffer(mMesh);
+    pCmd->BindVertexBuffers(mMesh);
+    pCmd->DrawIndexed(mMesh->GetIndexCount());
 }

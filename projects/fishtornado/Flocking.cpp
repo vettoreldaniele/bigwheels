@@ -272,7 +272,7 @@ void Flocking::Setup(uint32_t numFramesInFlight)
 
     // Create model
     TriMeshOptions options = TriMeshOptions().Indices().AllAttributes().InvertTexCoordsV().InvertWinding();
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/trevallie/trevallie.obj"), &mModel, options));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromFile(queue, pApp->GetAssetPath("fishtornado/models/trevallie/trevallie.obj"), &mMesh, options));
 
     // Create textures
 #if defined(PPX_GGP) && (PPX_D3D12)
@@ -454,9 +454,9 @@ void Flocking::DrawShadow(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
     pCmd->BindGraphicsPipeline(mShadowPipeline);
 
-    pCmd->BindIndexBuffer(mModel);
-    pCmd->BindVertexBuffers(mModel);
-    pCmd->DrawIndexed(mModel->GetIndexCount(), mResX * mResY);
+    pCmd->BindIndexBuffer(mMesh);
+    pCmd->BindVertexBuffers(mMesh);
+    pCmd->DrawIndexed(mMesh->GetIndexCount(), mResX * mResY);
 }
 
 void Flocking::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
@@ -473,9 +473,9 @@ void Flocking::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
     pCmd->BindGraphicsPipeline(mForwardPipeline);
 
-    pCmd->BindIndexBuffer(mModel);
-    pCmd->BindVertexBuffers(mModel);
-    pCmd->DrawIndexed(mModel->GetIndexCount(), mResX * mResY);
+    pCmd->BindIndexBuffer(mMesh);
+    pCmd->BindVertexBuffers(mMesh);
+    pCmd->DrawIndexed(mMesh->GetIndexCount(), mResX * mResY);
 }
 
 void Flocking::EndGraphics(uint32_t frameIndex, grfx::CommandBuffer* pCmd, bool asyncCompute)

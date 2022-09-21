@@ -58,7 +58,7 @@ private:
 
     grfx::SamplerPtr mSampler;
 
-    grfx::ModelPtr                mIBLModel;
+    grfx::MeshPtr                 mIBLModel;
     grfx::DescriptorSetLayoutPtr  mIBLLayout;
     grfx::DescriptorSetPtr        mIBLSet;
     grfx::BufferPtr               mIBLConstants;
@@ -82,8 +82,8 @@ private:
     grfx::DescriptorSetPtr       mDrawToSwapchainSet;
     grfx::FullscreenQuadPtr      mDrawToSwapchain;
 
-    grfx::ModelPtr      mSphere;
-    grfx::ModelPtr      mBox;
+    grfx::MeshPtr       mSphere;
+    grfx::MeshPtr       mBox;
     std::vector<Entity> mEntities;
 
     float mCamSwing       = 0;
@@ -184,7 +184,7 @@ void ProjApp::SetupEntities()
     TriMesh        mesh    = TriMesh::CreateSphere(1.0f, 128, 64, options);
     Geometry       geo;
     PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
 
     mEntities.resize(7);
 
@@ -201,7 +201,7 @@ void ProjApp::SetupEntities()
         size_t materialIndex = i % materials.size();
 
         EntityCreateInfo createInfo = {};
-        createInfo.pModel           = mSphere;
+        createInfo.pMesh            = mSphere;
         createInfo.pMaterial        = materials[materialIndex];
         PPX_CHECKED_CALL(mEntities[i].Create(GetGraphicsQueue(), mDescriptorPool, &createInfo));
 
@@ -219,10 +219,10 @@ void ProjApp::SetupEntities()
 
         mesh = TriMesh::CreateCube(float3(10, 1, 10), TriMeshOptions(options).TexCoordScale(float2(5)));
         PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-        PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mBox));
+        PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mBox));
 
         EntityCreateInfo createInfo = {};
-        createInfo.pModel           = mBox;
+        createInfo.pMesh            = mBox;
         createInfo.pMaterial        = Material::GetMaterialStoneTile();
         PPX_CHECKED_CALL(pEntity->Create(GetGraphicsQueue(), mDescriptorPool, &createInfo));
         pEntity->GetTransform().SetTranslation(float3(0, -0.5f, 0));
@@ -234,7 +234,7 @@ void ProjApp::SetupIBLResources()
     Geometry geo;
     TriMesh  mesh = TriMesh::CreateSphere(32, 32, 16, TriMeshOptions().Indices().TexCoords());
     PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mIBLModel));
 
     // Layout - the binding values here map to the Texture shader (Texture.hlsl)
     //
@@ -355,9 +355,9 @@ void ProjApp::SetupIBLResources()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {PS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mIBLModel->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mIBLModel->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mIBLModel->GetVertexBinding(1);
+        gpCreateInfo.vertexInputState.bindingCount      = 2;
+        gpCreateInfo.vertexInputState.bindings[0]       = mIBLModel->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[1]       = mIBLModel->GetDerivedVertexBindings()[1];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_FRONT;
@@ -461,7 +461,7 @@ void ProjApp::SetupGBufferLightQuad()
 
     grfx::ShaderModulePtr PS;
 
-    bytecode                   = LoadShader(GetAssetPath("gbuffer/shaders"), "DeferredLight.ps");
+    bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DeferredLight.ps");
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -492,7 +492,7 @@ void ProjApp::SetupDebugDraw()
 
     grfx::ShaderModulePtr PS;
 
-    bytecode                   = LoadShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute.ps");
+    bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute.ps");
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -534,7 +534,7 @@ void ProjApp::SetupDrawToSwapchain()
 
         grfx::ShaderModulePtr PS;
 
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

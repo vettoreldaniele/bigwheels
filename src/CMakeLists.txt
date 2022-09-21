@@ -200,7 +200,7 @@ list(
     ${INC_DIR}/ppx/grfx/grfx_helper.h
     ${INC_DIR}/ppx/grfx/grfx_image.h
     ${INC_DIR}/ppx/grfx/grfx_instance.h
-    ${INC_DIR}/ppx/grfx/grfx_model.h
+    ${INC_DIR}/ppx/grfx/grfx_mesh.h
     ${INC_DIR}/ppx/grfx/grfx_pipeline.h
     ${INC_DIR}/ppx/grfx/grfx_query.h
     ${INC_DIR}/ppx/grfx/grfx_queue.h
@@ -227,7 +227,7 @@ list(
     ${SRC_DIR}/ppx/grfx/grfx_helper.cpp
     ${SRC_DIR}/ppx/grfx/grfx_image.cpp
     ${SRC_DIR}/ppx/grfx/grfx_instance.cpp
-    ${SRC_DIR}/ppx/grfx/grfx_model.cpp
+    ${SRC_DIR}/ppx/grfx/grfx_mesh.cpp
     ${SRC_DIR}/ppx/grfx/grfx_pipeline.cpp
     ${SRC_DIR}/ppx/grfx/grfx_query.cpp
     ${SRC_DIR}/ppx/grfx/grfx_queue.cpp

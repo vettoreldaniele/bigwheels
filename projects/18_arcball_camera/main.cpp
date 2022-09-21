@@ -33,7 +33,7 @@ private:
 
     struct Entity
     {
-        grfx::ModelPtr         model;
+        grfx::MeshPtr          mesh;
         grfx::DescriptorSetPtr descriptorSet;
         grfx::BufferPtr        uniformBuffer;
     };
@@ -73,7 +73,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 
 void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromTriMesh(GetGraphicsQueue(), &mesh, &pEntity->model));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromTriMesh(GetGraphicsQueue(), &mesh, &pEntity->mesh));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
@@ -94,7 +94,7 @@ void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo
 
 void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromWireMesh(GetGraphicsQueue(), &mesh, &pEntity->model));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromWireMesh(GetGraphicsQueue(), &mesh, &pEntity->mesh));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
@@ -160,9 +160,9 @@ void ProjApp::Setup()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mCube.model->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mCube.model->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mCube.model->GetVertexBinding(1);
+        gpCreateInfo.vertexInputState.bindingCount      = 2;
+        gpCreateInfo.vertexInputState.bindings[0]       = mCube.mesh->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[1]       = mCube.mesh->GetDerivedVertexBindings()[1];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_NONE;
@@ -293,9 +293,9 @@ void ProjApp::Render()
 
             // Cube
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mCube.descriptorSet);
-            frame.cmd->BindIndexBuffer(mCube.model);
-            frame.cmd->BindVertexBuffers(mCube.model);
-            frame.cmd->DrawIndexed(mCube.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mCube.mesh);
+            frame.cmd->BindVertexBuffers(mCube.mesh);
+            frame.cmd->DrawIndexed(mCube.mesh->GetIndexCount());
 
             // -------------------------------------------------------------------------------------
             //
@@ -304,9 +304,9 @@ void ProjApp::Render()
 
             // Wire plane
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mWirePlane.descriptorSet);
-            frame.cmd->BindIndexBuffer(mWirePlane.model);
-            frame.cmd->BindVertexBuffers(mWirePlane.model);
-            frame.cmd->DrawIndexed(mWirePlane.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mWirePlane.mesh);
+            frame.cmd->BindVertexBuffers(mWirePlane.mesh);
+            frame.cmd->DrawIndexed(mWirePlane.mesh->GetIndexCount());
 
             // Draw ImGui
             DrawDebugInfo();

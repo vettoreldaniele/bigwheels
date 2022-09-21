@@ -2,7 +2,7 @@
 #define OCEAN_H
 
 #include "ppx/grfx/grfx_descriptor.h"
-#include "ppx/grfx/grfx_model.h"
+#include "ppx/grfx/grfx_mesh.h"
 using namespace ppx;
 
 #include "Buffer.h"
@@ -38,7 +38,7 @@ private:
     grfx::GraphicsPipelinePtr mFloorForwardPipeline;
     ConstantBuffer            mFloorMaterialConstants;
     grfx::DescriptorSetPtr    mFloorMaterialSet;
-    grfx::ModelPtr            mFloorModel;
+    grfx::MeshPtr             mFloorMesh;
     grfx::TexturePtr          mFloorAlbedoTexture;
     grfx::TexturePtr          mFloorRoughnessTexture;
     grfx::TexturePtr          mFloorNormalMapTexture;
@@ -47,14 +47,14 @@ private:
     grfx::GraphicsPipelinePtr mSurfaceForwardPipeline;
     ConstantBuffer            mSurfaceMaterialConstants;
     grfx::DescriptorSetPtr    mSurfaceMaterialSet;
-    grfx::ModelPtr            mSurfaceModel;
+    grfx::MeshPtr             mSurfaceMesh;
     grfx::TexturePtr          mSurfaceAlbedoTexture;
     grfx::TexturePtr          mSurfaceRoughnessTexture;
     grfx::TexturePtr          mSurfaceNormalMapTexture;
 
     // Beam
     grfx::GraphicsPipelinePtr mBeamForwardPipeline;
-    grfx::ModelPtr            mBeamModel;
+    grfx::MeshPtr             mBeamMesh;
 };
 
 #endif // OCEAN_H

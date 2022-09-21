@@ -90,7 +90,7 @@ private:
 
     PerspCamera mCamera;
 
-    grfx::ModelPtr   mModel;
+    grfx::MeshPtr    mModelMesh;
     grfx::TexturePtr mModelTexture;
     float            mModelRotation       = 45.0f;
     float            mModelTargetRotation = 45.0f;
@@ -216,7 +216,7 @@ void ProjApp::Setup()
         Geometry geo;
         TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/cerberus.obj"), TriMeshOptions().Indices().TexCoords().Scale(float3(1.5f)));
         PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-        PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mModel));
+        PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mModelMesh));
     }
 
     // Texture.
@@ -265,9 +265,9 @@ void ProjApp::Setup()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {PS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mModel->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mModel->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mModel->GetVertexBinding(1);
+        gpCreateInfo.vertexInputState.bindingCount      = 2;
+        gpCreateInfo.vertexInputState.bindings[0]       = mModelMesh->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[1]       = mModelMesh->GetDerivedVertexBindings()[1];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -772,9 +772,9 @@ void ProjApp::DrawScene(PerFrame& frame, size_t quadIndex)
 
             renderData.cmd->BindGraphicsPipeline(mRenderPipeline);
 
-            renderData.cmd->BindIndexBuffer(mModel);
-            renderData.cmd->BindVertexBuffers(mModel);
-            renderData.cmd->DrawIndexed(mModel->GetIndexCount(), mGraphicsLoad);
+            renderData.cmd->BindIndexBuffer(mModelMesh);
+            renderData.cmd->BindVertexBuffers(mModelMesh);
+            renderData.cmd->DrawIndexed(mModelMesh->GetIndexCount(), mGraphicsLoad);
         }
         renderData.cmd->EndRenderPass();
         renderData.cmd->TransitionImageLayout(renderData.drawPass->GetRenderTargetTexture(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_RENDER_TARGET, grfx::RESOURCE_STATE_SHADER_RESOURCE);

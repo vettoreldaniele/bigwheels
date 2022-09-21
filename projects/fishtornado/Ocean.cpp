@@ -49,7 +49,7 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         mFloorForwardPipeline = pApp->CreateForwardPipeline(pApp->GetAssetPath("fishtornado/shaders"), "OceanFloor.vs", "OceanFloor.ps");
 
         TriMeshOptions options = TriMeshOptions().Indices().AllAttributes().TexCoordScale(float2(25.0f));
-        PPX_CHECKED_CALL(grfx_util::CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/ocean/floor_lowRes.obj"), &mFloorModel, options));
+        PPX_CHECKED_CALL(grfx_util::CreateMeshFromFile(queue, pApp->GetAssetPath("fishtornado/models/ocean/floor_lowRes.obj"), &mFloorMesh, options));
 
         grfx_util::TextureOptions textureOptions = grfx_util::TextureOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
         PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(queue, pApp->GetAssetPath("fishtornado/textures/ocean/floorDiffuse.png"), &mFloorAlbedoTexture, textureOptions));
@@ -74,7 +74,7 @@ void Ocean::Setup(uint32_t numFramesInFlight)
 
         TriMeshOptions options = TriMeshOptions().Indices().AllAttributes().TexCoordScale(float2(1.0f));
         TriMesh        mesh    = TriMesh::CreatePlane(TRI_MESH_PLANE_NEGATIVE_Y, float2(2500.0f), 10, 10, options);
-        PPX_CHECKED_CALL(grfx_util::CreateModelFromTriMesh(queue, &mesh, &mSurfaceModel));
+        PPX_CHECKED_CALL(grfx_util::CreateMeshFromTriMesh(queue, &mesh, &mSurfaceMesh));
 
         PPX_CHECKED_CALL(grfx_util::CreateTexture1x1(queue, float4(0, 0, 0, 0), &mSurfaceAlbedoTexture));
         PPX_CHECKED_CALL(grfx_util::CreateTexture1x1(queue, float4(1, 1, 1, 1), &mSurfaceRoughnessTexture));
@@ -132,7 +132,7 @@ void Ocean::Setup(uint32_t numFramesInFlight)
         }
 
         TriMeshOptions options = TriMeshOptions().Indices().Normals().TexCoords();
-        PPX_CHECKED_CALL(grfx_util::CreateModelFromFile(queue, pApp->GetAssetPath("fishtornado/models/ocean/beams.obj"), &mBeamModel, options));
+        PPX_CHECKED_CALL(grfx_util::CreateMeshFromFile(queue, pApp->GetAssetPath("fishtornado/models/ocean/beams.obj"), &mBeamMesh, options));
     }
 }
 
@@ -238,9 +238,9 @@ void Ocean::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
         pCmd->BindGraphicsPipeline(mFloorForwardPipeline);
 
-        pCmd->BindIndexBuffer(mFloorModel);
-        pCmd->BindVertexBuffers(mFloorModel);
-        pCmd->DrawIndexed(mFloorModel->GetIndexCount());
+        pCmd->BindIndexBuffer(mFloorMesh);
+        pCmd->BindVertexBuffers(mFloorMesh);
+        pCmd->DrawIndexed(mFloorMesh->GetIndexCount());
     }
 
     // Surface
@@ -254,9 +254,9 @@ void Ocean::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
         pCmd->BindGraphicsPipeline(mSurfaceForwardPipeline);
 
-        pCmd->BindIndexBuffer(mSurfaceModel);
-        pCmd->BindVertexBuffers(mSurfaceModel);
-        pCmd->DrawIndexed(mSurfaceModel->GetIndexCount());
+        pCmd->BindIndexBuffer(mSurfaceMesh);
+        pCmd->BindVertexBuffers(mSurfaceMesh);
+        pCmd->DrawIndexed(mSurfaceMesh->GetIndexCount());
     }
 
     // Beam
@@ -269,8 +269,8 @@ void Ocean::DrawForward(uint32_t frameIndex, grfx::CommandBuffer* pCmd)
 
         pCmd->BindGraphicsPipeline(mBeamForwardPipeline);
 
-        pCmd->BindIndexBuffer(mBeamModel);
-        pCmd->BindVertexBuffers(mBeamModel);
-        pCmd->DrawIndexed(mBeamModel->GetIndexCount(), 1);
+        pCmd->BindIndexBuffer(mBeamMesh);
+        pCmd->BindVertexBuffers(mBeamMesh);
+        pCmd->DrawIndexed(mBeamMesh->GetIndexCount(), 1);
     }
 }

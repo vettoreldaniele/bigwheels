@@ -36,7 +36,7 @@ private:
 
     struct Entity
     {
-        grfx::ModelPtr         model;
+        grfx::MeshPtr          mesh;
         grfx::DescriptorSetPtr descriptorSet;
         grfx::BufferPtr        uniformBuffer;
     };
@@ -81,7 +81,7 @@ void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo
 {
     Geometry geo;
     PPX_CHECKED_CALL(Geometry::Create(createInfo, mesh, &geo));
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &pEntity->mesh));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
@@ -165,7 +165,7 @@ void ProjApp::Setup()
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "SkyBox.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "SkyBox.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
@@ -179,8 +179,8 @@ void ProjApp::Setup()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mReflector.model->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mReflector.model->GetVertexBinding(0);
+        gpCreateInfo.vertexInputState.bindingCount      = 1;
+        gpCreateInfo.vertexInputState.bindings[0]       = mReflector.mesh->GetDerivedVertexBindings()[0];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_FRONT;
@@ -204,7 +204,7 @@ void ProjApp::Setup()
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "CubeMap.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "CubeMap.ps");
 
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -219,8 +219,8 @@ void ProjApp::Setup()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mReflector.model->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mReflector.model->GetVertexBinding(0);
+        gpCreateInfo.vertexInputState.bindingCount      = 1;
+        gpCreateInfo.vertexInputState.bindings[0]       = mReflector.mesh->GetDerivedVertexBindings()[0];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -362,16 +362,16 @@ void ProjApp::Render()
             // Draw reflector
             frame.cmd->BindGraphicsPipeline(mReflectorPipeline);
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mReflector.descriptorSet);
-            frame.cmd->BindIndexBuffer(mReflector.model);
-            frame.cmd->BindVertexBuffers(mReflector.model);
-            frame.cmd->DrawIndexed(mReflector.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mReflector.mesh);
+            frame.cmd->BindVertexBuffers(mReflector.mesh);
+            frame.cmd->DrawIndexed(mReflector.mesh->GetIndexCount());
 
             // Draw sky box
             frame.cmd->BindGraphicsPipeline(mSkyBoxPipeline);
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mSkyBox.descriptorSet);
-            frame.cmd->BindIndexBuffer(mSkyBox.model);
-            frame.cmd->BindVertexBuffers(mSkyBox.model);
-            frame.cmd->DrawIndexed(mSkyBox.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mSkyBox.mesh);
+            frame.cmd->BindVertexBuffers(mSkyBox.mesh);
+            frame.cmd->DrawIndexed(mSkyBox.mesh->GetIndexCount());
 
             // Draw ImGui
             if (GetSettings()->enableImGui) {

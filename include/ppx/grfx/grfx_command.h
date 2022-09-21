@@ -402,7 +402,7 @@ public:
 
     void BindIndexBuffer(const grfx::Buffer* pBuffer, grfx::IndexType indexType, uint64_t offset = 0);
 
-    void BindIndexBuffer(const grfx::Model* pModel, uint64_t offset = 0);
+    void BindIndexBuffer(const grfx::Mesh* pMesh, uint64_t offset = 0);
 
     void BindVertexBuffers(
         uint32_t                   bufferCount,
@@ -410,7 +410,7 @@ public:
         const uint32_t*            pStrides,
         const uint64_t*            pOffsets = nullptr);
 
-    void BindVertexBuffers(const grfx::Model* pModel, const uint64_t* pOffsets = nullptr);
+    void BindVertexBuffers(const grfx::Mesh* pMesh, const uint64_t* pOffsets = nullptr);
 
     //
     // NOTE: If you're running into an issue where VS2019 is incorrectly

@@ -33,6 +33,11 @@ void VertexBinding::SetBinding(uint32_t binding)
     }
 }
 
+void VertexBinding::SetStride(uint32_t stride)
+{
+    mStride = stride;
+}
+
 Result VertexBinding::GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const
 {
     if (!IsIndexInRange(index, mAttributes)) {
@@ -56,7 +61,7 @@ uint32_t VertexBinding::GetAttributeIndex(grfx::VertexSemantic semantic) const
     return index;
 }
 
-void VertexBinding::AppendAttribute(const grfx::VertexAttribute& attribute)
+VertexBinding& VertexBinding::AppendAttribute(const grfx::VertexAttribute& attribute)
 {
     mAttributes.push_back(attribute);
 
@@ -87,6 +92,8 @@ void VertexBinding::AppendAttribute(const grfx::VertexAttribute& attribute)
         uint32_t size = grfx::GetFormatDescription(elem.format)->bytesPerTexel;
         mStride += size;
     }
+
+    return *this;
 }
 
 grfx::VertexBinding& VertexBinding::operator+=(const grfx::VertexAttribute& rhs)

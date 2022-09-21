@@ -39,7 +39,7 @@ private:
         float3                 translate = float3(0, 0, 0);
         float3                 rotate    = float3(0, 0, 0);
         float3                 scale     = float3(1, 1, 1);
-        grfx::ModelPtr         model;
+        grfx::MeshPtr          mesh;
         grfx::DescriptorSetPtr drawDescriptorSet;
         grfx::BufferPtr        drawUniformBuffer;
         grfx::DescriptorSetPtr shadowDescriptorSet;
@@ -105,7 +105,7 @@ void ProjApp::SetupEntity(
 {
     Geometry geo;
     PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &pEntity->mesh));
 
     // Draw uniform buffer
     grfx::BufferCreateInfo bufferCreateInfo        = {};
@@ -217,7 +217,7 @@ void ProjApp::Setup()
 
         grfx::ShaderModulePtr PS;
 
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "DiffuseShadow.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "DiffuseShadow.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -225,10 +225,10 @@ void ProjApp::Setup()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {PS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mGroundPlane.model->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mGroundPlane.model->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mGroundPlane.model->GetVertexBinding(1);
-        gpCreateInfo.vertexInputState.bindings[2]       = *mGroundPlane.model->GetVertexBinding(2);
+        gpCreateInfo.vertexInputState.bindingCount      = 3;
+        gpCreateInfo.vertexInputState.bindings[0]       = mGroundPlane.mesh->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[1]       = mGroundPlane.mesh->GetDerivedVertexBindings()[1];
+        gpCreateInfo.vertexInputState.bindings[2]       = mGroundPlane.mesh->GetDerivedVertexBindings()[2];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -266,7 +266,7 @@ void ProjApp::Setup()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo = {};
         gpCreateInfo.VS                                = {VS.Get(), "vsmain"};
         gpCreateInfo.vertexInputState.bindingCount     = 1;
-        gpCreateInfo.vertexInputState.bindings[0]      = *mGroundPlane.model->GetVertexBinding(0);
+        gpCreateInfo.vertexInputState.bindings[0]      = mGroundPlane.mesh->GetDerivedVertexBindings()[0];
         gpCreateInfo.topology                          = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                       = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                          = grfx::CULL_MODE_BACK;
@@ -339,7 +339,7 @@ void ProjApp::Setup()
 
         Geometry geo;
         PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-        PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mLight.model));
+        PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mLight.mesh));
 
         // Uniform buffer
         grfx::BufferCreateInfo bufferCreateInfo        = {};
@@ -385,8 +385,8 @@ void ProjApp::Setup()
         gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {PS.Get(), "psmain"};
         gpCreateInfo.vertexInputState.bindingCount      = 2;
-        gpCreateInfo.vertexInputState.bindings[0]       = *mLight.model->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mLight.model->GetVertexBinding(1);
+        gpCreateInfo.vertexInputState.bindings[0]       = mLight.mesh->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[1]       = mLight.mesh->GetDerivedVertexBindings()[1];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -520,9 +520,9 @@ void ProjApp::Render()
                 Entity* pEntity = mEntities[i];
 
                 frame.cmd->BindGraphicsDescriptorSets(mShadowPipelineInterface, 1, &pEntity->shadowDescriptorSet);
-                frame.cmd->BindIndexBuffer(pEntity->model);
-                frame.cmd->BindVertexBuffers(pEntity->model);
-                frame.cmd->DrawIndexed(pEntity->model->GetIndexCount());
+                frame.cmd->BindIndexBuffer(pEntity->mesh);
+                frame.cmd->BindVertexBuffers(pEntity->mesh);
+                frame.cmd->DrawIndexed(pEntity->mesh->GetIndexCount());
             }
         }
         frame.cmd->EndRenderPass();
@@ -543,17 +543,17 @@ void ProjApp::Render()
                 Entity* pEntity = mEntities[i];
 
                 frame.cmd->BindGraphicsDescriptorSets(mDrawObjectPipelineInterface, 1, &pEntity->drawDescriptorSet);
-                frame.cmd->BindIndexBuffer(pEntity->model);
-                frame.cmd->BindVertexBuffers(pEntity->model);
-                frame.cmd->DrawIndexed(pEntity->model->GetIndexCount());
+                frame.cmd->BindIndexBuffer(pEntity->mesh);
+                frame.cmd->BindVertexBuffers(pEntity->mesh);
+                frame.cmd->DrawIndexed(pEntity->mesh->GetIndexCount());
             }
 
             // Draw light
             frame.cmd->BindGraphicsPipeline(mLightPipeline);
             frame.cmd->BindGraphicsDescriptorSets(mLightPipelineInterface, 1, &mLight.drawDescriptorSet);
-            frame.cmd->BindIndexBuffer(mLight.model);
-            frame.cmd->BindVertexBuffers(mLight.model);
-            frame.cmd->DrawIndexed(mLight.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mLight.mesh);
+            frame.cmd->BindVertexBuffers(mLight.mesh);
+            frame.cmd->DrawIndexed(mLight.mesh->GetIndexCount());
 
             // Draw ImGui
             DrawDebugInfo([this]() { this->DrawGui(); });

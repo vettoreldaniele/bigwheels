@@ -39,7 +39,7 @@ public:
     };
 
     Entity()
-        : model(nullptr),
+        : mesh(nullptr),
           descriptorSet(nullptr),
           uniformBuffer(nullptr),
           pipeline(nullptr),
@@ -48,7 +48,7 @@ public:
           kind(EntityKind::INVALID) {}
 
     Entity(float3 location, float3 dimension, EntityKind kind)
-        : model(nullptr),
+        : mesh(nullptr),
           descriptorSet(nullptr),
           uniformBuffer(nullptr),
           pipeline(nullptr),
@@ -73,8 +73,8 @@ public:
     const grfx::GraphicsPipelinePtr Pipeline() const { return pipeline; }
     grfx::GraphicsPipeline**        PipelinePtr() { return &pipeline; }
 
-    const grfx::ModelPtr& Model() const { return model; }
-    grfx::Model**         ModelPtr() { return &model; }
+    const grfx::MeshPtr& Mesh() const { return mesh; }
+    grfx::Mesh**         MeshPtr() { return &mesh; }
 
     const grfx::BufferPtr& UniformBuffer() const { return uniformBuffer; }
     grfx::Buffer**         UniformBufferPtr() { return &uniformBuffer; }
@@ -82,7 +82,7 @@ public:
     const float3& Location() const { return location; }
 
 private:
-    grfx::ModelPtr            model;
+    grfx::MeshPtr             mesh;
     grfx::DescriptorSetPtr    descriptorSet;
     grfx::BufferPtr           uniformBuffer;
     grfx::GraphicsPipelinePtr pipeline;
@@ -232,7 +232,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 
 void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromTriMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromTriMesh(GetGraphicsQueue(), &mesh, pEntity->MeshPtr()));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = RoundUp(512, PPX_CONSTANT_BUFFER_ALIGNMENT);
@@ -253,7 +253,7 @@ void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo
 
 void ProjApp::SetupEntity(const WireMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity)
 {
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromWireMesh(GetGraphicsQueue(), &mesh, pEntity->ModelPtr()));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromWireMesh(GetGraphicsQueue(), &mesh, pEntity->MeshPtr()));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
@@ -423,15 +423,15 @@ void ProjApp::SetupPipelines()
         // NOTE: Number of vertex input bindings here must match the number of options added to each entity in ProjApp::SetupEntities.
         if (entity.IsFloor() || entity.IsMesh()) {
             gpCreateInfo.topology                      = (entity.IsFloor()) ? grfx::PRIMITIVE_TOPOLOGY_LINE_LIST : grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-            gpCreateInfo.vertexInputState.bindingCount = entity.Model()->GetVertexBufferCount();
-            gpCreateInfo.vertexInputState.bindings[0]  = *entity.Model()->GetVertexBinding(0);
-            gpCreateInfo.vertexInputState.bindings[1]  = *entity.Model()->GetVertexBinding(1);
+            gpCreateInfo.vertexInputState.bindingCount = 2;
+            gpCreateInfo.vertexInputState.bindings[0]  = entity.Mesh()->GetDerivedVertexBindings()[0];
+            gpCreateInfo.vertexInputState.bindings[1]  = entity.Mesh()->GetDerivedVertexBindings()[1];
         }
         else if (entity.IsObject()) {
             gpCreateInfo.topology                      = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-            gpCreateInfo.vertexInputState.bindingCount = entity.Model()->GetVertexBufferCount();
-            gpCreateInfo.vertexInputState.bindings[0]  = *entity.Model()->GetVertexBinding(0);
-            gpCreateInfo.vertexInputState.bindings[1]  = *entity.Model()->GetVertexBinding(1);
+            gpCreateInfo.vertexInputState.bindingCount = 2;
+            gpCreateInfo.vertexInputState.bindings[0]  = entity.Mesh()->GetDerivedVertexBindings()[0];
+            gpCreateInfo.vertexInputState.bindings[1]  = entity.Mesh()->GetDerivedVertexBindings()[1];
         }
         else {
             PPX_ASSERT_MSG(false, "Unrecognized entity kind: " << static_cast<int>(entity.Kind()));
@@ -730,9 +730,9 @@ void ProjApp::Render()
             for (auto& entity : mEntities) {
                 frame.cmd->BindGraphicsPipeline(entity.Pipeline());
                 frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, entity.DescriptorSetPtr());
-                frame.cmd->BindIndexBuffer(entity.Model());
-                frame.cmd->BindVertexBuffers(entity.Model());
-                frame.cmd->DrawIndexed(entity.Model()->GetIndexCount());
+                frame.cmd->BindIndexBuffer(entity.Mesh());
+                frame.cmd->BindVertexBuffers(entity.Mesh());
+                frame.cmd->DrawIndexed(entity.Mesh()->GetIndexCount());
             }
 
             // Draw ImGui

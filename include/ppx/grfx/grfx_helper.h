@@ -240,6 +240,16 @@ struct VertexAttribute
 
 // -------------------------------------------------------------------------------------------------
 
+//! @class VertexBinding
+//!
+//! Storage class for binding number, vertex data stride, and vertex attributes for a vertex buffer
+//! binding.
+//!
+//! ** WARNING **
+//! Adding an attribute updates the stride information based on the current set of attributes.
+//! If a custom stride is required, add all the attributes first then call
+//! VertexBinding::SetStride() to set the stride.
+//!
 class VertexBinding
 {
 public:
@@ -258,12 +268,13 @@ public:
 
     uint32_t              GetBinding() const { return mBinding; }
     void                  SetBinding(uint32_t binding);
-    const uint32_t&       GetStride() const { return mStride; }
+    const uint32_t&       GetStride() const { return mStride; } // Return a reference to member var so apps can take address of it
+    void                  SetStride(uint32_t stride);
     grfx::VertexInputRate GetInputRate() const { return mInputRate; }
     uint32_t              GetAttributeCount() const { return static_cast<uint32_t>(mAttributes.size()); }
     Result                GetAttribute(uint32_t index, const grfx::VertexAttribute** ppAttribute) const;
     uint32_t              GetAttributeIndex(grfx::VertexSemantic semantic) const;
-    void                  AppendAttribute(const grfx::VertexAttribute& attribute);
+    VertexBinding&        AppendAttribute(const grfx::VertexAttribute& attribute);
 
     VertexBinding& operator+=(const grfx::VertexAttribute& rhs);
 

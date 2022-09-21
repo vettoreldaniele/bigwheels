@@ -10,57 +10,57 @@ namespace ppx {
 // -------------------------------------------------------------------------------------------------
 GeometryOptions GeometryOptions::InterleavedU16()
 {
-    GeometryOptions ci    = {};
-    ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
-    ci.indexType          = grfx::INDEX_TYPE_UINT16;
-    ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
+    GeometryOptions ci       = {};
+    ci.vertexAttributeLayout = GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED;
+    ci.indexType             = grfx::INDEX_TYPE_UINT16;
+    ci.vertexBindingCount    = 1; // Interleave attribute layout always has 1 vertex binding
     ci.AddPosition();
     return ci;
 }
 
 GeometryOptions GeometryOptions::InterleavedU32()
 {
-    GeometryOptions ci    = {};
-    ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
-    ci.indexType          = grfx::INDEX_TYPE_UINT32;
-    ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
+    GeometryOptions ci       = {};
+    ci.vertexAttributeLayout = GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED;
+    ci.indexType             = grfx::INDEX_TYPE_UINT32;
+    ci.vertexBindingCount    = 1; // Interleave attribute layout always has 1 vertex binding
     ci.AddPosition();
     return ci;
 }
 
 GeometryOptions GeometryOptions::PlanarU16()
 {
-    GeometryOptions ci = {};
-    ci.attributeLayout = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    ci.indexType       = grfx::INDEX_TYPE_UINT16;
+    GeometryOptions ci       = {};
+    ci.vertexAttributeLayout = GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR;
+    ci.indexType             = grfx::INDEX_TYPE_UINT16;
     ci.AddPosition();
     return ci;
 }
 
 GeometryOptions GeometryOptions::PlanarU32()
 {
-    GeometryOptions ci = {};
-    ci.attributeLayout = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    ci.indexType       = grfx::INDEX_TYPE_UINT32;
+    GeometryOptions ci       = {};
+    ci.vertexAttributeLayout = GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR;
+    ci.indexType             = grfx::INDEX_TYPE_UINT32;
     ci.AddPosition();
     return ci;
 }
 
 GeometryOptions GeometryOptions::Interleaved()
 {
-    GeometryOptions ci    = {};
-    ci.attributeLayout    = GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
-    ci.indexType          = grfx::INDEX_TYPE_UNDEFINED;
-    ci.vertexBindingCount = 1; // Interleave attrbute layout always has 1 vertex binding
+    GeometryOptions ci       = {};
+    ci.vertexAttributeLayout = GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED;
+    ci.indexType             = grfx::INDEX_TYPE_UNDEFINED;
+    ci.vertexBindingCount    = 1; // Interleave attribute layout always has 1 vertex binding
     ci.AddPosition();
     return ci;
 }
 
 GeometryOptions GeometryOptions::Planar()
 {
-    GeometryOptions ci = {};
-    ci.attributeLayout = GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    ci.indexType       = grfx::INDEX_TYPE_UNDEFINED;
+    GeometryOptions ci       = {};
+    ci.vertexAttributeLayout = GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR;
+    ci.indexType             = grfx::INDEX_TYPE_UNDEFINED;
     ci.AddPosition();
     return ci;
 }
@@ -115,11 +115,11 @@ GeometryOptions& GeometryOptions::AddAttribute(grfx::VertexSemantic semantic, gr
         attribute.inputRate             = grfx::VERTEX_INPUT_RATE_VERTEX;
         attribute.semantic              = semantic;
 
-        if (attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+        if (vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED) {
             attribute.binding = 0;
             vertexBindings[0].AppendAttribute(attribute);
         }
-        else if (attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+        else if (vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
             PPX_ASSERT_MSG(vertexBindingCount < PPX_MAX_VERTEX_BINDINGS, "max vertex bindings exceeded");
 
             vertexBindings[vertexBindingCount].AppendAttribute(attribute);
@@ -193,14 +193,14 @@ Result Geometry::InternalCtor()
         mIndexBuffer = Buffer(BUFFER_TYPE_INDEX, elementSize);
     }
 
-    if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+    if (mCreateInfo.vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED) {
         mCreateInfo.vertexBindingCount = 1;
 
         const grfx::VertexBinding& binding     = mCreateInfo.vertexBindings[0];
         uint32_t                   elementSize = binding.GetStride();
         mVertexBuffers.push_back(Buffer(BUFFER_TYPE_VERTEX, elementSize));
     }
-    else if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    else if (mCreateInfo.vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         // Create buffers
         for (uint32_t i = 0; i < mCreateInfo.vertexBindingCount; ++i) {
             const grfx::VertexBinding& binding     = mCreateInfo.vertexBindings[i];
@@ -221,7 +221,10 @@ Result Geometry::InternalCtor()
 
             // clang-format off
             switch (pAttribute->semantic) {
-                default: break;
+                default: {
+                    return Result::ERROR_GEOMETRY_INVALID_VERTEX_SEMANTIC;
+                }
+
                 case grfx::VERTEX_SEMANTIC_POSITION  : mPositionBufferIndex  = i; break;
                 case grfx::VERTEX_SEMANTIC_NORMAL    : mNormaBufferIndex     = i; break;
                 case grfx::VERTEX_SEMANTIC_COLOR     : mColorBufferIndex     = i; break;
@@ -242,7 +245,7 @@ Result Geometry::Create(const GeometryOptions& createInfo, Geometry* pGeometry)
 
     *pGeometry = Geometry();
 
-    if (createInfo.primtiveTopolgy != grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST) {
+    if (createInfo.primtiveTopology != grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST) {
         PPX_ASSERT_MSG(false, "only triangle list is supported");
         return ppx::ERROR_INVALID_CREATE_ARGUMENT;
     }
@@ -266,7 +269,7 @@ Result Geometry::Create(const GeometryOptions& createInfo, Geometry* pGeometry)
         return ppx::ERROR_INVALID_CREATE_ARGUMENT;
     }
 
-    if (createInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    if (createInfo.vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         for (uint32_t i = 0; i < createInfo.vertexBindingCount; ++i) {
             const grfx::VertexBinding& binding = createInfo.vertexBindings[i];
             if (binding.GetAttributeCount() != 1) {
@@ -556,12 +559,12 @@ Result Geometry::Create(
     return ppx::SUCCESS;
 }
 
-Result Geometry::Create(const TriMesh& mesh, Geometry* pGeomtry)
+Result Geometry::Create(const TriMesh& mesh, Geometry* pGeometry)
 {
-    GeometryOptions createInfo = {};
-    createInfo.attributeLayout = ppx::GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    createInfo.indexType       = mesh.GetIndexType();
-    createInfo.primtiveTopolgy = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    GeometryOptions createInfo       = {};
+    createInfo.vertexAttributeLayout = ppx::GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR;
+    createInfo.indexType             = mesh.GetIndexType();
+    createInfo.primtiveTopology      = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
     createInfo.AddPosition();
 
@@ -581,7 +584,7 @@ Result Geometry::Create(const TriMesh& mesh, Geometry* pGeomtry)
         createInfo.AddBitangent();
     }
 
-    Result ppxres = Create(createInfo, mesh, pGeomtry);
+    Result ppxres = Create(createInfo, mesh, pGeometry);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -589,12 +592,12 @@ Result Geometry::Create(const TriMesh& mesh, Geometry* pGeomtry)
     return ppx::SUCCESS;
 }
 
-Result Geometry::Create(const WireMesh& mesh, Geometry* pGeomtry)
+Result Geometry::Create(const WireMesh& mesh, Geometry* pGeometry)
 {
-    GeometryOptions createInfo = {};
-    createInfo.attributeLayout = ppx::GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR;
-    createInfo.indexType       = mesh.GetIndexType();
-    createInfo.primtiveTopolgy = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    GeometryOptions createInfo       = {};
+    createInfo.vertexAttributeLayout = ppx::GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR;
+    createInfo.indexType             = mesh.GetIndexType();
+    createInfo.primtiveTopology      = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
     createInfo.AddPosition();
 
@@ -602,7 +605,7 @@ Result Geometry::Create(const WireMesh& mesh, Geometry* pGeomtry)
         createInfo.AddColor();
     }
 
-    Result ppxres = Create(createInfo, mesh, pGeomtry);
+    Result ppxres = Create(createInfo, mesh, pGeometry);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -610,7 +613,37 @@ Result Geometry::Create(const WireMesh& mesh, Geometry* pGeomtry)
     return ppx::SUCCESS;
 }
 
-const Geometry::Buffer* Geometry::GetVertxBuffer(uint32_t index) const
+const grfx::VertexBinding* Geometry::GetVertexBinding(uint32_t index) const
+{
+    const grfx::VertexBinding* pBinding = nullptr;
+    if (index < mCreateInfo.vertexBindingCount) {
+        pBinding = &mCreateInfo.vertexBindings[index];
+    }
+    return pBinding;
+}
+
+uint32_t Geometry::GetIndexCount() const
+{
+    uint32_t count = 0;
+    if (mCreateInfo.indexType != grfx::INDEX_TYPE_UNDEFINED) {
+        count = mIndexBuffer.GetElementCount();
+    }
+    return count;
+}
+
+uint32_t Geometry::GetVertexCount() const
+{
+    uint32_t count = 0;
+    if (mCreateInfo.vertexAttributeLayout == ppx::GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+        count = mVertexBuffers[0].GetElementCount();
+    }
+    else if (mCreateInfo.vertexAttributeLayout == ppx::GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
+        count = mVertexBuffers[mPositionBufferIndex].GetElementCount();
+    }
+    return count;
+}
+
+const Geometry::Buffer* Geometry::GetVertexBuffer(uint32_t index) const
 {
     const Geometry::Buffer* pBuffer = nullptr;
     if (IsIndexInRange(index, mVertexBuffers)) {
@@ -619,16 +652,7 @@ const Geometry::Buffer* Geometry::GetVertxBuffer(uint32_t index) const
     return pBuffer;
 }
 
-const grfx::VertexBinding* Geometry::GetVertexBinding(uint32_t index) const
-{
-    const grfx::VertexBinding* pBinding = nullptr;
-    if (IsIndexInRange(index, mVertexBuffers)) {
-        pBinding = &mCreateInfo.vertexBindings[index];
-    }
-    return pBinding;
-}
-
-uint32_t Geometry::GetBiggestBufferSize() const
+uint32_t Geometry::GetLargestBufferSize() const
 {
     uint32_t size = mIndexBuffer.GetSize();
     for (size_t i = 0; i < mVertexBuffers.size(); ++i) {
@@ -665,7 +689,7 @@ void Geometry::AppendIndicesEdge(uint32_t vtx0, uint32_t vtx1)
 
 uint32_t Geometry::AppendVertexInterleaved(const TriMeshVertexData& vtx)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+    if (mCreateInfo.vertexAttributeLayout != GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED) {
         PPX_ASSERT_MSG(false, NOT_INTERLEAVED_MSG);
         return PPX_VALUE_IGNORED;
     }
@@ -700,7 +724,7 @@ uint32_t Geometry::AppendVertexInterleaved(const TriMeshVertexData& vtx)
 
 uint32_t Geometry::AppendVertexInterleaved(const WireMeshVertexData& vtx)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+    if (mCreateInfo.vertexAttributeLayout != GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED) {
         PPX_ASSERT_MSG(false, NOT_INTERLEAVED_MSG);
         return PPX_VALUE_IGNORED;
     }
@@ -732,10 +756,10 @@ uint32_t Geometry::AppendVertexInterleaved(const WireMeshVertexData& vtx)
 uint32_t Geometry::AppendVertexData(const TriMeshVertexData& vtx)
 {
     uint32_t n = 0;
-    if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+    if (mCreateInfo.vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED) {
         n = AppendVertexInterleaved(vtx);
     }
-    else if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    else if (mCreateInfo.vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         n = AppendPosition(vtx.position);
         AppendNormal(vtx.normal);
         AppendColor(vtx.color);
@@ -753,10 +777,10 @@ uint32_t Geometry::AppendVertexData(const TriMeshVertexData& vtx)
 uint32_t Geometry::AppendVertexData(const WireMeshVertexData& vtx)
 {
     uint32_t n = 0;
-    if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED) {
+    if (mCreateInfo.vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED) {
         n = AppendVertexInterleaved(vtx);
     }
-    else if (mCreateInfo.attributeLayout == GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    else if (mCreateInfo.vertexAttributeLayout == GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         n = AppendPosition(vtx.position);
         AppendColor(vtx.color);
     }
@@ -788,7 +812,7 @@ void Geometry::AppendEdge(const WireMeshVertexData& vtx0, const WireMeshVertexDa
 
 uint32_t Geometry::AppendPosition(const float3& value)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    if (mCreateInfo.vertexAttributeLayout != GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         PPX_ASSERT_MSG(false, NOT_PLANAR_MSG);
         return PPX_VALUE_IGNORED;
     }
@@ -805,7 +829,7 @@ uint32_t Geometry::AppendPosition(const float3& value)
 
 void Geometry::AppendNormal(const float3& value)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    if (mCreateInfo.vertexAttributeLayout != GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         PPX_ASSERT_MSG(false, NOT_PLANAR_MSG);
         return;
     }
@@ -817,7 +841,7 @@ void Geometry::AppendNormal(const float3& value)
 
 void Geometry::AppendColor(const float3& value)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    if (mCreateInfo.vertexAttributeLayout != GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         PPX_ASSERT_MSG(false, NOT_PLANAR_MSG);
         return;
     }
@@ -829,7 +853,7 @@ void Geometry::AppendColor(const float3& value)
 
 void Geometry::AppendTexCoord(const float2& value)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    if (mCreateInfo.vertexAttributeLayout != GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         PPX_ASSERT_MSG(false, NOT_PLANAR_MSG);
         return;
     }
@@ -841,7 +865,7 @@ void Geometry::AppendTexCoord(const float2& value)
 
 void Geometry::AppendTangent(const float4& value)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    if (mCreateInfo.vertexAttributeLayout != GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         PPX_ASSERT_MSG(false, NOT_PLANAR_MSG);
         return;
     }
@@ -853,7 +877,7 @@ void Geometry::AppendTangent(const float4& value)
 
 void Geometry::AppendBitangent(const float3& value)
 {
-    if (mCreateInfo.attributeLayout != GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR) {
+    if (mCreateInfo.vertexAttributeLayout != GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR) {
         PPX_ASSERT_MSG(false, NOT_PLANAR_MSG);
         return;
     }

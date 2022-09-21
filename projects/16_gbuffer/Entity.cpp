@@ -20,7 +20,7 @@ ppx::Result Entity::Create(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool* 
 
     grfx::Device* pDevice = pQueue->GetDevice();
 
-    mModel    = pCreateInfo->pModel;
+    mMesh     = pCreateInfo->pMesh;
     mMaterial = pCreateInfo->pMaterial;
 
     // Model constants
@@ -103,7 +103,7 @@ ppx::Result Entity::CreatePipelines(ppx::grfx::DescriptorSetLayout* pSceneDataLa
 
         grfx::ShaderModulePtr PS;
 
-        bytecode                   = pApp->LoadShader(pApp->GetAssetPath("gbuffer/shaders"), "DeferredRender.ps");
+        bytecode = pApp->LoadShader(pApp->GetAssetPath("gbuffer/shaders"), "DeferredRender.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(pDevice->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -191,7 +191,7 @@ void Entity::Draw(ppx::grfx::DescriptorSet* pSceneDataSet, ppx::grfx::CommandBuf
 
     pCmd->BindGraphicsPipeline(sPipeline);
 
-    pCmd->BindIndexBuffer(mModel);
-    pCmd->BindVertexBuffers(mModel);
-    pCmd->DrawIndexed(mModel->GetIndexCount());
+    pCmd->BindIndexBuffer(mMesh);
+    pCmd->BindVertexBuffers(mMesh);
+    pCmd->DrawIndexed(mMesh->GetIndexCount());
 }

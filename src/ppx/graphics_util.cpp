@@ -1152,21 +1152,21 @@ Result CreateCubeMapFromFile(
 
 // -------------------------------------------------------------------------------------------------
 
-Result CreateModelFromGeometry(
+Result CreateMeshFromGeometry(
     grfx::Queue*    pQueue,
     const Geometry* pGeometry,
-    grfx::Model**   ppModel)
+    grfx::Mesh**    ppMesh)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(pGeometry);
-    PPX_ASSERT_NULL_ARG(ppModel);
+    PPX_ASSERT_NULL_ARG(ppMesh);
 
     grfx::ScopeDestroyer SCOPED_DESTROYER(pQueue->GetDevice());
 
     // Create staging buffer
     grfx::BufferPtr stagingBuffer;
     {
-        uint32_t biggestBufferSize = pGeometry->GetBiggestBufferSize();
+        uint32_t biggestBufferSize = pGeometry->GetLargestBufferSize();
 
         grfx::BufferCreateInfo ci      = {};
         ci.size                        = biggestBufferSize;
@@ -1180,19 +1180,19 @@ Result CreateModelFromGeometry(
         SCOPED_DESTROYER.AddObject(stagingBuffer);
     }
 
-    // Create target model
-    grfx::ModelPtr targetModel;
+    // Create target mesh
+    grfx::MeshPtr targetMesh;
     {
-        grfx::ModelCreateInfo ci = grfx::ModelCreateInfo(*pGeometry);
+        grfx::MeshCreateInfo ci = grfx::MeshCreateInfo(*pGeometry);
 
-        Result ppxres = pQueue->GetDevice()->CreateModel(&ci, &targetModel);
+        Result ppxres = pQueue->GetDevice()->CreateMesh(&ci, &targetMesh);
         if (Failed(ppxres)) {
             return ppxres;
         }
-        SCOPED_DESTROYER.AddObject(targetModel);
+        SCOPED_DESTROYER.AddObject(targetMesh);
     }
 
-    // Copy geometry data to model
+    // Copy geometry data to mesh
     {
         // Copy info
         grfx::BufferToBufferCopyInfo copyInfo = {};
@@ -1212,7 +1212,7 @@ Result CreateModelFromGeometry(
             copyInfo.size = geoBufferSize;
 
             // Copy to GPU buffer
-            ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetModel->GetIndexBuffer(), grfx::RESOURCE_STATE_INDEX_BUFFER, grfx::RESOURCE_STATE_INDEX_BUFFER);
+            ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetMesh->GetIndexBuffer(), grfx::RESOURCE_STATE_INDEX_BUFFER, grfx::RESOURCE_STATE_INDEX_BUFFER);
             if (Failed(ppxres)) {
                 return ppxres;
             }
@@ -1221,7 +1221,7 @@ Result CreateModelFromGeometry(
         // Vertex buffers
         uint32_t vertexBufferCount = pGeometry->GetVertexBufferCount();
         for (uint32_t i = 0; i < vertexBufferCount; ++i) {
-            const Geometry::Buffer* pGeoBuffer = pGeometry->GetVertxBuffer(i);
+            const Geometry::Buffer* pGeoBuffer = pGeometry->GetVertexBuffer(i);
             PPX_ASSERT_NULL_ARG(pGeoBuffer);
 
             uint32_t geoBufferSize = pGeoBuffer->GetSize();
@@ -1233,7 +1233,7 @@ Result CreateModelFromGeometry(
 
             copyInfo.size = geoBufferSize;
 
-            grfx::BufferPtr targetBuffer = targetModel->GetVertexBuffer(i);
+            grfx::BufferPtr targetBuffer = targetMesh->GetVertexBuffer(i);
 
             // Copy to GPU buffer
             ppxres = pQueue->CopyBufferToBuffer(&copyInfo, stagingBuffer, targetBuffer, grfx::RESOURCE_STATE_VERTEX_BUFFER, grfx::RESOURCE_STATE_VERTEX_BUFFER);
@@ -1244,34 +1244,34 @@ Result CreateModelFromGeometry(
     }
 
     // Change ownership to reference so object doesn't get destroyed
-    targetModel->SetOwnership(grfx::OWNERSHIP_REFERENCE);
+    targetMesh->SetOwnership(grfx::OWNERSHIP_REFERENCE);
 
     // Assign output
-    *ppModel = targetModel;
+    *ppMesh = targetMesh;
 
     return ppx::SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------
 
-Result CreateModelFromTriMesh(
+Result CreateMeshFromTriMesh(
     grfx::Queue*   pQueue,
-    const TriMesh* pMesh,
-    grfx::Model**  ppModel)
+    const TriMesh* pTriMesh,
+    grfx::Mesh**   ppMesh)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
-    PPX_ASSERT_NULL_ARG(pMesh);
-    PPX_ASSERT_NULL_ARG(ppModel);
+    PPX_ASSERT_NULL_ARG(pTriMesh);
+    PPX_ASSERT_NULL_ARG(ppMesh);
 
     Result ppxres = ppx::ERROR_FAILED;
 
     Geometry geo;
-    ppxres = Geometry::Create(*pMesh, &geo);
+    ppxres = Geometry::Create(*pTriMesh, &geo);
     if (Failed(ppxres)) {
         return ppxres;
     }
 
-    ppxres = CreateModelFromGeometry(pQueue, &geo, ppModel);
+    ppxres = CreateMeshFromGeometry(pQueue, &geo, ppMesh);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -1281,24 +1281,24 @@ Result CreateModelFromTriMesh(
 
 // -------------------------------------------------------------------------------------------------
 
-Result CreateModelFromWireMesh(
+Result CreateMeshFromWireMesh(
     grfx::Queue*    pQueue,
-    const WireMesh* pMesh,
-    grfx::Model**   ppModel)
+    const WireMesh* pWireMesh,
+    grfx::Mesh**    ppMesh)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
-    PPX_ASSERT_NULL_ARG(pMesh);
-    PPX_ASSERT_NULL_ARG(ppModel);
+    PPX_ASSERT_NULL_ARG(pWireMesh);
+    PPX_ASSERT_NULL_ARG(ppMesh);
 
     Result ppxres = ppx::ERROR_FAILED;
 
     Geometry geo;
-    ppxres = Geometry::Create(*pMesh, &geo);
+    ppxres = Geometry::Create(*pWireMesh, &geo);
     if (Failed(ppxres)) {
         return ppxres;
     }
 
-    ppxres = CreateModelFromGeometry(pQueue, &geo, ppModel);
+    ppxres = CreateMeshFromGeometry(pQueue, &geo, ppMesh);
     if (Failed(ppxres)) {
         return ppxres;
     }
@@ -1308,18 +1308,18 @@ Result CreateModelFromWireMesh(
 
 // -------------------------------------------------------------------------------------------------
 
-Result CreateModelFromFile(
+Result CreateMeshFromFile(
     grfx::Queue*          pQueue,
     const fs::path&       path,
-    grfx::Model**         ppModel,
+    grfx::Mesh**          ppMesh,
     const TriMeshOptions& options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
-    PPX_ASSERT_NULL_ARG(ppModel);
+    PPX_ASSERT_NULL_ARG(ppMesh);
 
     TriMesh mesh = TriMesh::CreateFromOBJ(path, options);
 
-    Result ppxres = CreateModelFromTriMesh(pQueue, &mesh, ppModel);
+    Result ppxres = CreateMeshFromTriMesh(pQueue, &mesh, ppMesh);
     if (Failed(ppxres)) {
         return ppxres;
     }

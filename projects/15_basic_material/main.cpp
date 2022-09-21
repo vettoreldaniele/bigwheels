@@ -85,18 +85,18 @@ private:
     grfx::TexturePtr m1x1BlackTexture;
     grfx::TexturePtr m1x1WhiteTexture;
 
-    std::vector<PerFrame>       mPerFrame;
-    PerspCamera                 mCamera;
-    grfx::DescriptorPoolPtr     mDescriptorPool;
-    grfx::ModelPtr              mKnob;
-    grfx::ModelPtr              mSphere;
-    grfx::ModelPtr              mCube;
-    grfx::ModelPtr              mMonkey;
-    grfx::ModelPtr              mCeberusModel;
-    std::vector<grfx::ModelPtr> mModels;
+    std::vector<PerFrame>      mPerFrame;
+    PerspCamera                mCamera;
+    grfx::DescriptorPoolPtr    mDescriptorPool;
+    grfx::MeshPtr              mKnob;
+    grfx::MeshPtr              mSphere;
+    grfx::MeshPtr              mCube;
+    grfx::MeshPtr              mMonkey;
+    grfx::MeshPtr              mCeberusModel;
+    std::vector<grfx::MeshPtr> mMeshes;
 
     // Skybox (a sphere really)
-    grfx::ModelPtr               mSkyboxModel;
+    grfx::MeshPtr                mSkyboxModel;
     grfx::DescriptorSetLayoutPtr mSkyboxLayout;
     grfx::DescriptorSetPtr       mSkyboxSet;
     grfx::BufferPtr              mSkyboxConstants;
@@ -196,8 +196,8 @@ private:
         float3(0.4f),
     };
 
-    uint32_t                 mModelIndex = 0;
-    std::vector<const char*> mModelNames = {
+    uint32_t                 mMeshIndex = 0;
+    std::vector<const char*> mMeshNames = {
         "Knob",
         "Sphere",
         "Cube",
@@ -301,7 +301,7 @@ void ProjApp::SetupLightingResources()
     Geometry geo;
     TriMesh  mesh = TriMesh::CreateSphere(5, 32, 16, TriMeshOptions().Indices().TexCoords());
     PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSkyboxModel));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mSkyboxModel));
 
     // Layout - the binding values here map to the Texture shader (Texture.hlsl)
     //
@@ -414,7 +414,7 @@ void ProjApp::SetupLightingResources()
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-        bytecode                   = LoadShader(GetAssetPath("materials/shaders"), "Texture.ps");
+        bytecode = LoadShader(GetAssetPath("materials/shaders"), "Texture.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -428,9 +428,9 @@ void ProjApp::SetupLightingResources()
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {VS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {PS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mSkyboxModel->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mSkyboxModel->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mSkyboxModel->GetVertexBinding(1);
+        gpCreateInfo.vertexInputState.bindingCount      = 2;
+        gpCreateInfo.vertexInputState.bindings[0]       = mSkyboxModel->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[1]       = mSkyboxModel->GetDerivedVertexBindings()[1];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_FRONT;
@@ -626,7 +626,7 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&createInfo, &mDescriptorPool));
     }
 
-    // Models
+    // Meshes
     {
         TriMeshOptions options = TriMeshOptions().Indices().VertexColors().Normals().TexCoords().Tangents();
 
@@ -634,40 +634,40 @@ void ProjApp::Setup()
             Geometry geo;
             TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), options);
             PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mKnob));
-            mModels.push_back(mKnob);
+            PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mKnob));
+            mMeshes.push_back(mKnob);
         }
 
         {
             Geometry geo;
             TriMesh  mesh = TriMesh::CreateSphere(0.75f, 128, 64, TriMeshOptions(options).TexCoordScale(float2(2)));
             PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
-            mModels.push_back(mSphere);
+            PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mSphere));
+            mMeshes.push_back(mSphere);
         }
 
         {
             Geometry geo;
             TriMesh  mesh = TriMesh::CreateCube(float3(1.0f), options);
             PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCube));
-            mModels.push_back(mCube);
+            PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mCube));
+            mMeshes.push_back(mCube);
         }
 
         {
             Geometry geo;
             TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/monkey.obj"), TriMeshOptions(options).Scale(float3(0.75f)));
             PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mMonkey));
-            mModels.push_back(mMonkey);
+            PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mMonkey));
+            mMeshes.push_back(mMonkey);
         }
 
         {
             Geometry geo;
             TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/cerberus.obj"), TriMeshOptions(options).Scale(float3(0.75f)));
             PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &mCeberusModel));
-            mModels.push_back(mCeberusModel);
+            PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mCeberusModel));
+            mMeshes.push_back(mCeberusModel);
         }
     }
 
@@ -813,13 +813,13 @@ void ProjApp::Setup()
     // Pipeline
     {
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
-        gpCreateInfo.vertexInputState.bindingCount      = mKnob->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mKnob->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]       = *mKnob->GetVertexBinding(1);
-        gpCreateInfo.vertexInputState.bindings[2]       = *mKnob->GetVertexBinding(2);
-        gpCreateInfo.vertexInputState.bindings[3]       = *mKnob->GetVertexBinding(3);
-        gpCreateInfo.vertexInputState.bindings[4]       = *mKnob->GetVertexBinding(4);
-        gpCreateInfo.vertexInputState.bindings[5]       = *mKnob->GetVertexBinding(5);
+        gpCreateInfo.vertexInputState.bindingCount      = CountU32(mKnob->GetDerivedVertexBindings());
+        gpCreateInfo.vertexInputState.bindings[0]       = mKnob->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[1]       = mKnob->GetDerivedVertexBindings()[1];
+        gpCreateInfo.vertexInputState.bindings[2]       = mKnob->GetDerivedVertexBindings()[2];
+        gpCreateInfo.vertexInputState.bindings[3]       = mKnob->GetDerivedVertexBindings()[3];
+        gpCreateInfo.vertexInputState.bindings[4]       = mKnob->GetDerivedVertexBindings()[4];
+        gpCreateInfo.vertexInputState.bindings[5]       = mKnob->GetDerivedVertexBindings()[5];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -1216,15 +1216,15 @@ void ProjApp::Render()
 
             frame.cmd->BindGraphicsPipeline(mShaderPipelines[mShaderIndex]);
 
-            frame.cmd->BindIndexBuffer(mModels[mModelIndex]);
-            frame.cmd->BindVertexBuffers(mModels[mModelIndex]);
+            frame.cmd->BindIndexBuffer(mMeshes[mMeshIndex]);
+            frame.cmd->BindVertexBuffers(mMeshes[mMeshIndex]);
 
 #ifdef ENABLE_GPU_QUERIES
             if (GetDevice()->PipelineStatsAvailable()) {
                 frame.cmd->BeginQuery(frame.pipelineStatsQuery, 0);
             }
 #endif
-            frame.cmd->DrawIndexed(mModels[mModelIndex]->GetIndexCount());
+            frame.cmd->DrawIndexed(mMeshes[mMeshIndex]->GetIndexCount());
 #ifdef ENABLE_GPU_QUERIES
             if (GetDevice()->PipelineStatsAvailable()) {
                 frame.cmd->EndQuery(frame.pipelineStatsQuery, 0);
@@ -1282,13 +1282,13 @@ void ProjApp::DrawGui()
 
     ImGui::Separator();
 
-    static const char* currentModelName = mModelNames[0];
+    static const char* currentModelName = mMeshNames[0];
     if (ImGui::BeginCombo("Geometry", currentModelName)) {
-        for (size_t i = 0; i < mModelNames.size(); ++i) {
-            bool isSelected = (currentModelName == mModelNames[i]);
-            if (ImGui::Selectable(mModelNames[i], isSelected)) {
-                currentModelName = mModelNames[i];
-                mModelIndex      = static_cast<uint32_t>(i);
+        for (size_t i = 0; i < mMeshNames.size(); ++i) {
+            bool isSelected = (currentModelName == mMeshNames[i]);
+            if (ImGui::Selectable(mMeshNames[i], isSelected)) {
+                currentModelName = mMeshNames[i];
+                mMeshIndex       = static_cast<uint32_t>(i);
             }
             if (isSelected) {
                 ImGui::SetItemDefaultFocus();

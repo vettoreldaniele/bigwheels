@@ -2,7 +2,7 @@
 #define SHARK_H
 
 #include "ppx/grfx/grfx_descriptor.h"
-#include "ppx/grfx/grfx_model.h"
+#include "ppx/grfx/grfx_mesh.h"
 using namespace ppx;
 
 #include "Buffer.h"
@@ -37,7 +37,7 @@ private:
     grfx::DescriptorSetPtr    mMaterialSet;
     grfx::GraphicsPipelinePtr mForwardPipeline;
     grfx::GraphicsPipelinePtr mShadowPipeline;
-    grfx::ModelPtr            mModel;
+    grfx::MeshPtr             mMesh;
     grfx::TexturePtr          mAlbedoTexture;
     grfx::TexturePtr          mRoughnessTexture;
     grfx::TexturePtr          mNormalMapTexture;

@@ -30,12 +30,12 @@ ScopeDestroyer::~ScopeDestroyer()
     }
     mBuffers.clear();
 
-    for (auto& object : mModels) {
+    for (auto& object : mMeshes) {
         if (object->GetOwnership() == grfx::OWNERSHIP_EXCLUSIVE) {
-            mDevice->DestroyModel(object);
+            mDevice->DestroyMesh(object);
         }
     }
-    mModels.clear();
+    mMeshes.clear();
 
     for (auto& object : mTextures) {
         if (object->GetOwnership() == grfx::OWNERSHIP_EXCLUSIVE) {
@@ -81,7 +81,7 @@ Result ScopeDestroyer::AddObject(grfx::Buffer* pObject)
     return ppx::SUCCESS;
 }
 
-Result ScopeDestroyer::AddObject(grfx::Model* pObject)
+Result ScopeDestroyer::AddObject(grfx::Mesh* pObject)
 {
     if (IsNull(pObject)) {
         PPX_ASSERT_MSG(false, NULL_ARGUMENT_MSG);
@@ -92,7 +92,7 @@ Result ScopeDestroyer::AddObject(grfx::Model* pObject)
         return ppx::ERROR_GRFX_INVALID_OWNERSHIP;
     }
     pObject->SetOwnership(grfx::OWNERSHIP_EXCLUSIVE);
-    mModels.push_back(pObject);
+    mMeshes.push_back(pObject);
     return ppx::SUCCESS;
 }
 

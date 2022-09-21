@@ -26,7 +26,6 @@ void Device::Destroy()
     // Destroy helper objects first
     DestroyAllObjects(mDrawPasses);
     DestroyAllObjects(mFullscreenQuads);
-    DestroyAllObjects(mModels);
     DestroyAllObjects(mTextDraws);
     DestroyAllObjects(mTextures);
     DestroyAllObjects(mTextureFonts);
@@ -172,9 +171,9 @@ Result Device::AllocateObject(grfx::FullscreenQuad** ppObject)
     return ppx::SUCCESS;
 }
 
-Result Device::AllocateObject(grfx::Model** ppObject)
+Result Device::AllocateObject(grfx::Mesh** ppObject)
 {
-    grfx::Model* pObject = new grfx::Model();
+    grfx::Mesh* pObject = new grfx::Mesh();
     if (IsNull(pObject)) {
         return ppx::ERROR_ALLOCATION_FAILED;
     }
@@ -445,21 +444,21 @@ void Device::DestroyImage(const grfx::Image* pImage)
     DestroyObject(mImages, pImage);
 }
 
-Result Device::CreateModel(const grfx::ModelCreateInfo* pCreateInfo, grfx::Model** ppModel)
+Result Device::CreateMesh(const grfx::MeshCreateInfo* pCreateInfo, grfx::Mesh** ppMesh)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
-    PPX_ASSERT_NULL_ARG(ppModel);
-    Result gxres = CreateObject(pCreateInfo, mModels, ppModel);
+    PPX_ASSERT_NULL_ARG(ppMesh);
+    Result gxres = CreateObject(pCreateInfo, mMeshes, ppMesh);
     if (Failed(gxres)) {
         return gxres;
     }
     return ppx::SUCCESS;
 }
 
-void Device::DestroyModel(const grfx::Model* pModel)
+void Device::DestroyMesh(const grfx::Mesh* pMesh)
 {
-    PPX_ASSERT_NULL_ARG(pModel);
-    DestroyObject(mModels, pModel);
+    PPX_ASSERT_NULL_ARG(pMesh);
+    DestroyObject(mMeshes, pMesh);
 }
 
 Result Device::CreatePipelineInterface(const grfx::PipelineInterfaceCreateInfo* pCreateInfo, grfx::PipelineInterface** ppPipelineInterface)

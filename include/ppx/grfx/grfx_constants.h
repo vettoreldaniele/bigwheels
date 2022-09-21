@@ -59,6 +59,7 @@
 #define PPX_SEMANTIC_NAME_TEXCOORD  "TEXCOORD"
 #define PPX_SEMANTIC_NAME_TANGENT   "TANGENT"
 #define PPX_SEMANTIC_NAME_BITANGENT "BITANGENT"
+#define PPX_SEMANTIC_NAME_CUSTOM    "CUSTOM"
 
 // D3D11's descriptor handling doesn't have a concept of set/spaces
 // but the resources types are still namespaced to s,t,u,b registers.

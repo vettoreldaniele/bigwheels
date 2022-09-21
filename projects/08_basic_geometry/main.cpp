@@ -30,7 +30,7 @@ private:
 
     struct Entity
     {
-        grfx::ModelPtr         model;
+        grfx::MeshPtr          mesh;
         grfx::DescriptorSetPtr descriptorSet;
         grfx::BufferPtr        uniformBuffer;
     };
@@ -73,7 +73,7 @@ void ProjApp::SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo
 {
     Geometry geo;
     PPX_CHECKED_CALL(Geometry::Create(createInfo, mesh, &geo));
-    PPX_CHECKED_CALL(grfx_util::CreateModelFromGeometry(GetGraphicsQueue(), &geo, &pEntity->model));
+    PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &pEntity->mesh));
 
     grfx::BufferCreateInfo bufferCreateInfo        = {};
     bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
@@ -134,11 +134,16 @@ void ProjApp::Setup()
         piCreateInfo.sets[0].pLayout                   = mDescriptorSetLayout;
         PPX_CHECKED_CALL(GetDevice()->CreatePipelineInterface(&piCreateInfo, &mPipelineInterface));
 
+        // -----------------------------------------------------------------------------------------
+        // Interleaved pipeline
+
+        auto interleavedVertexBindings = mInterleavedU16.mesh->GetDerivedVertexBindings();
+
         grfx::GraphicsPipelineCreateInfo2 gpCreateInfo  = {};
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
-        gpCreateInfo.vertexInputState.bindingCount      = mInterleavedU16.model->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]       = *mInterleavedU16.model->GetVertexBinding(0);
+        gpCreateInfo.vertexInputState.bindingCount      = 1;
+        gpCreateInfo.vertexInputState.bindings[0]       = interleavedVertexBindings[0];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -151,13 +156,16 @@ void ProjApp::Setup()
         gpCreateInfo.outputState.depthStencilFormat     = GetSwapchain()->GetDepthFormat();
         gpCreateInfo.pPipelineInterface                 = mPipelineInterface;
 
-        // Interleaved pipeline
         PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mInterleavedPipeline));
 
+        // -----------------------------------------------------------------------------------------
         // Planar pipeline
-        gpCreateInfo.vertexInputState.bindingCount = mPlanarU16.model->GetVertexBufferCount();
-        gpCreateInfo.vertexInputState.bindings[0]  = *mPlanarU16.model->GetVertexBinding(0);
-        gpCreateInfo.vertexInputState.bindings[1]  = *mPlanarU16.model->GetVertexBinding(1);
+
+        auto planarVertexBindings = mPlanarU16.mesh->GetDerivedVertexBindings();
+
+        gpCreateInfo.vertexInputState.bindingCount = 2;
+        gpCreateInfo.vertexInputState.bindings[0]  = planarVertexBindings[0];
+        gpCreateInfo.vertexInputState.bindings[1]  = planarVertexBindings[1];
         PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPlanarPipeline));
     }
 
@@ -204,6 +212,7 @@ void ProjApp::Render()
         float4x4 V = glm::lookAt(float3(0, 0, 8), float3(0, 0, 0), float3(0, 1, 0));
         float4x4 M = glm::rotate(t, float3(0, 0, 1)) * glm::rotate(2 * t, float3(0, 1, 0)) * glm::rotate(t, float3(1, 0, 0));
 
+        // Top 3 cubes are interleaved
         float4x4 T   = glm::translate(float3(-4, 2, 0));
         float4x4 mat = P * V * T * M;
         mInterleavedU16.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
@@ -216,6 +225,7 @@ void ProjApp::Render()
         mat = P * V * T * M;
         mInterleaved.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
 
+        // Bottom 3 cubes are planar
         T   = glm::translate(float3(-4, -2, 0));
         mat = P * V * T * M;
         mPlanarU16.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
@@ -253,20 +263,20 @@ void ProjApp::Render()
 
             // Interleaved U16
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleavedU16.descriptorSet);
-            frame.cmd->BindIndexBuffer(mInterleavedU16.model);
-            frame.cmd->BindVertexBuffers(mInterleavedU16.model);
-            frame.cmd->DrawIndexed(mInterleavedU16.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mInterleavedU16.mesh);
+            frame.cmd->BindVertexBuffers(mInterleavedU16.mesh);
+            frame.cmd->DrawIndexed(mInterleavedU16.mesh->GetIndexCount());
 
             // Interleaved U32
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleavedU32.descriptorSet);
-            frame.cmd->BindIndexBuffer(mInterleavedU32.model);
-            frame.cmd->BindVertexBuffers(mInterleavedU32.model);
-            frame.cmd->DrawIndexed(mInterleavedU32.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mInterleavedU32.mesh);
+            frame.cmd->BindVertexBuffers(mInterleavedU32.mesh);
+            frame.cmd->DrawIndexed(mInterleavedU32.mesh->GetIndexCount());
 
             // Interleaved
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleaved.descriptorSet);
-            frame.cmd->BindVertexBuffers(mInterleaved.model);
-            frame.cmd->Draw(mInterleaved.model->GetVertexCount());
+            frame.cmd->BindVertexBuffers(mInterleaved.mesh);
+            frame.cmd->Draw(mInterleaved.mesh->GetVertexCount());
 
             // -------------------------------------------------------------------------------------
 
@@ -275,20 +285,20 @@ void ProjApp::Render()
 
             // Planar U16
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanarU16.descriptorSet);
-            frame.cmd->BindIndexBuffer(mPlanarU16.model);
-            frame.cmd->BindVertexBuffers(mPlanarU16.model);
-            frame.cmd->DrawIndexed(mPlanarU16.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mPlanarU16.mesh);
+            frame.cmd->BindVertexBuffers(mPlanarU16.mesh);
+            frame.cmd->DrawIndexed(mPlanarU16.mesh->GetIndexCount());
 
             // Planar U32
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanarU32.descriptorSet);
-            frame.cmd->BindIndexBuffer(mPlanarU32.model);
-            frame.cmd->BindVertexBuffers(mPlanarU32.model);
-            frame.cmd->DrawIndexed(mPlanarU32.model->GetIndexCount());
+            frame.cmd->BindIndexBuffer(mPlanarU32.mesh);
+            frame.cmd->BindVertexBuffers(mPlanarU32.mesh);
+            frame.cmd->DrawIndexed(mPlanarU32.mesh->GetIndexCount());
 
             // Planar
             frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanar.descriptorSet);
-            frame.cmd->BindVertexBuffers(mPlanar.model);
-            frame.cmd->Draw(mPlanar.model->GetVertexCount());
+            frame.cmd->BindVertexBuffers(mPlanar.mesh);
+            frame.cmd->Draw(mPlanar.mesh->GetVertexCount());
 
             // Draw ImGui
             DrawDebugInfo();

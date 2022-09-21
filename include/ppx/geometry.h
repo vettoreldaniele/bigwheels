@@ -7,15 +7,15 @@
 
 namespace ppx {
 
-enum GeometryAttributeLayout
+enum GeometryVertexAttributeLayout
 {
-    GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED = 1,
-    GEOMETRY_ATTRIBUTE_LAYOUT_PLANAR      = 2,
+    GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED = 1,
+    GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_PLANAR      = 2,
 };
 
 //! @struct GeometryOptions
 //!
-//! primtiveTopolgy
+//! primtiveTopology
 //!   - only TRIANGLE_LIST is currently supported
 //!
 //! indexType
@@ -26,13 +26,21 @@ enum GeometryAttributeLayout
 //!   - if PLANAR bindings[0..bindingCount] are used
 //!   - if PLANAR bindings can only have 1 attribute
 //!
+//! Supported vertex semantics:
+//!    grfx::VERTEX_SEMANTIC_POSITION
+//!    grfx::VERTEX_SEMANTIC_NORMAL
+//!    grfx::VERTEX_SEMANTIC_COLOR
+//!    grfx::VERTEX_SEMANTIC_TANGENT
+//!    grfx::VERTEX_SEMANTIC_BITANGEN
+//!    grfx::VERTEX_SEMANTIC_TEXCOORD
+//!
 struct GeometryOptions
 {
-    GeometryAttributeLayout attributeLayout                         = ppx::GEOMETRY_ATTRIBUTE_LAYOUT_INTERLEAVED;
-    grfx::IndexType         indexType                               = grfx::INDEX_TYPE_UNDEFINED;
-    uint32_t                vertexBindingCount                      = 0;
-    grfx::VertexBinding     vertexBindings[PPX_MAX_VERTEX_BINDINGS] = {};
-    grfx::PrimitiveTopology primtiveTopolgy                         = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    grfx::IndexType               indexType                               = grfx::INDEX_TYPE_UNDEFINED;
+    GeometryVertexAttributeLayout vertexAttributeLayout                   = ppx::GEOMETRY_VERTEX_ATTRIBUTE_LAYOUT_INTERLEAVED;
+    uint32_t                      vertexBindingCount                      = 0;
+    grfx::VertexBinding           vertexBindings[PPX_MAX_VERTEX_BINDINGS] = {};
+    grfx::PrimitiveTopology       primtiveTopology                        = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
     // Creates a create info objects with a UINT16 or UINT32 index
     // type and position vertex attribute.
@@ -79,6 +87,8 @@ private:
 
 //! @class Geometry
 //!
+//! Implementation Notes:
+//!   - Do not modify the vertex buffers directly, use the Append* functions
 //!
 class Geometry
 {
@@ -173,15 +183,21 @@ public:
         Geometry*              pGeometry);
 
     // Create object with a create info derived from mesh
-    static Result Create(const TriMesh& mesh, Geometry* pGeomtry);
-    static Result Create(const WireMesh& mesh, Geometry* pGeomtry);
+    static Result Create(const TriMesh& mesh, Geometry* pGeometry);
+    static Result Create(const WireMesh& mesh, Geometry* pGeometry);
 
-    grfx::IndexType            GetIndexType() const { return mCreateInfo.indexType; }
-    const Geometry::Buffer*    GetIndexBuffer() const { return &mIndexBuffer; }
-    uint32_t                   GetVertexBufferCount() const { return CountU32(mVertexBuffers); }
-    const Geometry::Buffer*    GetVertxBuffer(uint32_t index) const;
-    const grfx::VertexBinding* GetVertexBinding(uint32_t index) const;
-    uint32_t                   GetBiggestBufferSize() const;
+    grfx::IndexType         GetIndexType() const { return mCreateInfo.indexType; }
+    const Geometry::Buffer* GetIndexBuffer() const { return &mIndexBuffer; }
+    uint32_t                GetIndexCount() const;
+
+    GeometryVertexAttributeLayout GetVertexAttributeLayout() const { return mCreateInfo.vertexAttributeLayout; }
+    uint32_t                      GetVertexBindingCount() const { return mCreateInfo.vertexBindingCount; }
+    const grfx::VertexBinding*    GetVertexBinding(uint32_t index) const;
+
+    uint32_t                GetVertexCount() const;
+    uint32_t                GetVertexBufferCount() const { return CountU32(mVertexBuffers); }
+    const Geometry::Buffer* GetVertexBuffer(uint32_t index) const;
+    uint32_t                GetLargestBufferSize() const;
 
     // Appends triangle or edge vertex indices to index buffer
     //
