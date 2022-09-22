@@ -85,13 +85,6 @@ message("Graphics API DXIL SPV : ${PPX_DXIL_SPV_MSG}")
 message("Graphics API Vulkan   : ${PPX_VULKAN_MSG}")
 
 # ------------------------------------------------------------------------------
-# HLSL binding semantics support.
-# ------------------------------------------------------------------------------
-if(ENABLE_HLSL_BINDING_SEMANTICS)
-    add_compile_definitions("ENABLE_HLSL_BINDING_SEMANTICS")
-endif()
-
-# ------------------------------------------------------------------------------
 # Add CMake modules for shader compilation and sample creation.
 # Needs to come after platform and API config.
 # ------------------------------------------------------------------------------

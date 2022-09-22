@@ -90,8 +90,6 @@ cmake -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake -DDXC_PATH=$PATH_T
 make -j <# CPUs to use>
 ```
 
-Note: The dxil-spirv should be built from the [experimental/dxiivk](https://porto-internal.googlesource.com/third_party/dxil-spirv/) branch.
-
 Built binaries are written to `PPX_OUTPUT_DIR/bin/dxil_spv_*`.
 
 ### Running on GGP
@@ -126,9 +124,6 @@ Built binaries are written to `PPX_OUTPUT_DIR\bin`.
 
 # Shader Compilation
 Shader binaries are generated during project build. For GGP and Linux only SPIR-V binaries are generated. For Windows DXBC, DXIL, and SPIR-V binaries are generated.
-
-## HLSL Binding Semantics support
-Build with `-DENABLE_HLSL_BINDING_SEMANTICS=ON` to enable HLSL binding semantics in DXC during shader compilation. Note that this requires `DXC_PATH` to be set to a DXC that supports this flag.
 
 ## DXC
 The build system will look for `dxc.exe` or `dxc` in the Vulkan SDK bin directory.

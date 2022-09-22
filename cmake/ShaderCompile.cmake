@@ -33,13 +33,6 @@ if (PPX_DXIL_SPV AND NOT DXIL_SPIRV_PATH)
     message(FATAL_ERROR "Could not locate dxil-spirv executable - dxil-spirv is required")
 endif()
 
-if(ENABLE_HLSL_BINDING_SEMANTICS)
-    message("Compiling SPIR-V shaders with HLSL binding semantics")
-    set(DXC_HLSL_BINDING_SEMANTICS_FLAG "-fvk-hlsl-binding-semantics")
-else()
-    set(DXIL_SPIRV_HLSL_BINDING_SEMANTICS_FLAG "--disable-hlsl-binding-semantics")
-endif()
-
 # To support compiling shaders to DXBC we need to know the FXC_PATH.
 # In order to find that, we need CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION.
 # However, when a custom TOOLCHAIN is used, that variable is not set. This
@@ -107,7 +100,7 @@ function(_CompileDXILToSPV)
         MAIN_DEPENDENCY ${ARG_DXIL_FILE}
         # Compile to SPIR-V
         COMMAND ${CMAKE_COMMAND} -E echo "[DXIL-SPV] Compiling ${ARG_DXIL_FILE} to ${ARG_OUTPUT_FILE}"
-        COMMAND ${DXIL_SPIRV_PATH} ${ARG_DXIL_FILE} ${DXIL_SPIRV_HLSL_BINDING_SEMANTICS_FLAG} --output ${ARG_OUTPUT_FILE}
+        COMMAND ${DXIL_SPIRV_PATH} ${ARG_DXIL_FILE} --output ${ARG_OUTPUT_FILE}
     )
 endfunction()
 
@@ -150,7 +143,7 @@ function(_CompileToSPV)
     set(multiValueArgs COMPILER_FLAGS)
     cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "${oneValueArgs}" "${multiValueArgs}")
 
-    list(APPEND all_flags "-spirv" "-fspv-reflect" ${DXC_HLSL_BINDING_SEMANTICS_FLAG} "-T" "${ARG_SHADER_STAGE}_${ARG_SHADER_MODEL}" "-E" "${ARG_SHADER_STAGE}main" ${ARG_COMPILER_FLAGS})
+    list(APPEND all_flags "-spirv" "-fspv-reflect" "-T" "${ARG_SHADER_STAGE}_${ARG_SHADER_MODEL}" "-E" "${ARG_SHADER_STAGE}main" ${ARG_COMPILER_FLAGS})
     _AddCompileShaderCustomCommand(
         COMPILER_PATH ${DXC_PATH}
         HLSL_FILE ${ARG_HLSL_FILE}
