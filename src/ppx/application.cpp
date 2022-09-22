@@ -1318,9 +1318,9 @@ int Application::Run(int argc, char** argv)
             if (mFrameTimesMs.size() > mStandardOptions.stats_frame_window) {
                 mFrameTimesMs.pop_front();
             }
-            float sum         = std::accumulate(mFrameTimesMs.begin(), mFrameTimesMs.end(), 0.0);
-            mAverageFPS       = mFrameTimesMs.size() / (sum);
-            mAverageFrameTime = sum / mFrameTimesMs.size();
+            float totalFrameTimeMs = std::accumulate(mFrameTimesMs.begin(), mFrameTimesMs.end(), 0.0);
+            mAverageFPS            = mFrameTimesMs.size() / (totalFrameTimeMs / 1000.0f);
+            mAverageFrameTime      = totalFrameTimeMs / mFrameTimesMs.size();
         }
         else {
             mAverageFPS       = static_cast<float>(mFrameCount / mTimer.SecondsSinceStart());
