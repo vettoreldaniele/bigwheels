@@ -159,8 +159,8 @@ private:
         float3 albedo          = float3(0.4f, 0.4f, 0.7f);
         float  roughness       = 0.5f; // 0 = smooth, 1 = rough
         float  metalness       = 0.5f; // 0 = dielectric, 1 = metal
-        float  iblStrength     = 1.0f; // 0 = nocontrib, 5 = max
-        float  envStrength     = 0.4f; // 0 = nocontrig, 1 = max
+        float  iblStrength     = 0.4f; // 0 = nocontrib, 10 = max
+        float  envStrength     = 0.3f; // 0 = nocontrib, 1 = max
         bool   albedoSelect    = 1;    // 0 = value, 1 = texture
         bool   roughnessSelect = 1;    // 0 = value, 1 = texture
         bool   metalnessSelect = 1;    // 0 = value, 1 = texture
@@ -193,7 +193,7 @@ private:
         F0_DiletricCrystal,
         F0_DiletricGem,
         F0_DiletricDiamond,
-        float3(0.4f),
+        float3(0.04f),
     };
 
     uint32_t                 mMeshIndex = 0;
@@ -1079,7 +1079,12 @@ void ProjApp::Render()
         pLight[0].position = float3(10, 5, 10);
         pLight[1].position = float3(-10, 0, 5);
         pLight[2].position = float3(1, 10, 3);
-        pLight[4].position = float3(-1, 0, 15);
+        pLight[3].position = float3(-1, 0, 15);
+
+        pLight[0].intensity = 0.07f;
+        pLight[1].intensity = 0.10f;
+        pLight[2].intensity = 0.15f;
+        pLight[3].intensity = 0.17f;
 
         mCpuLightConstants->UnmapMemory();
 
@@ -1380,7 +1385,7 @@ void ProjApp::DrawGui()
         ImGui::EndCombo();
     }
 
-    ImGui::SliderFloat("PBR IBL Strength", &mMaterialData.iblStrength, 0.0f, 25.0f, "%.03f");
+    ImGui::SliderFloat("PBR IBL Strength", &mMaterialData.iblStrength, 0.0f, 10.0f, "%.03f");
     ImGui::SliderFloat("PBR Reflection Strength", &mMaterialData.envStrength, 0.0f, 5.0f, "%.03f");
 
     ImGui::Separator();
