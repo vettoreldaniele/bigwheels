@@ -147,7 +147,6 @@ list(
     ${INC_DIR}/ppx/ppm_export.h
     ${INC_DIR}/ppx/profiler.h
     ${INC_DIR}/ppx/random.h
-    ${INC_DIR}/ppx/shader_translator.h
     ${INC_DIR}/ppx/string_util.h
     ${INC_DIR}/ppx/timer.h
     ${INC_DIR}/ppx/transform.h
@@ -174,7 +173,6 @@ list(
     ${SRC_DIR}/ppx/platform.cpp
     ${SRC_DIR}/ppx/ppm_export.cpp
     ${SRC_DIR}/ppx/profiler.cpp
-    ${SRC_DIR}/ppx/shader_translator.cpp
     ${SRC_DIR}/ppx/string_util.cpp
     ${SRC_DIR}/ppx/timer.cpp
     ${SRC_DIR}/ppx/transform.cpp
