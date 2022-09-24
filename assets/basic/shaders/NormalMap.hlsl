@@ -10,6 +10,8 @@ struct SceneData
     float4x4 CameraViewProjectionMatrix; // Camera's view projection matrix
     
     float4   LightPosition; // Light's position
+
+    float4   EyePosition; // Eye (camera) position
 };
 
 // ConstantBuffer was addd in SM5.1 for D3D12
@@ -70,6 +72,8 @@ VSOutput vsmain(
 
 float4 psmain(VSOutput input) : SV_TARGET
 {
+    float3 V = normalize(Scene.EyePosition.xyz - input.PositionWS.xyz);
+
     // Construct TBN matrix to transform from tangent space into world space
     float3   N = normalize(input.Normal);
     float3   T = normalize(input.Tangent);
@@ -89,10 +93,13 @@ float4 psmain(VSOutput input) : SV_TARGET
     N = normalize(N);
     
     // Light
-    float3 L       = normalize(Scene.LightPosition.xyz - input.PositionWS.xyz);
-    float  diffuse = saturate(dot(N, L));
-    float  ambient = Scene.Ambient.x;
+    float3 L = normalize(Scene.LightPosition.xyz - input.PositionWS.xyz);
+    float3 R = reflect(-L, N);
+
+    float diffuse  = saturate(dot(N, L));           // Lambert
+    float specular = pow(saturate(dot(R, V)), 8.0); // Phong
+    float ambient  = Scene.Ambient.x;
     
-    float3 Co = (diffuse + ambient) * albedo;
+    float3 Co = (diffuse + specular + ambient) * albedo;
     return float4(Co, 1);
 }

@@ -91,7 +91,7 @@ void ProjApp::Setup()
         //std::vector<std::string> textureFiles = {"box_panel.jpg", "statue.jpg"};
         for (uint32_t i = 0; i < 2; ++i) {
             grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
-            PPX_CHECKED_CALL(grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/statue.jpg"), &mImage[i], options, i == 1));
+            PPX_CHECKED_CALL(grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/hanging_lights.jpg"), &mImage[i], options, i == 1));
 
             grfx::SampledImageViewCreateInfo viewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage[i]);
             PPX_CHECKED_CALL(GetDevice()->CreateSampledImageView(&viewCreateInfo, &mSampledImageView[i]));

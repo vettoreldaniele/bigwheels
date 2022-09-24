@@ -163,7 +163,7 @@ void ProjApp::SetupComputeShaderPass()
 
     // Texture images, views, and sampler
     {
-        std::vector<std::string> imageFiles = {"basic/textures/statue.jpg", "basic/textures/lena.png", "basic/textures/box_panel.jpg", "benchmarks/textures/test_image_1280x720.jpg"};
+        std::vector<std::string> imageFiles = {"basic/textures/hanging_lights.jpg", "basic/textures/chinatown.jpg", "basic/textures/box_panel.jpg", "benchmarks/textures/test_image_1280x720.jpg"};
 
         for (size_t i = 0; i < imageFiles.size(); ++i) {
             grfx_util::ImageOptions options = grfx_util::ImageOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
@@ -611,7 +611,7 @@ void ProjApp::DrawGui()
         ImGui::EndCombo();
     }
 
-    const std::vector<const char*> imageNames = {"Statue", "Lena", "Box", "Landscape"};
+    const std::vector<const char*> imageNames = {"Lights", "Chinatown", "Box", "San Francisco"};
     if (ImGui::BeginCombo("Image", imageNames[mImageOption])) {
         for (size_t i = 0; i < imageNames.size(); ++i) {
             bool isSelected = (i == mImageOption);

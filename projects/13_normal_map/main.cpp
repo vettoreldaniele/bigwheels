@@ -384,6 +384,7 @@ void ProjApp::Render()
             float4   Ambient;                    // Object's ambient intensity
             float4x4 CameraViewProjectionMatrix; // Camera's view projection matrix
             float4   LightPosition;              // Light's position
+            float4   EyePosition;                // Eye position
         };
 
         Scene scene                      = {};
@@ -392,6 +393,7 @@ void ProjApp::Render()
         scene.Ambient                    = float4(0.3f);
         scene.CameraViewProjectionMatrix = mCamera.GetViewProjectionMatrix();
         scene.LightPosition              = float4(mLightPosition, 0);
+        scene.EyePosition                = float4(mCamera.GetEyePosition(), 1);
 
         pEntity->drawUniformBuffer->CopyFromSource(sizeof(scene), &scene);
     }
