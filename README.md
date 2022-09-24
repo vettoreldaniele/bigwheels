@@ -48,49 +48,55 @@ BigWheels is a cross-platform, API agnostic framework to build graphics applicat
        * None tested
 
 # Build Instructions
+The recommended build system is CMake. This repo supports both in-tree, and out-of-tree builds.
+For Windows, the recommended generator is `Visual Studio 2019`, for linux, `Ninja`.
 
-By default, built binaries are written to the source directory, under `BigWheels\bin`.
-For fully out of tree builds, pass `-DPPX_OUTPUT_DIR=<your-build-dir>` to CMake.
-This will make CMake copy both binaries and assets to `<your-build-dir>`.
+Binaries are written to `<build-dir>/bin` and libraries to `<build-dir>/lib`.
+
+Shaders are also written to `<build-dir>`, but prefixed with their path and the format:
+
+- For SPIR-V `$REPO/assets/shaders/my_shader.hlsl` is compiled to `$BUILD_DIR/assets/shaders/spv/my_shader.spv`
+- For DXBC51 `$REPO/assets/shaders/my_shader.hlsl` is compiled to `$BUILD_DIR/assets/shaders/dxbc51/my_shader.dxbc51`
 
 ## GGP (on Windows)
 ```
 git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
-mkdir build-ggp
-cd build-ggp
-cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake" ..
+cmake -B build-ggp -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE="C:\\Program Files\\GGP SDK\\cmake\\ggp.cmake"
 ```
-Open `BigWheels.sln` and build
+Open `build-ggp/BigWheels.sln` and build
 
-Built binaries are written to `PPX_OUTPUT_DIR\bin\vk_*`.
+Built binaries are written to `build-ggp\bin\vk_*`.
 
-**NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC executable in the Vulkan SDK directory.
+**NOTE:** GGP supplied Vulkan headers and libraries are used for building *but* the build system will look for the DXC
+executable in the Vulkan SDK directory.
 
 ## GGP (on Linux)
 ```
 git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
-mkdir build-ggp
-cd build-ggp
-cmake -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake -DDXC_PATH=$PATH_TO_VULKAN_SDK/x86_64/bin/dxc -DPPX_GGP=true ..
-make -j <# CPUs to use>
+cmake . -GNinja \
+    -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake \
+    -DDXC_PATH=$PATH_TO_VULKAN_SDK/x86_64/bin/dxc \
+    -DPPX_GGP=true
+ninja
 ```
 
-Built binaries are written to `PPX_OUTPUT_DIR/bin/vk_*`.
+Built binaries are written to `bin/vk_*`.
 
 ## GGP using dxil-spirv (on Linux)
-
 ```
 git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
-mkdir build-dxil-spirv
-cd build-dxil-spirv
-cmake -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake -DDXC_PATH=$PATH_TO_VULKAN_SDK/x86_64/bin/dxc -DDXIL_SPIRV_PATH=$PATH_TO_DXIL_SPIRV_SRC/build/dxil-spirv -DPPX_DXIL_SPV=true ..
-make -j <# CPUs to use>
+cmake . -GNinja \
+    -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake \
+    -DDXC_PATH=$PATH_TO_VULKAN_SDK/x86_64/bin/dxc \
+    -DDXIL_SPIRV_PATH=$PATH_TO_DXIL_SPIRV_SRC/build/dxil-spirv \
+    -DPPX_DXIL_SPV=true
+ninja
 ```
 
-Built binaries are written to `PPX_OUTPUT_DIR/bin/dxil_spv_*`.
+Built binaries are written to `bin/dxil_spv_*`.
 
 ### Running on GGP
 Push the `assets` folder up to the instance before running. Since the shaders are compiled per project they must be built and pushed *before* running.
@@ -101,41 +107,46 @@ ggp ssh put -r assets
 ## Linux
 ```
 git clone --recursive https://github.com/googlestadia/BigWheels
-cd BigWheels
-mkdir build-make
-cd build-make
-cmake ..
-make -j <# CPUs to use>
+cmake . -GNinja
+ninja
 ```
 
-Built binaries are written to `PPX_OUTPUT_DIR/bin`.
+Built binaries are written to `bin/`.
 
 ## Windows
 ```
 git clone --recursive https://github.com/googlestadia/BigWheels
 cd BigWheels
-mkdir build-vs2019
-cd build-vs2019
-cmake -G "Visual Studio 16 2019" -A x64 ..
+cmake -B build -G "Visual Studio 16 2019" -A x64
 ```
-Open `BigWheels.sln` and build
 
-Built binaries are written to `PPX_OUTPUT_DIR\bin`.
+Open `build\BigWheels.sln` and build
+
+Built binaries are written to `build\bin`.
 
 # Shader Compilation
-Shader binaries are generated during project build. For GGP and Linux only SPIR-V binaries are generated. For Windows DXBC, DXIL, and SPIR-V binaries are generated.
+Shader binaries are generated during project build. Because this project supports multiple APIs, we build them
+for each one depending on the need. API support depends on the system nature and configuration:
+    - For GGP and Linux, only SPIR-V is generated.
+    - For Windows DXBC, DXIL, and SPIR-V is generated.
+
+To request a specific API, flags can be passed to Cmake:
+ - PPX_D3D12 : DirectX12 support.
+ - PPX_D3D11 : DirectX11 support.
+ - PPX_VULKAN : Vulkan support with SPIR-V.
+ - PPX_DXIL_SPV : Vulkan support with SPIR-V compiled from DXIL.
+
+All targets require DXC.
+DirectX11 and DirectX12 require FXC.
 
 ## DXC
 The build system will look for `dxc.exe` or `dxc` in the Vulkan SDK bin directory.
-
-To use a custom DXC executable use the following:
-```
-cmake <platform specific params> -DDXC_PATH=<path to DXC executable>
-```
-The build system will generate an error if the DXC executable is not present.
+The DXC path can also be provided using `-DDXC_PATH=<path to DXC executable>`.
+**DXC is REQUIRED for this project.**
 
 ## FXC
 The build system will look for `fxc.exe` in the Windows SDK version that CMake selects.
+The FXC path can also be provided using `-DFXC_PATH=<path to FXC executable>`.
 
 # Unit Tests
 Unit tests are supported both in CMake and Bazel. For the former, they can be optionally disabled with `-DBUILD_TESTS=OFF`.
@@ -155,7 +166,6 @@ To run tests (they will be built if needed):
 * For CMake, use `make run-tests`.
 
 # Benchmarks
-
 BigWheels includes a variety of benchmarks that test graphics fundamentals under the `benchmarks` folder. Benchmarks use special assets found in `assets/benchmarks`.
 
 To build and run benchmarks, build BigWheels for your platform of choice. Then, you can run the benchmarks manually or use the provided helper script to run a group of benchmarks specified in a CSV file on a GGP instance.
@@ -201,7 +211,6 @@ tools/compare-benchmarks-results.py results_dir_1 results_dir_2 results_dir_3
 ```
 
 # Using SwiftShader
-
 BigWheels can use SwiftShader's Vulkan ICD in place of a GPU's ICD using the `VK_ICD_FILENAMES` environment variable. No special build mode required, just make sure the build for the desired platform has Vulkan enabled. If `VK_ICD_FILENAMES` is present, the Vulkan loader will use its value to load the ICD instead of going through discovery. Using BigWheels with SwiftShader does mean building SwiftShader. To build SwiftShader use the instructions that follow.
 
 ## Building SwiftShader on Windows
@@ -227,7 +236,6 @@ make -j <# CPUs to use>
 The .so and JSON for the ICD are located in `build-make/Linux`.
 
 ## Using the SwiftShader ICD
-
 The DLL/.so library and JSON manifest can be copied to a different location. Remember to set/export the `VK_ICD_FILENAMES` environment variable before running any of the BigWheels samples.
 
 ### Windows

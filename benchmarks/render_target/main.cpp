@@ -305,13 +305,13 @@ void ProjApp::SetupDrawToSwapchain()
     // Pipeline
     {
         grfx::ShaderModulePtr VS;
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("benchmarks/shaders"), "FullScreenTriangle.vs");
+        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-        bytecode = LoadShader(GetAssetPath("benchmarks/shaders"), "FullScreenTriangle.ps");
+        bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

@@ -5,23 +5,96 @@ cmake_policy(SET CMP0054 NEW)
 project(BigWheels)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-
-# Detect Linux.
-if(UNIX AND NOT APPLE)
-    set(LINUX TRUE)
-endif()
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # ------------------------------------------------------------------------------
 # Options.
 # ------------------------------------------------------------------------------
 option(PPX_BUILD_PROJECTS "Build sample projets" ON)
-set(PPX_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "Build artifact output directory. Allows for multiple build directories. (Default: current source directory.)")
+
+# ------------------------------------------------------------------------------
+# Detect DXC presence. This is REQUIRED to compile DXIL and SPIR-V shaders.
+# ------------------------------------------------------------------------------
+
+message(CHECK_START "Looking for DXC")
+if (NOT DXC_PATH)
+    message(STATUS "DXC_PATH not set. Looking for Vulkan SDK path in ENV")
+    if (DEFINED ENV{VULKAN_SDK})
+        if (WIN32)
+            set(VK_SDK_DXC "$ENV{VULKAN_SDK}\\Bin\\dxc.exe")
+        else ()
+            set(VK_SDK_DXC "$ENV{VULKAN_SDK}/bin/dxc")
+        endif ()
+
+        if (EXISTS "${VK_SDK_DXC}")
+            message(CHECK_PASS "found")
+            set(DXC_PATH "${VK_SDK_DXC}")
+        else ()
+            message(CHECK_FAIL "not found")
+        endif ()
+    else ()
+        message(CHECK_FAIL "not found")
+        message(FATAL_ERROR "DXC is required.")
+    endif ()
+elseif (NOT EXISTS "${DXC_PATH}")
+    message(CHECK_FAIL "Cannot open DXC at ${DXC_PATH}")
+    message(FATAL_ERROR "DXC is required.")
+else ()
+    message(CHECK_PASS "found")
+endif ()
+
+if (PPX_DXIL_SPV AND NOT DXIL_SPIRV_PATH)
+    message(FATAL_ERROR "Could not locate dxil-spirv executable - dxil-spirv is required")
+endif()
+
+message(STATUS "DXC_PATH: ${DXC_PATH}")
+
+# ------------------------------------------------------------------------------
+# Detect FXC presence. This is required to compile DXCB shaders.
+# ------------------------------------------------------------------------------
+
+if (WIN32)
+    message(CHECK_START "Looking for FXC")
+    # To support compiling shaders to DXBC we need to know the FXC_PATH.
+    # In order to find that, we need CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION.
+    # However, when a custom TOOLCHAIN is used, that variable is not set. This
+    # logic tries to infer CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION in that case.
+    if (NOT FXC_PATH)
+        if (NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+            set(TARGET_DIR "C:\\Program Files (x86)\\Windows Kits\\10\\bin")
+            file(GLOB children RELATIVE ${TARGET_DIR} ${TARGET_DIR}/*)
+            foreach(child ${children})
+                if (IS_DIRECTORY ${TARGET_DIR}\\${child} AND (${child} MATCHES 10.*))
+                    set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION ${child})
+                endif()
+            endforeach()
+        endif()
+
+        if (NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+            message(FATAL_ERROR "Windows SDK not found on this system. Make sure that CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is set.")
+        endif()
+        message(STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is set to: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}.")
+
+        set(FXC_PATH "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\x64\\fxc.exe")
+    endif()
+
+    if (NOT EXISTS "${FXC_PATH}")
+        message(CHECK_FAIL "Cannot open FXC at ${FXC_PATH}")
+        message(FATAL_ERROR "FXC is required if PPX_D3D12 or PPX_D3D11 is set.")
+    else ()
+        message(CHECK_PASS "FXC_PATH: ${FXC_PATH}")
+    endif ()
+endif ()
+
 
 # ------------------------------------------------------------------------------
 # Configure target platform.
 # ------------------------------------------------------------------------------
+
+# Detect Linux.
+if (UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
 
 if (NOT (PPX_GPP OR PPX_LINUX OR PPX_MSW))
     message("No PPX target plaform specified - configuring based on current host")
@@ -41,48 +114,35 @@ endif()
 # Configure graphics API(s).
 # ------------------------------------------------------------------------------
 
-if ((NOT DEFINED PPX_D3D11) AND (NOT DEFINED PPX_D3D12) AND (NOT DEFINED PPX_DXIL_SPV) AND (NOT DEFINED PPX_VULKAN))
-    message("No PPX graphics API(s) specified - configuring based on current host")
-    if (GGP)
-        set(PPX_VULKAN TRUE)
-    elseif (LINUX)
-        set(PPX_VULKAN TRUE)
-    elseif (WIN32)
-        set(PPX_D3D11  TRUE)
-        set(PPX_D3D12  TRUE)
-        set(PPX_VULKAN TRUE)
-    endif()
-endif()
+if (NOT DEFINED PPX_VULKAN)
+    set(PPX_VULKAN TRUE)
+endif ()
 
-set(PPX_D3D11_MSG    FALSE)
-set(PPX_D3D12_MSG    FALSE)
-set(PPX_DXIL_SPV_MSG FALSE)
-set(PPX_VULKAN_MSG   FALSE)
+if (NOT DEFINED PPX_D3D11)
+    if (WIN32 AND DEFINED FXC_PATH)
+        set(PPX_D3D11 TRUE)
+    else ()
+        set(PPX_D3D11 FALSE)
+    endif ()
+endif ()
 
-# D3D11
-if (PPX_D3D11)
-    set(PPX_D3D11_MSG TRUE)
-endif()
-# D3D12
-if (PPX_D3D12)
-    set(PPX_D3D12_MSG TRUE)
-endif()
-# DXIL_SPV
-if (PPX_DXIL_SPV)
-    if(NOT GGP)
-        message(FATAL_ERROR "PPX_DXIL_SPV requires GGP")
-    endif()
-    set(PPX_DXIL_SPV_MSG TRUE)
-endif()
-# Vulkan
-if (PPX_VULKAN)
-    set(PPX_VULKAN_MSG TRUE)
-endif()
+if (NOT DEFINED PPX_D3D12)
+    if (WIN32)
+        set(PPX_D3D12 TRUE)
+    else ()
+        set(PPX_D3D12 FALSE)
+    endif ()
+endif ()
 
-message("Graphics API D3D11    : ${PPX_D3D11_MSG}")
-message("Graphics API D3D12    : ${PPX_D3D12_MSG}")
-message("Graphics API DXIL SPV : ${PPX_DXIL_SPV_MSG}")
-message("Graphics API Vulkan   : ${PPX_VULKAN_MSG}")
+# PPX_DXIL_SPV is never enabled unless specified.
+if (NOT DEFINED PPX_DXIL_SPV)
+    set(PPX_DXIL_SPV FALSE)
+endif ()
+
+message("Graphics API D3D11    : ${PPX_D3D11}")
+message("Graphics API D3D12    : ${PPX_D3D12}")
+message("Graphics API DXIL SPV : ${PPX_DXIL_SPV}")
+message("Graphics API Vulkan   : ${PPX_VULKAN}")
 
 # ------------------------------------------------------------------------------
 # Add CMake modules for shader compilation and sample creation.
@@ -117,17 +177,17 @@ set(PPX_TESTS_DIR       "${PPX_DIR}/tests")
 # Configure output directories.
 # ------------------------------------------------------------------------------
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PPX_OUTPUT_DIR}/lib")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PPX_OUTPUT_DIR}/bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 set(PPX_ASSET_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
 
 add_custom_target(ppx_assets)
 
 # When using a custom output directory, make sure to copy over the assets.
-if(NOT (PPX_OUTPUT_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
+if(NOT (CMAKE_BINARY_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
     add_custom_target(ppx_copy_assets
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${PPX_ASSET_SOURCE_DIR}" "${PPX_OUTPUT_DIR}/assets"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${PPX_ASSET_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/assets"
     )
     add_dependencies(ppx_assets ppx_copy_assets)
 endif()
@@ -158,6 +218,12 @@ add_cpu_features()
 # ------------------------------------------------------------------------------
 
 add_subdirectory(src)
+add_subdirectory(assets/basic/shaders)
+add_subdirectory(assets/materials/shaders)
+add_subdirectory(assets/gbuffer/shaders)
+add_subdirectory(assets/fishtornado/shaders)
+add_subdirectory(assets/fluid_simulation/shaders)
+add_subdirectory(assets/benchmarks/shaders)
 
 # ------------------------------------------------------------------------------
 # Add projects.

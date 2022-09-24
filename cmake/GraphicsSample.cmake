@@ -1,142 +1,111 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 include(CMakeParseArguments)
 
-function(_add_shader_dependencies target_name shader_tag)
-    if (TARGET ${PROJECT_NAME}-${shader_tag}-vsps)
-        add_dependencies(${target_name} ${PROJECT_NAME}-${shader_tag}-vsps)
-    endif()
-    if (TARGET ${PROJECT_NAME}-${shader_tag}-cs)
-        add_dependencies(${target_name} ${PROJECT_NAME}-${shader_tag}-cs)
-    endif()
-    if (TARGET ${PROJECT_NAME}-${shader_tag}-vs)
-        add_dependencies(${target_name} ${PROJECT_NAME}-${shader_tag}-vs)
-    endif()
-    if (TARGET ${PROJECT_NAME}-${shader_tag}-ps)
-        add_dependencies(${target_name} ${PROJECT_NAME}-${shader_tag}-ps)
-    endif()
-endfunction()
-
 function(_add_sample_internal)
-    set(oneValueArgs SAMPLE_NAME API_TAG SHADER_FORMAT)
-    set(multiValueArgs API_DEFINES ADDITIONAL_FILES)
+    set(oneValueArgs NAME API_TAG SHADER_FORMAT)
+    set(multiValueArgs API_DEFINES SOURCES DEPENDENCIES)
     cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "${oneValueArgs}" "${multiValueArgs}")
-    
-    set (target_name "${ARG_API_TAG}_${ARG_SAMPLE_NAME}")
 
-    foreach(filepath ${ARG_ADDITIONAL_FILES})
-        get_filename_component(ext ${filepath} EXT)
-        if (("${ext}" STREQUAL ".hlsl") OR ("${ext}" STREQUAL ".hlsli"))
-            list(APPEND shader_files ${filepath})
-            set_source_files_properties(${filepath} PROPERTIES VS_TOOL_OVERRIDE "None")
-        endif()
-    endforeach()
-    source_group("Shader Files" FILES ${shader_files})
-    
-    add_executable(
-        ${target_name}
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-        ${ARG_ADDITIONAL_FILES}
-    )
+    set (TARGET_NAME "${ARG_API_TAG}_${ARG_NAME}")
+    add_executable("${TARGET_NAME}" ${ARG_SOURCES})
+    set_target_properties("${TARGET_NAME}" PROPERTIES FOLDER "ppx/samples/${ARG_API_TAG}")
 
-    if (NOT ARG_SHADER_FORMAT STREQUAL "")
-        _add_shader_dependencies(${target_name} ${ARG_SHADER_FORMAT})
-    endif()
-    
-    add_dependencies(${target_name} ppx_assets)
+    target_include_directories("${TARGET_NAME}" PUBLIC ${PPX_DIR}/include)
+    target_compile_definitions("${TARGET_NAME}" PRIVATE ${ARG_API_DEFINES})
 
-    set_target_properties(
-        ${target_name}
-        PROPERTIES FOLDER "ppx/samples/${ARG_API_TAG}"
-    )
+    target_link_libraries("${TARGET_NAME}" PUBLIC ppx glfw)
 
-    target_include_directories(
-        ${target_name}
-        PUBLIC ${PPX_DIR}/include
-    )
-
-    target_compile_definitions(${target_name} PRIVATE ${ARG_API_DEFINES})
-
-    target_link_libraries(
-        ${target_name}
-        PUBLIC ppx glfw
-    )
+    add_dependencies("${TARGET_NAME}" ppx_assets)
+    if (DEFINED ARG_DEPENDENCIES)
+        add_dependencies("${TARGET_NAME}" ${ARG_DEPENDENCIES})
+    endif ()
 
     if (NOT TARGET all-${ARG_API_TAG})
         add_custom_target(all-${ARG_API_TAG})
     endif()
-    add_dependencies(all-${ARG_API_TAG} ${target_name})
+    add_dependencies(all-${ARG_API_TAG} "${TARGET_NAME}")
 endfunction()
 
 function(add_vk_sample)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
+    set(multiValueArgs SOURCES DEPENDENCIES)
+    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
     if (PPX_VULKAN)
-        _add_sample_internal(SAMPLE_NAME ${ARG_SAMPLE_NAME}
-                   API_TAG "vk" 
+        _add_sample_internal(NAME ${ARG_NAME}
+                   API_TAG "vk"
                    SHADER_FORMAT "spv"
-                   API_DEFINES "USE_VK" 
-                   ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+                   API_DEFINES "USE_VK"
+                   SOURCES ${ARG_SOURCES}
+                   DEPENDENCIES ${ARG_DEPENDENCIES})
     endif()
 endfunction()
 
 function(add_dx11_sample)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
+    set(multiValueArgs SOURCES DEPENDENCIES)
+    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
     if (PPX_D3D11)
-        _add_sample_internal(SAMPLE_NAME ${ARG_SAMPLE_NAME}
-                   API_TAG "dx11" 
+        _add_sample_internal(NAME ${ARG_NAME}
+                   API_TAG "dx11"
                    SHADER_FORMAT "dxbc50"
-                   API_DEFINES "USE_DX11" 
-                   ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+                   API_DEFINES "USE_DX11"
+                   SOURCES ${ARG_SOURCES}
+                   DEPENDENCIES ${ARG_DEPENDENCIES})
     endif()
 endfunction()
 
 function(add_dx12_sample)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
+    set(multiValueArgs SOURCES DEPENDENCIES)
+    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
     if (PPX_D3D12)
-        _add_sample_internal(SAMPLE_NAME ${ARG_SAMPLE_NAME}
-                   API_TAG "dx12" 
+        _add_sample_internal(NAME ${ARG_NAME}
+                   API_TAG "dx12"
                    SHADER_FORMAT "dxbc51"
-                   API_DEFINES "USE_DX12" 
-                   ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+                   API_DEFINES "USE_DX12"
+                   SOURCES ${ARG_SOURCES}
+                   DEPENDENCIES ${ARG_DEPENDENCIES})
     endif()
 endfunction()
 
 function(add_dxil_sample)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
+    set(multiValueArgs SOURCES DEPENDENCIES)
+    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
     if (PPX_D3D12)
-        _add_sample_internal(SAMPLE_NAME ${ARG_SAMPLE_NAME}
-                   API_TAG "dxil" 
+        _add_sample_internal(NAME ${ARG_NAME}
+                   API_TAG "dxil"
                    SHADER_FORMAT "dxil"
                    API_DEFINES "USE_DX12" "USE_DXIL"
-                   ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+                   SOURCES ${ARG_SOURCES}
+                   DEPENDENCIES ${ARG_DEPENDENCIES})
     endif()
 endfunction()
 
 function(add_dxil_spv_sample)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
+    set(multiValueArgs SOURCES DEPENDENCIES)
+    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
     if (PPX_DXIL_SPV)
-        _add_sample_internal(SAMPLE_NAME ${ARG_SAMPLE_NAME}
-                   API_TAG "dxil_spv" 
+        _add_sample_internal(NAME ${ARG_NAME}
+                   API_TAG "dxil_spv"
                    SHADER_FORMAT "dxil-spv"
                    API_DEFINES "USE_VK" "USE_DXIL_SPV"
-                   ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+                   SOURCES ${ARG_SOURCES}
+                   DEPENDENCIES ${ARG_DEPENDENCIES})
     endif()
 endfunction()
 
 function(add_samples)
-    set(multiValueArgs TARGET_APIS ADDITIONAL_FILES)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "${multiValueArgs}")
-    
+    set(multiValueArgs TARGET_APIS SOURCES DEPENDENCIES)
+    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
+
     foreach(target_api ${ARG_TARGET_APIS})
         if(target_api STREQUAL "dx12")
-            add_dx12_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+            add_dx12_sample(NAME ${ARG_NAME} SOURCES ${ARG_SOURCES} DEPENDENCIES ${ARG_DEPENDENCIES})
         elseif(target_api STREQUAL "dx11")
-            add_dx11_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+            add_dx11_sample(NAME ${ARG_NAME} SOURCES ${ARG_SOURCES} DEPENDENCIES ${ARG_DEPENDENCIES})
         elseif(target_api STREQUAL "vk")
-            add_vk_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+            add_vk_sample(NAME ${ARG_NAME} SOURCES ${ARG_SOURCES} DEPENDENCIES ${ARG_DEPENDENCIES})
         elseif(target_api STREQUAL "dxil")
-            add_dxil_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+            add_dxil_sample(NAME ${ARG_NAME} SOURCES ${ARG_SOURCES} DEPENDENCIES ${ARG_DEPENDENCIES})
         elseif(target_api STREQUAL "dxil_spv")
-            add_dxil_spv_sample(SAMPLE_NAME ${ARG_SAMPLE_NAME} ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES})
+            add_dxil_spv_sample(NAME ${ARG_NAME} SOURCES ${ARG_SOURCES} DEPENDENCIES ${ARG_DEPENDENCIES})
         else()
             message(FATAL_ERROR "Invalid target API \"${target_api}\"" )
         endif()
@@ -144,10 +113,12 @@ function(add_samples)
 endfunction()
 
 function(add_samples_for_all_apis)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "SAMPLE_NAME" "ADDITIONAL_FILES")
+    set(multiValueArgs SOURCES DEPENDENCIES)
+    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
     add_samples(
-        SAMPLE_NAME ${ARG_SAMPLE_NAME}
+        NAME ${ARG_NAME}
         TARGET_APIS "dx12" "dx11" "vk" "dxil" "dxil_spv"
-        ADDITIONAL_FILES ${ARG_ADDITIONAL_FILES}
+        SOURCES ${ARG_SOURCES}
+        DEPENDENCIES ${ARG_DEPENDENCIES}
     )
 endfunction()

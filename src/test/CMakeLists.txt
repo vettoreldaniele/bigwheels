@@ -10,11 +10,11 @@ macro(package_add_test TESTNAME)
     add_dependencies(build-tests ${TESTNAME})
     target_link_libraries(${TESTNAME} ${PROJECT_NAME} gtest gmock gtest_main)
     set_target_properties(${TESTNAME} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${PPX_OUTPUT_DIR}/test"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test"
     )
     gtest_discover_tests(${TESTNAME}
         # Set working directory to project output root.
-        WORKING_DIRECTORY "${PPX_OUTPUT_DIR}"
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
 endmacro()
 
