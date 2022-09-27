@@ -19,17 +19,17 @@ BigWheels is a cross-platform, API agnostic framework to build graphics applicat
      * Visual Studio 2019 Professional
      * GGP SDK
      * Recent Vulkan SDK
-       * 1.2.154.1 or later
+       * 1.3.216.0 or later
    * Linux
      * Visual Studio Code or CLI
      * Recent Vulkan SDK
-       * 1.2.154.1 or later
+       * 1.3.216.0 or later
    * Windows
      * Visual Studio 2019 Professional or Visual Studio Code
      * Recent Vulkan SDK
-       * 1.2.154.1 or later
+       * 1.3.216.0 or later
      * Recent version of Windows SDK
-       * 10.0.22000 or later
+       * 10.0.22621.0 or later
  * Hardware
    * AMD
      * Vega GPUs
