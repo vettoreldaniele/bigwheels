@@ -53,7 +53,7 @@ generate_rules_for_shader("shader_flocking_velocity"
     STAGES "cs")
 
 
-add_custom_target("shader_gbuffer"
+add_custom_target("shader_fishtornado"
     DEPENDS
     "shader_debug_draw"
     "shader_flocking_render"

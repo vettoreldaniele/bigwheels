@@ -22,7 +22,7 @@ generate_rules_for_shader("shader_gbuffer_deferred_render"
     INCLUDES ${INCLUDE_FILES}
     STAGES "ps")
 
-add_custom_target("shader_fishtornado"
+add_custom_target("shader_gbuffer"
     DEPENDS
     "shader_gbuffer_vertex_shader"
     "shader_gbuffer_deferred_light"

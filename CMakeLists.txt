@@ -218,12 +218,7 @@ add_cpu_features()
 # ------------------------------------------------------------------------------
 
 add_subdirectory(src)
-add_subdirectory(assets/basic/shaders)
-add_subdirectory(assets/materials/shaders)
-add_subdirectory(assets/gbuffer/shaders)
-add_subdirectory(assets/fishtornado/shaders)
-add_subdirectory(assets/fluid_simulation/shaders)
-add_subdirectory(assets/benchmarks/shaders)
+add_subdirectory(assets)
 
 # ------------------------------------------------------------------------------
 # Add projects.
