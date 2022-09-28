@@ -20,6 +20,10 @@ Result Surface::CreateApiObjects(const grfx::SurfaceCreateInfo* pCreateInfo)
     VkStreamDescriptorSurfaceCreateInfoGGP vkci = {VK_STRUCTURE_TYPE_STREAM_DESCRIPTOR_SURFACE_CREATE_INFO_GGP};
     vkci.streamDescriptor                       = GgpStreamDescriptorConstants::kGgpPrimaryStreamDescriptor;
 
+    PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP = reinterpret_cast<PFN_vkCreateStreamDescriptorSurfaceGGP>(
+        vkGetInstanceProcAddr(ToApi(GetInstance())->GetVkInstance(), "vkCreateStreamDescriptorSurfaceGGP"));
+    PPX_ASSERT_MSG(vkCreateStreamDescriptorSurfaceGGP != nullptr, "Error getting function vkCreateStreamDescriptorSurfaceGGP");
+
     VkResult vkres = vkCreateStreamDescriptorSurfaceGGP(
         ToApi(GetInstance())->GetVkInstance(),
         &vkci,
