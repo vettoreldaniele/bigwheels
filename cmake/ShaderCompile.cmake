@@ -2,6 +2,19 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 include(Utils)
 include(CMakeParseArguments)
 
+function(add_custom_target_in_folder TARGET_NAME)
+    set(oneValueArgs FOLDER)
+    set(multiValueArgs DEPENDS SOURCES)
+    cmake_parse_arguments(PARSE_ARGV 1 "ARG" "" "${oneValueArgs}" "${multiValueArgs}")
+
+    if (DEFINED ARG_DEPENDS)
+        add_custom_target("${TARGET_NAME}" DEPENDS ${ARG_DEPENDS} SOURCES ${ARG_SOURCES})
+    else ()
+        add_custom_target("${TARGET_NAME}" SOURCES ${ARG_SOURCES})
+    endif ()
+    set_target_properties("${TARGET_NAME}" PROPERTIES FOLDER "shaders/${ARG_FOLDER}")
+endfunction()
+
 # Target to depend on all shaders, to force-build all shaders.
 add_custom_target("all-shaders")
 
@@ -14,7 +27,7 @@ function(make_output_dir OUTPUT_FILE)
 endfunction()
 
 function(internal_add_compile_shader_target TARGET_NAME)
-    set(oneValueArgs COMPILER_PATH SOURCES OUTPUT_FILE SHADER_STAGE OUTPUT_FORMAT)
+    set(oneValueArgs COMPILER_PATH SOURCES OUTPUT_FILE SHADER_STAGE OUTPUT_FORMAT TARGET_FOLDER)
     set(multiValueArgs COMPILER_FLAGS INCLUDES)
     cmake_parse_arguments(PARSE_ARGV 1 "ARG" "" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -30,7 +43,7 @@ function(internal_add_compile_shader_target TARGET_NAME)
         COMMAND ${CMAKE_COMMAND} -E echo "[${ARG_OUTPUT_FORMAT}] Compiling ${ARG_SHADER_STAGE} ${ARG_SOURCE} to ${ARG_OUTPUT_FILE}"
         COMMAND "${ARG_COMPILER_PATH}" ${ARG_COMPILER_FLAGS} -Fo "${ARG_OUTPUT_FILE}" "${ARG_SOURCE}"
     )
-    add_custom_target("${TARGET_NAME}" DEPENDS "${ARG_OUTPUT_FILE}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES})
+    add_custom_target_in_folder("${TARGET_NAME}" DEPENDS "${ARG_OUTPUT_FILE}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${ARG_TARGET_FOLDER}")
 endfunction()
 
 function(internal_generate_rules_for_shader TARGET_NAME)
@@ -53,6 +66,7 @@ function(internal_generate_rules_for_shader TARGET_NAME)
             OUTPUT_FILE "${CMAKE_BINARY_DIR}/${PATH_PREFIX}/dxbc50/${BASE_NAME}.${ARG_SHADER_STAGE}.dxbc50"
             SHADER_STAGE "${ARG_SHADER_STAGE}"
             OUTPUT_FORMAT "DXCB_5_0"
+            TARGET_FOLDER "${TARGET_NAME}"
             COMPILER_FLAGS "-T" "${ARG_SHADER_STAGE}_5_0" "-E" "${ARG_SHADER_STAGE}main" "/DPPX_D3D11=1")
         add_dependencies("d3d11_${TARGET_NAME}" "d3d11_${TARGET_NAME}_${ARG_SHADER_STAGE}")
     endif ()
@@ -67,6 +81,7 @@ function(internal_generate_rules_for_shader TARGET_NAME)
             OUTPUT_FILE "${CMAKE_BINARY_DIR}/${PATH_PREFIX}/dxbc51/${BASE_NAME}.${ARG_SHADER_STAGE}.dxbc51"
             SHADER_STAGE "${ARG_SHADER_STAGE}"
             OUTPUT_FORMAT "DXBC_5_1"
+            TARGET_FOLDER "${TARGET_NAME}"
             COMPILER_FLAGS "-T" "${ARG_SHADER_STAGE}_5_1" "-E" "${ARG_SHADER_STAGE}main" "/DPPX_D3D12=1")
         add_dependencies("d3d12_${TARGET_NAME}" "d3d12_${TARGET_NAME}_${ARG_SHADER_STAGE}")
     endif ()
@@ -81,6 +96,7 @@ function(internal_generate_rules_for_shader TARGET_NAME)
             OUTPUT_FILE "${CMAKE_BINARY_DIR}/${PATH_PREFIX}/dxil/${BASE_NAME}.${ARG_SHADER_STAGE}.dxil"
             SHADER_STAGE "${ARG_SHADER_STAGE}"
             OUTPUT_FORMAT "DXIL_6_5"
+            TARGET_FOLDER "${TARGET_NAME}"
             COMPILER_FLAGS "-T" "${ARG_SHADER_STAGE}_6_5" "-E" "${ARG_SHADER_STAGE}main" "-DPPX_DX12=1")
         add_dependencies("dxil_${TARGET_NAME}" "dxil_${TARGET_NAME}_${ARG_SHADER_STAGE}")
     endif ()
@@ -96,7 +112,7 @@ function(internal_generate_rules_for_shader TARGET_NAME)
             MAIN_DEPENDENCY "${DXIL_INPUT_FILE}"
             COMMAND ${CMAKE_COMMAND} -E echo "[DXIL-SPV] Compiling ${DXIL_INPUT_FILE} to ${SPV_OUTPUT_FILE}"
             COMMAND "${DXIL_SPIRV_PATH}" "${DXIL_INPUT_FILE}" --output "${SPV_OUTPUT_FILE}")
-        add_custom_target("dxilspv_${TARGET_NAME}_${ARG_SHADER_STAGE}" SOURCES ${ARG_SOURCE} ${ARG_INCLUDES})
+        add_custom_target_in_folder("dxilspv_${TARGET_NAME}_${ARG_SHADER_STAGE}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
         add_dependencies("dxilspv_${TARGET_NAME}" "dxilspv_${TARGET_NAME}_${ARG_SHADER_STAGE}")
     endif ()
 
@@ -110,6 +126,7 @@ function(internal_generate_rules_for_shader TARGET_NAME)
             OUTPUT_FILE "${CMAKE_BINARY_DIR}/${PATH_PREFIX}/spv/${BASE_NAME}.${ARG_SHADER_STAGE}.spv"
             SHADER_STAGE "${ARG_SHADER_STAGE}"
             OUTPUT_FORMAT "SPV_6_6"
+            TARGET_FOLDER "${TARGET_NAME}"
             COMPILER_FLAGS "-spirv" "-fspv-reflect" "-fvk-use-dx-layout" "-DPPX_VULKAN=1" "-T" "${ARG_SHADER_STAGE}_6_6" "-E" "${ARG_SHADER_STAGE}main")
         add_dependencies("vk_${TARGET_NAME}" "vk_${TARGET_NAME}_${ARG_SHADER_STAGE}")
     endif ()
@@ -120,28 +137,28 @@ function(generate_rules_for_shader TARGET_NAME)
     set(multiValueArgs INCLUDES STAGES)
     cmake_parse_arguments(PARSE_ARGV 1 "ARG" "" "${oneValueArgs}" "${multiValueArgs}")
 
-    add_custom_target("${TARGET_NAME}" SOURCES ${ARG_SOURCE} ${ARG_INCLUDES})
+    add_custom_target_in_folder("${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
     message(STATUS "creating shader target ${TARGET_NAME}.")
     add_dependencies("all-shaders" "${TARGET_NAME}")
 
     if (PPX_D3D11)
-        add_custom_target("d3d11_${TARGET_NAME}" SOURCES ${ARG_SOURCE} ${ARG_INCLUDES})
+        add_custom_target_in_folder("d3d11_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
         add_dependencies("${TARGET_NAME}" "d3d11_${TARGET_NAME}")
     endif ()
     if (PPX_D3D12)
-        add_custom_target("d3d12_${TARGET_NAME}" SOURCES ${ARG_SOURCE} ${ARG_INCLUDES})
+        add_custom_target_in_folder("d3d12_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
         add_dependencies("${TARGET_NAME}" "d3d12_${TARGET_NAME}")
     endif ()
     if (PPX_D3D12 OR PPX_DXIL_SPV)
-        add_custom_target("dxil_${TARGET_NAME}" SOURCES ${ARG_SOURCE} ${ARG_INCLUDES})
+        add_custom_target_in_folder("dxil_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
         add_dependencies("${TARGET_NAME}" "dxil_${TARGET_NAME}")
     endif ()
     if (PPX_DXIL_SPV)
-        add_custom_target("dxilspv_${TARGET_NAME}" SOURCES ${ARG_SOURCE} ${ARG_INCLUDES})
+        add_custom_target_in_folder("dxilspv_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
         add_dependencies("${TARGET_NAME}" "dxilspv_${TARGET_NAME}")
     endif ()
     if (PPX_VULKAN)
-        add_custom_target("vk_${TARGET_NAME}" SOURCES ${ARG_SOURCE} ${ARG_INCLUDES})
+        add_custom_target_in_folder("vk_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
         add_dependencies("${TARGET_NAME}" "vk_${TARGET_NAME}")
     endif ()
 
@@ -153,26 +170,26 @@ endfunction()
 function(generate_group_rule_for_shader TARGET_NAME)
     cmake_parse_arguments(PARSE_ARGV 1 "ARG" "" NONE "CHILDREN")
 
-    add_custom_target("${TARGET_NAME}" DEPENDS ${ARG_CHILDREN})
+    add_custom_target_in_folder("${TARGET_NAME}" DEPENDS ${ARG_CHILDREN} FOLDER "${TARGET_NAME}")
 
     if (PPX_D3D11)
         prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "d3d11_")
-        add_custom_target("d3d11_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN})
+        add_custom_target_in_folder("d3d11_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN} FOLDER "${TARGET_NAME}")
     endif ()
     if (PPX_D3D12)
         prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "d3d12_")
-        add_custom_target("d3d12_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN})
+        add_custom_target_in_folder("d3d12_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN} FOLDER "${TARGET_NAME}")
     endif ()
     if (PPX_D3D12 OR PPX_DXIL_SPV)
         prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "dxil_")
-        add_custom_target("dxil_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN})
+        add_custom_target_in_folder("dxil_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN} FOLDER "${TARGET_NAME}")
     endif ()
     if (PPX_DXIL_SPV)
         prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "dxilspv_")
-        add_custom_target("dxilspv_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN})
+        add_custom_target_in_folder("dxilspv_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN} FOLDER "${TARGET_NAME}")
     endif ()
     if (PPX_VULKAN)
         prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "vk_")
-        add_custom_target("vk_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN})
+        add_custom_target_in_folder("vk_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN} FOLDER "${TARGET_NAME}")
     endif ()
 endfunction()
