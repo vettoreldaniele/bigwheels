@@ -73,7 +73,7 @@ function(internal_generate_rules_for_shader TARGET_NAME)
         add_dependencies("${TARGET_NAME}" "${TARGET_NAME}_d3d12")
     endif ()
 
-    # D3D12 / DXIL, dxil, sm 6_6.
+    # D3D12 / DXIL, dxil, sm 6_5.
     if (PPX_D3D12 OR PPX_DXIL_SPV)
         internal_add_compile_shader_target(
             "${TARGET_NAME}_dxil"
@@ -82,8 +82,8 @@ function(internal_generate_rules_for_shader TARGET_NAME)
             INCLUDES ${ARG_INCLUDES}
             OUTPUT_FILE "${CMAKE_BINARY_DIR}/${PATH_PREFIX}/dxil/${BASE_NAME}.${ARG_SHADER_STAGE}.dxil"
             SHADER_STAGE "${ARG_SHADER_STAGE}"
-            OUTPUT_FORMAT "DXIL_6_6"
-            COMPILER_FLAGS "-T" "${ARG_SHADER_STAGE}_6_6" "-E" "${ARG_SHADER_STAGE}main" "-DPPX_DX12=1")
+            OUTPUT_FORMAT "DXIL_6_5"
+            COMPILER_FLAGS "-T" "${ARG_SHADER_STAGE}_6_5" "-E" "${ARG_SHADER_STAGE}main" "-DPPX_DX12=1")
         add_dependencies("${TARGET_NAME}" "${TARGET_NAME}_dxil")
     endif ()
 
