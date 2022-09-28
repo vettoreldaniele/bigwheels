@@ -21,12 +21,6 @@ namespace dx12 {
 
 void Device::LoadRootSignatureFunctions()
 {
-#if defined(PPX_GGP)
-    mFnD3D12CreateRootSignatureDeserializer          = D3D12CreateRootSignatureDeserializer;
-    mFnD3D12SerializeVersionedRootSignature          = D3D12SerializeVersionedRootSignature;
-    mFnD3D12CreateVersionedRootSignatureDeserializer = D3D12CreateVersionedRootSignatureDeserializer;
-#else
-
     HMODULE module = ::GetModuleHandle(TEXT("d3d12.dll"));
 
     // Load root signature version 1.1 functions
@@ -43,7 +37,6 @@ void Device::LoadRootSignatureFunctions()
             module,
             "D3D12CreateVersionedRootSignatureDeserializer");
     }
-#endif
 }
 
 Result Device::CreateQueues(const grfx::DeviceCreateInfo* pCreateInfo)

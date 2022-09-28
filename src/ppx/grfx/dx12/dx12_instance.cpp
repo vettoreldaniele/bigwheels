@@ -27,18 +27,8 @@ Result Instance::EnumerateAndCreateGpus(D3D_FEATURE_LEVEL featureLevel)
             continue;
         }
 
-        // On GGP we cannot call D3D12CreateDevice here. That will cause
-        // it to be called twice, once here under the call frame of
-        // grfx::CreateInstance and again later under grfx::CreateDevice.
-        // That breaks because libggp expects it to be called only once;
-        // the first time it's called it creates some resources with the
-        // device, and if that first device is destroyed and then later
-        // recreated, future uses of the new device won't be compatible
-        // with resources created on the old device.
-#ifndef __ggp__
         // Store adapters that support the minimum feature level
         hr = D3D12CreateDevice(adapter.Get(), featureLevel, __uuidof(ID3D12Device), nullptr);
-#endif
 
         if (SUCCEEDED(hr)) {
             adapters.push_back(adapter);
