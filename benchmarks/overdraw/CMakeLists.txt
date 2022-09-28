@@ -5,6 +5,6 @@ project(overdraw)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_benchmarks_texture_sample"
     "shader_benchmarks_texture_sample_explicit_early_z")

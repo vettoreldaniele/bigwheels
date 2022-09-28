@@ -11,6 +11,6 @@ add_samples_for_all_apis(
     "Material.h"
     "Material.cpp"
     "Render.h"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_gbuffer"
     "shader_fullscreen_triangle")

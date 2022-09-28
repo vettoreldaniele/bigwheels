@@ -5,4 +5,4 @@ project(01_triangle)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES "shader_static_vertex_colors")
+    SHADER_DEPENDENCIES "shader_static_vertex_colors")

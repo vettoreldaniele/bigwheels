@@ -5,5 +5,5 @@ project(draw_call)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_benchmarks_passthrough_pos")

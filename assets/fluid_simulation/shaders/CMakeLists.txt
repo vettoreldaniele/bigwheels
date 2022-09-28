@@ -100,8 +100,9 @@ generate_rules_for_shader("shader_fluidsim_base"
     INCLUDES ${INCLUDE_FILES}
     STAGES "vs")
 
-add_custom_target("shader_fluid_simulation"
-    DEPENDS
+generate_group_rule_for_shader(
+    "shader_fluid_simulation"
+    CHILDREN
     "shader_fluidsim_advection"
     "shader_fluidsim_base"
     "shader_fluidsim_bloom_blur"

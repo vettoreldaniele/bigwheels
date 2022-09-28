@@ -5,4 +5,4 @@ project(12_shadows)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES "shader_diffuse_shadow" "shader_depth")
+    SHADER_DEPENDENCIES "shader_diffuse_shadow" "shader_depth")

@@ -5,6 +5,6 @@ project(texture_load)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_benchmarks_texture_load"
     "shader_benchmarks_texture_load_4_textures")

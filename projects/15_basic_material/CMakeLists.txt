@@ -5,7 +5,7 @@ project(15_basic_material)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_texture"
     "shader_mtl_vertex_shader"
     "shader_mtl_gouraud"

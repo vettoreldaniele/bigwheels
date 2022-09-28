@@ -5,5 +5,5 @@ project(21_text_draw)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_text_draw")

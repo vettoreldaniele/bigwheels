@@ -52,9 +52,9 @@ generate_rules_for_shader("shader_flocking_velocity"
     INCLUDES ${INCLUDE_FILES}
     STAGES "cs")
 
-
-add_custom_target("shader_fishtornado"
-    DEPENDS
+generate_group_rule_for_shader(
+    "shader_fishtornado"
+    CHILDREN
     "shader_debug_draw"
     "shader_flocking_render"
     "shader_ocean_beam"

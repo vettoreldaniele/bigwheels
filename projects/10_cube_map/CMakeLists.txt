@@ -5,4 +5,4 @@ project(10_cube_map)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES "shader_cubemap" "shader_skybox")
+    SHADER_DEPENDENCIES "shader_cubemap" "shader_skybox")

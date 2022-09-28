@@ -19,7 +19,7 @@ add_samples_for_all_apis(
     "Shark.h"
     "Shark.cpp"
     "main.cpp"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_static_vertex_colors"
     "shader_fishtornado"
 )

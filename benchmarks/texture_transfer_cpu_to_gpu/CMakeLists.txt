@@ -5,4 +5,4 @@ project(texture_transfer_cpu_to_gpu)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES "shader_fullscreen_triangle")
+    SHADER_DEPENDENCIES "shader_fullscreen_triangle")

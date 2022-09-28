@@ -5,4 +5,4 @@ project(11_compressed_textured)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES "shader_texture")
+    SHADER_DEPENDENCIES "shader_texture")

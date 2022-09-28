@@ -5,7 +5,7 @@ project(compute_operations)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_fullscreen_triangle"
     "shader_benchmarks_compute_filter_3"
     "shader_benchmarks_compute_filter_5"

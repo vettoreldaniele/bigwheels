@@ -5,4 +5,4 @@ project(04_cube)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES "shader_vertex_colors")
+    SHADER_DEPENDENCIES "shader_vertex_colors")

@@ -5,5 +5,5 @@ project(18_arcball_camera)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    DEPENDENCIES
+    SHADER_DEPENDENCIES
     "shader_vertex_colors")

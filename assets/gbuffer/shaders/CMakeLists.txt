@@ -22,8 +22,9 @@ generate_rules_for_shader("shader_gbuffer_deferred_render"
     INCLUDES ${INCLUDE_FILES}
     STAGES "ps")
 
-add_custom_target("shader_gbuffer"
-    DEPENDS
+generate_group_rule_for_shader(
+    "shader_gbuffer"
+    CHILDREN
     "shader_gbuffer_vertex_shader"
     "shader_gbuffer_deferred_light"
     "shader_gbuffer_draw_attributes"
