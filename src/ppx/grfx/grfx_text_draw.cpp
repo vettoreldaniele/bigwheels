@@ -31,7 +31,7 @@ Result TextureFont::CreateApiObjects(const grfx::TextureFontCreateInfo* pCreateI
         mCreateInfo.characters = characters;
     }
 
-    if (!utf8::is_valid(characters)) {
+    if (!utf8::is_valid(characters.cbegin(), characters.cend())) {
         return ppx::ERROR_INVALID_UTF8_STRING;
     }
 
