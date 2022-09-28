@@ -2,10 +2,10 @@
 //
 // This is adapted from https://github.com/PavelDoGreat/WebGL-Fluid-Simulation.
 
-#include "ppx/000_config.h"
-#include "ppx/000_math_config.h"
+#include "ppx/config.h"
+#include "ppx/math_config.h"
 #include "ppx/graphics_util.h"
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 #include "ppx/grfx/grfx_enums.h"
 #include "ppx/log.h"
 #include "ppx/ppx.h"

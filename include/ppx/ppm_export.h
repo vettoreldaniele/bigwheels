@@ -1,7 +1,7 @@
 #ifndef ppm_export_h
 #define ppm_export_h
 
-#include "ppx/000_config.h"
+#include "ppx/config.h"
 #include "ppx/grfx/grfx_format.h"
 
 #include <ostream>

@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_dx11_util_h
 #define ppx_grfx_dx11_util_h
 
-#include "ppx/grfx/dx11/000_dx11_config.h"
+#include "ppx/grfx/dx11/dx11_config.h"
 #include "ppx/grfx/grfx_format.h"
 #include "ppx/grfx/dx/dx_util.h"
 #include "ppx/grfx/dx/d3dcompile_util.h"

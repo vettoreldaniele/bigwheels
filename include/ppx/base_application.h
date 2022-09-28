@@ -1,7 +1,7 @@
 #ifndef ppx_base_application_h
 #define ppx_base_application_h
 
-#include "ppx/000_config.h"
+#include "ppx/config.h"
 #include "ppx/fs.h"
 #include "ppx/platform.h"
 #include "ppx/grfx/grfx_device.h"

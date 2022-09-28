@@ -1,7 +1,7 @@
 #ifndef PPX_GRFX_VK_PROFILER_FN_WRAPPHER_H
 #define PPX_GRFX_VK_PROFILER_FN_WRAPPHER_H
 
-#include "ppx/grfx/vk//000_vk_config_platform.h"
+#include "ppx/grfx/vk//vk_config_platform.h"
 
 namespace ppx {
 namespace grfx {

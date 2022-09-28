@@ -3,7 +3,7 @@
 
 #if defined(PPX_ENABLE_RAYTRACING)
 
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 #include "ppx/grfx/grfx_pipeline.h"
 
 namespace ppx {

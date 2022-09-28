@@ -1,7 +1,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "ppx/000_math_config.h"
+#include "ppx/math_config.h"
 #include "ppx/fs.h"
 #include "ppx/grfx/grfx_pipeline.h"
 

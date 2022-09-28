@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_swapchain_h
 #define ppx_grfx_swapchain_h
 
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 
 // clang-format off
 #if defined(PPX_GGP)

@@ -3,7 +3,7 @@
 
 #include "ppx/base_application.h"
 #include "ppx/command_line_parser.h"
-#include "ppx/000_math_config.h"
+#include "ppx/math_config.h"
 #include "ppx/imgui_impl.h"
 #include "ppx/timer.h"
 

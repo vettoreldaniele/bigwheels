@@ -43,7 +43,7 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #if defined(USE_SHADER_BINARIES)
-#include "ppx/grfx/dx12/000_dx12_config.h"
+#include "ppx/grfx/dx12/dx12_config.h"
 #include "ppx/grfx/dx12/dx12_util.h"
 #else
 #include <d3dcompiler.h>

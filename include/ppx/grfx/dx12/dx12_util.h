@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_dx12_util_h
 #define ppx_grfx_dx12_util_h
 
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 #include "ppx/grfx/grfx_format.h"
 #include "ppx/grfx/dx/dx_util.h"
 

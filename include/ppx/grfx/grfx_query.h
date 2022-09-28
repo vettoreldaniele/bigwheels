@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_query_h
 #define ppx_grfx_query_h
 
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 
 #define PPX_GRFX_PIPELINE_STATISTIC_NUM_ENTRIES 11
 

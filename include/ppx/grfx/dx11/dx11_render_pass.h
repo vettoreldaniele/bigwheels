@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_dx11_render_pass_h
 #define ppx_grfx_dx11_render_pass_h
 
-#include "ppx/grfx/dx11/000_dx11_config.h"
+#include "ppx/grfx/dx11/dx11_config.h"
 #include "ppx/grfx/grfx_render_pass.h"
 
 namespace ppx {

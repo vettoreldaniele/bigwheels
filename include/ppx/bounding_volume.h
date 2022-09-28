@@ -1,7 +1,7 @@
 #ifndef ppx_bounding_volume_h
 #define ppx_bounding_volume_h
 
-#include "ppx/000_math_config.h"
+#include "ppx/math_config.h"
 
 namespace ppx {
 

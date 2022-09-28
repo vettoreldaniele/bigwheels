@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_helper_h
 #define ppx_grfx_helper_h
 
-#include "ppx/000_config.h"
+#include "ppx/config.h"
 #include "ppx/grfx/grfx_constants.h"
 #include "ppx/grfx/grfx_enums.h"
 #include "ppx/grfx/grfx_format.h"

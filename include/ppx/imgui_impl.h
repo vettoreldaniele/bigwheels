@@ -3,7 +3,7 @@
 
 #include "imgui.h"
 
-#include "grfx/000_grfx_config.h"
+#include "grfx/grfx_config.h"
 
 #if defined(PPX_D3D11)
 struct ID3D11DeviceContext;

@@ -1,7 +1,7 @@
 #ifndef SHADER_CONFIG_H
 #define SHADER_CONFIG_H
 
-#include "ppx/000_math_config.h"
+#include "ppx/math_config.h"
 using namespace ppx;
 
 // -------------------------------------------------------------------------------------------------

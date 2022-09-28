@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_vk_descriptor_h
 #define ppx_grfx_vk_descriptor_h
 
-#include "ppx/grfx/vk/000_vk_config.h"
+#include "ppx/grfx/vk/vk_config.h"
 #include "ppx/grfx/grfx_descriptor.h"
 
 namespace ppx {

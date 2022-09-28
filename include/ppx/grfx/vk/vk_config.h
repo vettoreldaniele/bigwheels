@@ -1,8 +1,8 @@
 #ifndef ppx_grfx_vk_config_h
 #define ppx_grfx_vk_config_h
 
-#include "ppx/grfx/000_grfx_config.h"
-#include "ppx/grfx/vk/000_vk_config_platform.h"
+#include "ppx/grfx/grfx_config.h"
+#include "ppx/grfx/vk/vk_config_platform.h"
 #include "ppx/grfx/vk/vk_util.h"
 
 namespace ppx {

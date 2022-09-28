@@ -1,7 +1,7 @@
 #ifndef PPX_PROFILER_H
 #define PPX_PROFILER_H
 
-#include "ppx/000_config.h"
+#include "ppx/config.h"
 #include "xxhash.h"
 
 namespace ppx {

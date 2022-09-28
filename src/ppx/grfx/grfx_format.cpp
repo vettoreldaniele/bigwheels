@@ -1,5 +1,5 @@
 #include "ppx/grfx/grfx_format.h"
-#include "ppx/000_config.h"
+#include "ppx/config.h"
 
 namespace ppx {
 namespace grfx {

@@ -1,7 +1,7 @@
 #ifndef ppx_bitmap_h
 #define ppx_bitmap_h
 
-#include "ppx/000_config.h"
+#include "ppx/config.h"
 #include "ppx/fs.h"
 #include "ppx/grfx/grfx_format.h"
 

@@ -1,7 +1,7 @@
 #ifndef ppx_random_h
 #define ppx_random_h
 
-#include "ppx/000_math_config.h"
+#include "ppx/math_config.h"
 #include "pcg32.h"
 
 namespace ppx {

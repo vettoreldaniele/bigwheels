@@ -3,7 +3,7 @@
 
 #include "ppx/grfx/grfx_buffer.h"
 #include "ppx/grfx/grfx_pipeline.h"
-#include "ppx/000_math_config.h"
+#include "ppx/math_config.h"
 #include "ppx/font.h"
 #include "xxhash.h"
 

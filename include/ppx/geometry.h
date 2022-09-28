@@ -3,7 +3,7 @@
 
 #include "ppx/tri_mesh.h"
 #include "ppx/wire_mesh.h"
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 
 namespace ppx {
 

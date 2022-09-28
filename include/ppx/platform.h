@@ -1,7 +1,7 @@
 #ifndef ppx_platform_h
 #define ppx_platform_h
 
-#include "ppx/000_config.h"
+#include "ppx/config.h"
 
 namespace ppx {
 

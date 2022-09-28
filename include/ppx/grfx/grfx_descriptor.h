@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_descriptor_h
 #define ppx_grfx_descriptor_h
 
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 
 namespace ppx {
 namespace grfx {

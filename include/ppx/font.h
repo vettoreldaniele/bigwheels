@@ -1,8 +1,8 @@
 #ifndef ppx_font_h
 #define ppx_font_h
 
-#include "ppx/000_config.h"
-#include "ppx/000_math_config.h"
+#include "ppx/config.h"
+#include "ppx/math_config.h"
 #include "ppx/fs.h"
 #include "stb_truetype.h"
 

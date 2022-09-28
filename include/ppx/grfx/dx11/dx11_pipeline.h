@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_dx11_pipeline_h
 #define ppx_grfx_dx11_pipeline_h
 
-#include "ppx/grfx/dx11/000_dx11_config.h"
+#include "ppx/grfx/dx11/dx11_config.h"
 #include "ppx/grfx/grfx_pipeline.h"
 
 namespace ppx {

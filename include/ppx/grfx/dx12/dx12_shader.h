@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_dx12_shader_h
 #define ppx_grfx_dx12_shader_h
 
-#include "ppx/grfx/dx12/000_dx12_config.h"
+#include "ppx/grfx/dx12/dx12_config.h"
 #include "ppx/grfx/grfx_shader.h"
 
 namespace ppx {

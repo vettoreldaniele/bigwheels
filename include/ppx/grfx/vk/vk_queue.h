@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_vk_queue_h
 #define ppx_grfx_vk_queue_h
 
-#include "ppx/grfx/vk/000_vk_config.h"
+#include "ppx/grfx/vk/vk_config.h"
 #include "ppx/grfx/grfx_queue.h"
 
 namespace ppx {

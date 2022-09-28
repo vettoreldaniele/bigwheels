@@ -1,7 +1,7 @@
 #ifndef ppx_camera_h
 #define ppx_camera_h
 
-#include "ppx/000_math_config.h"
+#include "ppx/math_config.h"
 
 #define PPX_CAMERA_DEFAULT_NEAR_CLIP      0.1f
 #define PPX_CAMERA_DEFAULT_FAR_CLIP       10000.0f

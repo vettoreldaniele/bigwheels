@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_queue_h
 #define ppx_grfx_queue_h
 
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 #include "ppx/grfx/grfx_command.h"
 
 namespace ppx {

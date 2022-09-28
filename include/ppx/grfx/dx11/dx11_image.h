@@ -1,7 +1,7 @@
 #ifndef ppx_grfx_dx11_image_h
 #define ppx_grfx_dx11_image_h
 
-#include "ppx/grfx/dx11/000_dx11_config.h"
+#include "ppx/grfx/dx11/dx11_config.h"
 #include "ppx/grfx/grfx_image.h"
 
 namespace ppx {

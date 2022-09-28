@@ -1,9 +1,9 @@
 #ifndef ppx_wire_mesh_h
 #define ppx_wire_mesh_h
 
-#include "ppx/000_config.h"
-#include "ppx/000_math_config.h"
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/config.h"
+#include "ppx/math_config.h"
+#include "ppx/grfx/grfx_config.h"
 #include "ppx/fs.h"
 
 namespace ppx {

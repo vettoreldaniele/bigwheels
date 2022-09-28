@@ -122,8 +122,8 @@ endif()
 
 list(
     APPEND PPX_HEADER_FILES
-    ${INC_DIR}/ppx/000_config.h
-    ${INC_DIR}/ppx/000_math_config.h
+    ${INC_DIR}/ppx/config.h
+    ${INC_DIR}/ppx/math_config.h
     ${INC_DIR}/ppx/application.h
     ${INC_DIR}/ppx/base_application.h
     ${INC_DIR}/ppx/bitmap.h
@@ -184,7 +184,7 @@ list(
 
 list(
     APPEND PPX_GRFX_HEADER_FILES
-    ${INC_DIR}/ppx/grfx/000_grfx_config.h
+    ${INC_DIR}/ppx/grfx/grfx_config.h
     ${INC_DIR}/ppx/grfx/grfx_buffer.h
     ${INC_DIR}/ppx/grfx/grfx_command.h
     ${INC_DIR}/ppx/grfx/grfx_constants.h
@@ -254,7 +254,7 @@ endif()
 if (PPX_D3D11)
     list(
         APPEND PPX_GRFX_DX11_HEADER_FILES
-        ${INC_DIR}/ppx/grfx/dx11/000_dx11_config.h
+        ${INC_DIR}/ppx/grfx/dx11/dx11_config.h
         ${INC_DIR}/ppx/grfx/dx11/dx11_buffer.h
         ${INC_DIR}/ppx/grfx/dx11/dx11_command.h
         ${INC_DIR}/ppx/grfx/dx11/dx11_command_list.h
@@ -299,7 +299,7 @@ endif()
 if (PPX_D3D12)
     list(
         APPEND PPX_GRFX_DX12_HEADER_FILES
-        ${INC_DIR}/ppx/grfx/dx12/000_dx12_config.h
+        ${INC_DIR}/ppx/grfx/dx12/dx12_config.h
         ${INC_DIR}/ppx/grfx/dx12/dx12_buffer.h
         ${INC_DIR}/ppx/grfx/dx12/dx12_command.h
         ${INC_DIR}/ppx/grfx/dx12/dx12_descriptor.h
@@ -344,8 +344,8 @@ endif()
 if (PPX_VULKAN OR PPX_DXIL_SPV)
     list(
         APPEND PPX_GRFX_VK_HEADER_FILES
-        ${INC_DIR}/ppx/grfx/vk/000_vk_config.h
-        ${INC_DIR}/ppx/grfx/vk/000_vk_config_platform.h
+        ${INC_DIR}/ppx/grfx/vk/vk_config.h
+        ${INC_DIR}/ppx/grfx/vk/vk_config_platform.h
         ${INC_DIR}/ppx/grfx/vk/vk_buffer.h
         ${INC_DIR}/ppx/grfx/vk/vk_command.h
         ${INC_DIR}/ppx/grfx/vk/vk_descriptor.h

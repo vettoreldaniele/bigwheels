@@ -10,7 +10,7 @@
 // due to VkImageView being a concrete and allocated object in Vulkan.
 //
 
-#include "ppx/grfx/dx12/000_dx12_config.h"
+#include "ppx/grfx/dx12/dx12_config.h"
 
 namespace ppx {
 namespace grfx {

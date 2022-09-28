@@ -22,7 +22,7 @@
 // to shape D3D12 to look like Vulkan.
 //
 
-#include "ppx/grfx/000_grfx_config.h"
+#include "ppx/grfx/grfx_config.h"
 
 namespace ppx {
 namespace grfx {
