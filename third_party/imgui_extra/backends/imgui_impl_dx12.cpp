@@ -108,7 +108,7 @@ struct VERTEX_CONSTANT_BUFFER
 //-----------------------------------------------------------------------------
 
 // vs.spv, compiled with:
-//   dxc -spirv -fspv-reflect -T vs_5_0 -E main -Fh vs.h vs.hlsl
+//   dxc -T vs_5_0 -E main -Fh vs.h vs.hlsl
 /*
 cbuffer vertexBuffer : register(b0) 
 {
@@ -428,7 +428,7 @@ static const unsigned char __hlsl_shader_vs_spv[] = {
 };
 
 // ps.spv, compiled with:
-//   dxc -spirv -fspv-reflect -T ps_5_0 -E main -Fh ps.h dx12_shader_ps.hlsl
+//   dxc -T ps_5_0 -E main -Fh ps.h dx12_shader_ps.hlsl
 /*
 struct PS_INPUT
 {
