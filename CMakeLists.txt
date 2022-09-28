@@ -23,7 +23,7 @@ if (NOT DXC_PATH)
         if (WIN32)
             set(VK_SDK_DXC "$ENV{VULKAN_SDK}\\Bin\\dxc.exe")
         else ()
-            set(VK_SDK_DXC "$ENV{VULKAN_SDK}/bin/dxc")
+            set(VK_SDK_DXC "$ENV{VULKAN_SDK}/x86_64/bin/dxc")
         endif ()
 
         if (EXISTS "${VK_SDK_DXC}")
