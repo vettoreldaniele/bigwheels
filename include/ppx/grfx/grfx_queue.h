@@ -66,7 +66,15 @@ public:
         grfx::ResourceState                 stateBefore,
         grfx::ResourceState                 stateAfter);
 
-    // In pace copy of buffer to image
+    // In place copy of source data to buffer
+    Result CopySourceToBuffer(
+        const uint32_t      sourceDataSize,
+        const void*         pSourceData,
+        grfx::Buffer*       pDstBuffer,
+        grfx::ResourceState stateBefore,
+        grfx::ResourceState stateAfter);
+
+    // In place copy of buffer to image
     Result CopyBufferToImage(
         const grfx::BufferToImageCopyInfo* pCopyInfo,
         grfx::Buffer*                      pSrcBuffer,

@@ -714,7 +714,160 @@ void CommandBuffer::ResolveQueryData(
 {
     PPX_ASSERT_MSG((startIndex + numQueries) <= pQuery->GetCount(), "invalid query index/number");
     const VkQueryResultFlags flags = VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_64_BIT;
-    vkCmdCopyQueryPoolResults(mCommandBuffer, ToApi(pQuery)->GetVkQueryPool(), startIndex, numQueries, ToApi(pQuery)->GetReadBackBuffer(), 0, ToApi(pQuery)->GetQueryTypeSize(), flags);
+    vkCmdCopyQueryPoolResults(
+        mCommandBuffer,
+        ToApi(pQuery)->GetVkQueryPool(),
+        startIndex,
+        numQueries,
+        ToApi(pQuery)->GetReadBackBuffer(),
+        0,
+        ToApi(pQuery)->GetQueryTypeSize(),
+        flags);
+}
+
+static void CmdPushDescriptor(
+    VkCommandBuffer                cmdBuf,
+    const grfx::PipelineInterface* pInterface,
+    VkPipelineBindPoint            bindPoint,
+    uint32_t                       binding,
+    uint32_t                       setSpace,
+    VkDescriptorType               descriptorType,
+    const grfx::Buffer*            pBuffer,
+    uint32_t                       offset)
+{
+    (void)setSpace;
+
+    VkDescriptorBufferInfo bufferInfo = {};
+    bufferInfo.buffer                 = ToApi(pBuffer)->GetVkBuffer();
+    bufferInfo.offset                 = offset;
+    bufferInfo.range                  = VK_WHOLE_SIZE;
+
+    VkWriteDescriptorSet write = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+    write.pNext                = nullptr;
+    write.dstSet               = VK_NULL_HANDLE;
+    write.dstBinding           = binding;
+    write.dstArrayElement      = 0;
+    write.descriptorCount      = 1;
+    write.descriptorType       = descriptorType;
+    write.pImageInfo           = nullptr;
+    write.pBufferInfo          = &bufferInfo;
+    write.pTexelBufferView     = nullptr;
+
+    vk::CmdPushDescriptorSetKHR(
+        cmdBuf,
+        bindPoint,
+        ToApi(pInterface)->GetVkPipelineLayout(),
+        ToApi(pInterface)->GetPushDescriptorsSetIndex(),
+        1,
+        &write);
+}
+
+void CommandBuffer::PushComputeConstantBuffer(
+    const grfx::PipelineInterface* pInterface,
+    uint32_t                       binding,
+    uint32_t                       setSpace,
+    const grfx::Buffer*            pBuffer,
+    uint32_t                       offset)
+{
+    CmdPushDescriptor(
+        mCommandBuffer,
+        pInterface,
+        VK_PIPELINE_BIND_POINT_COMPUTE,
+        binding,
+        setSpace,
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        pBuffer,
+        offset);
+}
+
+void CommandBuffer::PushComputeStructuredBuffer(
+    const grfx::PipelineInterface* pInterface,
+    uint32_t                       binding,
+    uint32_t                       setSpace,
+    const grfx::Buffer*            pBuffer,
+    uint32_t                       offset)
+{
+    CmdPushDescriptor(
+        mCommandBuffer,
+        pInterface,
+        VK_PIPELINE_BIND_POINT_COMPUTE,
+        binding,
+        setSpace,
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        pBuffer,
+        offset);
+}
+
+void CommandBuffer::PushComputeStorageBuffer(
+    const grfx::PipelineInterface* pInterface,
+    uint32_t                       binding,
+    uint32_t                       setSpace,
+    const grfx::Buffer*            pBuffer,
+    uint32_t                       offset)
+{
+    CmdPushDescriptor(
+        mCommandBuffer,
+        pInterface,
+        VK_PIPELINE_BIND_POINT_COMPUTE,
+        binding,
+        setSpace,
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        pBuffer,
+        offset);
+}
+
+void CommandBuffer::PushGraphicsConstantBuffer(
+    const grfx::PipelineInterface* pInterface,
+    uint32_t                       binding,
+    uint32_t                       setSpace,
+    const grfx::Buffer*            pBuffer,
+    uint32_t                       offset)
+{
+    CmdPushDescriptor(
+        mCommandBuffer,
+        pInterface,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        binding,
+        setSpace,
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        pBuffer,
+        offset);
+}
+
+void CommandBuffer::PushGraphicsStructuredBuffer(
+    const grfx::PipelineInterface* pInterface,
+    uint32_t                       binding,
+    uint32_t                       setSpace,
+    const grfx::Buffer*            pBuffer,
+    uint32_t                       offset)
+{
+    CmdPushDescriptor(
+        mCommandBuffer,
+        pInterface,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        binding,
+        setSpace,
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        pBuffer,
+        offset);
+}
+
+void CommandBuffer::PushGraphicsStorageBuffer(
+    const grfx::PipelineInterface* pInterface,
+    uint32_t                       binding,
+    uint32_t                       setSpace,
+    const grfx::Buffer*            pBuffer,
+    uint32_t                       offset)
+{
+    CmdPushDescriptor(
+        mCommandBuffer,
+        pInterface,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        binding,
+        setSpace,
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        pBuffer,
+        offset);
 }
 
 // -------------------------------------------------------------------------------------------------

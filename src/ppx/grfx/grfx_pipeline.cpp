@@ -1,4 +1,5 @@
 #include "ppx/grfx/grfx_pipeline.h"
+#include "ppx/grfx/grfx_descriptor.h"
 
 namespace ppx {
 namespace grfx {

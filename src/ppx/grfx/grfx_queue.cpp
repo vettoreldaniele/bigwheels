@@ -116,6 +116,61 @@ Result Queue::CopyBufferToBuffer(
     return ppx::SUCCESS;
 }
 
+Result Queue::CopySourceToBuffer(
+    const uint32_t      sourceDataSize,
+    const void*         pSourceData,
+    grfx::Buffer*       pDstBuffer,
+    grfx::ResourceState stateBefore,
+    grfx::ResourceState stateAfter)
+{
+    if ((sourceDataSize == 0) || IsNull(pSourceData)) {
+        return ppx::ERROR_BAD_DATA_SOURCE;
+    }
+    if (IsNull(pDstBuffer)) {
+        return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
+    }
+
+    bool validSourceDataSize = (sourceDataSize <= pDstBuffer->GetSize());
+    PPX_ASSERT_MSG(validSourceDataSize, "Source data size exceeds destination buffer size");
+    if (!validSourceDataSize) {
+        return ppx::ERROR_BAD_DATA_SOURCE;
+    }
+
+    grfx::ScopeDestroyer SCOPED_DESTROYER(GetDevice());
+
+    // Create temporary staging buffer
+    grfx::BufferPtr stagingBuffer;
+    {
+        ppx::grfx::BufferCreateInfo createInfo = {};
+        createInfo.size                        = sourceDataSize;
+        createInfo.usageFlags.bits.transferSrc = true;
+        createInfo.memoryUsage                 = ppx::grfx::MEMORY_USAGE_CPU_ONLY;
+        Result ppxres                          = GetDevice()->CreateBuffer(&createInfo, &stagingBuffer);
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+
+        SCOPED_DESTROYER.AddObject(stagingBuffer);
+    }
+
+    Result ppxres = stagingBuffer->CopyFromSource(sourceDataSize, pSourceData);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    grfx::BufferToBufferCopyInfo copyInfo = {};
+    copyInfo.size                         = sourceDataSize;
+    copyInfo.srcBuffer.offset             = 0;
+    copyInfo.dstBuffer.offset             = 0;
+
+    ppxres = CopyBufferToBuffer(&copyInfo, stagingBuffer, pDstBuffer, stateBefore, stateAfter);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+
+    return ppx::SUCCESS;
+}
+
 Result Queue::CopyBufferToImage(
     const grfx::BufferToImageCopyInfo* pCopyInfo,
     grfx::Buffer*                      pSrcBuffer,

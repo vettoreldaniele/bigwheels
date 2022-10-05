@@ -218,6 +218,8 @@ protected:
 
 // -------------------------------------------------------------------------------------------------
 
+struct PushDescriptorBinding;
+
 //! @struct PipelineInterfaceCreateInfo
 //!
 //!
@@ -229,6 +231,14 @@ struct PipelineInterfaceCreateInfo
         uint32_t                         set     = PPX_VALUE_IGNORED; // Set number
         const grfx::DescriptorSetLayout* pLayout = nullptr;           // Set layout
     } sets[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {};
+
+    // WARNING: Not supported by D3D11!
+    //
+    // For D3D12 - this is used to create root descriptor parameters.
+    // For Vulkan - this is used to create a descriptor set layout that
+    //   has VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR set.
+    //
+    std::vector<grfx::PushDescriptorBinding> pushDescriptors;
 };
 
 //! @class PipelineInterface

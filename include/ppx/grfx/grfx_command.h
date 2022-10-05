@@ -362,6 +362,48 @@ public:
         uint32_t     startIndex,
         uint32_t     numQueries) = 0;
 
+    virtual void PushComputeConstantBuffer(
+        const grfx::PipelineInterface* pInterface,
+        uint32_t                       binding,
+        uint32_t                       setSpace,
+        const grfx::Buffer*            pBuffer,
+        uint32_t                       offset = 0) = 0;
+
+    virtual void PushComputeStructuredBuffer(
+        const grfx::PipelineInterface* pInterface,
+        uint32_t                       binding,
+        uint32_t                       setSpace,
+        const grfx::Buffer*            pBuffer,
+        uint32_t                       offset = 0) = 0;
+
+    virtual void PushComputeStorageBuffer(
+        const grfx::PipelineInterface* pInterface,
+        uint32_t                       binding,
+        uint32_t                       setSpace,
+        const grfx::Buffer*            pBuffer,
+        uint32_t                       offset = 0) = 0;
+
+    virtual void PushGraphicsConstantBuffer(
+        const grfx::PipelineInterface* pInterface,
+        uint32_t                       binding,
+        uint32_t                       setSpace,
+        const grfx::Buffer*            pBuffer,
+        uint32_t                       offset = 0) = 0;
+
+    virtual void PushGraphicsStructuredBuffer(
+        const grfx::PipelineInterface* pInterface,
+        uint32_t                       binding,
+        uint32_t                       setSpace,
+        const grfx::Buffer*            pBuffer,
+        uint32_t                       offset = 0) = 0;
+
+    virtual void PushGraphicsStorageBuffer(
+        const grfx::PipelineInterface* pInterface,
+        uint32_t                       binding,
+        uint32_t                       setSpace,
+        const grfx::Buffer*            pBuffer,
+        uint32_t                       offset = 0) = 0;
+
     // ---------------------------------------------------------------------------------------------
     // Convenience functions
     // ---------------------------------------------------------------------------------------------

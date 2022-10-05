@@ -15,14 +15,14 @@ public:
     ComputePipeline() {}
     virtual ~ComputePipeline() {}
 
-    D3D12PipelineStatePtr GetDxPipeline() const { return mPhongPipeline; }
+    D3D12PipelineStatePtr GetDxPipeline() const { return mPipeline; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
-    D3D12PipelineStatePtr mPhongPipeline;
+    D3D12PipelineStatePtr mPipeline;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ public:
     GraphicsPipeline() {}
     virtual ~GraphicsPipeline() {}
 
-    D3D12PipelineStatePtr  GetDxPipeline() const { return mPhongPipeline; }
+    D3D12PipelineStatePtr  GetDxPipeline() const { return mPipeline; }
     D3D_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return mPrimitiveTopology; }
 
 protected:
@@ -68,7 +68,7 @@ private:
         D3D12_GRAPHICS_PIPELINE_STATE_DESC&     desc);
 
 private:
-    D3D12PipelineStatePtr  mPhongPipeline;
+    D3D12PipelineStatePtr  mPipeline;
     D3D_PRIMITIVE_TOPOLOGY mPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 };
 
@@ -83,7 +83,7 @@ public:
 
     D3D12RootSignaturePtr GetDxRootSignature() const { return mRootSignature; }
     uint32_t              GetParameterIndexCount() const { return CountU32(mParameterIndices); }
-    UINT                  FindParameterIndex(uint32_t set, uint32_t binding) const;
+    UINT                  FindParameterIndex(uint32_t binding, uint32_t set) const;
 
 protected:
     virtual Result CreateApiObjects(const grfx::PipelineInterfaceCreateInfo* pCreateInfo) override;
@@ -94,8 +94,8 @@ private:
 
     struct ParameterIndex
     {
-        uint32_t set     = PPX_VALUE_IGNORED;
         uint32_t binding = PPX_VALUE_IGNORED;
+        uint32_t set     = PPX_VALUE_IGNORED;
         uint32_t index   = PPX_VALUE_IGNORED;
     };
     std::vector<ParameterIndex> mParameterIndices;

@@ -18,14 +18,14 @@ public:
     ComputePipeline() {}
     virtual ~ComputePipeline() {}
 
-    VkPipelinePtr GetVkPipeline() const { return mPhongPipeline; }
+    VkPipelinePtr GetVkPipeline() const { return mPipeline; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
-    VkPipelinePtr mPhongPipeline;
+    VkPipelinePtr mPipeline;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ public:
     GraphicsPipeline() {}
     virtual ~GraphicsPipeline() {}
 
-    VkPipelinePtr GetVkPipeline() const { return mPhongPipeline; }
+    VkPipelinePtr GetVkPipeline() const { return mPipeline; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::GraphicsPipelineCreateInfo* pCreateInfo) override;
@@ -86,7 +86,7 @@ private:
         VkPipelineDynamicStateCreateInfo&       stateCreateInfo);
 
 private:
-    VkPipelinePtr mPhongPipeline;
+    VkPipelinePtr mPipeline;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -103,12 +103,16 @@ public:
 
     VkPipelineLayoutPtr GetVkPipelineLayout() const { return mPipelineLayout; }
 
+    uint32_t GetPushDescriptorsSetIndex() const { return mPushDescriptorsSetIndex; }
+
 protected:
     virtual Result CreateApiObjects(const grfx::PipelineInterfaceCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
-    VkPipelineLayoutPtr mPipelineLayout;
+    VkPipelineLayoutPtr      mPipelineLayout;
+    VkDescriptorSetLayoutPtr mPushDescriptorsSetLayout;
+    uint32_t                 mPushDescriptorsSetIndex = PPX_VALUE_IGNORED;
 };
 
 } // namespace vk

@@ -33,7 +33,7 @@ Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* 
         1,
         &vkci,
         nullptr,
-        &mPhongPipeline);
+        &mPipeline);
     if (vkres != VK_SUCCESS) {
         PPX_ASSERT_MSG(false, "vkCreateComputePipelines failed: " << ToString(vkres));
         return ppx::ERROR_API_FAILURE;
@@ -44,9 +44,9 @@ Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* 
 
 void ComputePipeline::DestroyApiObjects()
 {
-    if (mPhongPipeline) {
-        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPhongPipeline, nullptr);
-        mPhongPipeline.Reset();
+    if (mPipeline) {
+        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPipeline, nullptr);
+        mPipeline.Reset();
     }
 }
 
@@ -513,7 +513,7 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
         1,
         &vkci,
         nullptr,
-        &mPhongPipeline);
+        &mPipeline);
     // Destroy transient render pass
     if (renderPass) {
         vkDestroyRenderPass(
@@ -532,9 +532,9 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
 
 void GraphicsPipeline::DestroyApiObjects()
 {
-    if (mPhongPipeline) {
-        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPhongPipeline, nullptr);
-        mPhongPipeline.Reset();
+    if (mPipeline) {
+        vkDestroyPipeline(ToApi(GetDevice())->GetVkDevice(), mPipeline, nullptr);
+        mPipeline.Reset();
     }
 }
 
@@ -543,15 +543,52 @@ void GraphicsPipeline::DestroyApiObjects()
 // -------------------------------------------------------------------------------------------------
 Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateInfo* pCreateInfo)
 {
-    VkDescriptorSetLayout setLayouts[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
+    //VkDescriptorSetLayout setLayouts[PPX_MAX_BOUND_DESCRIPTOR_SETS] = {VK_NULL_HANDLE};
+    //for (uint32_t i = 0; i < pCreateInfo->setCount; ++i) {
+    //    setLayouts[i] = ToApi(pCreateInfo->sets[i].pLayout)->GetVkDescriptorSetLayout();
+    //}
+    std::vector<VkDescriptorSetLayout> setLayouts;
     for (uint32_t i = 0; i < pCreateInfo->setCount; ++i) {
-        setLayouts[i] = ToApi(pCreateInfo->sets[i].pLayout)->GetVkDescriptorSetLayout();
+        setLayouts.push_back(ToApi(pCreateInfo->sets[i].pLayout)->GetVkDescriptorSetLayout());
+    }
+
+    // Create layout for push descriptors
+    if (!pCreateInfo->pushDescriptors.empty()) {
+        std::vector<VkDescriptorSetLayoutBinding> bindings;
+        for (auto& elem : pCreateInfo->pushDescriptors) {
+            VkDescriptorSetLayoutBinding binding = {};
+            binding.binding                      = elem.binding;
+            binding.descriptorType               = ToVkDescriptorType(elem.type);
+            binding.descriptorCount              = 1;
+            binding.stageFlags                   = ToVkShaderStageFlags(elem.shaderVisiblity);
+            binding.pImmutableSamplers           = nullptr;
+            bindings.push_back(binding);
+        }
+
+        VkDescriptorSetLayoutCreateInfo vkci = {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+        vkci.pNext                           = nullptr;
+        vkci.flags                           = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR;
+        vkci.bindingCount                    = CountU32(bindings);
+        vkci.pBindings                       = DataPtr(bindings);
+
+        VkResult vkres = vkCreateDescriptorSetLayout(
+            ToApi(GetDevice())->GetVkDevice(),
+            &vkci,
+            nullptr,
+            &mPushDescriptorsSetLayout);
+        if (vkres != VK_SUCCESS) {
+            PPX_ASSERT_MSG(false, "vkCreateDescriptorSetLayout failed: " << ToString(vkres));
+            return ppx::ERROR_API_FAILURE;
+        }
+
+        setLayouts.push_back(mPushDescriptorsSetLayout);
+        mPushDescriptorsSetIndex = CountU32(setLayouts) - 1;
     }
 
     VkPipelineLayoutCreateInfo vkci = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
     vkci.flags                      = 0;
-    vkci.setLayoutCount             = pCreateInfo->setCount;
-    vkci.pSetLayouts                = setLayouts;
+    vkci.setLayoutCount             = CountU32(setLayouts);
+    vkci.pSetLayouts                = DataPtr(setLayouts);
     vkci.pushConstantRangeCount     = 0;
     vkci.pPushConstantRanges        = nullptr;
 
@@ -570,6 +607,10 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
 
 void PipelineInterface::DestroyApiObjects()
 {
+    if (mPushDescriptorsSetLayout) {
+        vkDestroyDescriptorSetLayout(ToApi(GetDevice())->GetVkDevice(), mPushDescriptorsSetLayout, nullptr);
+    }
+
     if (mPipelineLayout) {
         vkDestroyPipelineLayout(ToApi(GetDevice())->GetVkDevice(), mPipelineLayout, nullptr);
         mPipelineLayout.Reset();
