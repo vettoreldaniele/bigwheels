@@ -20,8 +20,7 @@ static VkBool32 VKAPI_PTR DebugUtilsMessengerCallback(
     // Ignore these messages because they're nonsense
     // clang-format off
     if (
-        (pCallbackData->messageIdNumber == 0x3d492883) || // vkCreateShaderModule(): The SPIR-V Extension (SPV_GOOGLE_hlsl_functionality1) was declared, but none of the requirements were met to use it. The Vulkan spec states: If pCode declares any of the SPIR-V extensions listed in the SPIR-V Environment appendix, one of the corresponding requirements must be satisfied
-        (pCallbackData->messageIdNumber == 0x6bbb14)      // vkCreateShaderModule(): SPIR-V module not valid: Structure id [%id] decorated as BufferBlock for variable in Uniform storage class must follow relaxed storage buffer layout rules: member [n] contains an array with stride [n-bytes] not satisfying alignment to 16
+        (pCallbackData->messageIdNumber == 0x3d492883) // vkCreateShaderModule(): The SPIR-V Extension (SPV_GOOGLE_hlsl_functionality1) was declared, but none of the requirements were met to use it. The Vulkan spec states: If pCode declares any of the SPIR-V extensions listed in the SPIR-V Environment appendix, one of the corresponding requirements must be satisfied
     ) {
         return VK_FALSE;
     }

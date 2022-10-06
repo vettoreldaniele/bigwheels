@@ -129,48 +129,6 @@ public:
         uint32_t     startIndex,
         uint32_t     numQueries) override;
 
-    virtual void PushComputeConstantBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushComputeStructuredBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushComputeStorageBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushGraphicsConstantBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushGraphicsStructuredBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushGraphicsStorageBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
     void ImGuiRender(void (*pFn)(void));
 
 protected:

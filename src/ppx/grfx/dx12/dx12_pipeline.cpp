@@ -21,7 +21,7 @@ Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* 
     desc.CachedPSO                         = {};
     desc.Flags                             = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&mPipeline));
+    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&mPhongPipeline));
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateComputePipelineState failed");
         return ppx::ERROR_API_FAILURE;
@@ -33,8 +33,8 @@ Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* 
 
 void ComputePipeline::DestroyApiObjects()
 {
-    if (mPipeline) {
-        mPipeline.Reset();
+    if (mPhongPipeline) {
+        mPhongPipeline.Reset();
     }
 }
 
@@ -217,7 +217,7 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
     desc.CachedPSO = {};
     desc.Flags     = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&mPipeline));
+    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&mPhongPipeline));
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateGraphicsPipelineState failed");
         return ppx::ERROR_API_FAILURE;
@@ -246,8 +246,8 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
 
 void GraphicsPipeline::DestroyApiObjects()
 {
-    if (mPipeline) {
-        mPipeline.Reset();
+    if (mPhongPipeline) {
+        mPhongPipeline.Reset();
     }
 }
 
@@ -258,11 +258,11 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
 {
     dx12::Device* pDevice = ToApi(GetDevice());
 
+    //std::vector<std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>>> parameterRanges;
     std::vector<std::unique_ptr<D3D12_DESCRIPTOR_RANGE1>> parameterRanges;
 
-    // Creates a parameter for each binding in a descriptor set - this is naive
-    // way of create paramters and their associated range. It favors
-    // flexibility.
+    // Creates a parameter for each binding - this is naive way of
+    // create paramters and their associated range. It flavors flexibility.
     //
     // @TODO: Optimize
     //
@@ -301,42 +301,67 @@ Result PipelineInterface::CreateApiObjects(const grfx::PipelineInterfaceCreateIn
             parameterRanges.push_back(std::move(range));
             // Store parameter index
             ParameterIndex paramIndex = {};
+            paramIndex.set            = set;
             paramIndex.binding        = binding.binding;
+            paramIndex.index          = static_cast<UINT>(parameters.size() - 1);
+            mParameterIndices.push_back(paramIndex);
+        }
+
+        /*
+        // Allocate container for CBVSRVUAV ranges
+        std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>> rangesCBVSRVUAV = std::make_unique<std::vector<D3D12_DESCRIPTOR_RANGE1>>();
+        if (!ranges) {
+            PPX_ASSERT_MSG(false, "allocation for descriptor ranges failed (CBVSRVUAV)");
+            return ppx::ERROR_ALLOCATION_FAILED;
+        }
+        // Allocate container for Sampler ranges
+        std::unique_ptr<std::vector<D3D12_DESCRIPTOR_RANGE1>> rangesSampler = std::make_unique<std::vector<D3D12_DESCRIPTOR_RANGE1>>();
+        if (!ranges) {
+            PPX_ASSERT_MSG(false, "allocation for descriptor ranges failed (Sampler)");
+            return ppx::ERROR_ALLOCATION_FAILED;
+        }
+
+        // Fill out ranges
+        for (size_t bindingIndex = 0; bindingIndex < bindings.size(); ++bindingIndex) {
+            const grfx::DescriptorBinding& binding = bindings[bindingIndex];
+
+            D3D12_DESCRIPTOR_RANGE1 range           = {};
+            range.RangeType                         = ToD3D12RangeType(binding.type);
+            range.NumDescriptors                    = static_cast<UINT>(binding.arrayCount);
+            range.BaseShaderRegister                = static_cast<UINT>(binding.binding);
+            range.RegisterSpace                     = static_cast<UINT>(set);
+            range.Flags                             = D3D12_DESCRIPTOR_RANGE_FLAG_NONE;
+            range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+            // Explicitly check for sampler
+            if (range.RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER) {
+                rangesSampler->push_back(range);
+            }
+            // Assume everything else is CBVSRVUAV
+            else {
+                rangesCBVSRVUAV->push_back(range);
+            }
+        }
+
+        // CBVSRVUAV parameter
+        {
+            // Fill out parameter
+            D3D12_ROOT_PARAMETER1 parameter               = {};
+            parameter.ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+            parameter.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(rangesCBVSRVUAV->size());
+            parameter.DescriptorTable.pDescriptorRanges   = DataPtr(*rangesCBVSRVUAV);
+            parameter.ShaderVisibility                    = ToD3D12ShaderVisibliity(pLayout->GetShaderVisiblity());
+            // Store parameter
+            parameters.push_back(parameter);
+            // Store ranges
+            parameterRanges.push_back(std::move(ranges));
+            // Store parameter index
+            ParameterIndex paramIndex = {};
             paramIndex.set            = set;
             paramIndex.index          = static_cast<UINT>(parameters.size() - 1);
             mParameterIndices.push_back(paramIndex);
         }
-    }
-
-    // Create parameters for each push descriptor as root descirptors
-    //
-    //
-    for (auto& pushDescriptor : pCreateInfo->pushDescriptors) {
-        D3D12_ROOT_PARAMETER_TYPE parameterType = InvalidValue<D3D12_ROOT_PARAMETER_TYPE>();
-        // clang-format off
-        switch (pushDescriptor.type) {
-            default: return ppx::ERROR_GRFX_INVALID_DESCRIPTOR_TYPE;
-            case grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER         : parameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; break;
-            case grfx::DESCRIPTOR_TYPE_STORAGE_BUFFER         : parameterType = D3D12_ROOT_PARAMETER_TYPE_UAV; break;
-            case grfx::DESCRIPTOR_TYPE_STRUCTURED_BUFFER      : parameterType = D3D12_ROOT_PARAMETER_TYPE_SRV; break;
-        }
-        // clang-format on
-
-        // Fill out parameter
-        D3D12_ROOT_PARAMETER1 parameter     = {};
-        parameter.ParameterType             = parameterType;
-        parameter.Descriptor.ShaderRegister = pushDescriptor.binding;
-        parameter.Descriptor.RegisterSpace  = pushDescriptor.setSpace;
-        parameter.Descriptor.Flags          = D3D12_ROOT_DESCRIPTOR_FLAG_NONE;
-        parameter.ShaderVisibility          = ToD3D12ShaderVisibliity(pushDescriptor.shaderVisiblity);
-        // Store parameter
-        parameters.push_back(parameter);
-        // Store parameter index
-        ParameterIndex paramIndex = {};
-        paramIndex.binding        = pushDescriptor.binding;
-        paramIndex.set            = pushDescriptor.setSpace;
-        paramIndex.index          = static_cast<UINT>(parameters.size() - 1);
-        mParameterIndices.push_back(paramIndex);
+*/
     }
 
     D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
@@ -380,14 +405,14 @@ void PipelineInterface::DestroyApiObjects()
     }
 }
 
-UINT PipelineInterface::FindParameterIndex(uint32_t binding, uint32_t set) const
+UINT PipelineInterface::FindParameterIndex(uint32_t set, uint32_t binding) const
 {
     auto it = FindIf(
         mParameterIndices,
         [set, binding](const ParameterIndex& elem) -> bool { 
+            bool isSameSet = elem.set == set;
             bool isSameBinding = elem.binding == binding;
-            bool isSameSet     = elem.set == set;
-            bool isSame        = isSameBinding && isSameSet;
+            bool isSame = isSameSet && isSameBinding;
             return isSame; });
     if (it == std::end(mParameterIndices)) {
         return PPX_VALUE_IGNORED;

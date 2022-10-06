@@ -23,7 +23,6 @@ public:
     bool HasTimelineSemaphore() const { return mHasTimelineSemaphore; }
     bool HasExtendedDynamicState() const { return mHasExtendedDynamicState; }
     bool HasUnreistrictedDepthRange() const { return mHasUnrestrictedDepthRange; }
-    bool HasPushDescriptor() const { return mHasPushDescriptor; }
 
     virtual Result WaitIdle() override;
 
@@ -88,14 +87,12 @@ private:
     bool                     mHasExtendedDynamicState   = false;
     bool                     mHasUnrestrictedDepthRange = false;
     bool                     mHasDynamicRendering       = false;
-    bool                     mHasPushDescriptor         = false;
     PFN_vkResetQueryPoolEXT  mFnResetQueryPoolEXT       = nullptr;
     uint32_t                 mGraphicsQueueFamilyIndex  = 0;
     uint32_t                 mComputeQueueFamilyIndex   = 0;
     uint32_t                 mTransferQueueFamilyIndex  = 0;
 };
 
-extern PFN_vkCmdPushDescriptorSetKHR CmdPushDescriptorSetKHR;
 } // namespace vk
 } // namespace grfx
 } // namespace ppx

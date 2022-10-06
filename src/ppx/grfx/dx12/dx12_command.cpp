@@ -98,24 +98,6 @@ void CommandBuffer::DestroyApiObjects()
     }
 }
 
-void CommandBuffer::SetComputeRootSignature(const grfx::PipelineInterface* pInterface)
-{
-    if (pInterface == mCurrentComputeInterface) {
-        return;
-    }
-    mCommandList->SetComputeRootSignature(ToApi(pInterface)->GetDxRootSignature());
-    mCurrentComputeInterface = pInterface;
-}
-
-void CommandBuffer::SetGraphicsRootSignature(const grfx::PipelineInterface* pInterface)
-{
-    if (pInterface == mCurrentGraphicsInterface) {
-        return;
-    }
-    mCommandList->SetGraphicsRootSignature(ToApi(pInterface)->GetDxRootSignature());
-    mCurrentGraphicsInterface = pInterface;
-}
-
 Result CommandBuffer::Begin()
 {
     HRESULT hr;
@@ -158,10 +140,6 @@ Result CommandBuffer::Begin()
     // Reset heap offsets
     mHeapOffsetCBVSRVUAV = 0;
     mHeapOffsetSampler   = 0;
-
-    // Reset current root signatures
-    mCurrentComputeInterface  = nullptr;
-    mCurrentGraphicsInterface = nullptr;
 
     return ppx::SUCCESS;
 }
@@ -451,8 +429,8 @@ void CommandBuffer::BindDescriptorSets(
         size_t bindingCount = bindings.size();
         for (size_t bindingIndex = 0; bindingIndex < bindingCount; ++bindingIndex) {
             auto& binding        = bindings[bindingIndex];
-            UINT  parameterIndex = pApiPipelineInterface->FindParameterIndex(binding.binding, set);
-            PPX_ASSERT_MSG(parameterIndex != UINT32_MAX, "invalid parameter index for binding=" << binding.binding << ", set=" << set);
+            UINT  parameterIndex = pApiPipelineInterface->FindParameterIndex(set, binding.binding);
+            PPX_ASSERT_MSG(parameterIndex != UINT32_MAX, "invalid parameter index for set=" << set << ", binding=" << binding.binding);
 
             if (binding.type == grfx::DESCRIPTOR_TYPE_SAMPLER) {
                 RootDescriptorTable& rdt = mRootDescriptorTablesSampler[rdtCountSampler];
@@ -482,7 +460,7 @@ void CommandBuffer::BindGraphicsDescriptorSets(
     const grfx::DescriptorSet* const* ppSets)
 {
     // Set root signature
-    SetGraphicsRootSignature(pInterface);
+    mCommandList->SetGraphicsRootSignature(ToApi(pInterface)->GetDxRootSignature().Get());
 
     // Fill out mRootDescriptorTablesCBVSRVUAV and mRootDescriptorTablesSampler
     size_t rdtCountCBVSRVUAV = 0;
@@ -514,7 +492,7 @@ void CommandBuffer::BindComputeDescriptorSets(
     const grfx::DescriptorSet* const* ppSets)
 {
     // Set root signature
-    SetComputeRootSignature(pInterface);
+    mCommandList->SetComputeRootSignature(ToApi(pInterface)->GetDxRootSignature().Get());
 
     // Fill out mRootDescriptorTablesCBVSRVUAV and mRootDescriptorTablesSampler
     size_t rdtCountCBVSRVUAV = 0;
@@ -860,108 +838,6 @@ void CommandBuffer::ResolveQueryData(
 {
     PPX_ASSERT_MSG((startIndex + numQueries) <= pQuery->GetCount(), "invalid query index/number");
     mCommandList->ResolveQueryData(ToApi(pQuery)->GetDxQueryHeap(), ToApi(pQuery)->GetQueryType(), startIndex, numQueries, ToApi(pQuery)->GetReadBackBuffer(), 0);
-}
-
-void CommandBuffer::PushComputeConstantBuffer(
-    const grfx::PipelineInterface* pInterface,
-    uint32_t                       binding,
-    uint32_t                       setSpace,
-    const grfx::Buffer*            pBuffer,
-    uint32_t                       offset)
-{
-    UINT                      parameterIndex    = ToApi(pInterface)->FindParameterIndex(binding, setSpace);
-    D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress = ToApi(pBuffer)->GetDxResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(offset);
-
-    SetComputeRootSignature(pInterface);
-
-    mCommandList->SetComputeRootConstantBufferView(
-        parameterIndex,
-        gpuVirtualAddress);
-}
-
-void CommandBuffer::PushComputeStructuredBuffer(
-    const grfx::PipelineInterface* pInterface,
-    uint32_t                       binding,
-    uint32_t                       setSpace,
-    const grfx::Buffer*            pBuffer,
-    uint32_t                       offset)
-{
-    UINT                      parameterIndex    = ToApi(pInterface)->FindParameterIndex(binding, setSpace);
-    D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress = ToApi(pBuffer)->GetDxResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(offset);
-
-    SetComputeRootSignature(pInterface);
-
-    mCommandList->SetComputeRootShaderResourceView(
-        parameterIndex,
-        gpuVirtualAddress);
-}
-
-void CommandBuffer::PushComputeStorageBuffer(
-    const grfx::PipelineInterface* pInterface,
-    uint32_t                       binding,
-    uint32_t                       setSpace,
-    const grfx::Buffer*            pBuffer,
-    uint32_t                       offset)
-{
-    UINT                      parameterIndex    = ToApi(pInterface)->FindParameterIndex(binding, setSpace);
-    D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress = ToApi(pBuffer)->GetDxResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(offset);
-
-    SetComputeRootSignature(pInterface);
-
-    mCommandList->SetComputeRootUnorderedAccessView(
-        parameterIndex,
-        gpuVirtualAddress);
-}
-
-void CommandBuffer::PushGraphicsConstantBuffer(
-    const grfx::PipelineInterface* pInterface,
-    uint32_t                       binding,
-    uint32_t                       setSpace,
-    const grfx::Buffer*            pBuffer,
-    uint32_t                       offset)
-{
-    UINT                      parameterIndex    = ToApi(pInterface)->FindParameterIndex(binding, setSpace);
-    D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress = ToApi(pBuffer)->GetDxResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(offset);
-
-    SetGraphicsRootSignature(pInterface);
-
-    mCommandList->SetGraphicsRootConstantBufferView(
-        parameterIndex,
-        gpuVirtualAddress);
-}
-
-void CommandBuffer::PushGraphicsStructuredBuffer(
-    const grfx::PipelineInterface* pInterface,
-    uint32_t                       binding,
-    uint32_t                       setSpace,
-    const grfx::Buffer*            pBuffer,
-    uint32_t                       offset)
-{
-    UINT                      parameterIndex    = ToApi(pInterface)->FindParameterIndex(binding, setSpace);
-    D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress = ToApi(pBuffer)->GetDxResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(offset);
-
-    SetGraphicsRootSignature(pInterface);
-
-    mCommandList->SetGraphicsRootShaderResourceView(
-        parameterIndex,
-        gpuVirtualAddress);
-}
-
-void CommandBuffer::PushGraphicsStorageBuffer(
-    const grfx::PipelineInterface* pInterface,
-    uint32_t                       binding,
-    uint32_t                       setSpace,
-    const grfx::Buffer*            pBuffer,
-    uint32_t                       offset)
-{
-    UINT                      parameterIndex    = ToApi(pInterface)->FindParameterIndex(binding, setSpace);
-    D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress = ToApi(pBuffer)->GetDxResource()->GetGPUVirtualAddress() + static_cast<D3D12_GPU_VIRTUAL_ADDRESS>(offset);
-
-    SetGraphicsRootSignature(pInterface);
-
-    mCommandList->SetGraphicsRootUnorderedAccessView(
-        parameterIndex,
-        gpuVirtualAddress);
 }
 
 // -------------------------------------------------------------------------------------------------

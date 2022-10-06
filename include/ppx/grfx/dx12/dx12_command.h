@@ -127,54 +127,9 @@ public:
         uint32_t     startIndex,
         uint32_t     numQueries) override;
 
-    virtual void PushComputeConstantBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushComputeStructuredBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushComputeStorageBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushGraphicsConstantBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushGraphicsStructuredBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
-    virtual void PushGraphicsStorageBuffer(
-        const grfx::PipelineInterface* pInterface,
-        uint32_t                       binding,
-        uint32_t                       setSpace,
-        const grfx::Buffer*            pBuffer,
-        uint32_t                       offset = 0) override;
-
 protected:
     virtual Result CreateApiObjects(const grfx::internal::CommandBufferCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
-
-    void SetComputeRootSignature(const grfx::PipelineInterface* pInterface);
-    void SetGraphicsRootSignature(const grfx::PipelineInterface* pInterface);
 
 private:
     void BindDescriptorSets(
@@ -202,10 +157,6 @@ private:
 
     std::vector<RootDescriptorTable> mRootDescriptorTablesCBVSRVUAV;
     std::vector<RootDescriptorTable> mRootDescriptorTablesSampler;
-
-    // Current root signatures
-    const grfx::PipelineInterface* mCurrentComputeInterface  = nullptr;
-    const grfx::PipelineInterface* mCurrentGraphicsInterface = nullptr;
 };
 
 // -------------------------------------------------------------------------------------------------

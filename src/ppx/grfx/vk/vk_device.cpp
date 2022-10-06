@@ -20,8 +20,6 @@ namespace ppx {
 namespace grfx {
 namespace vk {
 
-PFN_vkCmdPushDescriptorSetKHR CmdPushDescriptorSetKHR = nullptr;
-
 Result Device::ConfigureQueueInfo(const grfx::DeviceCreateInfo* pCreateInfo, std::vector<float>& queuePriorities, std::vector<VkDeviceQueueCreateInfo>& queueCreateInfos)
 {
     VkPhysicalDevicePtr gpu = ToApi(pCreateInfo->pGpu)->GetVkGpu();
@@ -154,11 +152,6 @@ Result Device::ConfigureExtensions(const grfx::DeviceCreateInfo* pCreateInfo)
         mHasDynamicRendering = true;
     }
 #endif
-
-    if (ElementExists(std::string(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME), mFoundExtensions)) {
-        mExtensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-        mHasPushDescriptor = true;
-    }
 
     // Add additional extensions and uniquify
     AppendElements(pCreateInfo->vulkanExtensions, mExtensions);
@@ -355,11 +348,6 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
 
     // Depth clip enabled
     mHasUnrestrictedDepthRange = ElementExists(std::string(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME), mExtensions);
-
-    // Push descriptors
-    if (mHasPushDescriptor) {
-        CmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(mDevice, "vkCmdPushDescriptorSetKHR");
-    }
 
     // VMA
     {

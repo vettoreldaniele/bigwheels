@@ -35,22 +35,6 @@ struct DescriptorBinding
           shaderVisiblity(shaderVisiblity_) {}
 };
 
-struct PushDescriptorBinding
-    : public DescriptorBinding
-{
-    uint32_t setSpace = PPX_VALUE_IGNORED;
-
-    PushDescriptorBinding() {}
-
-    PushDescriptorBinding(
-        uint32_t              binding_,
-        uint32_t              setSpace_,
-        grfx::DescriptorType  type_,
-        grfx::ShaderStageBits shaderVisiblity_ = grfx::SHADER_STAGE_ALL)
-        : DescriptorBinding(binding_, type_, 1, shaderVisiblity_),
-          setSpace(setSpace_) {}
-};
-
 struct WriteDescriptor
 {
     uint32_t               binding                = PPX_VALUE_IGNORED;
