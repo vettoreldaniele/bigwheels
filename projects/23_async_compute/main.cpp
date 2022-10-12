@@ -214,7 +214,7 @@ void ProjApp::Setup()
     // Mesh
     {
         Geometry geo;
-        TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/cerberus.obj"), TriMeshOptions().Indices().TexCoords().Scale(float3(1.5f)));
+        TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/altimeter.obj"), TriMeshOptions().Indices().TexCoords().Scale(float3(1.5f)));
         PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
         PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mModelMesh));
     }
@@ -222,7 +222,7 @@ void ProjApp::Setup()
     // Texture.
     {
         grfx_util::TextureOptions options = grfx_util::TextureOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
-        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/textures/Ceberus/albedo.jpg"), &mModelTexture, options));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/textures/Altimeter/albedo.jpg"), &mModelTexture, options));
     }
 
     // Samplers.

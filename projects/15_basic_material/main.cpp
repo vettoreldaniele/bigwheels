@@ -92,7 +92,7 @@ private:
     grfx::MeshPtr              mSphere;
     grfx::MeshPtr              mCube;
     grfx::MeshPtr              mMonkey;
-    grfx::MeshPtr              mCeberusModel;
+    grfx::MeshPtr              mAltimeterModel;
     std::vector<grfx::MeshPtr> mMeshes;
 
     // Skybox (a sphere really)
@@ -132,7 +132,7 @@ private:
     MaterialResources                 mSciFiMetal;
     MaterialResources                 mPaintedMetal;
     MaterialResources                 mWoodWall;
-    MaterialResources                 mCeberusMaterial;
+    MaterialResources                 mAltimeterMaterial;
     std::vector<grfx::DescriptorSet*> mMaterialResourcesSets;
 
     // Descriptor Set 2 - MaterialData Data
@@ -202,7 +202,7 @@ private:
         "Sphere",
         "Cube",
         "Monkey",
-        "Ceberus",
+        "Altimeter",
     };
 
     uint32_t                 mF0Index = 0;
@@ -233,7 +233,7 @@ private:
         "SciFi Metal",
         "Painted Metal",
         "Wood Wall",
-        "Ceberus",
+        "Altimeter",
     };
 
     uint32_t                 mShaderIndex = 3;
@@ -593,15 +593,15 @@ void ProjApp::SetupMaterials()
         mMaterialResourcesSets.push_back(mWoodWall.set);
     }
 
-    // Ceberus
+    // Altimeter
     {
         SetupMaterialResources(
-            "materials/textures/Ceberus/albedo.jpg",
-            "materials/textures/Ceberus/roughness.jpg",
-            "materials/textures/Ceberus/metalness.jpg",
-            "materials/textures/Ceberus/normal.jpg",
-            mCeberusMaterial);
-        mMaterialResourcesSets.push_back(mCeberusMaterial.set);
+            "materials/textures/Altimeter/albedo.jpg",
+            "materials/textures/Altimeter/roughness.jpg",
+            "materials/textures/Altimeter/metalness.jpg",
+            "materials/textures/Altimeter/normal.jpg",
+            mAltimeterMaterial);
+        mMaterialResourcesSets.push_back(mAltimeterMaterial.set);
     }
 }
 
@@ -664,10 +664,10 @@ void ProjApp::Setup()
 
         {
             Geometry geo;
-            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/cerberus.obj"), TriMeshOptions(options).Scale(float3(0.75f)));
+            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/altimeter.obj"), TriMeshOptions(options).Scale(float3(0.75f)));
             PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
-            PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mCeberusModel));
-            mMeshes.push_back(mCeberusModel);
+            PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mAltimeterModel));
+            mMeshes.push_back(mAltimeterModel);
         }
     }
 
