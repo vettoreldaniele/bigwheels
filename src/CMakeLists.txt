@@ -115,8 +115,8 @@ endif()
 
 if (PPX_D3D12)
     list(APPEND IMGUI_SOURCE_FILES
-        ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx12.h
-        ${PPX_DIR}/third_party/imgui_extra/backends/imgui_impl_dx12.cpp
+        ${PPX_DIR}/src/ppx/imgui_extra/backends/imgui_impl_dx12.h
+        ${PPX_DIR}/src/ppx/imgui_extra/backends/imgui_impl_dx12.cpp
     )
 endif()
 
@@ -451,12 +451,12 @@ endif()
 target_include_directories(
     ${PROJECT_NAME}
     PRIVATE ${SRC_DIR}
+	    ${SRC_DIR}/imgui_extra
     PUBLIC  ${INC_DIR}
             ${PPX_THIRD_PARTY_DIR}/glfw/include
             ${PPX_THIRD_PARTY_DIR}/glm
             ${PPX_THIRD_PARTY_DIR}/gli
             ${PPX_THIRD_PARTY_DIR}/stb
-            ${PPX_THIRD_PARTY_DIR}/imgui_extra
             ${PPX_THIRD_PARTY_DIR}/imgui
             ${PPX_THIRD_PARTY_DIR}/tinyobjloader
             ${PPX_THIRD_PARTY_DIR}/pcg32

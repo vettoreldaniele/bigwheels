@@ -26,7 +26,7 @@
 #endif // defined(PPX_D3D11)
 
 #if defined(PPX_D3D12)
-#include "backends/imgui_impl_dx12.h"
+#include "imgui_extra/backends/imgui_impl_dx12.h"
 
 #include "ppx/grfx/dx12/dx12_command.h"
 #include "ppx/grfx/dx12/dx12_device.h"
