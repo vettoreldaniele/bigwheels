@@ -32,14 +32,14 @@ public:
     ComputePipeline() {}
     virtual ~ComputePipeline() {}
 
-    VkPipelinePtr GetVkPipeline() const { return mPhongPipeline; }
+    VkPipelinePtr GetVkPipeline() const { return mPipeline; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
-    VkPipelinePtr mPhongPipeline;
+    VkPipelinePtr mPipeline;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ public:
     GraphicsPipeline() {}
     virtual ~GraphicsPipeline() {}
 
-    VkPipelinePtr GetVkPipeline() const { return mPhongPipeline; }
+    VkPipelinePtr GetVkPipeline() const { return mPipeline; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::GraphicsPipelineCreateInfo* pCreateInfo) override;
@@ -100,7 +100,7 @@ private:
         VkPipelineDynamicStateCreateInfo&       stateCreateInfo);
 
 private:
-    VkPipelinePtr mPhongPipeline;
+    VkPipelinePtr mPipeline;
 };
 
 // -------------------------------------------------------------------------------------------------

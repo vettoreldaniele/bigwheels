@@ -29,14 +29,14 @@ public:
     ComputePipeline() {}
     virtual ~ComputePipeline() {}
 
-    D3D12PipelineStatePtr GetDxPipeline() const { return mPhongPipeline; }
+    D3D12PipelineStatePtr GetDxPipeline() const { return mPipeline; }
 
 protected:
     virtual Result CreateApiObjects(const grfx::ComputePipelineCreateInfo* pCreateInfo) override;
     virtual void   DestroyApiObjects() override;
 
 private:
-    D3D12PipelineStatePtr mPhongPipeline;
+    D3D12PipelineStatePtr mPipeline;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ public:
     GraphicsPipeline() {}
     virtual ~GraphicsPipeline() {}
 
-    D3D12PipelineStatePtr  GetDxPipeline() const { return mPhongPipeline; }
+    D3D12PipelineStatePtr  GetDxPipeline() const { return mPipeline; }
     D3D_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return mPrimitiveTopology; }
 
 protected:
@@ -82,7 +82,7 @@ private:
         D3D12_GRAPHICS_PIPELINE_STATE_DESC&     desc);
 
 private:
-    D3D12PipelineStatePtr  mPhongPipeline;
+    D3D12PipelineStatePtr  mPipeline;
     D3D_PRIMITIVE_TOPOLOGY mPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 };
 

@@ -35,20 +35,20 @@ Result ComputePipeline::CreateApiObjects(const grfx::ComputePipelineCreateInfo* 
     desc.CachedPSO                         = {};
     desc.Flags                             = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&mPhongPipeline));
+    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&mPipeline));
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateComputePipelineState failed");
         return ppx::ERROR_API_FAILURE;
     }
-    PPX_LOG_OBJECT_CREATION(D3D12PipelineState(Compute), mPhongPipeline.Get());
+    PPX_LOG_OBJECT_CREATION(D3D12PipelineState(Compute), mPipeline.Get());
 
     return ppx::SUCCESS;
 }
 
 void ComputePipeline::DestroyApiObjects()
 {
-    if (mPhongPipeline) {
-        mPhongPipeline.Reset();
+    if (mPipeline) {
+        mPipeline.Reset();
     }
 }
 
@@ -231,12 +231,12 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
     desc.CachedPSO = {};
     desc.Flags     = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&mPhongPipeline));
+    HRESULT hr = ToApi(GetDevice())->GetDxDevice()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&mPipeline));
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "ID3D12Device::CreateGraphicsPipelineState failed");
         return ppx::ERROR_API_FAILURE;
     }
-    PPX_LOG_OBJECT_CREATION(D3D12PipelineState(Graphics), mPhongPipeline.Get());
+    PPX_LOG_OBJECT_CREATION(D3D12PipelineState(Graphics), mPipeline.Get());
 
     // clang-format off
     switch (pCreateInfo->inputAssemblyState.topology) {
@@ -260,8 +260,8 @@ Result GraphicsPipeline::CreateApiObjects(const grfx::GraphicsPipelineCreateInfo
 
 void GraphicsPipeline::DestroyApiObjects()
 {
-    if (mPhongPipeline) {
-        mPhongPipeline.Reset();
+    if (mPipeline) {
+        mPipeline.Reset();
     }
 }
 
