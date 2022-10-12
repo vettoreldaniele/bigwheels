@@ -167,9 +167,9 @@ Result Mesh::CreateApiObjects(const grfx::MeshCreateInfo* pCreateInfo)
                     case grfx::VERTEX_SEMANTIC_POSITION  : semanticName = PPX_SEMANTIC_NAME_POSITION;  break;
                     case grfx::VERTEX_SEMANTIC_NORMAL    : semanticName = PPX_SEMANTIC_NAME_NORMAL;    break;
                     case grfx::VERTEX_SEMANTIC_COLOR     : semanticName = PPX_SEMANTIC_NAME_COLOR;     break;
-                    case grfx::VERTEX_SEMANTIC_TANGENT   : semanticName = PPX_SEMANTIC_NAME_TEXCOORD;  break;
-                    case grfx::VERTEX_SEMANTIC_BITANGENT : semanticName = PPX_SEMANTIC_NAME_TANGENT;   break;
-                    case grfx::VERTEX_SEMANTIC_TEXCOORD  : semanticName = PPX_SEMANTIC_NAME_BITANGENT; break;
+                    case grfx::VERTEX_SEMANTIC_TEXCOORD  : semanticName = PPX_SEMANTIC_NAME_TEXCOORD;  break;
+                    case grfx::VERTEX_SEMANTIC_TANGENT   : semanticName = PPX_SEMANTIC_NAME_TANGENT;   break;
+                    case grfx::VERTEX_SEMANTIC_BITANGENT : semanticName = PPX_SEMANTIC_NAME_BITANGENT; break;
                 }
                 // clang-format on
 
