@@ -8,8 +8,6 @@ BigWheels is a cross-platform, API agnostic framework to build graphics applicat
    * Shaders are compiled with FXC
  * **dxil** - D3D12 with SM 6.0+
    * Shaders are compiled with DXC/DXIL
- * **dxil_spv** - Vulkan
-   * Shaders are compiled with DXC/DXIL followed by dxil-spirv
  * **vk** - Vulkan
    * Shaders are compiled with DXC/SPIR-V
 
@@ -84,20 +82,6 @@ ninja
 
 Built binaries are written to `bin/vk_*`.
 
-## GGP using dxil-spirv (on Linux)
-```
-git clone --recursive https://github.com/googlestadia/BigWheels
-cd BigWheels
-cmake . -GNinja \
-    -DCMAKE_TOOLCHAIN_FILE=$PATH_TO_GGP_SDK/cmake/ggp.cmake \
-    -DDXC_PATH=$PATH_TO_VULKAN_SDK/x86_64/bin/dxc \
-    -DDXIL_SPIRV_PATH=$PATH_TO_DXIL_SPIRV_SRC/build/dxil-spirv \
-    -DPPX_DXIL_SPV=true
-ninja
-```
-
-Built binaries are written to `bin/dxil_spv_*`.
-
 ### Running on GGP
 Push the `assets` folder up to the instance before running. Since the shaders are compiled per project they must be built and pushed *before* running.
 ```
@@ -134,7 +118,6 @@ To request a specific API, flags can be passed to Cmake:
  - PPX_D3D12 : DirectX12 support.
  - PPX_D3D11 : DirectX11 support.
  - PPX_VULKAN : Vulkan support with SPIR-V.
- - PPX_DXIL_SPV : Vulkan support with SPIR-V compiled from DXIL.
 
 All targets require DXC.
 DirectX11 and DirectX12 require FXC.

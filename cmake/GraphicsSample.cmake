@@ -79,19 +79,6 @@ function(add_dxil_sample)
     endif()
 endfunction()
 
-function(add_dxil_spv_sample)
-    set(multiValueArgs SOURCES DEPENDENCIES)
-    cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
-    if (PPX_DXIL_SPV)
-        _add_sample_internal(NAME ${ARG_NAME}
-                   API_TAG "dxil_spv"
-                   SHADER_FORMAT "dxil-spv"
-                   API_DEFINES "USE_VK" "USE_DXIL_SPV"
-                   SOURCES ${ARG_SOURCES}
-                   DEPENDENCIES ${ARG_DEPENDENCIES})
-    endif()
-endfunction()
-
 function(add_samples)
     set(multiValueArgs TARGET_APIS SOURCES DEPENDENCIES SHADER_DEPENDENCIES)
     cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
@@ -106,9 +93,6 @@ function(add_samples)
         elseif(target_api STREQUAL "dxil")
             prefix_all(PREFIXED_SHADERS_DEPENDENCIES LIST ${ARG_SHADER_DEPENDENCIES} PREFIX "dxil_")
             add_dxil_sample(NAME ${ARG_NAME} SOURCES ${ARG_SOURCES} DEPENDENCIES ${ARG_DEPENDENCIES} ${PREFIXED_SHADERS_DEPENDENCIES})
-        elseif(target_api STREQUAL "dxil_spv")
-            prefix_all(PREFIXED_SHADERS_DEPENDENCIES LIST ${ARG_SHADER_DEPENDENCIES} PREFIX "dxilspv_")
-            add_dxil_spv_sample(NAME ${ARG_NAME} SOURCES ${ARG_SOURCES} DEPENDENCIES ${ARG_DEPENDENCIES} ${PREFIXED_SHADERS_DEPENDENCIES})
         elseif(target_api STREQUAL "vk")
             prefix_all(PREFIXED_SHADERS_DEPENDENCIES LIST ${ARG_SHADER_DEPENDENCIES} PREFIX "vk_")
             add_vk_sample(NAME ${ARG_NAME} SOURCES ${ARG_SOURCES} DEPENDENCIES ${ARG_DEPENDENCIES} ${PREFIXED_SHADERS_DEPENDENCIES})
@@ -123,7 +107,7 @@ function(add_samples_for_all_apis)
     cmake_parse_arguments(PARSE_ARGV 0 "ARG" "" "NAME" "${multiValueArgs}")
     add_samples(
         NAME ${ARG_NAME}
-        TARGET_APIS "dx12" "dx11" "vk" "dxil" "dxil_spv"
+        TARGET_APIS "dx12" "dx11" "vk" "dxil"
         SOURCES ${ARG_SOURCES}
         DEPENDENCIES ${ARG_DEPENDENCIES}
         SHADER_DEPENDENCIES ${ARG_SHADER_DEPENDENCIES}

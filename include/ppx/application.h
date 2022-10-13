@@ -220,7 +220,6 @@ struct ApplicationSettings
         grfx::Api api               = grfx::API_UNDEFINED;
         bool      enableDebug       = false;
         bool      enableDXIL        = false;
-        bool      enableDXILSPV     = false;
         uint32_t  numFramesInFlight = 1;
         uint32_t  pacedFrameRate    = 60;
 

@@ -43,10 +43,6 @@ else ()
     message(CHECK_PASS "found")
 endif ()
 
-if (PPX_DXIL_SPV AND NOT DXIL_SPIRV_PATH)
-    message(FATAL_ERROR "Could not locate dxil-spirv executable - dxil-spirv is required")
-endif()
-
 message(STATUS "DXC_PATH: ${DXC_PATH}")
 
 # ------------------------------------------------------------------------------
@@ -134,14 +130,8 @@ if (NOT DEFINED PPX_D3D12)
     endif ()
 endif ()
 
-# PPX_DXIL_SPV is never enabled unless specified.
-if (NOT DEFINED PPX_DXIL_SPV)
-    set(PPX_DXIL_SPV FALSE)
-endif ()
-
 message("Graphics API D3D11    : ${PPX_D3D11}")
 message("Graphics API D3D12    : ${PPX_D3D12}")
-message("Graphics API DXIL SPV : ${PPX_DXIL_SPV}")
 message("Graphics API Vulkan   : ${PPX_VULKAN}")
 
 # ------------------------------------------------------------------------------

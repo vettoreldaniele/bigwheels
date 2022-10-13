@@ -71,7 +71,9 @@ function(internal_generate_rules_for_shader TARGET_NAME)
         add_dependencies("d3d11_${TARGET_NAME}" "d3d11_${TARGET_NAME}_${ARG_SHADER_STAGE}")
     endif ()
 
-    # D3D12, dxbc51, sm 5_1.
+    # D3D12:
+    #   dxbc51, sm 5_1.
+    #   dxil,   sm 6_5.
     if (PPX_D3D12)
         internal_add_compile_shader_target(
             "d3d12_${TARGET_NAME}_${ARG_SHADER_STAGE}"
@@ -84,10 +86,7 @@ function(internal_generate_rules_for_shader TARGET_NAME)
             TARGET_FOLDER "${TARGET_NAME}"
             COMPILER_FLAGS "-T" "${ARG_SHADER_STAGE}_5_1" "-E" "${ARG_SHADER_STAGE}main" "/DPPX_D3D12=1")
         add_dependencies("d3d12_${TARGET_NAME}" "d3d12_${TARGET_NAME}_${ARG_SHADER_STAGE}")
-    endif ()
 
-    # D3D12 / DXIL, dxil, sm 6_5.
-    if (PPX_D3D12 OR PPX_DXIL_SPV)
         internal_add_compile_shader_target(
             "dxil_${TARGET_NAME}_${ARG_SHADER_STAGE}"
             COMPILER_PATH "${DXC_PATH}"
@@ -100,22 +99,7 @@ function(internal_generate_rules_for_shader TARGET_NAME)
             COMPILER_FLAGS "-T" "${ARG_SHADER_STAGE}_6_5" "-E" "${ARG_SHADER_STAGE}main" "-DPPX_DX12=1")
         add_dependencies("dxil_${TARGET_NAME}" "dxil_${TARGET_NAME}_${ARG_SHADER_STAGE}")
     endif ()
-
-    # Vulkan w/ DXIL from SPV, spv, sm_X_Y - depends on the sm that the DXIL was compiled with
-    if (PPX_DXIL_SPV)
-        set(DXIL_OUTPUT_FILE "${CMAKE_BINARY_DIR}/${PATH_PREFIX}/dxil/${BASE_NAME}.${ARG_SHADER_STAGE}.dxil")
-        set(SPV_OUTPUT_FILE "${CMAKE_BINARY_DIR}/${PATH_PREFIX}/dxil_spv/${BASE_NAME}.${ARG_SHADER_STAGE}.spv")
-        add_custom_command(
-            OUTPUT "${SPV_OUTPUT_FILE}"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            COMMENT "----- Compiling shader from DXIL to SPV -----"
-            MAIN_DEPENDENCY "${DXIL_INPUT_FILE}"
-            COMMAND ${CMAKE_COMMAND} -E echo "[DXIL-SPV] Compiling ${DXIL_INPUT_FILE} to ${SPV_OUTPUT_FILE}"
-            COMMAND "${DXIL_SPIRV_PATH}" "${DXIL_INPUT_FILE}" --output "${SPV_OUTPUT_FILE}")
-        add_custom_target_in_folder("dxilspv_${TARGET_NAME}_${ARG_SHADER_STAGE}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
-        add_dependencies("dxilspv_${TARGET_NAME}" "dxilspv_${TARGET_NAME}_${ARG_SHADER_STAGE}")
-    endif ()
-
+    
     # Vulkan, spv, sm 6_6.
     if (PPX_VULKAN)
         internal_add_compile_shader_target(
@@ -148,14 +132,9 @@ function(generate_rules_for_shader TARGET_NAME)
     if (PPX_D3D12)
         add_custom_target_in_folder("d3d12_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
         add_dependencies("${TARGET_NAME}" "d3d12_${TARGET_NAME}")
-    endif ()
-    if (PPX_D3D12 OR PPX_DXIL_SPV)
+
         add_custom_target_in_folder("dxil_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
         add_dependencies("${TARGET_NAME}" "dxil_${TARGET_NAME}")
-    endif ()
-    if (PPX_DXIL_SPV)
-        add_custom_target_in_folder("dxilspv_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
-        add_dependencies("${TARGET_NAME}" "dxilspv_${TARGET_NAME}")
     endif ()
     if (PPX_VULKAN)
         add_custom_target_in_folder("vk_${TARGET_NAME}" SOURCES "${ARG_SOURCE}" ${ARG_INCLUDES} FOLDER "${TARGET_NAME}")
@@ -179,14 +158,9 @@ function(generate_group_rule_for_shader TARGET_NAME)
     if (PPX_D3D12)
         prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "d3d12_")
         add_custom_target_in_folder("d3d12_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN} FOLDER "${TARGET_NAME}")
-    endif ()
-    if (PPX_D3D12 OR PPX_DXIL_SPV)
+
         prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "dxil_")
         add_custom_target_in_folder("dxil_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN} FOLDER "${TARGET_NAME}")
-    endif ()
-    if (PPX_DXIL_SPV)
-        prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "dxilspv_")
-        add_custom_target_in_folder("dxilspv_${TARGET_NAME}" DEPENDS ${PREFIXED_CHILDREN} FOLDER "${TARGET_NAME}")
     endif ()
     if (PPX_VULKAN)
         prefix_all(PREFIXED_CHILDREN LIST ${ARG_CHILDREN} PREFIX "vk_")

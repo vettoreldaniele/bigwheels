@@ -57,9 +57,6 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
-#if defined(USE_DXIL_SPV)
-    settings.grfx.enableDXILSPV = true;
-#endif
 }
 
 void ProjApp::Setup()
