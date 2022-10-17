@@ -1,6 +1,8 @@
 # Overview
 BigWheels is a cross-platform, API agnostic framework to build graphics applications.
 
+*Note: This is not an officially supported Google product.*
+
 ## Sample Prefixes
  * **dx11** - D3D11 with SM 5.0
    * Shaders are compiled with FXC
