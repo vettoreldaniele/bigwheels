@@ -26,7 +26,7 @@
 #endif // defined(PPX_D3D11)
 
 #if defined(PPX_D3D12)
-#include "imgui_extra/backends/imgui_impl_dx12.h"
+#include "backends/imgui_impl_dx12.h"
 
 #include "ppx/grfx/dx12/dx12_command.h"
 #include "ppx/grfx/dx12/dx12_device.h"
@@ -244,7 +244,7 @@ Result ImGuiImplDx12::InitApiObjects(ppx::Application* pApp)
     bool result = ImGui_ImplDX12_Init(
         grfx::dx12::ToApi(pApp->GetDevice())->GetDxDevice(),
         static_cast<int>(pApp->GetNumFramesInFlight()),
-        static_cast<int>(grfx::dx::ToDxgiFormat(pApp->GetSwapchain()->GetColorFormat())),
+        grfx::dx::ToDxgiFormat(pApp->GetSwapchain()->GetColorFormat()),
         mHeapCBVSRVUAV,
         mHeapCBVSRVUAV->GetCPUDescriptorHandleForHeapStart(),
         mHeapCBVSRVUAV->GetGPUDescriptorHandleForHeapStart());

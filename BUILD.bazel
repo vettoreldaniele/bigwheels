@@ -37,7 +37,6 @@ yeti_cc_library(
         ],
         exclude = [
             "src/ppx/grfx/dx*/**",
-            "src/ppx/imgui_extra/**",
         ],
     ),
     hdrs = glob(
