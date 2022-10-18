@@ -42,6 +42,7 @@ add_custom_target(run-tests
     DEPENDS build-tests
 )
 
+# List of test sources. Add new tests here.
 list(
     APPEND TEST_SOURCES
     command_line_parser_test.cpp
