@@ -18,6 +18,31 @@ namespace ppx {
 namespace grfx {
 namespace vk {
 
+namespace {
+uint32_t GetQueueFamilyIndexForMask(const std::vector<VkQueueFamilyProperties>& queueFamilies, const uint32_t mask)
+{
+    const uint32_t count = CountU32(queueFamilies);
+    for (uint32_t i = 0; i < count; ++i) {
+        if ((queueFamilies[i].queueFlags & kAllQueueMask) == mask) {
+            return i;
+        }
+    }
+    return PPX_VALUE_IGNORED;
+}
+
+template <size_t Size>
+uint32_t GetQueueFamilyIndexByPreferences(const std::vector<VkQueueFamilyProperties>& queueFamilies, const std::array<uint32_t, Size>& masks)
+{
+    for (uint32_t mask : masks) {
+        uint32_t index = GetQueueFamilyIndexForMask(queueFamilies, mask);
+        if (index != PPX_VALUE_IGNORED) {
+            return index;
+        }
+    }
+    return PPX_VALUE_IGNORED;
+}
+} // namespace
+
 Result Gpu::CreateApiObjects(const grfx::internal::GpuCreateInfo* pCreateInfo)
 {
     if (IsNull(pCreateInfo->pApiObject)) {
@@ -63,41 +88,32 @@ uint32_t Gpu::GetQueueFamilyCount() const
 
 uint32_t Gpu::GetGraphicsQueueFamilyIndex() const
 {
-    uint32_t queueFamilyIndex = PPX_VALUE_IGNORED;
-    uint32_t count            = CountU32(mQueueFamilies);
-    for (uint32_t i = 0; i < count; ++i) {
-        if ((mQueueFamilies[i].queueFlags & kAllQueueMask) == kGraphicsQueueMask) {
-            queueFamilyIndex = i;
-            break;
-        }
-    }
-    return queueFamilyIndex;
+    constexpr std::array<uint32_t, 4> masks = {
+        VK_QUEUE_GRAPHICS_BIT,
+        VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT,
+        VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT,
+        VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT};
+    return GetQueueFamilyIndexByPreferences(mQueueFamilies, masks);
 }
 
 uint32_t Gpu::GetComputeQueueFamilyIndex() const
 {
-    uint32_t queueFamilyIndex = PPX_VALUE_IGNORED;
-    uint32_t count            = CountU32(mQueueFamilies);
-    for (uint32_t i = 0; i < count; ++i) {
-        if ((mQueueFamilies[i].queueFlags & kAllQueueMask) == kComputeQueueMask) {
-            queueFamilyIndex = i;
-            break;
-        }
-    }
-    return queueFamilyIndex;
+    constexpr std::array<uint32_t, 4> masks = {
+        VK_QUEUE_COMPUTE_BIT,
+        VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT,
+        VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT,
+        VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT};
+    return GetQueueFamilyIndexByPreferences(mQueueFamilies, masks);
 }
 
 uint32_t Gpu::GetTransferQueueFamilyIndex() const
 {
-    uint32_t queueFamilyIndex = PPX_VALUE_IGNORED;
-    uint32_t count            = CountU32(mQueueFamilies);
-    for (uint32_t i = 0; i < count; ++i) {
-        if ((mQueueFamilies[i].queueFlags & kAllQueueMask) == kTransferQueueMask) {
-            queueFamilyIndex = i;
-            break;
-        }
-    }
-    return queueFamilyIndex;
+    constexpr std::array<uint32_t, 4> masks = {
+        VK_QUEUE_TRANSFER_BIT,
+        VK_QUEUE_TRANSFER_BIT | VK_QUEUE_COMPUTE_BIT,
+        VK_QUEUE_TRANSFER_BIT | VK_QUEUE_GRAPHICS_BIT,
+        VK_QUEUE_TRANSFER_BIT | VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT};
+    return GetQueueFamilyIndexByPreferences(mQueueFamilies, masks);
 }
 
 uint32_t Gpu::GetGraphicsQueueCount() const

@@ -21,4 +21,5 @@ add_samples_for_all_apis(
     SHADER_DEPENDENCIES
     "shader_texture"
     "shader_static_texture"
+    "shader_fullscreen_triangle"
     "shader_image_filter")

@@ -29,6 +29,7 @@
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
+#include <unordered_set>
 
 namespace ppx {
 namespace grfx {
@@ -57,32 +58,37 @@ Result Device::ConfigureQueueInfo(const grfx::DeviceCreateInfo* pCreateInfo, std
 
     // Queues
     {
+        std::unordered_set<uint32_t> createdQueues;
         // Graphics
-        uint32_t queueCount = pCreateInfo->pGpu->GetGraphicsQueueCount();
-        if (queueCount > 0) {
+        if (mGraphicsQueueFamilyIndex != PPX_VALUE_IGNORED) {
             VkDeviceQueueCreateInfo vkci = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
             vkci.queueFamilyIndex        = mGraphicsQueueFamilyIndex;
-            vkci.queueCount              = queueCount;
+            vkci.queueCount              = pCreateInfo->pGpu->GetGraphicsQueueCount();
             vkci.pQueuePriorities        = DataPtr(queuePriorities);
             queueCreateInfos.push_back(vkci);
+            createdQueues.insert(mGraphicsQueueFamilyIndex);
         }
         // Compute
-        queueCount = pCreateInfo->pGpu->GetComputeQueueCount();
-        if (queueCount > 0) {
+        if (mComputeQueueFamilyIndex != PPX_VALUE_IGNORED && !createdQueues.contains(mComputeQueueFamilyIndex)) {
             VkDeviceQueueCreateInfo vkci = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
             vkci.queueFamilyIndex        = mComputeQueueFamilyIndex;
-            vkci.queueCount              = queueCount;
+            vkci.queueCount              = pCreateInfo->pGpu->GetComputeQueueCount();
             vkci.pQueuePriorities        = DataPtr(queuePriorities);
             queueCreateInfos.push_back(vkci);
         }
+        else if (createdQueues.contains(mComputeQueueFamilyIndex)) {
+            PPX_LOG_WARN("Graphics queue will be shared with compute queue.");
+        }
         // Transfer
-        queueCount = pCreateInfo->pGpu->GetTransferQueueCount();
-        if (queueCount > 0) {
+        if (mTransferQueueFamilyIndex != PPX_VALUE_IGNORED && !createdQueues.contains(mTransferQueueFamilyIndex)) {
             VkDeviceQueueCreateInfo vkci = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
             vkci.queueFamilyIndex        = mTransferQueueFamilyIndex;
-            vkci.queueCount              = queueCount;
+            vkci.queueCount              = pCreateInfo->pGpu->GetTransferQueueCount();
             vkci.pQueuePriorities        = DataPtr(queuePriorities);
             queueCreateInfos.push_back(vkci);
+        }
+        else if (createdQueues.contains(mTransferQueueFamilyIndex)) {
+            PPX_LOG_WARN("Transfer queue will be shared with graphics or compute queue.");
         }
     }
 
