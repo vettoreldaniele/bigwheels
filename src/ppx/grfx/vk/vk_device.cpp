@@ -284,14 +284,15 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     queryResetFeatures.hostQueryReset = VK_TRUE;
 
     // VkPhysicalDeviceDynamicRenderingFeatures
-
 #if defined(VK_KHR_dynamic_rendering)
-    if (mHasDynamicRendering) {
+
 #ifndef VK_API_VERSION_1_3
-        VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES};
+    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES};
 #else
-        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR};
+    VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR};
 #endif
+
+    if (mHasDynamicRendering) {
         dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
         queryResetFeatures.pNext                  = &dynamicRenderingFeatures;
     }
@@ -323,7 +324,7 @@ Result Device::CreateApiObjects(const grfx::DeviceCreateInfo* pCreateInfo)
     if (vkres != VK_SUCCESS) {
         // clang-format off
         std::stringstream ss;
-        ss << "vkCreateInstance failed: " << ToString(vkres);     
+        ss << "vkCreateInstance failed: " << ToString(vkres);
         if (vkres == VK_ERROR_EXTENSION_NOT_PRESENT) {
             std::vector<std::string> missing = GetNotFound(mExtensions, mFoundExtensions);
             ss << PPX_LOG_ENDL;
