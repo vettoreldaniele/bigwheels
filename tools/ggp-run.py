@@ -54,7 +54,7 @@ def _RunOnInstance(ggp_bin, instance, app_path, binary, binary_args, ggp_vars):
 
   cmd = [
       ggp_bin, 'run', '--no-launch-browser',
-      '--application=Yeti Development Application', '--cmd', binary_cmd
+      '--application=TestApp', '--cmd', binary_cmd
   ]
   if instance is not None:
     cmd.extend(['--instance', instance])

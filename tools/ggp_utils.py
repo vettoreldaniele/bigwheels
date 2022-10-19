@@ -83,7 +83,7 @@ def RunOnInstance(ggp_bin, instance, app_path, binary, binary_args, ggp_vars):
 
   cmd = [
       ggp_bin, 'run', '--no-launch-browser',
-      '--application=Yeti Development Application', '--cmd', binary_cmd
+      '--application=TestApp', '--cmd', binary_cmd
   ]
   if instance is not None:
     cmd.extend(['--instance', instance])
@@ -98,7 +98,7 @@ def RunOnInstanceHeadless(ggp_bin, instance, app_path, binary, binary_args,
   """Runs the given binary on the instance, in headless mode (no endpoint).
 
   This is achieved by SSH-ing into into the instance and running the binary
-  with YETI_DISABLE_PLAYER_SAVE=1 and YETI_DISABLE_GUEST_ORC=1.
+  directly.
 
   Args:
     ggp_bin: Path to the ggp executable.
@@ -114,8 +114,7 @@ def RunOnInstanceHeadless(ggp_bin, instance, app_path, binary, binary_args,
   """
 
   binary_cmd = '%s/%s %s' % (app_path, os.path.basename(binary), binary_args)
-  full_ssh_command = ('cd /mnt/developer; YETI_DISABLE_PLAYER_SAVE=1 '
-                      'YETI_DISABLE_GUEST_ORC=1 %s %s') % (env_vars, binary_cmd)
+  full_ssh_command = ('cd /mnt/developer; %s %s') % (env_vars, binary_cmd)
 
   cmd = [
       ggp_bin,
