@@ -21,7 +21,7 @@ instance.  Once uploaded, it executes it using 'ggp run'.
 
 Example use,
 
-$ tools/ggp-run.py bazel-bin/projects/20_camera_motion/20_camera_motion
+$ tools/ggp-run.py bin/vk_fishtornado
 """
 
 import argparse
@@ -106,11 +106,6 @@ def main():
   args = parser.parse_args()
 
   sources = ['assets', args.binary]
-  if os.path.exists('bazel-bin/assets'):
-    sources.append('bazel-bin/assets')
-  else:
-    logging.warning(
-        'Directory bazel-bin/assets not found, it will not be uploaded')
   rc = ggp_utils.SyncFilesToInstance(args.ggp_bin, args.instance, sources,
                                      '/mnt/developer/%s/' % args.app_path)
   if rc != 0:

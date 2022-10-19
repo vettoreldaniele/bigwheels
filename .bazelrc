@@ -1,3 +1,0 @@
-# Use the Stadia toolchain by default.
-build --crosstool_top=@yeti_crosstool_debian//:cc_toolchain_suite
-build --host_crosstool_top=@yeti_crosstool_host//:cc_toolchain_suite

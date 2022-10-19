@@ -175,11 +175,6 @@ def main():
   # Upload assets and benchmark binaries.
   sources = ['assets']
   sources.extend(set(['bin/' + tc.GetBinaryName() for tc in test_cases]))
-  if os.path.exists('bazel-bin/assets'):
-    sources.append('bazel-bin/assets')
-  else:
-    logging.warning(
-        'Directory bazel-bin/assets not found, it will not be uploaded')
   rc = ggp_utils.SyncFilesToInstance(args.ggp_bin, args.instance, sources,
                                      '/mnt/developer/%s/' % args.app_path)
   if rc != 0:
