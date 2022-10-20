@@ -188,6 +188,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.enableImGui                    = false;
     settings.grfx.api                       = kApi;
     settings.grfx.enableDebug               = true;
+    settings.allowThirdPartyAssets          = true;
     settings.grfx.device.graphicsQueueCount = 1;
     settings.grfx.numFramesInFlight         = 1;
 #if defined(USE_DXIL)
@@ -311,7 +312,7 @@ FilterShader::FilterShader(ProjApp* app, const std::string& shaderFile, ppx::flo
 
     // Compute pipeline.
     {
-        std::vector<char> bytecode = mApp->LoadShader(mApp->GetAssetPath("fluid_simulation/shaders"), mShaderFile + ".cs");
+        std::vector<char> bytecode = mApp->LoadShader("fluid_simulation/shaders", mShaderFile + ".cs");
         PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
         ppx::grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(mApp->GetDevice()->CreateShaderModule(&shaderCreateInfo, &mCS));

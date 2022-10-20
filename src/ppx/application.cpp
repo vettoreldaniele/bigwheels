@@ -943,6 +943,13 @@ void Application::DispatchConfig()
     }
 
     mDecoratedApiName = ss.str();
+
+    if (mSettings.allowThirdPartyAssets) {
+        std::filesystem::path path = GetApplicationPath();
+        path.remove_filename();
+        path /= RELATIVE_PATH_TO_PROJECT_ROOT;
+        AddAssetDir(path / "third_party/assets");
+    }
 }
 
 void Application::DispatchSetup()

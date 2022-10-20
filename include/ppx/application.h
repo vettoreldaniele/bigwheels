@@ -207,6 +207,7 @@ struct ApplicationSettings
     // no event loop: run a single frame.
     bool enableDisplay = true;
     bool enableImGui   = false;
+    bool allowThirdPartyAssets = false;
 
     struct
     {

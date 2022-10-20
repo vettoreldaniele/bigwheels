@@ -148,6 +148,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.enableImGui                   = true;
     settings.grfx.api                      = kApi;
     settings.grfx.enableDebug              = false;
+    settings.allowThirdPartyAssets         = true;
     settings.window.width                  = 1920;
     settings.window.height                 = 1080;
     settings.grfx.swapchain.imageCount     = mNumFramesInFlight;
@@ -225,7 +226,7 @@ void ProjApp::Setup()
     // Mesh
     {
         Geometry geo;
-        TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/altimeter.obj"), TriMeshOptions().Indices().TexCoords().Scale(float3(1.5f)));
+        TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("altimeter/altimeter.obj"), TriMeshOptions().Indices().TexCoords().Scale(float3(1.5f)));
         PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
         PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mModelMesh));
     }
@@ -233,7 +234,7 @@ void ProjApp::Setup()
     // Texture.
     {
         grfx_util::TextureOptions options = grfx_util::TextureOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
-        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("materials/textures/Altimeter/albedo.jpg"), &mModelTexture, options));
+        PPX_CHECKED_CALL(grfx_util::CreateTextureFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("altimeter/albedo.jpg"), &mModelTexture, options));
     }
 
     // Samplers.

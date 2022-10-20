@@ -184,6 +184,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 set(PPX_ASSET_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+set(PPX_3P_ASSET_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/assets")
 
 # Determine relative path from binary location to the build root.
 cmake_path(SET BUILD_DIRECTORY NORMALIZE "${CMAKE_BINARY_DIR}")
@@ -197,6 +198,7 @@ add_custom_target(ppx_assets)
 if(NOT (CMAKE_BINARY_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR))
     add_custom_target(ppx_copy_assets
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${PPX_ASSET_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/assets"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${PPX_ASSET_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/third_party/assets"
     )
     add_dependencies(ppx_assets ppx_copy_assets)
 endif()
@@ -228,6 +230,7 @@ add_cpu_features()
 
 add_subdirectory(src)
 add_subdirectory(assets)
+add_subdirectory(third_party/assets)
 
 # ------------------------------------------------------------------------------
 # Add projects.
@@ -236,6 +239,7 @@ add_subdirectory(assets)
 if (PPX_BUILD_PROJECTS)
     message("Building sample projects")
     add_subdirectory(projects)
+    add_subdirectory(third_party/projects)
 endif()
 
 

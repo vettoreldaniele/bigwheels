@@ -291,6 +291,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
     settings.grfx.enableDebug           = false;
     settings.enableImGui                = true;
+    settings.allowThirdPartyAssets      = true;
     settings.grfx.numFramesInFlight     = 1;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
@@ -609,10 +610,10 @@ void ProjApp::SetupMaterials()
     // Altimeter
     {
         SetupMaterialResources(
-            "materials/textures/Altimeter/albedo.jpg",
-            "materials/textures/Altimeter/roughness.jpg",
-            "materials/textures/Altimeter/metalness.jpg",
-            "materials/textures/Altimeter/normal.jpg",
+            "altimeter/albedo.jpg",
+            "altimeter/roughness.jpg",
+            "altimeter/metalness.jpg",
+            "altimeter/normal.jpg",
             mAltimeterMaterial);
         mMaterialResourcesSets.push_back(mAltimeterMaterial.set);
     }
@@ -677,7 +678,7 @@ void ProjApp::Setup()
 
         {
             Geometry geo;
-            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/altimeter.obj"), TriMeshOptions(options).Scale(float3(0.75f)));
+            TriMesh  mesh = TriMesh::CreateFromOBJ(GetAssetPath("altimeter/altimeter.obj"), TriMeshOptions(options).Scale(float3(0.75f)));
             PPX_CHECKED_CALL(Geometry::Create(mesh, &geo));
             PPX_CHECKED_CALL(grfx_util::CreateMeshFromGeometry(GetGraphicsQueue(), &geo, &mAltimeterModel));
             mMeshes.push_back(mAltimeterModel);

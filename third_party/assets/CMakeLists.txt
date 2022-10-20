@@ -11,10 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-project(assets)
+project(third_party_assets)
 
-add_subdirectory(basic/shaders)
-add_subdirectory(materials/shaders)
-add_subdirectory(gbuffer/shaders)
-add_subdirectory(fishtornado/shaders)
-add_subdirectory(benchmarks/shaders)
+add_subdirectory(fluid_simulation/shaders)
