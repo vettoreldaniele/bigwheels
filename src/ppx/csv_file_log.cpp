@@ -39,6 +39,8 @@ CSVFileLog::~CSVFileLog()
     }
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wthread-safety-analysis"
 void CSVFileLog::Lock()
 {
     mWriteMutex.lock();
@@ -48,6 +50,7 @@ void CSVFileLog::Unlock()
 {
     mWriteMutex.unlock();
 }
+#pragma clang diagnostic pop
 
 void CSVFileLog::Write(const char* msg)
 {

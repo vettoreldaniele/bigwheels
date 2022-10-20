@@ -840,7 +840,7 @@ Result CreateTextureFromBitmap(
         ci.usageFlags.bits.sampled     = true;
         ci.memoryUsage                 = grfx::MEMORY_USAGE_GPU_ONLY;
         ci.initialState                = options.mInitialState;
-        ci.RTVClearValue               = {0, 0, 0, 0};
+        ci.RTVClearValue               = {{0, 0, 0, 0}};
         ci.DSVClearValue               = {1.0f, 0xFF};
         ci.sampledImageViewType        = grfx::IMAGE_VIEW_TYPE_UNDEFINED;
         ci.sampledImageViewFormat      = grfx::FORMAT_UNDEFINED;

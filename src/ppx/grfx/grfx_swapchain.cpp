@@ -70,7 +70,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         rpCreateInfo.renderTargetCount           = 1;
         rpCreateInfo.pRenderTargetImages[0]      = mColorImages[i];
         rpCreateInfo.pDepthStencilImage          = mDepthImages.empty() ? nullptr : mDepthImages[i];
-        rpCreateInfo.renderTargetClearValues[0]  = {0.0f, 0.0f, 0.0f, 0.0f};
+        rpCreateInfo.renderTargetClearValues[0]  = {{0.0f, 0.0f, 0.0f, 0.0f}};
         rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
         rpCreateInfo.renderTargetLoadOps[0]      = grfx::ATTACHMENT_LOAD_OP_CLEAR;
         rpCreateInfo.depthLoadOp                 = grfx::ATTACHMENT_LOAD_OP_CLEAR;
@@ -94,7 +94,7 @@ Result Swapchain::Create(const grfx::SwapchainCreateInfo* pCreateInfo)
         rpCreateInfo.renderTargetCount           = 1;
         rpCreateInfo.pRenderTargetImages[0]      = mColorImages[i];
         rpCreateInfo.pDepthStencilImage          = mDepthImages.empty() ? nullptr : mDepthImages[i];
-        rpCreateInfo.renderTargetClearValues[0]  = {0.0f, 0.0f, 0.0f, 0.0f};
+        rpCreateInfo.renderTargetClearValues[0]  = {{0.0f, 0.0f, 0.0f, 0.0f}};
         rpCreateInfo.depthStencilClearValue      = {1.0f, 0xFF};
         rpCreateInfo.renderTargetLoadOps[0]      = grfx::ATTACHMENT_LOAD_OP_LOAD;
         rpCreateInfo.depthLoadOp                 = grfx::ATTACHMENT_LOAD_OP_CLEAR;

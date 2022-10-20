@@ -448,8 +448,6 @@ Result TriMesh::GetVertexData(uint32_t vtxIndex, TriMeshVertexData* pVertexData)
     const float3* pColor     = GetDataColors(vtxIndex);
     const float3* pNormal    = GetDataNormalls(vtxIndex);
     const float2* pTexCoord2 = GetDataTexCoords2(vtxIndex);
-    const float3* pTexCoord3 = GetDataTexCoords3(vtxIndex);
-    const float4* pTexCoord4 = GetDataTexCoords4(vtxIndex);
     const float4* pTangent   = GetDataTangents(vtxIndex);
     const float3* pBitangent = GetDataBitangents(vtxIndex);
 
@@ -485,7 +483,6 @@ void TriMesh::AppendIndexAndVertexData(
     TriMesh&                  mesh)
 {
     grfx::IndexType     indexType   = options.mEnableIndices ? grfx::INDEX_TYPE_UINT32 : grfx::INDEX_TYPE_UNDEFINED;
-    TriMeshAttributeDim texCoordDim = options.mEnableTexCoords ? TRI_MESH_ATTRIBUTE_DIM_2 : TRI_MESH_ATTRIBUTE_DIM_UNDEFINED;
 
     // Verify expected vertex count
     size_t vertexCount = (vertexData.size() * sizeof(float)) / sizeof(TriMeshVertexData);

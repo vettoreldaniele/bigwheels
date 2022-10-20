@@ -67,7 +67,6 @@ CpuInfo GetX86CpuInfo()
 {
     cpu_features::X86Info              info      = cpu_features::GetX86Info();
     cpu_features::X86Microarchitecture march     = cpu_features::GetX86Microarchitecture(&info);
-    cpu_features::CacheInfo            cacheInfo = cpu_features::GetX86CacheInfo();
 
     CpuInfo cpuInfo                  = {};
     cpuInfo.mBrandString             = string_util::TrimCopy(info.brand_string);
