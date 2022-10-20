@@ -22,6 +22,7 @@
 using namespace ppx;
 
 #include <map>
+#include <filesystem>
 
 const float  F0_Generic         = 0.04f;
 const float3 F0_MetalTitanium   = float3(0.542f, 0.497f, 0.449f);
@@ -59,15 +60,14 @@ Material Material::sStoneTile;
 
 static std::map<std::string, grfx::TexturePtr> mTextureCache;
 
-static Result LoadTexture(grfx::Queue* pQueue, const fs::path& path, grfx::Texture** ppTexture)
+static Result LoadTexture(grfx::Queue* pQueue, const std::filesystem::path& path, grfx::Texture** ppTexture)
 {
-    if (!fs::exists(path)) {
+    if (!std::filesystem::exists(path)) {
         return ppx::ERROR_PATH_DOES_NOT_EXIST;
     }
 
     // Try to load from cache
-    std::string normalizedPath = path.c_str();
-    auto        it             = mTextureCache.find(normalizedPath);
+    auto it = mTextureCache.find(path.string());
     if (it != std::end(mTextureCache)) {
         *ppTexture = it->second;
     }

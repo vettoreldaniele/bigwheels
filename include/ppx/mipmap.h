@@ -40,7 +40,7 @@ public:
     uint32_t GetHeight(uint32_t level) const;
 
     static uint32_t CalculateLevelCount(uint32_t width, uint32_t height);
-    static Result   LoadFile(const fs::path& path, Mipmap* pMipmap, uint32_t levelCount = PPX_REMAINING_MIP_LEVELS);
+    static Result   LoadFile(const std::filesystem::path& path, Mipmap* pMipmap, uint32_t levelCount = PPX_REMAINING_MIP_LEVELS);
 
 private:
     std::vector<char>

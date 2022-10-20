@@ -16,10 +16,11 @@
 #define ppx_base_application_h
 
 #include "ppx/config.h"
-#include "ppx/fs.h"
 #include "ppx/platform.h"
 #include "ppx/grfx/grfx_device.h"
 #include "ppx/grfx/grfx_instance.h"
+
+#include <filesystem>
 
 namespace ppx {
 
@@ -31,10 +32,10 @@ public:
 
     ppx::PlatformId GetPlatformId() const;
     uint32_t        GetProcessId() const;
-    fs::path        GetApplicationPath() const;
+    std::filesystem::path GetApplicationPath() const;
 
-    const std::vector<fs::path>& GetAssetDirs() const { return mAssetDirs; }
-    void                         AddAssetDir(const fs::path& path, bool insertAtFront = false);
+    const std::vector<std::filesystem::path>& GetAssetDirs() const { return mAssetDirs; }
+    void                                      AddAssetDir(const std::filesystem::path& path, bool insertAtFront = false);
 
     // Returns the first valid subPath in the asset directories list
     //
@@ -52,10 +53,10 @@ public:
     //      in any of the paths in mAssetDirs on the file system.
     //      Search starts with mAssetsDir[0].
     //
-    fs::path GetAssetPath(const fs::path& subPath) const;
+    std::filesystem::path GetAssetPath(const std::filesystem::path& subPath) const;
 
 private:
-    std::vector<fs::path> mAssetDirs;
+    std::vector<std::filesystem::path> mAssetDirs;
 };
 
 } // namespace ppx

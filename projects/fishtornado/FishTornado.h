@@ -25,6 +25,8 @@
 #include "ppx/ppx.h"
 #include "ppx/camera.h"
 
+#include <filesystem>
+
 #if defined(USE_DX11)
 const grfx::Api kApi = grfx::API_DX_11_1;
 #elif defined(USE_DX12)
@@ -57,15 +59,15 @@ public:
     grfx::GraphicsPipelinePtr    GetDebugDrawPipeline() const { return mDebugDrawPipeline; }
 
     grfx::GraphicsPipelinePtr CreateForwardPipeline(
-        const fs::path&          baseDir,
-        const std::string&       vsBaseName,
-        const std::string&       psBaseName,
-        grfx::PipelineInterface* pPipelineInterface = nullptr);
+        const std::filesystem::path& baseDir,
+        const std::string&           vsBaseName,
+        const std::string&           psBaseName,
+        grfx::PipelineInterface*     pPipelineInterface = nullptr);
 
     grfx::GraphicsPipelinePtr CreateShadowPipeline(
-        const fs::path&          baseDir,
-        const std::string&       vsBaseName,
-        grfx::PipelineInterface* pPipelineInterface = nullptr);
+        const std::filesystem::path& baseDir,
+        const std::string&           vsBaseName,
+        grfx::PipelineInterface*     pPipelineInterface = nullptr);
 
     virtual void Config(ppx::ApplicationSettings& settings) override;
     virtual void Setup() override;

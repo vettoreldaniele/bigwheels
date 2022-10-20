@@ -16,6 +16,8 @@
 
 #include "stb_image.h"
 
+#include <filesystem>
+
 namespace ppx {
 
 static uint32_t CalculatActualLevelCount(uint32_t width, uint32_t height, uint32_t levelCount)
@@ -196,7 +198,7 @@ uint32_t Mipmap::CalculateLevelCount(uint32_t width, uint32_t height)
     return levelCount;
 }
 
-Result Mipmap::LoadFile(const fs::path& path, Mipmap* pMipmap, uint32_t levelCount)
+Result Mipmap::LoadFile(const std::filesystem::path& path, Mipmap* pMipmap, uint32_t levelCount)
 {
     uint32_t       width  = 0;
     uint32_t       height = 0;
@@ -222,10 +224,10 @@ Result Mipmap::LoadFile(const fs::path& path, Mipmap* pMipmap, uint32_t levelCou
     int   stbiChannels         = 0;
     int   stbiRequiredChannels = 4; // Force to 4 chanenls to make things easier for the graphics APIs
     if (Bitmap::ChannelDataType(format) == Bitmap::DATA_TYPE_UINT8) {
-        pStbiData = stbi_load(path, &stbiWidth, &stbiHeight, &stbiChannels, stbiRequiredChannels);
+        pStbiData = stbi_load(path.string().c_str(), &stbiWidth, &stbiHeight, &stbiChannels, stbiRequiredChannels);
     }
     else if (Bitmap::ChannelDataType(format) == Bitmap::DATA_TYPE_FLOAT) {
-        pStbiData = stbi_loadf(path, &stbiWidth, &stbiHeight, &stbiChannels, stbiRequiredChannels);
+        pStbiData = stbi_loadf(path.string().c_str(), &stbiWidth, &stbiHeight, &stbiChannels, stbiRequiredChannels);
     }
 
     if (IsNull(pStbiData)) {

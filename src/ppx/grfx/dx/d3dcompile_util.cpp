@@ -16,20 +16,21 @@
 #include <string>
 
 #include "ppx/grfx/dx/d3dcompile_util.h"
+#include "ppx/fs.h"
 
 namespace ppx {
 namespace grfx {
 namespace dx {
 
 namespace {
-static std::string LoadHlslFile(const fs::path& baseDir, const std::string& baseName)
+static std::string LoadHlslFile(const std::filesystem::path& baseDir, const std::string& baseName)
 {
-    fs::path filePath = baseDir;
-    filePath          = (filePath / baseName).append_extension(".hlsl");
-    if (!fs::exists(filePath)) {
+    std::filesystem::path filePath = baseDir / (baseName + ".hlsl");
+    auto                  result   = fs::load_file(filePath);
+    if (!result.has_value()) {
         PPX_ASSERT_MSG(false, "HLSL file not found: " << filePath);
     }
-    std::vector<char> hlslCode = fs::load_file(filePath);
+    std::vector<char> hlslCode = result.value();
     return std::string(hlslCode.data(), hlslCode.size());
 }
 
@@ -48,7 +49,7 @@ static const char* EntryPoint(const char* shaderModel)
 
 } // namespace
 
-std::vector<char> CompileShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, ShaderIncludeHandler* includeHandler)
+std::vector<char> CompileShader(const std::filesystem::path& baseDir, const std::string& baseName, const char* shaderModel, ShaderIncludeHandler* includeHandler)
 {
     D3D_SHADER_MACRO defines[2] = {
         {"PPX_D3D11", "1"},

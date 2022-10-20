@@ -562,9 +562,9 @@ Result CreateImageFromBitmapGpu(
     return ppx::SUCCESS;
 }
 
-bool IsDDSFile(const fs::path& path)
+bool IsDDSFile(const std::filesystem::path& path)
 {
-    return (std::strstr(path.c_str(), ".dds") != nullptr || std::strstr(path.c_str(), ".ktx") != nullptr);
+    return (std::strstr(path.string().c_str(), ".dds") != nullptr || std::strstr(path.string().c_str(), ".ktx") != nullptr);
 }
 
 Result CreateImageFromCompressedImage(
@@ -714,11 +714,11 @@ Result CreateImageFromCompressedImage(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateImageFromFile(
-    grfx::Queue*        pQueue,
-    const fs::path&     path,
-    grfx::Image**       ppImage,
-    const ImageOptions& options,
-    bool                useGpu)
+    grfx::Queue*                 pQueue,
+    const std::filesystem::path& path,
+    grfx::Image**                ppImage,
+    const ImageOptions&          options,
+    bool                         useGpu)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppImage);
@@ -749,7 +749,7 @@ Result CreateImageFromFile(
     }
     else if (IsDDSFile(path)) {
         // Generate a bitmap out of a DDS
-        gli::texture image = gli::load(path.c_str());
+        gli::texture image = gli::load(path.string().c_str());
         if (image.empty()) {
             return Result::ERROR_IMAGE_FILE_LOAD_FAILED;
         }
@@ -892,10 +892,10 @@ Result CreateTextureFromBitmap(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateTextureFromFile(
-    grfx::Queue*          pQueue,
-    const fs::path&       path,
-    grfx::Texture**       ppTexture,
-    const TextureOptions& options)
+    grfx::Queue*                 pQueue,
+    const std::filesystem::path& path,
+    grfx::Texture**              ppTexture,
+    const TextureOptions&        options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppTexture);
@@ -1023,7 +1023,7 @@ SubImage CalcSubimageCrossHorizontalLeft(
 
 Result CreateCubeMapFromFile(
     grfx::Queue*                 pQueue,
-    const fs::path&              path,
+    const std::filesystem::path& path,
     const CubeMapCreateInfo*     pCreateInfo,
     grfx::Image**                ppImage,
     const grfx::ImageUsageFlags& additionalImageUsage)
@@ -1323,10 +1323,10 @@ Result CreateMeshFromWireMesh(
 // -------------------------------------------------------------------------------------------------
 
 Result CreateMeshFromFile(
-    grfx::Queue*          pQueue,
-    const fs::path&       path,
-    grfx::Mesh**          ppMesh,
-    const TriMeshOptions& options)
+    grfx::Queue*                 pQueue,
+    const std::filesystem::path& path,
+    grfx::Mesh**                 ppMesh,
+    const TriMeshOptions&        options)
 {
     PPX_ASSERT_NULL_ARG(pQueue);
     PPX_ASSERT_NULL_ARG(ppMesh);

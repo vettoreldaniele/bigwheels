@@ -516,12 +516,12 @@ uint64_t Bitmap::StorageFootprint(uint32_t width, uint32_t height, Bitmap::Forma
     return size;
 }
 
-static Result IsRadianceFile(const fs::path& path, bool& isRadiance)
+static Result IsRadianceFile(const std::filesystem::path& path, bool& isRadiance)
 {
     static const char* kRadianceSig = "#?RADIANCE";
 
     // Open file
-    FILE* pFile = fopen(path, "rb");
+    FILE* pFile = fopen(path.string().c_str(), "rb");
     if (pFile == nullptr) {
         return ppx::ERROR_IMAGE_FILE_LOAD_FAILED;
     }
@@ -544,23 +544,23 @@ static Result IsRadianceFile(const fs::path& path, bool& isRadiance)
     return ppx::SUCCESS;
 }
 
-bool Bitmap::IsBitmapFile(const fs::path& path)
+bool Bitmap::IsBitmapFile(const std::filesystem::path& path)
 {
     int x, y, comp;
-    int res = stbi_info(path.c_str(), &x, &y, &comp);
+    int res = stbi_info(path.string().c_str(), &x, &y, &comp);
     return res != 0;
 }
 
-Result Bitmap::GetFileProperties(const fs::path& path, uint32_t* pWidth, uint32_t* pHeight, Bitmap::Format* pFormat)
+Result Bitmap::GetFileProperties(const std::filesystem::path& path, uint32_t* pWidth, uint32_t* pHeight, Bitmap::Format* pFormat)
 {
-    if (!fs::exists(path)) {
+    if (!std::filesystem::exists(path)) {
         return ppx::ERROR_PATH_DOES_NOT_EXIST;
     }
 
     int x    = 0;
     int y    = 0;
     int comp = 0;
-    stbi_info(path, &x, &y, &comp);
+    stbi_info(path.string().c_str(), &x, &y, &comp);
 
     bool   isRadiance = false;
     Result ppxres     = IsRadianceFile(path, isRadiance);
@@ -584,9 +584,9 @@ Result Bitmap::GetFileProperties(const fs::path& path, uint32_t* pWidth, uint32_
     return ppx::SUCCESS;
 }
 
-Result Bitmap::LoadFile(const fs::path& path, Bitmap* pBitmap)
+Result Bitmap::LoadFile(const std::filesystem::path& path, Bitmap* pBitmap)
 {
-    if (!fs::exists(path)) {
+    if (!std::filesystem::exists(path)) {
         return ppx::ERROR_PATH_DOES_NOT_EXIST;
     }
 
@@ -604,7 +604,7 @@ Result Bitmap::LoadFile(const fs::path& path, Bitmap* pBitmap)
         int channels         = 0;
         int requiredChannels = 4; // Force to 4 chanenls to make things easier for the graphics APIs
 
-        float* pData = stbi_loadf(path, &width, &height, &channels, requiredChannels);
+        float* pData = stbi_loadf(path.string().c_str(), &width, &height, &channels, requiredChannels);
         if (pData == nullptr) {
             return ppx::ERROR_IMAGE_FILE_LOAD_FAILED;
         }
@@ -629,7 +629,7 @@ Result Bitmap::LoadFile(const fs::path& path, Bitmap* pBitmap)
         int channels         = 0;
         int requiredChannels = 4; // Force to 4 chanenls to make things easier for the graphics APIs
 
-        unsigned char* pData = stbi_load(path.c_str(), &width, &height, &channels, requiredChannels);
+        unsigned char* pData = stbi_load(path.string().c_str(), &width, &height, &channels, requiredChannels);
         if (IsNull(pData)) {
             return ppx::ERROR_IMAGE_FILE_LOAD_FAILED;
         }
@@ -652,9 +652,9 @@ Result Bitmap::LoadFile(const fs::path& path, Bitmap* pBitmap)
     return ppx::SUCCESS;
 }
 
-Result Bitmap::SaveFilePNG(const fs::path& path, const Bitmap* pBitmap)
+Result Bitmap::SaveFilePNG(const std::filesystem::path& path, const Bitmap* pBitmap)
 {
-    int res = stbi_write_png(path.c_str(), pBitmap->GetWidth(), pBitmap->GetHeight(), pBitmap->GetChannelCount(), pBitmap->GetData(), pBitmap->GetRowStride());
+    int res = stbi_write_png(path.string().c_str(), pBitmap->GetWidth(), pBitmap->GetHeight(), pBitmap->GetChannelCount(), pBitmap->GetData(), pBitmap->GetRowStride());
     if (res == 0) {
         return ppx::ERROR_IMAGE_FILE_SAVE_FAILED;
     }

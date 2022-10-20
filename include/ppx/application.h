@@ -22,6 +22,7 @@
 #include "ppx/timer.h"
 
 #include <deque>
+#include <filesystem>
 
 // clang-format off
 #if ! defined(GLFW_INCLUDE_NONE)
@@ -317,8 +318,8 @@ public:
     //     - loads shader file: some/path/shaders/dxil/Texture.vs.dxil for API_DX_12_0, API_DX_12_1 if enableDXIL = true
     //     - loads shader file: some/path/shaders/spv/Texture.vs.spv   for API_VK_1_1, API_VK_1_2
     //
-    std::vector<char> LoadShader(const fs::path& baseDir, const std::string& baseName) const;
-    Result            CreateShader(const fs::path& baseDir, const std::string& baseName, grfx::ShaderModule** ppShaderModule) const;
+    std::vector<char> LoadShader(const std::filesystem::path& baseDir, const std::string& baseName) const;
+    Result            CreateShader(const std::filesystem::path& baseDir, const std::string& baseName, grfx::ShaderModule** ppShaderModule) const;
 
     void* GetWindow() const
     {

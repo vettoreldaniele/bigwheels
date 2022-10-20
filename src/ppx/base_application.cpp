@@ -14,6 +14,10 @@
 
 #include "ppx/base_application.h"
 
+#if defined(__linux__) || defined(__MINGW32__)
+#include <unistd.h>
+#endif
+
 namespace ppx {
 
 BaseApplication::BaseApplication()
@@ -41,34 +45,34 @@ uint32_t BaseApplication::GetProcessId() const
     return pid;
 }
 
-fs::path BaseApplication::GetApplicationPath() const
+std::filesystem::path BaseApplication::GetApplicationPath() const
 {
-    fs::path path;
+    std::filesystem::path path;
 #if defined(PPX_LINUX) || defined(PPX_GGP)
     char buf[PATH_MAX];
     std::memset(buf, 0, PATH_MAX);
     readlink("/proc/self/exe", buf, PATH_MAX);
-    path = fs::path(buf);
+    path = std::filesystem::path(buf);
 #elif defined(PPX_MSW)
     HMODULE this_win32_module = GetModuleHandleA(nullptr);
     char    buf[MAX_PATH];
     std::memset(buf, 0, MAX_PATH);
     GetModuleFileNameA(this_win32_module, buf, MAX_PATH);
-    path = fs::path(buf);
+    path = std::filesystem::path(buf);
 #else
 #error "not implemented"
 #endif
     return path;
 }
 
-void BaseApplication::AddAssetDir(const fs::path& path, bool insertAtFront)
+void BaseApplication::AddAssetDir(const std::filesystem::path& path, bool insertAtFront)
 {
     auto it = Find(mAssetDirs, path);
     if (it != std::end(mAssetDirs)) {
         return;
     }
 
-    if (!fs::is_directory(path)) {
+    if (!std::filesystem::is_directory(path)) {
         return;
     }
 
@@ -83,12 +87,12 @@ void BaseApplication::AddAssetDir(const fs::path& path, bool insertAtFront)
     }
 }
 
-fs::path BaseApplication::GetAssetPath(const fs::path& subPath) const
+std::filesystem::path BaseApplication::GetAssetPath(const std::filesystem::path& subPath) const
 {
-    fs::path assetPath;
+    std::filesystem::path assetPath;
     for (auto& assetDir : mAssetDirs) {
-        fs::path path = assetDir / subPath;
-        if (fs::exists(path)) {
+        std::filesystem::path path = assetDir / subPath;
+        if (std::filesystem::exists(path)) {
             assetPath = path;
             break;
         }

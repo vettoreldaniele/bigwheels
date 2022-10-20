@@ -17,8 +17,9 @@
 
 #include "ppx/config.h"
 #include "ppx/math_config.h"
-#include "ppx/fs.h"
 #include "stb_truetype.h"
+
+#include <filesystem>
 
 namespace ppx {
 
@@ -50,7 +51,7 @@ public:
     Font();
     virtual ~Font();
 
-    static ppx::Result CreateFromFile(const fs::path& path, ppx::Font* pFont);
+    static ppx::Result CreateFromFile(const std::filesystem::path& path, ppx::Font* pFont);
     static ppx::Result CreateFromMemory(size_t size, const char* pData, ppx::Font* pFont);
 
     float GetScale(float fontSizeInPixels) const;

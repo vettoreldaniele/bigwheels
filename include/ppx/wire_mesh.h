@@ -18,7 +18,6 @@
 #include "ppx/config.h"
 #include "ppx/math_config.h"
 #include "ppx/grfx/grfx_config.h"
-#include "ppx/fs.h"
 
 namespace ppx {
 

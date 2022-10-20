@@ -15,6 +15,8 @@
 #include "FishTornado.h"
 #include "ppx/graphics_util.h"
 
+#include <filesystem>
+
 #define kShadowRes          1024
 #define kCausticsImageCount 32
 
@@ -45,10 +47,10 @@ grfx::TexturePtr FishTornadoApp::GetShadowTexture(uint32_t frameIndex) const
 }
 
 grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
-    const fs::path&          baseDir,
-    const std::string&       vsBaseName,
-    const std::string&       psBaseName,
-    grfx::PipelineInterface* pPipelineInterface)
+    const std::filesystem::path& baseDir,
+    const std::string&           vsBaseName,
+    const std::string&           psBaseName,
+    grfx::PipelineInterface*     pPipelineInterface)
 {
     grfx::ShaderModulePtr VS, PS;
     PPX_CHECKED_CALL(CreateShader(baseDir, vsBaseName, &VS));
@@ -95,9 +97,9 @@ grfx::GraphicsPipelinePtr FishTornadoApp::CreateForwardPipeline(
 }
 
 grfx::GraphicsPipelinePtr FishTornadoApp::CreateShadowPipeline(
-    const fs::path&          baseDir,
-    const std::string&       vsBaseName,
-    grfx::PipelineInterface* pPipelineInterface)
+    const std::filesystem::path& baseDir,
+    const std::string&           vsBaseName,
+    grfx::PipelineInterface*     pPipelineInterface)
 {
     grfx::ShaderModulePtr VS;
     PPX_CHECKED_CALL(CreateShader(baseDir, vsBaseName, &VS));
@@ -363,7 +365,7 @@ void FishTornadoApp::UploadCaustics()
 
         std::stringstream filename;
         filename << "fishtornado/textures/ocean/caustics/save." << std::setw(2) << std::setfill('0') << i << ".png";
-        fs::path path = GetAssetPath(filename.str());
+        std::filesystem::path path = GetAssetPath(filename.str());
 
         Bitmap bitmap;
         PPX_CHECKED_CALL(Bitmap::LoadFile(path, &bitmap));

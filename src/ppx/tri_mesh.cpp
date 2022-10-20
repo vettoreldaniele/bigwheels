@@ -864,7 +864,7 @@ TriMesh TriMesh::CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, cons
     return mesh;
 }
 
-Result TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& options, TriMesh* pTriMesh)
+Result TriMesh::CreateFromOBJ(const std::filesystem::path& path, const TriMeshOptions& options, TriMesh* pTriMesh)
 {
     if (IsNull(pTriMesh)) {
         return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
@@ -897,7 +897,7 @@ Result TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& option
 
     std::string warn;
     std::string err;
-    bool        loaded = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path, nullptr, true);
+    bool        loaded = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.string().c_str(), nullptr, true);
 
     if (!loaded || !err.empty()) {
         return ppx::ERROR_GEOMETRY_FILE_LOAD_FAILED;
@@ -1111,7 +1111,7 @@ Result TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& option
     return ppx::SUCCESS;
 }
 
-TriMesh TriMesh::CreateFromOBJ(const fs::path& path, const TriMeshOptions& options)
+TriMesh TriMesh::CreateFromOBJ(const std::filesystem::path& path, const TriMeshOptions& options)
 {
     TriMesh mesh;
     PPX_CHECKED_CALL(CreateFromOBJ(path, options, &mesh));

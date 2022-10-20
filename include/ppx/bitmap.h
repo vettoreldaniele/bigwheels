@@ -16,8 +16,9 @@
 #define ppx_bitmap_h
 
 #include "ppx/config.h"
-#include "ppx/fs.h"
 #include "ppx/grfx/grfx_format.h"
+
+#include <filesystem>
 
 namespace ppx {
 
@@ -110,10 +111,10 @@ public:
     static uint32_t         FormatSize(Bitmap::Format value);
     static uint64_t         StorageFootprint(uint32_t width, uint32_t height, Bitmap::Format format);
 
-    static Result GetFileProperties(const fs::path& path, uint32_t* pWidth, uint32_t* pHeight, Bitmap::Format* pFormat);
-    static Result LoadFile(const fs::path& path, Bitmap* pBitmap);
-    static Result SaveFilePNG(const fs::path& path, const Bitmap* pBitmap);
-    static bool   IsBitmapFile(const fs::path& path);
+    static Result GetFileProperties(const std::filesystem::path& path, uint32_t* pWidth, uint32_t* pHeight, Bitmap::Format* pFormat);
+    static Result LoadFile(const std::filesystem::path& path, Bitmap* pBitmap);
+    static Result SaveFilePNG(const std::filesystem::path& path, const Bitmap* pBitmap);
+    static bool   IsBitmapFile(const std::filesystem::path& path);
 
     // ---------------------------------------------------------------------------------------------
 

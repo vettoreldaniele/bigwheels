@@ -16,6 +16,8 @@
 #include "ppx/camera.h"
 #include "ppx/graphics_util.h"
 
+#include <filesystem>
+
 #define ENABLE_GPU_QUERIES
 
 using namespace ppx;
@@ -272,11 +274,11 @@ private:
     void SetupSamplers();
     void SetupLightingResources();
     void SetupMaterialResources(
-        const fs::path&    albedoPath,
-        const fs::path&    roughnessPath,
-        const fs::path&    metalnessPath,
-        const fs::path&    normalMapPath,
-        MaterialResources& materialResources);
+        const std::filesystem::path& albedoPath,
+        const std::filesystem::path& roughnessPath,
+        const std::filesystem::path& metalnessPath,
+        const std::filesystem::path& normalMapPath,
+        MaterialResources&           materialResources);
     void SetupMaterials();
     void UpdateEnvDescriptors();
     void DrawGui();
@@ -460,11 +462,11 @@ void ProjApp::SetupLightingResources()
 }
 
 void ProjApp::SetupMaterialResources(
-    const fs::path&    albedoPath,
-    const fs::path&    roughnessPath,
-    const fs::path&    metalnessPath,
-    const fs::path&    normalMapPath,
-    MaterialResources& materialResources)
+    const std::filesystem::path& albedoPath,
+    const std::filesystem::path& roughnessPath,
+    const std::filesystem::path& metalnessPath,
+    const std::filesystem::path& normalMapPath,
+    MaterialResources&           materialResources)
 {
     PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mMaterialResourcesLayout, &materialResources.set));
 

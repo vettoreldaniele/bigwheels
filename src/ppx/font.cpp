@@ -33,13 +33,13 @@ void Font::AcquireFontMetrics()
         &mObject->lineGap);
 }
 
-ppx::Result Font::CreateFromFile(const fs::path& path, ppx::Font* pFont)
+ppx::Result Font::CreateFromFile(const std::filesystem::path& path, ppx::Font* pFont)
 {
     if (IsNull(pFont)) {
         return ppx::ERROR_UNEXPECTED_NULL_ARGUMENT;
     }
 
-    if (!fs::exists(path)) {
+    if (!std::filesystem::exists(path)) {
         return ppx::ERROR_PATH_DOES_NOT_EXIST;
     }
 

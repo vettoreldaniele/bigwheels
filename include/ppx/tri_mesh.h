@@ -18,7 +18,8 @@
 #include "ppx/config.h"
 #include "ppx/math_config.h"
 #include "ppx/grfx/grfx_config.h"
-#include "ppx/fs.h"
+
+#include <filesystem>
 
 namespace ppx {
 
@@ -175,8 +176,8 @@ public:
     static TriMesh CreateCube(const float3& size, const TriMeshOptions& options = TriMeshOptions());
     static TriMesh CreateSphere(float radius, uint32_t usegs, uint32_t vsegs, const TriMeshOptions& options = TriMeshOptions());
 
-    static Result  CreateFromOBJ(const fs::path& path, const TriMeshOptions& options, TriMesh* pTriMesh);
-    static TriMesh CreateFromOBJ(const fs::path& path, const TriMeshOptions& options = TriMeshOptions());
+    static Result  CreateFromOBJ(const std::filesystem::path& path, const TriMeshOptions& options, TriMesh* pTriMesh);
+    static TriMesh CreateFromOBJ(const std::filesystem::path& path, const TriMeshOptions& options = TriMeshOptions());
 
 private:
     void AppendIndexU16(uint16_t value);

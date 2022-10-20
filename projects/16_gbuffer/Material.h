@@ -16,8 +16,9 @@
 #define MATERIAL_H
 
 #include "ppx/math_config.h"
-#include "ppx/fs.h"
 #include "ppx/grfx/grfx_pipeline.h"
+
+#include <filesystem>
 
 using ppx::float3;
 using ppx::hlsl_float;
@@ -74,10 +75,10 @@ struct MaterialCreateInfo
     float         metalness;
     float         iblStrength;
     float         envStrength;
-    ppx::fs::path albedoTexturePath;
-    ppx::fs::path roughnessTexturePath;
-    ppx::fs::path metalnessTexturePath;
-    ppx::fs::path normalTexturePath;
+    std::filesystem::path albedoTexturePath;
+    std::filesystem::path roughnessTexturePath;
+    std::filesystem::path metalnessTexturePath;
+    std::filesystem::path normalTexturePath;
 };
 
 class Material

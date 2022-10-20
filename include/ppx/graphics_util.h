@@ -19,9 +19,10 @@
 #include "ppx/grfx/grfx_queue.h"
 #include "ppx/grfx/grfx_texture.h"
 #include "ppx/bitmap.h"
-#include "ppx/fs.h"
 #include "ppx/geometry.h"
 #include "gli/gli.hpp"
+
+#include <filesystem>
 
 namespace ppx {
 namespace grfx_util {
@@ -54,11 +55,11 @@ private:
         const ImageOptions& options);
 
     friend Result CreateImageFromFile(
-        grfx::Queue*        pQueue,
-        const fs::path&     path,
-        grfx::Image**       ppImage,
-        const ImageOptions& options,
-        bool                useGpu);
+        grfx::Queue*                 pQueue,
+        const std::filesystem::path& path,
+        grfx::Image**                ppImage,
+        const ImageOptions&          options,
+        bool                         useGpu);
 
     friend Result CreateImageFromBitmapGpu(
         grfx::Queue*        pQueue,
@@ -92,11 +93,11 @@ Result CreateImageFromBitmap(
 //!
 //!
 Result CreateImageFromFile(
-    grfx::Queue*        pQueue,
-    const fs::path&     path,
-    grfx::Image**       ppImage,
-    const ImageOptions& options = ImageOptions(),
-    bool                useGpu  = false);
+    grfx::Queue*                 pQueue,
+    const std::filesystem::path& path,
+    grfx::Image**                ppImage,
+    const ImageOptions&          options = ImageOptions(),
+    bool                         useGpu  = false);
 
 //! @fn CreateMipMapsForImage
 //!
@@ -133,10 +134,10 @@ private:
         const TextureOptions& options);
 
     friend Result CreateTextureFromFile(
-        grfx::Queue*          pQueue,
-        const fs::path&       path,
-        grfx::Texture**       ppTexture,
-        const TextureOptions& options);
+        grfx::Queue*                 pQueue,
+        const std::filesystem::path& path,
+        grfx::Texture**              ppTexture,
+        const TextureOptions&        options);
 
     friend Result CreateTexture1x1(
         grfx::Queue*          pQueue,
@@ -170,10 +171,10 @@ Result CreateTextureFromBitmap(
 //!
 //!
 Result CreateTextureFromFile(
-    grfx::Queue*          pQueue,
-    const fs::path&       path,
-    grfx::Texture**       ppTexture,
-    const TextureOptions& options = TextureOptions());
+    grfx::Queue*                 pQueue,
+    const std::filesystem::path& path,
+    grfx::Texture**              ppTexture,
+    const TextureOptions&        options = TextureOptions());
 
 Result CreateTexture1x1(
     grfx::Queue*          pQueue,
@@ -337,7 +338,7 @@ struct CubeMapCreateInfo
 //!
 Result CreateCubeMapFromFile(
     grfx::Queue*                 pQueue,
-    const fs::path&              path,
+    const std::filesystem::path& path,
     const CubeMapCreateInfo*     pCreateInfo,
     grfx::Image**                ppImage,
     const grfx::ImageUsageFlags& additionalImageUsage = grfx::ImageUsageFlags());
@@ -372,10 +373,10 @@ Result CreateMeshFromWireMesh(
 //!
 //!
 Result CreateMeshFromFile(
-    grfx::Queue*          pQueue,
-    const fs::path&       path,
-    grfx::Mesh**          ppMesh,
-    const TriMeshOptions& options = TriMeshOptions());
+    grfx::Queue*                 pQueue,
+    const std::filesystem::path& path,
+    grfx::Mesh**                 ppMesh,
+    const TriMeshOptions&        options = TriMeshOptions());
 
 // -------------------------------------------------------------------------------------------------
 

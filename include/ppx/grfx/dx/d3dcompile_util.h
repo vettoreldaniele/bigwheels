@@ -20,6 +20,7 @@
 
 #include "d3dcompiler.h"
 #include "ppx/ppx.h"
+#include "ppx/fs.h"
 
 namespace ppx {
 namespace grfx {
@@ -28,7 +29,7 @@ namespace dx {
 class ShaderIncludeHandler : public ID3DInclude
 {
 public:
-    ShaderIncludeHandler(const fs::path& baseDir)
+    ShaderIncludeHandler(const std::filesystem::path& baseDir)
         : baseDirPath(baseDir) {}
 
     HRESULT Open(
@@ -40,9 +41,10 @@ public:
     {
         auto itr = fileNameToContents.find(pFileName);
         if (itr == fileNameToContents.end()) {
-            fs::path filePath = baseDirPath;
-            filePath          = filePath / pFileName;
-            itr               = fileNameToContents.insert({pFileName, fs::load_file(filePath)}).first;
+            std::filesystem::path filePath = baseDirPath / pFileName;
+            auto                  content  = fs::load_file(filePath);
+            PPX_ASSERT_MSG(false, "Could not open: " + filePath.string());
+            itr = fileNameToContents.insert({pFileName, content.value()}).first;
         }
         *ppData = itr->second.data();
         *pBytes = static_cast<UINT>(itr->second.size());
@@ -56,11 +58,11 @@ public:
     }
 
 private:
-    fs::path                                      baseDirPath;
+    std::filesystem::path                         baseDirPath;
     std::unordered_map<LPCSTR, std::vector<char>> fileNameToContents;
 };
 
-std::vector<char> CompileShader(const fs::path& baseDir, const std::string& baseName, const char* shaderModel, ShaderIncludeHandler* includeHandler);
+std::vector<char> CompileShader(const std::filesystem::path& baseDir, const std::string& baseName, const char* shaderModel, ShaderIncludeHandler* includeHandler);
 
 } // namespace dx
 } // namespace grfx

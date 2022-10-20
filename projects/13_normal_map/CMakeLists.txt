@@ -18,4 +18,4 @@ project(13_normal_map)
 add_samples_for_all_apis(
     NAME ${PROJECT_NAME}
     SOURCES "main.cpp"
-    SHADER_DEPENDENCIES "shader_normal_map")
+    SHADER_DEPENDENCIES "shader_normal_map" "shader_vertex_colors")

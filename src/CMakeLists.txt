@@ -178,6 +178,7 @@ list(
     ${SRC_DIR}/ppx/command_line_parser.cpp
     ${SRC_DIR}/ppx/csv_file_log.cpp
     ${SRC_DIR}/ppx/font.cpp
+    ${SRC_DIR}/ppx/fs.cpp
     ${SRC_DIR}/ppx/geometry.cpp
     ${SRC_DIR}/ppx/graphics_util.cpp
     ${SRC_DIR}/ppx/imgui_impl.cpp
