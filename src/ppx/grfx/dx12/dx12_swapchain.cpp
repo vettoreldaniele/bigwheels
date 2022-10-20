@@ -91,13 +91,12 @@ Result Swapchain::CreateApiObjects(const grfx::SwapchainCreateInfo* pCreateInfo)
         }
 
         if (flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) {
-            BOOL    allowTearing = FALSE;
-            HRESULT hr           = factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing));
+            HRESULT hr = factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &mTearingEnabled, sizeof(mTearingEnabled));
             if (!SUCCEEDED(hr)) {
                 return ppx::ERROR_API_FAILURE;
             }
 
-            if (allowTearing == FALSE) {
+            if (mTearingEnabled == FALSE) {
                 return ppx::ERROR_GRFX_UNSUPPORTED_PRESENT_MODE;
             }
         }
@@ -283,7 +282,7 @@ Result Swapchain::Present(
         }
     }
 
-    UINT    flags = 0;
+    UINT    flags = mTearingEnabled != FALSE ? DXGI_PRESENT_ALLOW_TEARING : 0;
     HRESULT hr    = mSwapchain->Present(mSyncInterval, flags);
     if (FAILED(hr)) {
         PPX_ASSERT_MSG(false, "IDXGISwapChain::Present failed");

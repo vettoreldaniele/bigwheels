@@ -83,6 +83,7 @@ private:
     //   https://docs.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present
     //
     UINT mSyncInterval = 1;
+    BOOL mTearingEnabled = FALSE;
 };
 
 } // namespace dx12
