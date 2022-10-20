@@ -421,13 +421,13 @@ void ProjApp::SetupLightingResources()
     // Pipeline
     {
         grfx::ShaderModulePtr VS;
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char>     bytecode = LoadShader("basic/shaders", "Texture.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode = LoadShader("basic/shaders", "Texture.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -847,7 +847,7 @@ void ProjApp::Setup()
 
         grfx::ShaderModulePtr VS;
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("materials/shaders"), "VertexShader.vs");
+        std::vector<char> bytecode = LoadShader("materials/shaders", "VertexShader.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
@@ -856,7 +856,7 @@ void ProjApp::Setup()
         {
             grfx::ShaderModulePtr PS;
 
-            bytecode = LoadShader(GetAssetPath("materials/shaders"), "Gouraud.ps");
+            bytecode = LoadShader("materials/shaders", "Gouraud.ps");
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -874,7 +874,7 @@ void ProjApp::Setup()
         {
             grfx::ShaderModulePtr PS;
 
-            bytecode = LoadShader(GetAssetPath("materials/shaders"), "Phong.ps");
+            bytecode = LoadShader("materials/shaders", "Phong.ps");
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -892,7 +892,7 @@ void ProjApp::Setup()
         {
             grfx::ShaderModulePtr PS;
 
-            bytecode = LoadShader(GetAssetPath("materials/shaders"), "BlinnPhong.ps");
+            bytecode = LoadShader("materials/shaders", "BlinnPhong.ps");
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -910,7 +910,7 @@ void ProjApp::Setup()
         {
             grfx::ShaderModulePtr PS;
 
-            bytecode = LoadShader(GetAssetPath("materials/shaders"), "PBR.ps");
+            bytecode = LoadShader("materials/shaders", "PBR.ps");
             PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
             shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
             PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

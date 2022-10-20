@@ -592,15 +592,9 @@ Application* Application::Get()
 void Application::InitializeAssetDirs()
 {
     std::filesystem::path path = GetApplicationPath();
-    PPX_LOG_INFO("Application path: " << path);
     path.remove_filename();
-    for (; path != path.root_path(); path = path.parent_path()) {
-        std::filesystem::path assetDir = path / "assets";
-        if (std::filesystem::exists(assetDir)) {
-            AddAssetDir(assetDir);
-            PPX_LOG_INFO("Added asset path: " << assetDir);
-        }
-    }
+    path /= RELATIVE_PATH_TO_PROJECT_ROOT;
+    AddAssetDir(path / "assets");
 }
 
 Result Application::InitializePlatform()
@@ -1427,38 +1421,43 @@ grfx::Viewport Application::GetViewport(float minDepth, float maxDepth) const
     return viewport;
 }
 
-std::vector<char> Application::LoadShader(const std::filesystem::path& baseDir, const std::string& baseName) const
+namespace {
+
+std::optional<std::filesystem::path> GetShaderPathSuffix(const ppx::ApplicationSettings& settings, const std::string& baseName)
 {
-    std::filesystem::path filePath = baseDir;
-    switch (mSettings.grfx.api) {
-        default: {
-            PPX_ASSERT_MSG(false, "unsupported API");
-        } break;
-
+    switch (settings.grfx.api) {
         case grfx::API_DX_11_0:
-        case grfx::API_DX_11_1: {
-            filePath = filePath / "dxbc50" / (baseName + ".dxbc50");
-
-        } break;
-
+        case grfx::API_DX_11_1:
+            return std::filesystem::path("dxbc50") / (baseName + ".dxbc50");
         case grfx::API_DX_12_0:
         case grfx::API_DX_12_1: {
-            if (mSettings.grfx.enableDXIL) {
-                filePath = filePath / "dxil" / (baseName + ".dxil");
+            if (settings.grfx.enableDXIL) {
+                return std::filesystem::path("dxil") / (baseName + ".dxil");
             }
-            else {
-                filePath = filePath / "dxbc51" / (baseName + ".dxbc51");
-            }
-        } break;
-
+            return std::filesystem::path("dxbc51") / (baseName + ".dxbc51");
+        }
         case grfx::API_VK_1_1:
-        case grfx::API_VK_1_2: {
-            filePath = filePath / "spv" / (baseName + ".spv");
-        } break;
+        case grfx::API_VK_1_2:
+            return std::filesystem::path("spv") / (baseName + ".spv");
+        default:
+            return std::nullopt;
+    }
+};
+
+} // namespace
+
+std::vector<char> Application::LoadShader(const std::filesystem::path& baseDir, const std::string& baseName) const
+{
+    auto suffix = GetShaderPathSuffix(mSettings, baseName);
+    if (!suffix.has_value()) {
+        PPX_ASSERT_MSG(false, "unsupported API");
+        return {};
     }
 
+    const auto filePath = GetAssetPath(baseDir / suffix.value());
     if (!std::filesystem::exists(filePath)) {
         PPX_ASSERT_MSG(false, "shader file not found: " << filePath);
+        return {};
     }
 
     auto bytecode = fs::load_file(filePath);

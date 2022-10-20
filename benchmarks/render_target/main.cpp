@@ -221,12 +221,12 @@ void ProjApp::SetupDrawToTexturePass()
     // Pipeline
     {
         const std::string shaderSource = (mRenderTargetCount == 1) ? "PassThroughPos" : "MultipleRT";
-        std::vector<char> bytecode     = LoadShader(GetAssetPath("benchmarks/shaders"), shaderSource + ".vs");
+        std::vector<char> bytecode     = LoadShader("benchmarks/shaders", shaderSource + ".vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = LoadShader(GetAssetPath("benchmarks/shaders"), shaderSource + ".ps");
+        bytecode = LoadShader("benchmarks/shaders", shaderSource + ".ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
@@ -316,13 +316,13 @@ void ProjApp::SetupDrawToSwapchain()
     // Pipeline
     {
         grfx::ShaderModulePtr VS;
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
+        std::vector<char>     bytecode = LoadShader("basic/shaders", "FullScreenTriangle.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
+        bytecode = LoadShader("basic/shaders", "FullScreenTriangle.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

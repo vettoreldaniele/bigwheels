@@ -257,12 +257,12 @@ void ProjApp::Setup()
         grfx::ShaderModulePtr VS;
         grfx::ShaderModulePtr PS;
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "Texture.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode = LoadShader("basic/shaders", "Texture.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -385,7 +385,7 @@ void ProjApp::SetupCompute()
     {
         grfx::ShaderModulePtr CS;
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "ImageFilter.cs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "ImageFilter.cs");
         PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &CS));
@@ -516,14 +516,14 @@ void ProjApp::SetupComposition()
     {
         grfx::ShaderModulePtr VS;
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticTexture.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "StaticTexture.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "StaticTexture.ps");
+        bytecode = LoadShader("basic/shaders", "StaticTexture.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -651,13 +651,13 @@ void ProjApp::SetupDrawToSwapchain()
     {
         grfx::ShaderModulePtr VS;
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "FullScreenTriangle.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
+        bytecode = LoadShader("basic/shaders", "FullScreenTriangle.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

@@ -162,7 +162,7 @@ void ProjApp::Setup()
 
     // Compute pipeline
     {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "ComputeFill.cs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "ComputeFill.cs");
 
         PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -182,12 +182,12 @@ void ProjApp::Setup()
 
     // Graphics pipeline
     {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "Texture.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode = LoadShader("basic/shaders", "Texture.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));

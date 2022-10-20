@@ -290,12 +290,12 @@ void ProjApp::Setup()
     {
         std::string shaderName = mNumImages == 1 ? "TextureSample" : "TextureSample4Textures";
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("benchmarks/shaders"), shaderName + ".vs");
+        std::vector<char> bytecode = LoadShader("benchmarks/shaders", shaderName + ".vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = LoadShader(GetAssetPath("benchmarks/shaders"), shaderName + ".ps");
+        bytecode = LoadShader("benchmarks/shaders", shaderName + ".ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));

@@ -101,12 +101,12 @@ void ProjApp::Setup()
         grfx::ShaderModulePtr VS;
         grfx::ShaderModulePtr PS;
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "TextDraw.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "TextDraw.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
-        bytecode                   = LoadShader(GetAssetPath("basic/shaders"), "TextDraw.ps");
+        bytecode = LoadShader("basic/shaders", "TextDraw.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

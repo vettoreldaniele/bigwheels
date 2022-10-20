@@ -213,14 +213,14 @@ void ProjApp::Setup()
         // Pipeline
         grfx::ShaderModulePtr VS;
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "NormalMap.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "NormalMap.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "NormalMap.ps");
+        bytecode = LoadShader("basic/shaders", "NormalMap.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -295,13 +295,13 @@ void ProjApp::Setup()
 
         // Pipeline
         grfx::ShaderModulePtr VS;
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.vs");
+        std::vector<char>     bytecode = LoadShader("basic/shaders", "VertexColors.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "VertexColors.ps");
+        bytecode = LoadShader("basic/shaders", "VertexColors.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

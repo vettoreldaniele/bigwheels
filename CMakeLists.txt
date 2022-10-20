@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
 cmake_policy(SET CMP0054 NEW)
 
@@ -184,6 +184,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 set(PPX_ASSET_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+
+# Determine relative path from binary location to the build root.
+cmake_path(SET BUILD_DIRECTORY NORMALIZE "${CMAKE_BINARY_DIR}")
+cmake_path(SET EXECUTABLE_DIRECTORY NORMALIZE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+cmake_path(RELATIVE_PATH BUILD_DIRECTORY BASE_DIRECTORY ${EXECUTABLE_DIRECTORY} OUTPUT_VARIABLE BUILD_TO_EXECUTABLE_PATH)
+add_compile_definitions(RELATIVE_PATH_TO_PROJECT_ROOT="${BUILD_TO_EXECUTABLE_PATH}")
 
 add_custom_target(ppx_assets)
 

@@ -183,7 +183,7 @@ void ProjApp::SetupComputeShaderPass()
 
     // Compute pipeline
     {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("benchmarks/shaders"), mShaderFile + ".cs");
+        std::vector<char> bytecode = LoadShader("benchmarks/shaders", mShaderFile + ".cs");
         PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mCS));

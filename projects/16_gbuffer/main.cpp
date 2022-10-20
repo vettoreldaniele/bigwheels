@@ -346,13 +346,13 @@ void ProjApp::SetupIBLResources()
     // Pipeline
     {
         grfx::ShaderModulePtr VS;
-        std::vector<char>     bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.vs");
+        std::vector<char>     bytecode = LoadShader("basic/shaders", "Texture.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "Texture.ps");
+        bytecode = LoadShader("basic/shaders", "Texture.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -465,14 +465,14 @@ void ProjApp::SetupGBufferLightQuad()
 {
     grfx::ShaderModulePtr VS;
 
-    std::vector<char> bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DeferredLight.vs");
+    std::vector<char> bytecode = LoadShader("gbuffer/shaders", "DeferredLight.vs");
     PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
     grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
     grfx::ShaderModulePtr PS;
 
-    bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DeferredLight.ps");
+    bytecode = LoadShader("gbuffer/shaders", "DeferredLight.ps");
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -496,14 +496,14 @@ void ProjApp::SetupDebugDraw()
 {
     grfx::ShaderModulePtr VS;
 
-    std::vector<char> bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute.vs");
+    std::vector<char> bytecode = LoadShader("gbuffer/shaders", "DrawGBufferAttribute.vs");
     PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
     grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
     grfx::ShaderModulePtr PS;
 
-    bytecode = LoadShader(GetAssetPath("gbuffer/shaders"), "DrawGBufferAttribute.ps");
+    bytecode = LoadShader("gbuffer/shaders", "DrawGBufferAttribute.ps");
     PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
     shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
     PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));
@@ -538,14 +538,14 @@ void ProjApp::SetupDrawToSwapchain()
     {
         grfx::ShaderModulePtr VS;
 
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "FullScreenTriangle.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &VS));
 
         grfx::ShaderModulePtr PS;
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "FullScreenTriangle.ps");
+        bytecode = LoadShader("basic/shaders", "FullScreenTriangle.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &PS));

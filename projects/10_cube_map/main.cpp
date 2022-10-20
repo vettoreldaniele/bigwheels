@@ -171,12 +171,12 @@ void ProjApp::Setup()
 
     // Sky box pipeline
     {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "SkyBox.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "SkyBox.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "SkyBox.ps");
+        bytecode = LoadShader("basic/shaders", "SkyBox.ps");
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mPS));
@@ -209,13 +209,13 @@ void ProjApp::Setup()
 
     // Reflector pipeline
     {
-        std::vector<char> bytecode = LoadShader(GetAssetPath("basic/shaders"), "CubeMap.vs");
+        std::vector<char> bytecode = LoadShader("basic/shaders", "CubeMap.vs");
 
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
         PPX_CHECKED_CALL(GetDevice()->CreateShaderModule(&shaderCreateInfo, &mVS));
 
-        bytecode = LoadShader(GetAssetPath("basic/shaders"), "CubeMap.ps");
+        bytecode = LoadShader("basic/shaders", "CubeMap.ps");
 
         PPX_ASSERT_MSG(!bytecode.empty(), "PS shader bytecode load failed");
         shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
