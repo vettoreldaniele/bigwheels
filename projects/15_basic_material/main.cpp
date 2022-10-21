@@ -132,10 +132,8 @@ private:
     };
 
     grfx::SamplerPtr                  mSampler;
-    MaterialResources                 mRustedIron;
-    MaterialResources                 mSciFiMetal;
-    MaterialResources                 mPaintedMetal;
-    MaterialResources                 mWoodWall;
+    MaterialResources                 mWoodMaterial;
+    MaterialResources                 mTilesMaterial;
     MaterialResources                 mAltimeterMaterial;
     std::vector<grfx::DescriptorSet*> mMaterialResourcesSets;
 
@@ -233,10 +231,8 @@ private:
 
     uint32_t                 mMaterialIndex = 0;
     std::vector<const char*> mMaterialNames = {
-        "Rusted Iron",
-        "SciFi Metal",
-        "Painted Metal",
-        "Wood Wall",
+        "Wood",
+        "Tiles",
         "Altimeter",
     };
 
@@ -367,49 +363,27 @@ void ProjApp::SetupMaterials()
     createInfo.bindings.push_back({grfx::DescriptorBinding{CLAMPED_SAMPLER_REGISTER, grfx::DESCRIPTOR_TYPE_SAMPLER, 1, grfx::SHADER_STAGE_ALL_GRAPHICS}});
     PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&createInfo, &mMaterialResourcesLayout));
 
-    // RustedIron
+    // Wood
     {
         SetupMaterialResources(
-            "materials/textures/RustedIron/albedo.png",
-            "materials/textures/RustedIron/roughness.png",
-            "materials/textures/RustedIron/metalness.png",
-            "materials/textures/RustedIron/normal.png",
-            mRustedIron);
-        mMaterialResourcesSets.push_back(mRustedIron.set);
+            "materials/textures/wood/albedo.png",
+            "materials/textures/wood/roughness.png",
+            "materials/textures/wood/metalness.png",
+            "materials/textures/wood/normal.png",
+            mWoodMaterial);
+        mMaterialResourcesSets.push_back(mWoodMaterial.set);
     };
 
-    // SciFiMetal
+    // Tiles
     {
         SetupMaterialResources(
-            "materials/textures/SciFiMetal/albedo.jpg",
-            "materials/textures/SciFiMetal/roughness.jpg",
-            "materials/textures/SciFiMetal/metalness.jpg",
-            "materials/textures/SciFiMetal/normal.jpg",
-            mSciFiMetal);
-        mMaterialResourcesSets.push_back(mSciFiMetal.set);
-    }
-
-    // PaintedMetal
-    {
-        SetupMaterialResources(
-            "materials/textures/PaintedMetal/albedo.jpg",
-            "materials/textures/PaintedMetal/roughness.jpg",
-            "materials/textures/PaintedMetal/metalness.jpg",
-            "materials/textures/PaintedMetal/normal.jpg",
-            mPaintedMetal);
-        mMaterialResourcesSets.push_back(mPaintedMetal.set);
-    }
-
-    // WoodWall
-    {
-        SetupMaterialResources(
-            "materials/textures/WoodWall/albedo.jpg",
-            "materials/textures/WoodWall/roughness.jpg",
-            "materials/textures/WoodWall/metalness.jpg",
-            "materials/textures/WoodWall/normal.jpg",
-            mWoodWall);
-        mMaterialResourcesSets.push_back(mWoodWall.set);
-    }
+            "materials/textures/tiles/albedo.png",
+            "materials/textures/tiles/roughness.png",
+            "materials/textures/tiles/metalness.png",
+            "materials/textures/tiles/normal.png",
+            mTilesMaterial);
+        mMaterialResourcesSets.push_back(mTilesMaterial.set);
+    };
 
     // Altimeter
     {

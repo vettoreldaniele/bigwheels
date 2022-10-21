@@ -179,12 +179,8 @@ void ProjApp::SetupEntities()
     mEntities.resize(7);
 
     std::vector<Material*> materials;
-    materials.push_back(Material::GetMaterialRustedIron());
-    materials.push_back(Material::GetMaterialPaintedMetal());
-    materials.push_back(Material::GetMaterialCopper());
-    materials.push_back(Material::GetMaterialGold());
-    materials.push_back(Material::GetMaterialTitanium());
-    materials.push_back(Material::GetMaterialWhiteRoughPlastic());
+    materials.push_back(Material::GetMaterialWood());
+    materials.push_back(Material::GetMaterialTiles());
 
     size_t n = 6;
     for (size_t i = 0; i < n; ++i) {
@@ -213,7 +209,7 @@ void ProjApp::SetupEntities()
 
         EntityCreateInfo createInfo = {};
         createInfo.pMesh            = mBox;
-        createInfo.pMaterial        = Material::GetMaterialStoneTile();
+        createInfo.pMaterial        = Material::GetMaterialTiles();
         PPX_CHECKED_CALL(pEntity->Create(GetGraphicsQueue(), mDescriptorPool, &createInfo));
         pEntity->GetTransform().SetTranslation(float3(0, -0.5f, 0));
     }

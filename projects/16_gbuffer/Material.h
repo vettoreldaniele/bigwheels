@@ -93,13 +93,8 @@ public:
     static ppx::Result CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::DescriptorPool* pPool);
     static void        DestroyMaterials();
 
-    static Material* GetMaterialRustedIron() { return &sRustedIron; }
-    static Material* GetMaterialPaintedMetal() { return &sPaintedMetal; }
-    static Material* GetMaterialCopper() { return &sCopper; }
-    static Material* GetMaterialGold() { return &sGold; }
-    static Material* GetMaterialTitanium() { return &sTitanium; }
-    static Material* GetMaterialWhiteRoughPlastic() { return &sWhiteRoughPlastic; }
-    static Material* GetMaterialStoneTile() { return &sStoneTile; }
+    static Material* GetMaterialWood() { return &sWood; }
+    static Material* GetMaterialTiles() { return &sTiles; }
 
     static ppx::grfx::DescriptorSetLayout* GetMaterialResourcesLayout() { return sMaterialResourcesLayout.Get(); }
     static ppx::grfx::DescriptorSetLayout* GetMaterialDataLayout() { return sMaterialDataLayout.Get(); }
@@ -122,14 +117,8 @@ private:
     static ppx::grfx::DescriptorSetLayoutPtr sMaterialResourcesLayout;
     static ppx::grfx::DescriptorSetLayoutPtr sMaterialDataLayout;
 
-    static Material sRustedIron;
-    static Material sPaintedMetal;
-    static Material sCopper;
-    static Material sGold;
-    static Material sTitanium;
-    static Material sZinc;
-    static Material sWhiteRoughPlastic;
-    static Material sStoneTile;
+    static Material sWood;
+    static Material sTiles;
 };
 
 #endif // MATERIAL_H

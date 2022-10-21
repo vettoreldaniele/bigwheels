@@ -49,14 +49,8 @@ ppx::grfx::SamplerPtr             Material::sClampedSampler;
 ppx::grfx::DescriptorSetLayoutPtr Material::sMaterialResourcesLayout;
 ppx::grfx::DescriptorSetLayoutPtr Material::sMaterialDataLayout;
 
-Material Material::sRustedIron;
-Material Material::sPaintedMetal;
-Material Material::sCopper;
-Material Material::sGold;
-Material Material::sTitanium;
-Material Material::sZinc;
-Material Material::sWhiteRoughPlastic;
-Material Material::sStoneTile;
+Material Material::sWood;
+Material Material::sTiles;
 
 static std::map<std::string, grfx::TexturePtr> mTextureCache;
 
@@ -243,120 +237,38 @@ ppx::Result Material::CreateMaterials(ppx::grfx::Queue* pQueue, ppx::grfx::Descr
         PPX_CHECKED_CALL(pDevice->CreateDescriptorSetLayout(&createInfo, &sMaterialDataLayout));
     }
 
-    // RustedIron
-    {
-        MaterialCreateInfo createInfo   = {};
-        createInfo.F0                   = F0_Generic;
-        createInfo.albedo               = F0_MetalIron;
-        createInfo.roughness            = 0;
-        createInfo.metalness            = 1;
-        createInfo.iblStrength          = 1;
-        createInfo.envStrength          = 0.2f;
-        createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/RustedIron/albedo.png");
-        createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/RustedIron/roughness.png");
-        createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/RustedIron/metalness.png");
-        createInfo.normalTexturePath    = Application::Get()->GetAssetPath("materials/textures/RustedIron/normal.png");
-
-        PPX_CHECKED_CALL(sRustedIron.Create(pQueue, pPool, &createInfo));
-    }
-
-    // PaintedMetal
-    {
-        MaterialCreateInfo createInfo   = {};
-        createInfo.F0                   = F0_Generic;
-        createInfo.albedo               = F0_MetalCopper;
-        createInfo.roughness            = 0;
-        createInfo.metalness            = 1;
-        createInfo.iblStrength          = 1;
-        createInfo.envStrength          = 0.2f;
-        createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/PaintedMetal/albedo.jpg");
-        createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/PaintedMetal/roughness.jpg");
-        createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/PaintedMetal/metalness.jpg");
-        createInfo.normalTexturePath    = Application::Get()->GetAssetPath("materials/textures/PaintedMetal/normal.jpg");
-
-        PPX_CHECKED_CALL(sPaintedMetal.Create(pQueue, pPool, &createInfo));
-    }
-
-    // Copper
-    {
-        MaterialCreateInfo createInfo = {};
-        createInfo.F0                 = F0_Generic;
-        createInfo.albedo             = F0_MetalCopper;
-        createInfo.roughness          = 0.5f;
-        createInfo.metalness          = 1;
-        createInfo.iblStrength        = 1;
-        createInfo.envStrength        = 0.1f;
-
-        PPX_CHECKED_CALL(sCopper.Create(pQueue, pPool, &createInfo));
-    }
-
-    // Gold
-    {
-        MaterialCreateInfo createInfo = {};
-        createInfo.F0                 = F0_Generic;
-        createInfo.albedo             = F0_MetalGold;
-        createInfo.roughness          = 0.25f;
-        createInfo.metalness          = 1;
-        createInfo.iblStrength        = 1;
-        createInfo.envStrength        = 0.3f;
-
-        PPX_CHECKED_CALL(sGold.Create(pQueue, pPool, &createInfo));
-    }
-
-    // Titanium
-    {
-        MaterialCreateInfo createInfo = {};
-        createInfo.F0                 = F0_Generic;
-        createInfo.albedo             = F0_MetalTitanium;
-        createInfo.roughness          = 0.25f;
-        createInfo.metalness          = 1;
-        createInfo.iblStrength        = 1;
-        createInfo.envStrength        = 0.3f;
-
-        PPX_CHECKED_CALL(sTitanium.Create(pQueue, pPool, &createInfo));
-    }
-
-    // Zinc
-    {
-        MaterialCreateInfo createInfo = {};
-        createInfo.F0                 = F0_Generic;
-        createInfo.albedo             = F0_MetalZinc;
-        createInfo.roughness          = 0.15f;
-        createInfo.metalness          = 1;
-        createInfo.iblStrength        = 1;
-        createInfo.envStrength        = 0.3f;
-
-        PPX_CHECKED_CALL(sZinc.Create(pQueue, pPool, &createInfo));
-    }
-
-    // White Rough Plastic
-    {
-        MaterialCreateInfo createInfo = {};
-        createInfo.F0                 = F0_DiletricPlastic.x;
-        createInfo.albedo             = float3(1.0f, 1.0f, 1.0f);
-        createInfo.roughness          = 0.9f;
-        createInfo.metalness          = 0;
-        createInfo.iblStrength        = 0.025f;
-        createInfo.envStrength        = 0.0f;
-
-        PPX_CHECKED_CALL(sWhiteRoughPlastic.Create(pQueue, pPool, &createInfo));
-    }
-
-    // Stone Tile
+    // Wood
     {
         MaterialCreateInfo createInfo   = {};
         createInfo.F0                   = F0_Generic;
         createInfo.albedo               = F0_DiletricPlastic;
-        createInfo.roughness            = 0;
+        createInfo.roughness            = 1;
         createInfo.metalness            = 0;
-        createInfo.iblStrength          = 0.6f;
-        createInfo.envStrength          = 0.05f;
-        createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/albedo.png");
-        createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/roughness.png");
-        //createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/metalness.png");
-        createInfo.normalTexturePath = Application::Get()->GetAssetPath("materials/textures/stone-tile4b/normal.png");
+        createInfo.iblStrength          = 0;
+        createInfo.envStrength          = 0.0f;
+        createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/wood/albedo.png");
+        createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/wood/roughness.png");
+        createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/wood/metalness.png");
+        createInfo.normalTexturePath    = Application::Get()->GetAssetPath("materials/textures/wood/normal.png");
 
-        PPX_CHECKED_CALL(sStoneTile.Create(pQueue, pPool, &createInfo));
+        PPX_CHECKED_CALL(sWood.Create(pQueue, pPool, &createInfo));
+    }
+
+    // Tiles
+    {
+        MaterialCreateInfo createInfo   = {};
+        createInfo.F0                   = F0_Generic;
+        createInfo.albedo               = F0_DiletricCrystal;
+        createInfo.roughness            = 0.4;
+        createInfo.metalness            = 0;
+        createInfo.iblStrength          = 0;
+        createInfo.envStrength          = 0.0f;
+        createInfo.albedoTexturePath    = Application::Get()->GetAssetPath("materials/textures/tiles/albedo.png");
+        createInfo.roughnessTexturePath = Application::Get()->GetAssetPath("materials/textures/tiles/roughness.png");
+        createInfo.metalnessTexturePath = Application::Get()->GetAssetPath("materials/textures/tiles/metalness.png");
+        createInfo.normalTexturePath    = Application::Get()->GetAssetPath("materials/textures/tiles/normal.png");
+
+        PPX_CHECKED_CALL(sTiles.Create(pQueue, pPool, &createInfo));
     }
 
     return ppx::SUCCESS;
