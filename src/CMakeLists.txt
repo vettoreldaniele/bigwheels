@@ -400,12 +400,6 @@ if (PPX_VULKAN)
     )
 endif()
 
-list(
-    APPEND CONTRIB_FILES
-    ${PPX_THIRD_PARTY_DIR}/contrib/MIPFile/MIPFile.h
-    ${PPX_THIRD_PARTY_DIR}/contrib/MIPFile/MIPFile.cpp
-)
-
 # ------------------------------------------------------------------------------
 # Source group
 # ------------------------------------------------------------------------------
@@ -422,7 +416,6 @@ source_group("ppx-grfx-dx12\\header"  FILES ${PPX_GRFX_DX12_HEADER_FILES})
 source_group("ppx-grfx-dx12\\source"  FILES ${PPX_GRFX_DX12_SOURCE_FILES})
 source_group("ppx-grfx-vk\\header"    FILES ${PPX_GRFX_VK_HEADER_FILES})
 source_group("ppx-grfx-vk\\source"    FILES ${PPX_GRFX_VK_SOURCE_FILES})
-source_group("third_party\\contrib"   FILES ${CONTRIB_FILES})
 source_group("third_party\\imgui"     FILES ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES})
 source_group("third_party\\xxHash"    FILES ${XXHASH_FILES})
 
