@@ -22,9 +22,8 @@ For debug purposes and to aid visualization, the ImGui interface offers an optio
 
 ## Shaders
 
-Shader                      | Purpose for this project
---------------------------- | -------------------------------------------------------------
-`Texture.hlsl`              | Draw the IBL texture as the surrounding environment.
+Shader                        | Purpose for this project
+----------------------------- | -------------------------------------------------------------
 `DeferredRender.hlsl`       | Draw model and pack gbuffer.
 `DeferredLight.hlsl`        | Unpack gbuffer and draw composed image.
 `FullScreenTriangle.hlsl`   | Draw final image to swapchain.
