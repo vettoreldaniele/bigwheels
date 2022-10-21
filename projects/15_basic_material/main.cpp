@@ -339,6 +339,26 @@ void ProjApp::SetupMaterialResources(
         PPX_CHECKED_CALL(materialResources.set->UpdateDescriptors(1, &write));
     }
 
+    // IBL map (not used)
+    {
+        grfx::WriteDescriptor write = {};
+        write.binding               = IBL_MAP_TEXTURE_REGISTER;
+        write.arrayIndex            = 0;
+        write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        write.pImageView            = m1x1WhiteTexture->GetSampledImageView();
+        PPX_CHECKED_CALL(materialResources.set->UpdateDescriptors(1, &write));
+    }
+
+    // Environment reflection map (not used)
+    {
+        grfx::WriteDescriptor write = {};
+        write.binding               = ENV_MAP_TEXTURE_REGISTER;
+        write.arrayIndex            = 0;
+        write.type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        write.pImageView            = m1x1WhiteTexture->GetSampledImageView();
+        PPX_CHECKED_CALL(materialResources.set->UpdateDescriptors(1, &write));
+    }
+
     // Sampler
     {
         grfx::WriteDescriptor write = {};

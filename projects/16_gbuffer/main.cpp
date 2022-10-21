@@ -91,6 +91,8 @@ private:
     grfx::MeshPtr       mBox;
     std::vector<Entity> mEntities;
 
+    grfx::TexturePtr m1x1WhiteTexture;
+
     float mCamSwing       = 0;
     float mTargetCamSwing = 0;
 
@@ -473,7 +475,7 @@ void ProjApp::Setup()
         mGBufferReadSet->SetName("GBuffer Read");
 
         // Write descriptors
-        grfx::WriteDescriptor writes[6] = {};
+        grfx::WriteDescriptor writes[8] = {};
         writes[0].binding               = GBUFFER_RT0_REGISTER;
         writes[0].arrayIndex            = 0;
         writes[0].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
@@ -490,16 +492,27 @@ void ProjApp::Setup()
         writes[3].arrayIndex            = 0;
         writes[3].type                  = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         writes[3].pImageView            = mGBufferRenderPass->GetRenderTargetTexture(3)->GetSampledImageView();
-        writes[4].binding               = GBUFFER_SAMPLER_REGISTER;
-        writes[4].type                  = grfx::DESCRIPTOR_TYPE_SAMPLER;
-        writes[4].pSampler              = mSampler;
-        writes[5].binding               = GBUFFER_CONSTANTS_REGISTER;
-        writes[5].type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        writes[5].bufferOffset          = 0;
-        writes[5].bufferRange           = PPX_WHOLE_SIZE;
-        writes[5].pBuffer               = mGBufferDrawAttrConstants;
+        // Environment map and IBL are not currently used.
+        // Create a 1x1 image for unused textures.
+        PPX_CHECKED_CALL(grfx_util::CreateTexture1x1(GetDevice()->GetGraphicsQueue(), float4(1), &m1x1WhiteTexture));
+        writes[4].binding      = GBUFFER_ENV_REGISTER;
+        writes[4].arrayIndex   = 0;
+        writes[4].type         = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        writes[4].pImageView   = m1x1WhiteTexture->GetSampledImageView();
+        writes[5].binding      = GBUFFER_IBL_REGISTER;
+        writes[5].arrayIndex   = 0;
+        writes[5].type         = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        writes[5].pImageView   = m1x1WhiteTexture->GetSampledImageView();
+        writes[6].binding      = GBUFFER_SAMPLER_REGISTER;
+        writes[6].type         = grfx::DESCRIPTOR_TYPE_SAMPLER;
+        writes[6].pSampler     = mSampler;
+        writes[7].binding      = GBUFFER_CONSTANTS_REGISTER;
+        writes[7].type         = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        writes[7].bufferOffset = 0;
+        writes[7].bufferRange  = PPX_WHOLE_SIZE;
+        writes[7].pBuffer      = mGBufferDrawAttrConstants;
 
-        PPX_CHECKED_CALL(mGBufferReadSet->UpdateDescriptors(6, writes));
+        PPX_CHECKED_CALL(mGBufferReadSet->UpdateDescriptors(8, writes));
     }
 
     // Create per frame objects
