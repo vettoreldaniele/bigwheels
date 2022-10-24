@@ -90,7 +90,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.appName          = "texture_transfer_cpu_to_gpu";
     settings.enableImGui      = false;
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = true;
+    settings.grfx.enableDebug = false;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif

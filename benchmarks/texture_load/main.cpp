@@ -90,7 +90,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.appName                        = "texture_load";
     settings.enableImGui                    = false;
     settings.grfx.api                       = kApi;
-    settings.grfx.enableDebug               = true;
+    settings.grfx.enableDebug               = false;
     settings.grfx.device.graphicsQueueCount = 1;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
