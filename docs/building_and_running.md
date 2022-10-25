@@ -65,11 +65,11 @@ ninja
 Built binaries are written to `bin/vk_*`.
 
 ### Running on GGP
-Push the `assets` folder to the instance before running. Since shaders are compiled per project, they must be built and pushed *before* running the application. Then push and run the application.
+Push the `assets` folder to the instance before running. Since shaders are compiled per project, they must be built and pushed *before* running the application. Then push and run the application. For example, on Linux:
 ```
 ggp ssh put -r assets
-ggp ssh put bin/vk_01_triangle
-ggp run --cmd "/vk_01_triangle"
+ggp ssh sync -R bin/vk_01_triangle
+ggp run --cmd "bin/vk_01_triangle"
 ```
 
 You can use the `tools/ggp-run.py` script to automate pushing and running applications on GGP. For example:
