@@ -75,6 +75,7 @@ Result Device::ConfigureQueueInfo(const grfx::DeviceCreateInfo* pCreateInfo, std
             vkci.queueCount              = pCreateInfo->pGpu->GetComputeQueueCount();
             vkci.pQueuePriorities        = DataPtr(queuePriorities);
             queueCreateInfos.push_back(vkci);
+            createdQueues.insert(mComputeQueueFamilyIndex);
         }
         else if (createdQueues.contains(mComputeQueueFamilyIndex)) {
             PPX_LOG_WARN("Graphics queue will be shared with compute queue.");
@@ -86,6 +87,7 @@ Result Device::ConfigureQueueInfo(const grfx::DeviceCreateInfo* pCreateInfo, std
             vkci.queueCount              = pCreateInfo->pGpu->GetTransferQueueCount();
             vkci.pQueuePriorities        = DataPtr(queuePriorities);
             queueCreateInfos.push_back(vkci);
+            createdQueues.insert(mTransferQueueFamilyIndex);
         }
         else if (createdQueues.contains(mTransferQueueFamilyIndex)) {
             PPX_LOG_WARN("Transfer queue will be shared with graphics or compute queue.");
