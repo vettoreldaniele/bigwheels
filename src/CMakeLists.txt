@@ -662,7 +662,7 @@ endif()
 # ------------------------------------------------------------------------------
 # Unit Tests
 # ------------------------------------------------------------------------------
-if (BUILD_TESTS)
+if (PPX_BUILD_TESTS)
     enable_testing()
     include(GoogleTest)
     add_subdirectory(test)

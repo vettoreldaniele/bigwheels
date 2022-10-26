@@ -253,7 +253,7 @@ endif()
 # ------------------------------------------------------------------------------
 # Enable testing support for CMake.
 # ------------------------------------------------------------------------------
-option(BUILD_TESTS "Build tests" ON)
-if (BUILD_TESTS)
+option(PPX_BUILD_TESTS "Build tests" ON)
+if (PPX_BUILD_TESTS)
     enable_testing()
 endif()
