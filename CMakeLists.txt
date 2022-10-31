@@ -223,6 +223,14 @@ endfunction()
 add_cpu_features()
 
 # ------------------------------------------------------------------------------
+# Add OpenXR.
+# ------------------------------------------------------------------------------
+if (PPX_BUILD_XR)
+    message("Building OpenXR support")
+    add_subdirectory(third_party/OpenXR-SDK-Source)
+endif()
+
+# ------------------------------------------------------------------------------
 # Add PPX library.
 # ------------------------------------------------------------------------------
 
@@ -239,7 +247,6 @@ if (PPX_BUILD_PROJECTS)
     add_subdirectory(projects)
     add_subdirectory(third_party/projects)
 endif()
-
 
 # ------------------------------------------------------------------------------
 # Add benchmarks.
