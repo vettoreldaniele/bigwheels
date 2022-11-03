@@ -1203,6 +1203,8 @@ int Application::Run(int argc, char** argv)
     // Put this early because it might disable the display.
     DispatchConfig();
 
+    mSettings.grfx.enableDebug = true;
+
     // Initialize the platform
     Result ppxres = InitializePlatform();
     if (Failed(ppxres)) {

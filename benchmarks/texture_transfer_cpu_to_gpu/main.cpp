@@ -281,7 +281,7 @@ void ProjApp::Setup()
     SetupDrawToSwapchain();
 
     // Per frame data
-    {
+    for (uint64_t i = 0; i < GetNumResourceCopiesRequired(); ++i) {
         PerFrame frame = {};
 
         PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
@@ -306,7 +306,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame = mPerFrame[GetInFlightFrameIndex()];
 
     // The benchmark happens inside this call
     TransferTexture(mTextureNames[GetFrameCount() % mTextureNames.size()]);

@@ -222,7 +222,7 @@ struct ApplicationSettings
         grfx::Api api               = grfx::API_UNDEFINED;
         bool      enableDebug       = false;
         bool      enableDXIL        = false;
-        uint32_t  numFramesInFlight = 1;
+        uint32_t  numFramesInFlight = 2;
         uint32_t  pacedFrameRate    = 60;
 
         struct
@@ -341,6 +341,13 @@ public:
     uint32_t GetNumFramesInFlight() const { return mSettings.grfx.numFramesInFlight; }
     uint32_t GetInFlightFrameIndex() const { return static_cast<uint32_t>(mFrameCount % mSettings.grfx.numFramesInFlight); }
     uint32_t GetPreviousInFlightFrameIndex() const { return static_cast<uint32_t>((mFrameCount - 1) % mSettings.grfx.numFramesInFlight); }
+
+    //! @return The number of resource copies required by this application
+    //!         to be able to have the desired amount of frames in flight
+    //!         without blocking.
+    uint32_t GetNumResourceCopiesRequired() {
+        return mSettings.grfx.numFramesInFlight;
+    }
 
     const KeyState& GetKeyState(KeyCode code) const;
     float2          GetNormalizedDeviceCoordinates(int32_t x, int32_t y) const;

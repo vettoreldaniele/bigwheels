@@ -64,7 +64,8 @@ grfx::Format ToGrfxFormat(gli::format value)
         case gli::FORMAT_RGB_DXT1_SRGB_BLOCK8           : return grfx::FORMAT_BC1_RGB_SRGB;
         case gli::FORMAT_RGBA_DXT1_UNORM_BLOCK8         : return grfx::FORMAT_BC1_RGBA_UNORM;
         case gli::FORMAT_RGBA_DXT1_SRGB_BLOCK8          : return grfx::FORMAT_BC1_RGBA_SRGB;
-        case gli::FORMAT_RGBA_DXT3_UNORM_BLOCK16        : return grfx::FORMAT_BC2_SRGB;
+        case gli::FORMAT_RGBA_DXT3_SRGB_BLOCK16         : return grfx::FORMAT_BC2_SRGB;
+        case gli::FORMAT_RGBA_DXT3_UNORM_BLOCK16        : return grfx::FORMAT_BC2_UNORM;
         case gli::FORMAT_RGBA_DXT5_SRGB_BLOCK16         : return grfx::FORMAT_BC3_SRGB;
         case gli::FORMAT_RGBA_DXT5_UNORM_BLOCK16        : return grfx::FORMAT_BC3_UNORM;
         case gli::FORMAT_R_ATI1N_UNORM_BLOCK8           : return grfx::FORMAT_BC4_UNORM;

@@ -58,7 +58,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.appName          = "01_triangle";
     settings.enableImGui      = true;
     settings.grfx.api         = kApi;
-    settings.grfx.enableDebug = false;
+    settings.grfx.enableDebug = true;
 #if defined(USE_DXIL)
     settings.grfx.enableDXIL = true;
 #endif
@@ -103,6 +103,7 @@ void ProjApp::Setup()
     }
 
     // Per frame data
+    for (uint64_t i = 0; i < GetNumResourceCopiesRequired(); ++i)
     {
         PerFrame frame = {};
 
@@ -154,7 +155,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame = mPerFrame[GetInFlightFrameIndex()];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

@@ -40,6 +40,15 @@ private:
         grfx::FencePtr         imageAcquiredFence;
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
+
+        grfx::BufferPtr uniformBuffer;
+
+        grfx::DescriptorSetPtr computeDescriptorSet;
+        grfx::DescriptorSetPtr graphicsDescriptorSet;
+
+        grfx::ImagePtr            image;
+        grfx::SampledImageViewPtr sampledImageView;
+        grfx::StorageImageViewPtr storageImageView;
     };
 
     std::vector<PerFrame>        mPerFrame;
@@ -53,14 +62,8 @@ private:
     grfx::BufferPtr              mVertexBuffer;
     grfx::DescriptorPoolPtr      mDescriptorPool;
     grfx::DescriptorSetLayoutPtr mComputeDescriptorSetLayout;
-    grfx::DescriptorSetPtr       mComputeDescriptorSet;
     grfx::DescriptorSetLayoutPtr mGraphicsDescriptorSetLayout;
-    grfx::DescriptorSetPtr       mGraphicsDescriptorSet;
-    grfx::BufferPtr              mUniformBuffer;
-    grfx::ImagePtr               mImage;
     grfx::SamplerPtr             mSampler;
-    grfx::SampledImageViewPtr    mSampledImageView;
-    grfx::StorageImageViewPtr    mStorageImageView;
     grfx::Viewport               mViewport;
     grfx::Rect                   mScissorRect;
     grfx::VertexBinding          mVertexBinding;
@@ -79,89 +82,22 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 
 void ProjApp::Setup()
 {
-    // Uniform buffer
-    {
-        grfx::BufferCreateInfo bufferCreateInfo        = {};
-        bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
-        bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
-        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-
-        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &mUniformBuffer));
-    }
-
-    // Texture image, view, and sampler
-    {
-        grfx_util::ImageOptions imageOptions = grfx_util::ImageOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
-        PPX_CHECKED_CALL(grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/box_panel.jpg"), &mImage, imageOptions, false));
-
-        grfx::SampledImageViewCreateInfo sampledViewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(mImage);
-        PPX_CHECKED_CALL(GetDevice()->CreateSampledImageView(&sampledViewCreateInfo, &mSampledImageView));
-
-        grfx::StorageImageViewCreateInfo storageViewCreateInfo = grfx::StorageImageViewCreateInfo::GuessFromImage(mImage);
-        PPX_CHECKED_CALL(GetDevice()->CreateStorageImageView(&storageViewCreateInfo, &mStorageImageView));
-
-        grfx::SamplerCreateInfo samplerCreateInfo = {};
-        PPX_CHECKED_CALL(GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
-    }
-
-    // Descriptors
+    // Descriptor pool
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.uniformBuffer                  = 1;
-        poolCreateInfo.sampledImage                   = 1;
-        poolCreateInfo.sampler                        = 1;
-        poolCreateInfo.storageImage                   = 1;
+        poolCreateInfo.uniformBuffer                  = GetNumResourceCopiesRequired();
+        poolCreateInfo.sampledImage                   = GetNumResourceCopiesRequired();
+        poolCreateInfo.sampler                        = GetNumResourceCopiesRequired();
+        poolCreateInfo.storageImage                   = GetNumResourceCopiesRequired();
         PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
-
-        // Compute
-        {
-            grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE));
-            PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mComputeDescriptorSetLayout));
-
-            PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mComputeDescriptorSetLayout, &mComputeDescriptorSet));
-
-            grfx::WriteDescriptor write = {};
-            write.binding               = 0;
-            write.type                  = grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            write.pImageView            = mStorageImageView;
-            PPX_CHECKED_CALL(mComputeDescriptorSet->UpdateDescriptors(1, &write));
-        }
-
-        // Graphics
-        {
-            grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
-            layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
-            PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mGraphicsDescriptorSetLayout));
-
-            PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mGraphicsDescriptorSetLayout, &mGraphicsDescriptorSet));
-
-            grfx::WriteDescriptor write = {};
-            write.binding               = 0;
-            write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            write.bufferOffset          = 0;
-            write.bufferRange           = PPX_WHOLE_SIZE;
-            write.pBuffer               = mUniformBuffer;
-            PPX_CHECKED_CALL(mGraphicsDescriptorSet->UpdateDescriptors(1, &write));
-
-            write            = {};
-            write.binding    = 1;
-            write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            write.pImageView = mSampledImageView;
-            PPX_CHECKED_CALL(mGraphicsDescriptorSet->UpdateDescriptors(1, &write));
-
-            write          = {};
-            write.binding  = 2;
-            write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-            write.pSampler = mSampler;
-            PPX_CHECKED_CALL(mGraphicsDescriptorSet->UpdateDescriptors(1, &write));
-        }
     }
 
     // Compute pipeline
     {
+        grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE));
+        PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mComputeDescriptorSetLayout));
+
         std::vector<char> bytecode = LoadShader("basic/shaders", "ComputeFill.cs");
 
         PPX_ASSERT_MSG(!bytecode.empty(), "CS shader bytecode load failed");
@@ -182,6 +118,12 @@ void ProjApp::Setup()
 
     // Graphics pipeline
     {
+        grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(0, grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
+        layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
+        PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mGraphicsDescriptorSetLayout));
+
         std::vector<char> bytecode = LoadShader("basic/shaders", "Texture.vs");
         PPX_ASSERT_MSG(!bytecode.empty(), "VS shader bytecode load failed");
         grfx::ShaderModuleCreateInfo shaderCreateInfo = {static_cast<uint32_t>(bytecode.size()), bytecode.data()};
@@ -220,7 +162,7 @@ void ProjApp::Setup()
     }
 
     // Per frame data
-    {
+    for (uint64_t i = 0; i < GetNumResourceCopiesRequired(); ++i) {
         PerFrame frame = {};
 
         PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
@@ -235,6 +177,70 @@ void ProjApp::Setup()
 
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+
+        // Uniform buffer
+        {
+            grfx::BufferCreateInfo bufferCreateInfo        = {};
+            bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
+            bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
+            bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
+
+            PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &frame.uniformBuffer));
+        }
+
+        // Texture image, view, and sampler
+        {
+            grfx_util::ImageOptions imageOptions = grfx_util::ImageOptions().AdditionalUsage(grfx::IMAGE_USAGE_STORAGE).MipLevelCount(1);
+            PPX_CHECKED_CALL(grfx_util::CreateImageFromFile(GetDevice()->GetGraphicsQueue(), GetAssetPath("basic/textures/box_panel.jpg"), &frame.image, imageOptions, false));
+
+            grfx::SampledImageViewCreateInfo sampledViewCreateInfo = grfx::SampledImageViewCreateInfo::GuessFromImage(frame.image);
+            PPX_CHECKED_CALL(GetDevice()->CreateSampledImageView(&sampledViewCreateInfo, &frame.sampledImageView));
+
+            grfx::StorageImageViewCreateInfo storageViewCreateInfo = grfx::StorageImageViewCreateInfo::GuessFromImage(frame.image);
+            PPX_CHECKED_CALL(GetDevice()->CreateStorageImageView(&storageViewCreateInfo, &frame.storageImageView));
+
+            grfx::SamplerCreateInfo samplerCreateInfo = {};
+            PPX_CHECKED_CALL(GetDevice()->CreateSampler(&samplerCreateInfo, &mSampler));
+        }
+
+        // Descriptors
+        {
+            // Compute
+            {
+                PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mComputeDescriptorSetLayout, &frame.computeDescriptorSet));
+
+                grfx::WriteDescriptor write = {};
+                write.binding               = 0;
+                write.type                  = grfx::DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                write.pImageView            = frame.storageImageView;
+                PPX_CHECKED_CALL(frame.computeDescriptorSet->UpdateDescriptors(1, &write));
+            }
+
+            // Graphics
+            {
+                PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mGraphicsDescriptorSetLayout, &frame.graphicsDescriptorSet));
+
+                grfx::WriteDescriptor write = {};
+                write.binding               = 0;
+                write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                write.bufferOffset          = 0;
+                write.bufferRange           = PPX_WHOLE_SIZE;
+                write.pBuffer               = frame.uniformBuffer;
+                PPX_CHECKED_CALL(frame.graphicsDescriptorSet->UpdateDescriptors(1, &write));
+
+                write            = {};
+                write.binding    = 1;
+                write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+                write.pImageView = frame.sampledImageView;
+                PPX_CHECKED_CALL(frame.graphicsDescriptorSet->UpdateDescriptors(1, &write));
+
+                write          = {};
+                write.binding  = 2;
+                write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
+                write.pSampler = mSampler;
+                PPX_CHECKED_CALL(frame.graphicsDescriptorSet->UpdateDescriptors(1, &write));
+            }
+        }
 
         mPerFrame.push_back(frame);
     }
@@ -275,7 +281,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame = mPerFrame[GetInFlightFrameIndex()];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -294,9 +300,9 @@ void ProjApp::Render()
         float4x4 mat = glm::rotate(t, float3(0, 0, 1));
 
         void* pData = nullptr;
-        PPX_CHECKED_CALL(mUniformBuffer->MapMemory(0, &pData));
+        PPX_CHECKED_CALL(frame.uniformBuffer->MapMemory(0, &pData));
         memcpy(pData, &mat, sizeof(mat));
-        mUniformBuffer->UnmapMemory();
+        frame.uniformBuffer->UnmapMemory();
     }
 
     // Build command buffer
@@ -312,11 +318,11 @@ void ProjApp::Render()
         beginInfo.RTVClearValues[0]         = {{0, 0, 0, 0}};
 
         // Fill image with red
-        frame.cmd->TransitionImageLayout(mImage, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_UNORDERED_ACCESS);
-        frame.cmd->BindComputeDescriptorSets(mComputePipelineInterface, 1, &mComputeDescriptorSet);
+        frame.cmd->TransitionImageLayout(frame.image, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_SHADER_RESOURCE, grfx::RESOURCE_STATE_UNORDERED_ACCESS);
+        frame.cmd->BindComputeDescriptorSets(mComputePipelineInterface, 1, &frame.computeDescriptorSet);
         frame.cmd->BindComputePipeline(mComputePipeline);
-        frame.cmd->Dispatch(mImage->GetWidth(), mImage->GetHeight(), 1);
-        frame.cmd->TransitionImageLayout(mImage, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_UNORDERED_ACCESS, grfx::RESOURCE_STATE_SHADER_RESOURCE);
+        frame.cmd->Dispatch(frame.image->GetWidth(), frame.image->GetHeight(), 1);
+        frame.cmd->TransitionImageLayout(frame.image, PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_UNORDERED_ACCESS, grfx::RESOURCE_STATE_SHADER_RESOURCE);
 
         frame.cmd->TransitionImageLayout(renderPass->GetRenderTargetImage(0), PPX_ALL_SUBRESOURCES, grfx::RESOURCE_STATE_PRESENT, grfx::RESOURCE_STATE_RENDER_TARGET);
         frame.cmd->BeginRenderPass(&beginInfo);
@@ -324,7 +330,7 @@ void ProjApp::Render()
             // Draw texture
             frame.cmd->SetScissors(1, &mScissorRect);
             frame.cmd->SetViewports(1, &mViewport);
-            frame.cmd->BindGraphicsDescriptorSets(mGraphicsPipelineInterface, 1, &mGraphicsDescriptorSet);
+            frame.cmd->BindGraphicsDescriptorSets(mGraphicsPipelineInterface, 1, &frame.graphicsDescriptorSet);
             frame.cmd->BindGraphicsPipeline(mGraphicsPipeline);
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
             frame.cmd->Draw(6, 1, 0, 0);

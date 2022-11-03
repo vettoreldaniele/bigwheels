@@ -33,6 +33,13 @@ public:
     virtual void Render() override;
 
 private:
+    struct Entity
+    {
+        grfx::MeshPtr          mesh;
+        grfx::DescriptorSetPtr descriptorSet;
+        grfx::BufferPtr        uniformBuffer;
+    };
+
     struct PerFrame
     {
         grfx::CommandBufferPtr cmd;
@@ -40,13 +47,11 @@ private:
         grfx::FencePtr         imageAcquiredFence;
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
-    };
 
-    struct Entity
-    {
-        grfx::MeshPtr          mesh;
-        grfx::DescriptorSetPtr descriptorSet;
-        grfx::BufferPtr        uniformBuffer;
+        Entity interleavedU32;
+        Entity interleaved;
+        Entity planarU32;
+        Entity planar;
     };
 
     std::vector<PerFrame>        mPerFrame;
@@ -56,11 +61,7 @@ private:
     grfx::DescriptorPoolPtr      mDescriptorPool;
     grfx::DescriptorSetLayoutPtr mDescriptorSetLayout;
     grfx::GraphicsPipelinePtr    mInterleavedPipeline;
-    Entity                       mInterleavedU32;
-    Entity                       mInterleaved;
     grfx::GraphicsPipelinePtr    mPlanarPipeline;
-    Entity                       mPlanarU32;
-    Entity                       mPlanar;
 
 private:
     void SetupEntity(const TriMesh& mesh, const GeometryOptions& createInfo, Entity* pEntity);
@@ -106,7 +107,7 @@ void ProjApp::Setup()
     // Descriptor stuff
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.uniformBuffer                  = 6;
+        poolCreateInfo.uniformBuffer                  = 4 * GetNumResourceCopiesRequired();
         PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
@@ -114,13 +115,33 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
     }
 
-    // Entities
-    {
-        TriMesh mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMeshOptions().VertexColors());
-        SetupEntity(mesh, GeometryOptions::InterleavedU32().AddColor(), &mInterleavedU32);
-        SetupEntity(mesh, GeometryOptions::Interleaved().AddColor(), &mInterleaved);
-        SetupEntity(mesh, GeometryOptions::PlanarU32().AddColor(), &mPlanarU32);
-        SetupEntity(mesh, GeometryOptions::Planar().AddColor(), &mPlanar);
+    // Per frame data
+    for (uint64_t i = 0; i < GetNumResourceCopiesRequired(); ++i) {
+        PerFrame frame = {};
+
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
+
+        grfx::SemaphoreCreateInfo semaCreateInfo = {};
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+
+        grfx::FenceCreateInfo fenceCreateInfo = {};
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
+
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
+
+        fenceCreateInfo = {true}; // Create signaled
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+
+        // Entities
+        {
+            TriMesh mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMeshOptions().VertexColors());
+            SetupEntity(mesh, GeometryOptions::InterleavedU32().AddColor(), &frame.interleavedU32);
+            SetupEntity(mesh, GeometryOptions::Interleaved().AddColor(), &frame.interleaved);
+            SetupEntity(mesh, GeometryOptions::PlanarU32().AddColor(), &frame.planarU32);
+            SetupEntity(mesh, GeometryOptions::Planar().AddColor(), &frame.planar);
+        }
+
+        mPerFrame.push_back(frame);
     }
 
     // Pipelines
@@ -145,7 +166,7 @@ void ProjApp::Setup()
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
         gpCreateInfo.vertexInputState.bindingCount      = 1;
-        gpCreateInfo.vertexInputState.bindings[0]       = mInterleaved.mesh->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[0]       = mPerFrame[0].interleaved.mesh->GetDerivedVertexBindings()[0];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -163,35 +184,15 @@ void ProjApp::Setup()
 
         // Planar pipeline
         gpCreateInfo.vertexInputState.bindingCount = 2;
-        gpCreateInfo.vertexInputState.bindings[0]  = mPlanar.mesh->GetDerivedVertexBindings()[0];
-        gpCreateInfo.vertexInputState.bindings[1]  = mPlanar.mesh->GetDerivedVertexBindings()[1];
+        gpCreateInfo.vertexInputState.bindings[0]  = mPerFrame[0].planar.mesh->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[1]  = mPerFrame[0].planar.mesh->GetDerivedVertexBindings()[1];
         PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mPlanarPipeline));
-    }
-
-    // Per frame data
-    {
-        PerFrame frame = {};
-
-        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
-
-        grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
-
-        grfx::FenceCreateInfo fenceCreateInfo = {};
-        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
-
-        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
-
-        fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
-
-        mPerFrame.push_back(frame);
     }
 }
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame = mPerFrame[GetInFlightFrameIndex()];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -213,19 +214,19 @@ void ProjApp::Render()
 
         float4x4 T   = glm::translate(float3(-3, 2, 0));
         float4x4 mat = P * V * T * M;
-        mInterleavedU32.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+        frame.interleavedU32.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
 
         T   = glm::translate(float3(3, 2, 0));
         mat = P * V * T * M;
-        mInterleaved.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+        frame.interleaved.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
 
         T   = glm::translate(float3(-3, -2, 0));
         mat = P * V * T * M;
-        mPlanarU32.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+        frame.planarU32.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
 
         T   = glm::translate(float3(3, -2, 0));
         mat = P * V * T * M;
-        mPlanar.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+        frame.planar.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
     }
 
     // Build command buffer
@@ -251,15 +252,15 @@ void ProjApp::Render()
             frame.cmd->BindGraphicsPipeline(mInterleavedPipeline);
 
             // Interleaved U32
-            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleavedU32.descriptorSet);
-            frame.cmd->BindIndexBuffer(mInterleavedU32.mesh);
-            frame.cmd->BindVertexBuffers(mInterleavedU32.mesh);
-            frame.cmd->DrawIndexed(mInterleavedU32.mesh->GetIndexCount());
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &frame.interleavedU32.descriptorSet);
+            frame.cmd->BindIndexBuffer(frame.interleavedU32.mesh);
+            frame.cmd->BindVertexBuffers(frame.interleavedU32.mesh);
+            frame.cmd->DrawIndexed(frame.interleavedU32.mesh->GetIndexCount());
 
             // Interleaved
-            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mInterleaved.descriptorSet);
-            frame.cmd->BindVertexBuffers(mInterleaved.mesh);
-            frame.cmd->Draw(mInterleaved.mesh->GetVertexCount());
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &frame.interleaved.descriptorSet);
+            frame.cmd->BindVertexBuffers(frame.interleaved.mesh);
+            frame.cmd->Draw(frame.interleaved.mesh->GetVertexCount());
 
             // -------------------------------------------------------------------------------------
 
@@ -267,15 +268,15 @@ void ProjApp::Render()
             frame.cmd->BindGraphicsPipeline(mPlanarPipeline);
 
             // Planar U32
-            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanarU32.descriptorSet);
-            frame.cmd->BindIndexBuffer(mPlanarU32.mesh);
-            frame.cmd->BindVertexBuffers(mPlanarU32.mesh);
-            frame.cmd->DrawIndexed(mPlanarU32.mesh->GetIndexCount());
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &frame.planarU32.descriptorSet);
+            frame.cmd->BindIndexBuffer(frame.planarU32.mesh);
+            frame.cmd->BindVertexBuffers(frame.planarU32.mesh);
+            frame.cmd->DrawIndexed(frame.planarU32.mesh->GetIndexCount());
 
             // Planar
-            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mPlanar.descriptorSet);
-            frame.cmd->BindVertexBuffers(mPlanar.mesh);
-            frame.cmd->Draw(mPlanar.mesh->GetVertexCount());
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &frame.planar.descriptorSet);
+            frame.cmd->BindVertexBuffers(frame.planar.mesh);
+            frame.cmd->Draw(frame.planar.mesh->GetVertexCount());
 
             // Draw ImGui
             DrawDebugInfo();

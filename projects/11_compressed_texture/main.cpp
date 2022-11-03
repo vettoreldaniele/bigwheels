@@ -62,12 +62,17 @@ private:
     struct TexturedShape
     {
         int                            id;
-        ppx::grfx::DescriptorSetPtr    descriptorSet;
-        ppx::grfx::BufferPtr           uniformBuffer;
         ppx::grfx::ImagePtr            image;
         ppx::grfx::SamplerPtr          sampler;
         ppx::grfx::SampledImageViewPtr sampledImageView;
         float3                         homeLoc;
+
+        struct PerFrame
+        {
+            ppx::grfx::DescriptorSetPtr descriptorSet;
+            ppx::grfx::BufferPtr        uniformBuffer;
+        };
+        std::vector<PerFrame> perFrame;
     };
 
     std::vector<PerFrame>             mPerFrame;
@@ -103,13 +108,6 @@ void ProjApp::Setup()
     for (const auto& texture : textures) {
         TexturedShape shape = {};
 
-        grfx::BufferCreateInfo bufferCreateInfo        = {};
-        bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
-        bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
-        bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
-
-        PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &shape.uniformBuffer));
-
         // Texture image, view, and sampler
         {
             grfx_util::ImageOptions options = grfx_util::ImageOptions().MipLevelCount(PPX_REMAINING_MIP_LEVELS);
@@ -135,9 +133,9 @@ void ProjApp::Setup()
     // Descriptor
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.uniformBuffer                  = static_cast<uint32_t>(textures.size());
-        poolCreateInfo.sampledImage                   = static_cast<uint32_t>(textures.size());
-        poolCreateInfo.sampler                        = static_cast<uint32_t>(textures.size());
+        poolCreateInfo.uniformBuffer                  = static_cast<uint32_t>(textures.size()) * GetNumResourceCopiesRequired();
+        poolCreateInfo.sampledImage                   = static_cast<uint32_t>(textures.size()) * GetNumResourceCopiesRequired();
+        poolCreateInfo.sampler                        = static_cast<uint32_t>(textures.size()) * GetNumResourceCopiesRequired();
         PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
@@ -145,30 +143,6 @@ void ProjApp::Setup()
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(1, grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE));
         layoutCreateInfo.bindings.push_back(grfx::DescriptorBinding(2, grfx::DESCRIPTOR_TYPE_SAMPLER));
         PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
-
-        for (auto& shape : mShapes) {
-            PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &shape.descriptorSet));
-
-            grfx::WriteDescriptor write = {};
-            write.binding               = 0;
-            write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            write.bufferOffset          = 0;
-            write.bufferRange           = PPX_WHOLE_SIZE;
-            write.pBuffer               = shape.uniformBuffer;
-            PPX_CHECKED_CALL(shape.descriptorSet->UpdateDescriptors(1, &write));
-
-            write            = {};
-            write.binding    = 1;
-            write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            write.pImageView = shape.sampledImageView;
-            PPX_CHECKED_CALL(shape.descriptorSet->UpdateDescriptors(1, &write));
-
-            write          = {};
-            write.binding  = 2;
-            write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
-            write.pSampler = shape.sampler;
-            PPX_CHECKED_CALL(shape.descriptorSet->UpdateDescriptors(1, &write));
-        }
     }
 
     // Pipeline
@@ -212,7 +186,7 @@ void ProjApp::Setup()
     }
 
     // Per frame data
-    {
+    for (uint64_t i = 0; i < GetNumResourceCopiesRequired(); ++i) {
         PerFrame frame = {};
 
         PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
@@ -227,6 +201,41 @@ void ProjApp::Setup()
 
         fenceCreateInfo = {true}; // Create signaled
         PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+
+        // Shape buffer and descriptor set
+        for (auto& shape : mShapes) {
+            TexturedShape::PerFrame shapeFrame;
+
+            grfx::BufferCreateInfo bufferCreateInfo        = {};
+            bufferCreateInfo.size                          = PPX_MINIMUM_UNIFORM_BUFFER_SIZE;
+            bufferCreateInfo.usageFlags.bits.uniformBuffer = true;
+            bufferCreateInfo.memoryUsage                   = grfx::MEMORY_USAGE_CPU_TO_GPU;
+            PPX_CHECKED_CALL(GetDevice()->CreateBuffer(&bufferCreateInfo, &shapeFrame.uniformBuffer));
+
+            PPX_CHECKED_CALL(GetDevice()->AllocateDescriptorSet(mDescriptorPool, mDescriptorSetLayout, &shapeFrame.descriptorSet));
+
+            grfx::WriteDescriptor write = {};
+            write.binding               = 0;
+            write.type                  = grfx::DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            write.bufferOffset          = 0;
+            write.bufferRange           = PPX_WHOLE_SIZE;
+            write.pBuffer               = shapeFrame.uniformBuffer;
+            PPX_CHECKED_CALL(shapeFrame.descriptorSet->UpdateDescriptors(1, &write));
+
+            write            = {};
+            write.binding    = 1;
+            write.type       = grfx::DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+            write.pImageView = shape.sampledImageView;
+            PPX_CHECKED_CALL(shapeFrame.descriptorSet->UpdateDescriptors(1, &write));
+
+            write          = {};
+            write.binding  = 2;
+            write.type     = grfx::DESCRIPTOR_TYPE_SAMPLER;
+            write.pSampler = shape.sampler;
+            PPX_CHECKED_CALL(shapeFrame.descriptorSet->UpdateDescriptors(1, &write));
+
+            shape.perFrame.push_back(shapeFrame);
+        }
 
         mPerFrame.push_back(frame);
     }
@@ -300,7 +309,7 @@ void ProjApp::Setup()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame = mPerFrame[GetInFlightFrameIndex()];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -315,6 +324,7 @@ void ProjApp::Render()
 
     // Update uniform buffers.
     for (auto& shape : mShapes) {
+        TexturedShape::PerFrame& shapeFrame = shape.perFrame[GetInFlightFrameIndex()];
         float    t   = GetElapsedSeconds();
         float4x4 P   = glm::perspective(glm::radians(60.0f), GetWindowAspect(), 0.001f, 10000.0f);
         float4x4 V   = glm::lookAt(float3(0, 0, 3), float3(0, 0, 0), float3(0, 1, 0));
@@ -324,9 +334,9 @@ void ProjApp::Render()
         float4x4 mat = P * V * M;
 
         void* pData = nullptr;
-        PPX_CHECKED_CALL(shape.uniformBuffer->MapMemory(0, &pData));
+        PPX_CHECKED_CALL(shapeFrame.uniformBuffer->MapMemory(0, &pData));
         memcpy(pData, &mat, sizeof(mat));
-        shape.uniformBuffer->UnmapMemory();
+        shapeFrame.uniformBuffer->UnmapMemory();
     }
 
     // Build command buffer
@@ -351,7 +361,8 @@ void ProjApp::Render()
             frame.cmd->BindVertexBuffers(1, &mVertexBuffer, &mVertexBinding.GetStride());
 
             for (auto& shape : mShapes) {
-                frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &shape.descriptorSet);
+                TexturedShape::PerFrame& shapeFrame = shape.perFrame[GetInFlightFrameIndex()];
+                frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &shapeFrame.descriptorSet);
                 frame.cmd->Draw(36, 1, 0, 0);
             }
 

@@ -70,7 +70,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
 void ProjApp::Setup()
 {
     // Per frame data
-    {
+    for (uint64_t i = 0; i < GetNumResourceCopiesRequired(); ++i) {
         PerFrame frame = {};
 
         PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
@@ -120,7 +120,7 @@ void ProjApp::MouseUp(int32_t x, int32_t y, uint32_t buttons)
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame = mPerFrame[GetInFlightFrameIndex()];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 

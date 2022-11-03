@@ -38,6 +38,13 @@ private:
     void DrawGui();
 
 private:
+    struct Entity
+    {
+        grfx::MeshPtr          mesh;
+        grfx::DescriptorSetPtr descriptorSet;
+        grfx::BufferPtr        uniformBuffer;
+    };
+
     struct PerFrame
     {
         grfx::CommandBufferPtr cmd;
@@ -46,13 +53,9 @@ private:
         grfx::SemaphorePtr     renderCompleteSemaphore;
         grfx::FencePtr         renderCompleteFence;
         grfx::QueryPtr         timestampQuery;
-    };
 
-    struct Entity
-    {
-        grfx::MeshPtr          mesh;
-        grfx::DescriptorSetPtr descriptorSet;
-        grfx::BufferPtr        uniformBuffer;
+        Entity skyBox;
+        Entity reflector;
     };
 
     std::vector<PerFrame>          mPerFrame;
@@ -62,9 +65,7 @@ private:
     grfx::DescriptorPoolPtr        mDescriptorPool;
     grfx::DescriptorSetLayoutPtr   mDescriptorSetLayout;
     grfx::GraphicsPipelinePtr      mSkyBoxPipeline;
-    Entity                         mSkyBox;
     grfx::GraphicsPipelinePtr      mReflectorPipeline;
-    Entity                         mReflector;
     ppx::grfx::ImagePtr            mCubeMapImage;
     ppx::grfx::SampledImageViewPtr mCubeMapImageView;
     ppx::grfx::SamplerPtr          mCubeMapSampler;
@@ -148,9 +149,9 @@ void ProjApp::Setup()
     // Descriptor stuff
     {
         grfx::DescriptorPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.uniformBuffer                  = 2;
-        poolCreateInfo.sampledImage                   = 2;
-        poolCreateInfo.sampler                        = 2;
+        poolCreateInfo.uniformBuffer                  = 2 * GetNumResourceCopiesRequired();
+        poolCreateInfo.sampledImage                   = 2 * GetNumResourceCopiesRequired();
+        poolCreateInfo.sampler                        = 2 * GetNumResourceCopiesRequired();
         PPX_CHECKED_CALL(GetDevice()->CreateDescriptorPool(&poolCreateInfo, &mDescriptorPool));
 
         grfx::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
@@ -160,13 +161,41 @@ void ProjApp::Setup()
         PPX_CHECKED_CALL(GetDevice()->CreateDescriptorSetLayout(&layoutCreateInfo, &mDescriptorSetLayout));
     }
 
-    // Entities
-    {
-        TriMesh mesh = TriMesh::CreateCube(float3(8, 8, 8));
-        SetupEntity(mesh, GeometryOptions::InterleavedU16().AddColor(), &mSkyBox);
+    // Per frame data
+    for (uint64_t i = 0; i < GetNumResourceCopiesRequired(); ++i) {
+        PerFrame frame = {};
 
-        mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMeshOptions().Normals());
-        SetupEntity(mesh, GeometryOptions::InterleavedU16().AddNormal(), &mReflector);
+        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
+
+        grfx::SemaphoreCreateInfo semaCreateInfo = {};
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
+
+        grfx::FenceCreateInfo fenceCreateInfo = {};
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
+
+        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
+
+        fenceCreateInfo = {true}; // Create signaled
+        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
+
+#if defined(ENABLE_GPU_QUERIES)
+        // Timestamp query
+        grfx::QueryCreateInfo queryCreateInfo = {};
+        queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
+        queryCreateInfo.count                 = 2;
+        PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
+#endif // defined(ENABLE_GPU_QUERIES)
+
+        // Entities
+        {
+            TriMesh mesh = TriMesh::CreateCube(float3(8, 8, 8));
+            SetupEntity(mesh, GeometryOptions::InterleavedU16().AddColor(), &frame.skyBox);
+
+            mesh = TriMesh::CreateFromOBJ(GetAssetPath("basic/models/material_sphere.obj"), TriMeshOptions().Normals());
+            SetupEntity(mesh, GeometryOptions::InterleavedU16().AddNormal(), &frame.reflector);
+        }
+
+        mPerFrame.push_back(frame);
     }
 
     // Sky box pipeline
@@ -191,7 +220,7 @@ void ProjApp::Setup()
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
         gpCreateInfo.vertexInputState.bindingCount      = 1;
-        gpCreateInfo.vertexInputState.bindings[0]       = mReflector.mesh->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[0]       = mPerFrame[0].reflector.mesh->GetDerivedVertexBindings()[0];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_FRONT;
@@ -231,7 +260,7 @@ void ProjApp::Setup()
         gpCreateInfo.VS                                 = {mVS.Get(), "vsmain"};
         gpCreateInfo.PS                                 = {mPS.Get(), "psmain"};
         gpCreateInfo.vertexInputState.bindingCount      = 1;
-        gpCreateInfo.vertexInputState.bindings[0]       = mReflector.mesh->GetDerivedVertexBindings()[0];
+        gpCreateInfo.vertexInputState.bindings[0]       = mPerFrame[0].reflector.mesh->GetDerivedVertexBindings()[0];
         gpCreateInfo.topology                           = grfx::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         gpCreateInfo.polygonMode                        = grfx::POLYGON_MODE_FILL;
         gpCreateInfo.cullMode                           = grfx::CULL_MODE_BACK;
@@ -246,39 +275,11 @@ void ProjApp::Setup()
 
         PPX_CHECKED_CALL(GetDevice()->CreateGraphicsPipeline(&gpCreateInfo, &mReflectorPipeline));
     }
-
-    // Per frame data
-    {
-        PerFrame frame = {};
-
-        PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
-
-        grfx::SemaphoreCreateInfo semaCreateInfo = {};
-        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
-
-        grfx::FenceCreateInfo fenceCreateInfo = {};
-        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
-
-        PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
-
-        fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
-
-#if defined(ENABLE_GPU_QUERIES)
-        // Timestamp query
-        grfx::QueryCreateInfo queryCreateInfo = {};
-        queryCreateInfo.type                  = grfx::QUERY_TYPE_TIMESTAMP;
-        queryCreateInfo.count                 = 2;
-        PPX_CHECKED_CALL(GetDevice()->CreateQuery(&queryCreateInfo, &frame.timestampQuery));
-#endif // defined(ENABLE_GPU_QUERIES)
-
-        mPerFrame.push_back(frame);
-    }
 }
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame = mPerFrame[GetInFlightFrameIndex()];
 
     grfx::SwapchainPtr swapchain = GetSwapchain();
 
@@ -311,7 +312,7 @@ void ProjApp::Render()
 
         // Sky box
         float4x4 mat = P * V * M;
-        mSkyBox.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
+        frame.skyBox.uniformBuffer->CopyFromSource(sizeof(mat), &mat);
 
         // Reflector
         struct Transform
@@ -343,7 +344,7 @@ void ProjApp::Render()
         *pNormalMatrixR1 = N[1];
         *pNormalMatrixR2 = N[2];
         *pEyePos         = eyePos;
-        mReflector.uniformBuffer->CopyFromSource(sizeof(constantData), constantData);
+        frame.reflector.uniformBuffer->CopyFromSource(sizeof(constantData), constantData);
     }
 
     // Build command buffer
@@ -372,17 +373,17 @@ void ProjApp::Render()
 
             // Draw reflector
             frame.cmd->BindGraphicsPipeline(mReflectorPipeline);
-            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mReflector.descriptorSet);
-            frame.cmd->BindIndexBuffer(mReflector.mesh);
-            frame.cmd->BindVertexBuffers(mReflector.mesh);
-            frame.cmd->DrawIndexed(mReflector.mesh->GetIndexCount());
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &frame.reflector.descriptorSet);
+            frame.cmd->BindIndexBuffer(frame.reflector.mesh);
+            frame.cmd->BindVertexBuffers(frame.reflector.mesh);
+            frame.cmd->DrawIndexed(frame.reflector.mesh->GetIndexCount());
 
             // Draw sky box
             frame.cmd->BindGraphicsPipeline(mSkyBoxPipeline);
-            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &mSkyBox.descriptorSet);
-            frame.cmd->BindIndexBuffer(mSkyBox.mesh);
-            frame.cmd->BindVertexBuffers(mSkyBox.mesh);
-            frame.cmd->DrawIndexed(mSkyBox.mesh->GetIndexCount());
+            frame.cmd->BindGraphicsDescriptorSets(mPipelineInterface, 1, &frame.skyBox.descriptorSet);
+            frame.cmd->BindIndexBuffer(frame.skyBox.mesh);
+            frame.cmd->BindVertexBuffers(frame.skyBox.mesh);
+            frame.cmd->DrawIndexed(frame.skyBox.mesh->GetIndexCount());
 
             // Draw ImGui
             if (GetSettings()->enableImGui) {

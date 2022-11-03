@@ -134,7 +134,7 @@ void ProjApp::Setup()
     SetupComputeShaderPass();
 
     // Per frame data
-    {
+    for (uint64_t i = 0; i < GetNumResourceCopiesRequired(); ++i) {
         PerFrame frame = {};
 
         PPX_CHECKED_CALL(GetGraphicsQueue()->CreateCommandBuffer(&frame.cmd));
@@ -211,7 +211,7 @@ void ProjApp::SetupComputeShaderPass()
 
 void ProjApp::Render()
 {
-    PerFrame& frame = mPerFrame[0];
+    PerFrame& frame = mPerFrame[GetInFlightFrameIndex()];
 
     uint32_t imageIndex = UINT32_MAX;
 
