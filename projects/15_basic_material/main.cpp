@@ -261,7 +261,7 @@ void ProjApp::Config(ppx::ApplicationSettings& settings)
     settings.appName                    = "basic_material";
     settings.grfx.api                   = kApi;
     settings.grfx.swapchain.depthFormat = grfx::FORMAT_D32_FLOAT;
-    settings.grfx.enableDebug           = false;
+    settings.grfx.enableDebug           = true;
     settings.enableImGui                = true;
     settings.grfx.numFramesInFlight     = 1;
 #if defined(USE_DXIL)

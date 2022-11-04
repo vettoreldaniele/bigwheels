@@ -205,8 +205,8 @@ struct ApplicationSettings
     std::string appName = "";
     // If display is not enabled, then we don't need a swapchain, and there is
     // no event loop: run a single frame.
-    bool enableDisplay = true;
-    bool enableImGui   = false;
+    bool enableDisplay         = true;
+    bool enableImGui           = false;
     bool allowThirdPartyAssets = false;
 
     struct
@@ -222,7 +222,7 @@ struct ApplicationSettings
         grfx::Api api               = grfx::API_UNDEFINED;
         bool      enableDebug       = false;
         bool      enableDXIL        = false;
-        uint32_t  numFramesInFlight = 1;
+        uint32_t  numFramesInFlight = 2;
         uint32_t  pacedFrameRate    = 60;
 
         struct
@@ -342,6 +342,8 @@ public:
     uint32_t GetInFlightFrameIndex() const { return static_cast<uint32_t>(mFrameCount % mSettings.grfx.numFramesInFlight); }
     uint32_t GetPreviousInFlightFrameIndex() const { return static_cast<uint32_t>((mFrameCount - 1) % mSettings.grfx.numFramesInFlight); }
 
+    const grfx::MultiObjectCreateInfo* GetMultiObjectCreateInfo() const { return &mMultiObjectCreateInfo; }
+
     const KeyState& GetKeyState(KeyCode code) const;
     float2          GetNormalizedDeviceCoordinates(int32_t x, int32_t y) const;
 
@@ -394,14 +396,18 @@ private:
     grfx::SwapchainPtr         mSwapchain                  = nullptr; // Requires enableDisplay
     std::unique_ptr<ImGuiImpl> mImGui;
 
-    uint64_t mFrameCount        = 0;
-    float    mAverageFPS        = 0;
-    float    mFrameStartTime    = 0;
-    float    mFrameEndTime      = 0;
-    float    mPreviousFrameTime = 0;
-    float    mAverageFrameTime  = 0;
-    double   mFirstFrameTime    = 0;
+    uint64_t          mFrameCount        = 0;
+    uint64_t          mFrameIndex        = 0;
+    float             mAverageFPS        = 0;
+    float             mFrameStartTime    = 0;
+    float             mFrameEndTime      = 0;
+    float             mPreviousFrameTime = 0;
+    float             mAverageFrameTime  = 0;
+    double            mFirstFrameTime    = 0;
     std::deque<float> mFrameTimesMs;
+
+    std::unique_ptr<grfx::MultiObjectActiveIndexBinding> mMultiObjectBinding;
+    grfx::MultiObjectCreateInfo                          mMultiObjectCreateInfo;
 };
 
 const char* GetKeyCodeString(KeyCode code);

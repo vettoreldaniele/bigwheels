@@ -70,9 +70,11 @@ public:
     grfx::VendorId GetDeviceVendorId() const;
 
     Result CreateBuffer(const grfx::BufferCreateInfo* pCreateInfo, grfx::Buffer** ppBuffer);
+    Result CreateMultiBuffer(const grfx::BufferCreateInfo* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::Buffer>& outMultiBuffer);
     void   DestroyBuffer(const grfx::Buffer* pBuffer);
 
     Result CreateCommandPool(const grfx::CommandPoolCreateInfo* pCreateInfo, grfx::CommandPool** ppCommandPool);
+    Result CreateMultiCommandPool(const grfx::CommandPoolCreateInfo* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::CommandPool>& outMultiCommandPool);
     void   DestroyCommandPool(const grfx::CommandPool* pCommandPool);
 
     Result CreateComputePipeline(const grfx::ComputePipelineCreateInfo* pCreateInfo, grfx::ComputePipeline** ppComputePipeline);
@@ -93,6 +95,7 @@ public:
     void   DestroyDrawPass(const grfx::DrawPass* pDrawPass);
 
     Result CreateFence(const grfx::FenceCreateInfo* pCreateInfo, grfx::Fence** ppFence);
+    Result CreateMultiFence(const grfx::FenceCreateInfo* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::Fence>& outFence);
     void   DestroyFence(const grfx::Fence* pFence);
 
     Result CreateFullscreenQuad(const grfx::FullscreenQuadCreateInfo* pCreateInfo, grfx::FullscreenQuad** ppFullscreenQuad);
@@ -129,6 +132,7 @@ public:
     void   DestroySampler(const grfx::Sampler* pSampler);
 
     Result CreateSemaphore(const grfx::SemaphoreCreateInfo* pCreateInfo, grfx::Semaphore** ppSemaphore);
+    Result CreateMultiSemaphore(const grfx::SemaphoreCreateInfo* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::Semaphore>& outSemaphore);
     void   DestroySemaphore(const grfx::Semaphore* pSemaphore);
 
     Result CreateShaderModule(const grfx::ShaderModuleCreateInfo* pCreateInfo, grfx::ShaderModule** ppShaderModule);
@@ -157,6 +161,11 @@ public:
         grfx::CommandBuffer**    ppCommandBuffer,
         uint32_t                 resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT,
         uint32_t                 samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT);
+    Result AllocateMultiCommandBuffer(
+        const grfx::MultiObject<grfx::CommandPool>    multiPool,
+        grfx::MultiObject<grfx::CommandBuffer>& outMultiCommandBuffer,
+        uint32_t resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT,
+        uint32_t samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT);
     void FreeCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);
 
     Result AllocateDescriptorSet(grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, grfx::DescriptorSet** ppSet);
@@ -222,6 +231,11 @@ protected:
         typename CreateInfoT,
         typename ContainerT = std::vector<ObjPtr<ObjectT>>>
     Result CreateObject(const CreateInfoT* pCreateInfo, ContainerT& container, ObjectT** ppObject);
+
+    template <typename ObjectT, typename CreateInfoT, typename ContainerT>
+    Result CreateMultiObject(const CreateInfoT* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, ContainerT& container, MultiObject<ObjectT>& perFrameObject);
+    template <typename ObjectT, typename CreateInfoT, typename ContainerT>
+    Result CreateMultiObject(const std::vector<CreateInfoT>& pCreateInfos, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, ContainerT& container, MultiObject<ObjectT>& perFrameObject);
 
     template <
         typename ObjectT,

@@ -66,10 +66,16 @@ public:
     // GPU timestamp frequency counter in ticks per second
     virtual Result GetTimestampFrequency(uint64_t* pFrequency) const = 0;
 
+    // Convenience queue-specific wrappers for command buffer creation.
     Result CreateCommandBuffer(
         grfx::CommandBuffer** ppCommandBuffer,
         uint32_t              resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT,
         uint32_t              samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT);
+    Result CreateMultiCommandBuffer(
+        const grfx::MultiObjectCreateInfo*      pMultiObjectCreateInfo,
+        grfx::MultiObject<grfx::CommandBuffer>& outMultiCommandBuffer,
+        uint32_t                                resourceDescriptorCount = PPX_DEFAULT_RESOURCE_DESCRIPTOR_COUNT,
+        uint32_t                                samplerDescriptorCount  = PPX_DEFAULT_SAMPLE_DESCRIPTOR_COUNT);
     void DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer);
 
     // In place copy of buffer to buffer

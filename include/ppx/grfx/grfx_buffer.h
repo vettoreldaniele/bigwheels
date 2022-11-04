@@ -56,6 +56,8 @@ public:
 private:
     virtual Result Create(const grfx::BufferCreateInfo* pCreateInfo) override;
     friend class grfx::Device;
+
+   
 };
 
 // -------------------------------------------------------------------------------------------------

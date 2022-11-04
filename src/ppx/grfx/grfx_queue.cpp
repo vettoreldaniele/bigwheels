@@ -49,6 +49,35 @@ Result Queue::CreateCommandBuffer(
     return ppx::SUCCESS;
 }
 
+Result Queue::CreateMultiCommandBuffer(const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::CommandBuffer>& outMultiCommandBuffer, uint32_t resourceDescriptorCount, uint32_t samplerDescriptorCount)
+{
+    std::lock_guard<std::mutex> lock(mCommandSetMutex);
+
+    grfx::CommandPoolCreateInfo ci = {};
+    ci.pQueue                      = this;
+    grfx::MultiObject<CommandPool> multiCommandPool;
+    Result                         ppxres = GetDevice()->CreateMultiCommandPool(&ci, pMultiObjectCreateInfo, multiCommandPool);
+    if (Failed(ppxres)) {
+        return ppxres;
+    }
+    ppxres = GetDevice()->AllocateMultiCommandBuffer(multiCommandPool, outMultiCommandBuffer, resourceDescriptorCount, samplerDescriptorCount);
+    if (Failed(ppxres)) {
+        for (auto& pool : multiCommandPool) {
+            GetDevice()->DestroyCommandPool(pool);
+        }
+        return ppxres;
+    }
+
+    for (size_t i = 0; i < outMultiCommandBuffer.GetNumObjects(); ++i) {
+        CommandSet set    = {};
+        set.commandBuffer = outMultiCommandBuffer.AtIndex(i);
+        set.commandPool   = multiCommandPool.AtIndex(i);
+        mCommandSets.push_back(set);
+    }
+
+    return ppx::SUCCESS;
+}
+
 void Queue::DestroyCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)
 {
     std::lock_guard<std::mutex> lock(mCommandSetMutex);

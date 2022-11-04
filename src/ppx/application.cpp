@@ -1203,6 +1203,16 @@ int Application::Run(int argc, char** argv)
     // Put this early because it might disable the display.
     DispatchConfig();
 
+    mSettings.grfx.enableDebug = true;
+
+    // Set up multi-object creation info for this application's needs.
+    // The application should create enough objects to be able to record 
+    // and submit a number of frames equal to the number of frames in flight.
+    mMultiObjectBinding = std::make_unique<grfx::MultiObjectActiveIndexBinding>(mFrameIndex);
+    mMultiObjectCreateInfo = {};
+    mMultiObjectCreateInfo.numObjects         = mSettings.grfx.numFramesInFlight;
+    mMultiObjectCreateInfo.activeIndexBinding = mMultiObjectBinding.get();    
+
     // Initialize the platform
     Result ppxres = InitializePlatform();
     if (Failed(ppxres)) {
@@ -1322,6 +1332,7 @@ int Application::Run(int argc, char** argv)
 
         // Frame end
         mFrameCount        = mFrameCount + 1;
+        mFrameIndex        = (mFrameIndex + 1) % mSettings.grfx.numFramesInFlight;
         mFrameEndTime      = static_cast<float>(mTimer.MillisSinceStart());
         mPreviousFrameTime = mFrameEndTime - mFrameStartTime;
 

@@ -309,6 +309,93 @@ private:
     grfx::DevicePtr mDevice;
 };
 
+class MultiObjectActiveIndexBinding
+{
+public:
+    MultiObjectActiveIndexBinding(const uint64_t& activeObjectIndex)
+        : mActiveObjectIndex(activeObjectIndex)
+    {
+    }
+
+    uint64_t GetActiveIndex() const { return mActiveObjectIndex; }
+
+private:
+    const uint64_t& mActiveObjectIndex;
+};
+
+struct MultiObjectCreateInfo
+{
+    uint64_t                             numObjects         = 1;
+    const MultiObjectActiveIndexBinding* activeIndexBinding = nullptr;
+};
+
+template <typename ObjectT>
+class MultiObject
+{
+public:
+    MultiObject() {}
+
+    // Bind the active object index to this multi-object. Once a multi-object
+    // is bound, accessing it through the -> and & operator will yield
+    // the object at the index referenced by the active index.
+    // The binding object must be alive at least as long as the multi-object
+    // is alive.
+    void BindActiveObjectIndex(const MultiObjectActiveIndexBinding* binding)
+    {
+        mActiveIndexBinding = binding;
+    }
+
+    const ObjectT* operator->() const
+    {
+        return mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+    const ObjectT** operator&() const
+    {
+        return &mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+
+    ObjectT* operator->()
+    {
+        return mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+    ObjectT** operator&()
+    {
+        return &mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+
+    operator ObjectT*() const
+    {
+        return mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+
+    ObjectT* AtIndex(size_t index) const
+    {
+        return mObjects[index];
+    }
+
+    using iterator = typename std::vector<ObjectT*>::iterator;
+    using const_iterator = typename std::vector<ObjectT*>::const_iterator;
+    iterator begin() { return mObjects.begin(); }
+    iterator end() { return mObjects.end(); }
+
+    const_iterator begin() const { return mObjects.begin(); }
+    const_iterator end() const { return mObjects.end(); }
+
+    size_t                               GetNumObjects() const { return mObjects.size(); }
+    const MultiObjectActiveIndexBinding* GetActiveIndexBinding() const { return mActiveIndexBinding; }
+    uint64_t                             GetActiveIndex() const { return mActiveIndexBinding->GetActiveIndex(); }
+
+private:
+    void Allocate(uint64_t numObjects)
+    {
+        mObjects.resize(numObjects);
+    }
+
+    std::vector<ObjectT*>                mObjects;
+    const MultiObjectActiveIndexBinding* mActiveIndexBinding = nullptr;
+    friend class grfx::Device;
+};
+
 // -------------------------------------------------------------------------------------------------
 inline bool IsDx11(grfx::Api api)
 {

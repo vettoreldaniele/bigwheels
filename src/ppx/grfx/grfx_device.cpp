@@ -124,6 +124,41 @@ Result Device::CreateObject(const CreateInfoT* pCreateInfo, ContainerT& containe
 
 template <
     typename ObjectT,
+    typename CreateInfoT,
+    typename ContainerT>
+Result Device::CreateMultiObject(const CreateInfoT* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, ContainerT& container, MultiObject<ObjectT>& perFrameObject)
+{
+    perFrameObject.Allocate(pMultiObjectCreateInfo->numObjects);
+    perFrameObject.BindActiveObjectIndex(pMultiObjectCreateInfo->activeIndexBinding);
+
+    for (size_t i = 0; i < pMultiObjectCreateInfo->numObjects; ++i) {
+        Result ppxres = CreateObject(pCreateInfo, container, &(perFrameObject.mObjects[i]));
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    return ppx::SUCCESS;
+}
+
+template <typename ObjectT, typename CreateInfoT, typename ContainerT>
+Result Device::CreateMultiObject(const std::vector<CreateInfoT>& pCreateInfos, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, ContainerT& container, MultiObject<ObjectT>& perFrameObject)
+{
+    perFrameObject.Allocate(pMultiObjectCreateInfo->numObjects);
+    perFrameObject.BindActiveObjectIndex(pMultiObjectCreateInfo->activeIndexBinding);
+
+    for (size_t i = 0; i < pMultiObjectCreateInfo->numObjects; ++i) {
+        Result ppxres = CreateObject(&pCreateInfos[i], container, &(perFrameObject.mObjects[i]));
+        if (Failed(ppxres)) {
+            return ppxres;
+        }
+    }
+
+    return ppx::SUCCESS;
+}
+
+template <
+    typename ObjectT,
     typename ContainerT>
 void Device::DestroyObject(ContainerT& container, const ObjectT* pObject)
 {
@@ -238,11 +273,24 @@ void Device::DestroyBuffer(const grfx::Buffer* pBuffer)
     DestroyObject(mBuffers, pBuffer);
 }
 
+Result Device::CreateMultiBuffer(const grfx::BufferCreateInfo* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::Buffer>& ppBuffer)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    PPX_ASSERT_NULL_ARG(ppBuffer);
+    return CreateMultiObject(pCreateInfo, pMultiObjectCreateInfo, mBuffers, ppBuffer);
+}
+
 Result Device::CreateCommandPool(const grfx::CommandPoolCreateInfo* pCreateInfo, grfx::CommandPool** ppCommandPool)
 {
     PPX_ASSERT_NULL_ARG(pCreateInfo);
     PPX_ASSERT_NULL_ARG(ppCommandPool);
     return CreateObject(pCreateInfo, mCommandPools, ppCommandPool);
+}
+
+Result Device::CreateMultiCommandPool(const grfx::CommandPoolCreateInfo* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::CommandPool>& outMultiCommandPool)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    return CreateMultiObject(pCreateInfo, pMultiObjectCreateInfo, mCommandPools, outMultiCommandPool);
 }
 
 void Device::DestroyCommandPool(const grfx::CommandPool* pCommandPool)
@@ -344,6 +392,12 @@ Result Device::CreateFence(const grfx::FenceCreateInfo* pCreateInfo, grfx::Fence
     PPX_ASSERT_NULL_ARG(pCreateInfo);
     PPX_ASSERT_NULL_ARG(ppFence);
     return CreateObject(pCreateInfo, mFences, ppFence);
+}
+
+Result Device::CreateMultiFence(const grfx::FenceCreateInfo* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::Fence>& ppFence)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    return CreateMultiObject(pCreateInfo, pMultiObjectCreateInfo, mFences, ppFence);
 }
 
 void Device::DestroyFence(const grfx::Fence* pFence)
@@ -523,6 +577,12 @@ Result Device::CreateSemaphore(const grfx::SemaphoreCreateInfo* pCreateInfo, grf
     return CreateObject(pCreateInfo, mSemaphores, ppSemaphore);
 }
 
+Result Device::CreateMultiSemaphore(const grfx::SemaphoreCreateInfo* pCreateInfo, const grfx::MultiObjectCreateInfo* pMultiObjectCreateInfo, grfx::MultiObject<grfx::Semaphore>& outSemaphore)
+{
+    PPX_ASSERT_NULL_ARG(pCreateInfo);
+    return CreateMultiObject(pCreateInfo, pMultiObjectCreateInfo, mSemaphores, outSemaphore);
+}
+
 void Device::DestroySemaphore(const grfx::Semaphore* pSemaphore)
 {
     PPX_ASSERT_NULL_ARG(pSemaphore);
@@ -621,6 +681,22 @@ Result Device::AllocateCommandBuffer(
     createInfo.samplerDescriptorCount                  = samplerDescriptorCount;
 
     return CreateObject(&createInfo, mCommandBuffers, ppCommandBuffer);
+}
+
+Result Device::AllocateMultiCommandBuffer(const grfx::MultiObject<grfx::CommandPool> multiPool, grfx::MultiObject<grfx::CommandBuffer>& outMultiCommandBuffer, uint32_t resourceDescriptorCount, uint32_t samplerDescriptorCount)
+{
+    std::vector<grfx::internal::CommandBufferCreateInfo> createInfos;
+    for (auto pool : multiPool) {
+        grfx::internal::CommandBufferCreateInfo createInfo = {};
+        createInfo.pPool                   = pool;
+        createInfo.resourceDescriptorCount = resourceDescriptorCount;
+        createInfo.samplerDescriptorCount  = samplerDescriptorCount;
+        createInfos.push_back(createInfo);
+    }
+    grfx::MultiObjectCreateInfo moCreateInfo = {};
+    moCreateInfo.numObjects                  = multiPool.GetNumObjects();
+    moCreateInfo.activeIndexBinding          = multiPool.GetActiveIndexBinding();
+    return CreateMultiObject(createInfos, &moCreateInfo, mCommandBuffers, outMultiCommandBuffer);
 }
 
 void Device::FreeCommandBuffer(const grfx::CommandBuffer* pCommandBuffer)

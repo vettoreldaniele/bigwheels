@@ -40,12 +40,12 @@ private:
     void SetupDrawToSwapchain();
     void MouseMove(int32_t x, int32_t y, int32_t dx, int32_t dy, uint32_t buttons) override;
 
+    grfx::MultiObject<grfx::Fence> renderCompleteFence;
     struct PerFrame
     {
         grfx::SemaphorePtr imageAcquiredSemaphore;
         grfx::FencePtr     imageAcquiredFence;
         grfx::SemaphorePtr renderCompleteSemaphore;
-        grfx::FencePtr     renderCompleteFence;
 
         // Graphics pipeline objects.
         struct RenderData
@@ -193,14 +193,16 @@ void ProjApp::Setup()
 
         grfx::FenceCreateInfo fenceCreateInfo = {};
         PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.imageAcquiredFence));
-        fenceCreateInfo = {true}; // Create signaled
-        PPX_CHECKED_CALL(GetDevice()->CreateFence(&fenceCreateInfo, &frame.renderCompleteFence));
 
         PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.imageAcquiredSemaphore));
         PPX_CHECKED_CALL(GetDevice()->CreateSemaphore(&semaCreateInfo, &frame.renderCompleteSemaphore));
 
         mPerFrame.push_back(frame);
     }
+
+    grfx::FenceCreateInfo fenceCreateInfo = {};
+    fenceCreateInfo                       = {true}; // Create signaled
+    PPX_CHECKED_CALL(GetDevice()->CreateMultiFence(&fenceCreateInfo, GetMultiObjectCreateInfo(), renderCompleteFence));
 
     // Descriptor pool
     {
@@ -760,7 +762,7 @@ uint32_t ProjApp::AcquireFrame(PerFrame& frame)
     PPX_CHECKED_CALL(frame.imageAcquiredFence->WaitAndReset());
 
     // Wait for and reset render complete fence
-    PPX_CHECKED_CALL(frame.renderCompleteFence->WaitAndReset());
+    PPX_CHECKED_CALL(renderCompleteFence->WaitAndReset());
 
     return imageIndex;
 }
@@ -938,7 +940,7 @@ void ProjApp::BlitAndPresent(PerFrame& frame, uint32_t swapchainImageIndex)
     submitInfo.ppWaitSemaphores     = ppWaitSemaphores;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.ppSignalSemaphores   = &frame.renderCompleteSemaphore;
-    submitInfo.pFence               = frame.renderCompleteFence;
+    submitInfo.pFence               = renderCompleteFence;
 
     PPX_CHECKED_CALL(GetGraphicsQueue()->Submit(&submitInfo));
 
