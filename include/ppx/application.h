@@ -34,9 +34,96 @@
 
 namespace ppx {
 
+class MultiObjectActiveIndexBinding
+{
+public:
+    MultiObjectActiveIndexBinding(const uint64_t& activeObjectIndex)
+        : mActiveObjectIndex(activeObjectIndex)
+    {
+    }
+
+    uint64_t GetActiveIndex() const { return mActiveObjectIndex; }
+
+private:
+    const uint64_t& mActiveObjectIndex;
+};
+
+struct MultiObjectCreateInfo
+{
+    uint64_t                             numObjects         = 1;
+    const MultiObjectActiveIndexBinding* activeIndexBinding = nullptr;
+};
+
+template <typename ObjectT>
+class MultiObject
+{
+public:
+    MultiObject() {}
+
+    // Bind the active object index to this multi-object. Once a multi-object
+    // is bound, accessing it through the -> and & operator will yield
+    // the object at the index referenced by the active index.
+    // The binding object must be alive at least as long as the multi-object
+    // is alive.
+    void BindActiveObjectIndex(const MultiObjectActiveIndexBinding* binding)
+    {
+        mActiveIndexBinding = binding;
+    }
+
+    const ObjectT* operator->() const
+    {
+        return mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+    const ObjectT** operator&() const
+    {
+        return &mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+
+    ObjectT* operator->()
+    {
+        return mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+    ObjectT** operator&()
+    {
+        return &mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+
+    operator ObjectT*() const
+    {
+        return mObjects[mActiveIndexBinding->GetActiveIndex()];
+    }
+
+    ObjectT* AtIndex(size_t index) const
+    {
+        return mObjects[index];
+    }
+
+    using iterator       = typename std::vector<ObjectT*>::iterator;
+    using const_iterator = typename std::vector<ObjectT*>::const_iterator;
+    iterator begin() { return mObjects.begin(); }
+    iterator end() { return mObjects.end(); }
+
+    const_iterator begin() const { return mObjects.begin(); }
+    const_iterator end() const { return mObjects.end(); }
+
+    size_t                               GetNumObjects() const { return mObjects.size(); }
+    const MultiObjectActiveIndexBinding* GetActiveIndexBinding() const { return mActiveIndexBinding; }
+    uint64_t                             GetActiveIndex() const { return mActiveIndexBinding->GetActiveIndex(); }
+
+private:
+    void Allocate(uint64_t numObjects)
+    {
+        mObjects.resize(numObjects);
+    }
+
+    std::vector<ObjectT*>                mObjects;
+    const MultiObjectActiveIndexBinding* mActiveIndexBinding = nullptr;
+    friend class Application;
+};
+
 /** @enum MouseButton
- *
- */
+     *
+     */
 enum MouseButton
 {
     MOUSE_BUTTON_LEFT   = 0x00000001,
@@ -45,8 +132,8 @@ enum MouseButton
 };
 
 /* @enum CursorMode
- *
- */
+     *
+     */
 enum CursorMode
 {
     CURSOR_MODE_VISIBLE = 0,
@@ -224,8 +311,8 @@ struct ApplicationSettings
         grfx::Api api               = grfx::API_UNDEFINED;
         bool      enableDebug       = false;
         bool      enableDXIL        = false;
-        uint32_t  numFramesInFlight = 1;
-        uint32_t  pacedFrameRate    = 60;
+        uint32_t  numFramesInFlight = 2;
+        uint32_t  pacedFrameRate    = 0;
 
         struct
         {
@@ -270,6 +357,67 @@ public:
     virtual void Scroll(float dx12, float dy) {}                                                // Mouse wheel or touchpad scroll event
     virtual void Render() {}
 
+    template <typename ObjectT>
+    class PerFrameObjRef
+    {
+    public:
+        PerFrameObjRef(MultiObject<ObjectT>& multiObj)
+            : pMultiObject(std::addressof(multiObj))
+        {
+        }
+
+        PerFrameObjRef(ObjectT* singleObj)
+            : pSingleObject(singleObj)
+        {
+        }
+
+        template <typename WrapObjectT>
+        PerFrameObjRef(ObjPtr<WrapObjectT> singleObj)
+            : pSingleObject(static_cast<ObjectT*>(singleObj.Get()))
+        {
+        }
+
+        ObjectT* AtIndex(const size_t index)
+        {
+            if (pMultiObject) {
+                return pMultiObject->AtIndex(index);
+            }
+            return pSingleObject;
+        }
+
+        const ObjectT* AtIndex(const size_t index) const
+        {
+            if (pMultiObject) {
+                return pMultiObject->AtIndex(index);
+            }
+            return pSingleObject;
+        }
+
+    private:
+        MultiObject<ObjectT>* pMultiObject  = nullptr;
+        ObjectT*              pSingleObject = nullptr;
+    };
+
+    struct PerFrameWriteDescriptor
+    {
+        uint32_t                        binding                = PPX_VALUE_IGNORED;
+        uint32_t                        arrayIndex             = 0;
+        grfx::DescriptorType            type                   = grfx::DESCRIPTOR_TYPE_UNDEFINED;
+        uint64_t                        bufferOffset           = 0;
+        uint64_t                        bufferRange            = 0;
+        uint32_t                        structuredElementCount = 0;
+        PerFrameObjRef<grfx::Buffer>    pBuffer                = nullptr;
+        PerFrameObjRef<grfx::ImageView> pImageView             = nullptr;
+        PerFrameObjRef<grfx::Sampler>   pSampler               = nullptr;
+    };
+
+    Result CreatePerFrameCommandBuffer(grfx::QueuePtr queue, MultiObject<grfx::CommandBuffer>& outCommandBuffer);
+    Result CreatePerFrameBuffer(grfx::BufferCreateInfo* pCreateInfo, MultiObject<grfx::Buffer>& outBuffer);
+    Result CreatePerFrameFence(grfx::FenceCreateInfo* pCreateInfo, MultiObject<grfx::Fence>& outFence);
+    Result CreatePerFrameSemaphore(grfx::SemaphoreCreateInfo* pCreateInfo, MultiObject<grfx::Semaphore>& outSemaphore);
+    Result AllocatePerFrameDescriptorSet(grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, MultiObject<grfx::DescriptorSet>& outSet);
+    Result UpdatePerFrameDescriptors(MultiObject<grfx::DescriptorSet>& descriptorSet, const uint32_t writeCount, const PerFrameWriteDescriptor* pWrites);
+
 protected:
     virtual void DispatchConfig();
     virtual void DispatchSetup();
@@ -289,6 +437,9 @@ protected:
     void DrawImGui(grfx::CommandBuffer* pCommandBuffer);
     void DrawDebugInfo(std::function<void(void)> drawAdditionalFn = []() {});
     void DrawProfilerGrfxApiFunctions();
+
+    template <typename ObjectT>
+    Result AllocateAndBindMultiObject(MultiObjectCreateInfo* pMultiObjectCreateInfo, MultiObject<ObjectT>& outMultiObject, std::function<ppx::Result(ObjectT** outObject)> createObjectFn);
 
 public:
     int  Run(int argc, char** argv);
@@ -409,6 +560,7 @@ private:
     std::unique_ptr<ImGuiImpl>      mImGui;
 
     uint64_t          mFrameCount        = 0;
+    uint64_t          mFrameIndex        = 0;
     uint32_t          mSwapchainIndex    = 0;
     float             mAverageFPS        = 0;
     float             mFrameStartTime    = 0;
@@ -417,6 +569,9 @@ private:
     float             mAverageFrameTime  = 0;
     double            mFirstFrameTime    = 0;
     std::deque<float> mFrameTimesMs;
+
+    std::unique_ptr<MultiObjectActiveIndexBinding> perFrameMultiObjectBinding = nullptr;
+    MultiObjectCreateInfo                          multiObjectCreationInfo;
 
 #if defined(PPX_BUILD_XR)
     XrComponent mXrComponent;

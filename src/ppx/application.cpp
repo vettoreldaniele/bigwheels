@@ -542,6 +542,89 @@ struct WindowEvents
 std::unordered_map<GLFWwindow*, Application*> WindowEvents::sWindows;
 
 // -------------------------------------------------------------------------------------------------
+// Multi object creation
+// -------------------------------------------------------------------------------------------------
+template <typename ObjectT>
+Result Application::AllocateAndBindMultiObject(MultiObjectCreateInfo* pMultiObjectCreateInfo, MultiObject<ObjectT>& outMultiObject, std::function<ppx::Result(ObjectT** outObject)> createObjectFn)
+{
+    outMultiObject.Allocate(pMultiObjectCreateInfo->numObjects);
+    for (uint64_t i = 0; i < pMultiObjectCreateInfo->numObjects; ++i) {
+        Result res = createObjectFn(&outMultiObject.mObjects[i]);
+        if (res != SUCCESS) {
+            return res;
+        }
+    }
+    outMultiObject.BindActiveObjectIndex(pMultiObjectCreateInfo->activeIndexBinding);
+    return SUCCESS;
+}
+
+Result Application::CreatePerFrameCommandBuffer(grfx::QueuePtr queue, MultiObject<grfx::CommandBuffer>& outCommandBuffer)
+{
+    return AllocateAndBindMultiObject<grfx::CommandBuffer>(
+        &multiObjectCreationInfo, outCommandBuffer, [&](grfx::CommandBuffer** obj) {
+            return queue->CreateCommandBuffer(obj);
+        });
+}
+Result Application::CreatePerFrameBuffer(grfx::BufferCreateInfo* pCreateInfo, MultiObject<grfx::Buffer>& outBuffer)
+{
+    return AllocateAndBindMultiObject<grfx::Buffer>(
+        &multiObjectCreationInfo, outBuffer, [&](grfx::Buffer** obj) {
+            return GetDevice()->CreateBuffer(pCreateInfo, obj);
+        });
+}
+
+Result Application::CreatePerFrameFence(grfx::FenceCreateInfo* pCreateInfo, MultiObject<grfx::Fence>& outFence)
+{
+    return AllocateAndBindMultiObject<grfx::Fence>(
+        &multiObjectCreationInfo, outFence, [&](grfx::Fence** obj) {
+            return GetDevice()->CreateFence(pCreateInfo, obj);
+        });
+}
+
+Result Application::CreatePerFrameSemaphore(grfx::SemaphoreCreateInfo* pCreateInfo, MultiObject<grfx::Semaphore>& outSemaphore)
+{
+    return AllocateAndBindMultiObject<grfx::Semaphore>(
+        &multiObjectCreationInfo, outSemaphore, [&](grfx::Semaphore** obj) {
+            return GetDevice()->CreateSemaphore(pCreateInfo, obj);
+        });
+}
+
+Result Application::AllocatePerFrameDescriptorSet(grfx::DescriptorPool* pPool, const grfx::DescriptorSetLayout* pLayout, MultiObject<grfx::DescriptorSet>& outSet)
+{
+    return AllocateAndBindMultiObject<grfx::DescriptorSet>(
+        &multiObjectCreationInfo, outSet, [&](grfx::DescriptorSet** obj) {
+            return GetDevice()->AllocateDescriptorSet(pPool, pLayout, obj);
+        });
+}
+
+Result Application::UpdatePerFrameDescriptors(MultiObject<grfx::DescriptorSet>& descriptorSet, const uint32_t writeCount, const PerFrameWriteDescriptor* pWrites)
+{
+    for (size_t i = 0; i < descriptorSet.GetNumObjects(); ++i) {
+        grfx::DescriptorSet*               pSet = descriptorSet.AtIndex(i);
+        std::vector<grfx::WriteDescriptor> writes(writeCount);
+        for (size_t w = 0; w < writeCount; ++w) {
+            const PerFrameWriteDescriptor& pWrite = pWrites[w];
+            writes[w].arrayIndex                  = pWrite.arrayIndex;
+            writes[w].binding                     = pWrite.binding;
+            writes[w].binding                     = pWrite.binding;
+            writes[w].arrayIndex                  = pWrite.arrayIndex;
+            writes[w].type                        = pWrite.type;
+            writes[w].bufferOffset                = pWrite.bufferOffset;
+            writes[w].bufferRange                 = pWrite.bufferRange;
+            writes[w].structuredElementCount      = pWrite.structuredElementCount;
+            writes[w].pBuffer                     = pWrite.pBuffer.AtIndex(i);
+            writes[w].pImageView                  = pWrite.pImageView.AtIndex(i);
+            writes[w].pSampler                    = pWrite.pSampler.AtIndex(i);
+        }
+        Result res = pSet->UpdateDescriptors(writeCount, writes.data());
+        if (res != SUCCESS) {
+            return res;
+        }
+    }
+    return SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------
 // Application
 // -------------------------------------------------------------------------------------------------
 Application::Application()
@@ -1248,6 +1331,14 @@ int Application::Run(int argc, char** argv)
     // Put this early because it might disable the display.
     DispatchConfig();
 
+    // TODO: Remove after debugging.
+    mSettings.grfx.enableDebug = true;
+
+    perFrameMultiObjectBinding                 = std::make_unique<MultiObjectActiveIndexBinding>(mFrameIndex);
+    multiObjectCreationInfo                    = {};
+    multiObjectCreationInfo.numObjects         = GetNumFramesInFlight();
+    multiObjectCreationInfo.activeIndexBinding = perFrameMultiObjectBinding.get();
+
     // Initialize the platform
     Result ppxres = InitializePlatform();
     if (Failed(ppxres)) {
@@ -1420,6 +1511,7 @@ int Application::Run(int argc, char** argv)
 
         // Frame end
         mFrameCount        = mFrameCount + 1;
+        mFrameIndex        = mFrameCount % GetNumFramesInFlight();
         mFrameEndTime      = static_cast<float>(mTimer.MillisSinceStart());
         mPreviousFrameTime = mFrameEndTime - mFrameStartTime;
 
